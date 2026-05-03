@@ -217,12 +217,16 @@ body.mom-body::after {
     );
 }
 
-/** Extra vertical rhythm between major blocks in the main (right) column only */
-.mom-content-pane main .mom-section-separator:not(.mom-section-separator--tight) {
+/**
+ * Main (right) column: generous separator rhythm on every page (dashboard, profile, etc.).
+ * Overrides base .mom-section-separator margins whenever a separator sits inside main.
+ */
+.mom-content-pane main .mom-section-separator {
     margin-top: 3.75rem;
     margin-bottom: 3.75rem;
 }
 
+/** Optional: tighter separators outside main (e.g. modals); unused in shell main today */
 .mom-section-separator--tight {
     margin: 1.5rem 0;
 }
