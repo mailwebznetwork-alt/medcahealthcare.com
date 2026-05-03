@@ -2,8 +2,6 @@
     :page-title="__('Create vacancy')"
     :welcome-line="__('Define the role, location, and publishing rules.')"
 >
-    @include('operations.job-portal._nav')
-
     <form method="post" action="{{ route('operations.job-portal.vacancies.store') }}" class="space-y-8">
         @csrf
         @include('operations.job-portal.vacancies._form')

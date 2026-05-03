@@ -76,15 +76,7 @@ final class ModuleAccess
             self::OPERATIONS => [
                 'label' => 'Operations',
                 'icon' => 'workflow',
-                'route' => null,
-                'children' => [
-                    [
-                        'key' => 'job_portal',
-                        'label' => 'Job Portal',
-                        'icon' => 'briefcase-business',
-                        'route' => 'operations.job-portal.index',
-                    ],
-                ],
+                'route' => 'modules.operations',
             ],
             self::MARKETING => [
                 'label' => 'Marketing',

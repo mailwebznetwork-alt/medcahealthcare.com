@@ -1,0 +1,13 @@
+---
+description: MarkOnMinds authenticated UI is visually locked; no token or shell drift without explicit user request.
+alwaysApply: true
+---
+
+# MarkOnMinds backend UI — visual lock
+
+- **Do not change** colors, fonts, shadows, radii, or layout of the in-app shell unless the user **explicitly** asks for a named visual change.
+- **Frozen sources of truth** (treat as read-only for drive-by edits): `resources/css/markonminds.css`, `tailwind.config.js` (mom-* theme extensions), `resources/views/components/layouts/markonminds.blade.php`, Vite-loaded shell CSS entry that imports MarkOnMinds styles, and shared Blade UI with `variant="mom"` (`primary-button`, `secondary-button`, `text-input`, `modal`, `input-label`, `input-error`, `danger-button`, etc.).
+- **All authenticated / “backend” pages** in this app must use **`x-app-layout`** or **`x-layouts.markonminds`** only—same shell, Noto Sans, and CSS variables. Never add a second in-app layout theme.
+- **New pages** under `auth` middleware: copy structure from `resources/views/dashboard.blade.php` or `resources/views/profile/edit.blade.php`; use existing mom-* classes and components only—no new arbitrary palette or font stacks.
+
+Auth marketing / guest routes (`welcome`, `layouts/guest`, Breeze auth screens) are **out of scope** for this lock unless the user says otherwise.

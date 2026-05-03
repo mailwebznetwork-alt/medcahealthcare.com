@@ -23,7 +23,9 @@
 
             @if ($node['type'] === 'link')
                 @php
-                    $active = request()->routeIs($node['route']);
+                    $active = $node['key'] === \App\ModuleAccess::OPERATIONS
+                        ? request()->routeIs('modules.operations', 'operations.job-portal.*')
+                        : request()->routeIs($node['route']);
                 @endphp
                 <li>
                     <a
@@ -45,13 +47,20 @@
                         <hr class="mom-nav-divider mom-nav-divider--sidebar" />
                     </li>
                 @endif
+                @if ($node['key'] === \App\ModuleAccess::OPERATIONS)
+                    <li class="list-none px-3 py-2" aria-hidden="true">
+                        <hr class="mom-nav-divider mom-nav-divider--sidebar" />
+                    </li>
+                @endif
             @else
                 <li class="pt-2 first:pt-0">
                     <p class="mom-micro mb-2 px-3">{{ __($node['label']) }}</p>
                     <ul class="space-y-1 border-l border-[rgba(255,255,255,0.06)] pl-3" role="group" aria-label="{{ __($node['label']) }}">
                         @foreach ($node['children'] as $child)
                             @php
-                                $childActive = request()->routeIs('operations.job-portal.*');
+                                $childActive = isset($child['pattern'])
+                                    ? request()->routeIs($child['pattern'])
+                                    : request()->routeIs($child['route']);
                             @endphp
                             <li>
                                 <a
@@ -71,11 +80,6 @@
                         @endforeach
                     </ul>
                 </li>
-                @if ($node['key'] === 'operations')
-                    <li class="list-none px-3 py-2" aria-hidden="true">
-                        <hr class="mom-nav-divider mom-nav-divider--sidebar" />
-                    </li>
-                @endif
             @endif
         @endforeach
     </ul>

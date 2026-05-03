@@ -2,8 +2,6 @@
     :page-title="__('Vacancies')"
     :welcome-line="__('Create, publish, and govern open roles.')"
 >
-    @include('operations.job-portal._nav')
-
     @if (session('status') === 'vacancy-deleted')
         <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('Vacancy removed.') }}</p>
     @endif

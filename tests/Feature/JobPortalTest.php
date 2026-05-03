@@ -7,6 +7,20 @@ use App\Models\User;
 use App\Models\Vacancy;
 use App\ModuleAccess;
 
+it('allows operations users to open the operations hub', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'module_access' => collect(ModuleAccess::keys())
+            ->mapWithKeys(fn (string $k) => [$k => $k === ModuleAccess::OPERATIONS])
+            ->all(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('modules.operations'))
+        ->assertOk()
+        ->assertSee(__('Operations command center'), false);
+});
+
 it('allows operations users to open the job portal dashboard', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),

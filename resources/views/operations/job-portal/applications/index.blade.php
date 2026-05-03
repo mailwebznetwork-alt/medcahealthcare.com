@@ -2,8 +2,6 @@
     :page-title="__('Applications')"
     :welcome-line="__('Candidate pipeline across published roles.')"
 >
-    @include('operations.job-portal._nav')
-
     <form method="get" action="{{ route('operations.job-portal.applications.index') }}" class="mb-8 flex flex-wrap gap-3">
         <select name="vacancy_id" class="min-w-[14rem] rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
             <option value="">{{ __('All vacancies') }}</option>

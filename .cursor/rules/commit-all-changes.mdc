@@ -1,0 +1,15 @@
+---
+description: After substantive edits, stage and commit with a clear message; never leave reviewed work uncommitted.
+alwaysApply: true
+---
+
+# Git — commit completed work
+
+When you finish a task that changes the repo (code, config, tests, rules, or assets meant to be tracked):
+
+1. Run `git status` and ensure only intended paths are modified.
+2. Run formatters/tests the project requires for touched code (e.g. Pint on PHP, `php artisan test` when behavior changed).
+3. `git add -A` (or scoped adds) and **`git commit`** with a subject line that states what changed and why in plain language. Use a body paragraph if the change is non-obvious.
+4. Do **not** end the session with a clean working tree of uncommitted changes the user asked you to implement or review.
+
+**Exceptions:** Do not commit if the user explicitly asked not to, or if the repo has no commits / git is unavailable. Do not commit secrets, local-only files, or generated artifacts that belong in `.gitignore`.

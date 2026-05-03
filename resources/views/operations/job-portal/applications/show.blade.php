@@ -2,8 +2,6 @@
     :page-title="$application->full_name"
     :welcome-line="$application->vacancy?->title"
 >
-    @include('operations.job-portal._nav')
-
     @if (session('status') === 'application-updated')
         <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('Pipeline stage updated.') }}</p>
     @endif

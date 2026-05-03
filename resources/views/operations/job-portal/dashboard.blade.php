@@ -2,8 +2,6 @@
     :page-title="__('Job Portal')"
     :welcome-line="__('Hiring operations overview.')"
 >
-    @include('operations.job-portal._nav')
-
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-5">
         @foreach ([
             ['label' => __('Total vacancies'), 'value' => number_format($metrics['total_vacancies']), 'hint' => __('All records in the system')],

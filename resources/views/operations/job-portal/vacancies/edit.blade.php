@@ -2,8 +2,6 @@
     :page-title="__('Edit vacancy')"
     :welcome-line="__('Refine content, SEO, and publishing state.')"
 >
-    @include('operations.job-portal._nav')
-
     @if (session('status') === 'vacancy-created' || session('status') === 'vacancy-updated' || session('status') === 'vacancy-duplicated')
         <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('Vacancy saved.') }}</p>
     @endif

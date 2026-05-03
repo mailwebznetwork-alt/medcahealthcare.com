@@ -6,6 +6,7 @@ use App\Http\Controllers\ModuleSurfaceController;
 use App\Http\Controllers\Operations\JobPortal\ApplicationController;
 use App\Http\Controllers\Operations\JobPortal\JobPortalDashboardController;
 use App\Http\Controllers\Operations\JobPortal\VacancyController;
+use App\Http\Controllers\Operations\OperationsHubController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfileModuleAccessController;
 use App\Http\Controllers\SettingsController;
@@ -32,7 +33,7 @@ Route::middleware(['auth', 'verified', 'module:site_architect'])->group(function
 });
 
 Route::middleware(['auth', 'verified', 'module:operations'])->group(function () {
-    Route::redirect('/operations', '/operations/job-portal')->name('modules.operations');
+    Route::get('/operations', OperationsHubController::class)->name('modules.operations');
 
     Route::prefix('operations/job-portal')->name('operations.job-portal.')->group(function () {
         Route::get('/', JobPortalDashboardController::class)->name('index');

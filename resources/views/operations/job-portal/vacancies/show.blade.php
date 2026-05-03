@@ -2,8 +2,6 @@
     :page-title="$vacancy->title"
     :welcome-line="__('Vacancy record.')"
 >
-    @include('operations.job-portal._nav')
-
     <div class="mom-card p-6">
         <dl class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
