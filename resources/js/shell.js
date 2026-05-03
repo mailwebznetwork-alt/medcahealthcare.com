@@ -4,6 +4,7 @@ import {
     ChevronRight,
     CircleUser,
     Database,
+    DraftingCompass,
     FileChartColumn,
     FolderKanban,
     Gauge,
@@ -11,13 +12,17 @@ import {
     LayoutDashboard,
     LineChart,
     LogOut,
+    Megaphone,
     Orbit,
     PanelLeft,
     Search,
     Settings,
     ShieldCheck,
     Sparkles,
+    TrendingUp,
     Users,
+    UsersRound,
+    Workflow,
 } from 'lucide';
 
 const lucideIcons = {
@@ -25,6 +30,7 @@ const lucideIcons = {
     ChevronRight,
     CircleUser,
     Database,
+    DraftingCompass,
     FileChartColumn,
     FolderKanban,
     Gauge,
@@ -32,13 +38,17 @@ const lucideIcons = {
     LayoutDashboard,
     LineChart,
     LogOut,
+    Megaphone,
     Orbit,
     PanelLeft,
     Search,
     Settings,
     ShieldCheck,
     Sparkles,
+    TrendingUp,
     Users,
+    UsersRound,
+    Workflow,
 };
 
 function bootIcons() {

@@ -75,7 +75,7 @@ final class ModuleAccess
             ],
             self::OPERATIONS => [
                 'label' => 'Operations',
-                'icon' => 'clipboard-list',
+                'icon' => 'workflow',
                 'route' => 'modules.operations',
             ],
             self::MARKETING => [
@@ -85,7 +85,7 @@ final class ModuleAccess
             ],
             self::GROWTH_CENTER => [
                 'label' => 'Growth Center',
-                'icon' => 'chart-line',
+                'icon' => 'trending-up',
                 'route' => 'modules.growth-center',
             ],
             self::USER_MANAGEMENT => [
@@ -95,7 +95,7 @@ final class ModuleAccess
             ],
             self::SECURITY => [
                 'label' => 'Security',
-                'icon' => 'shield',
+                'icon' => 'shield-check',
                 'route' => 'modules.security',
             ],
             self::SETTINGS => [
