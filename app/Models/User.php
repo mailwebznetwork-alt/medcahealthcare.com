@@ -66,11 +66,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Navigation entries the user may see (sidebar, command palette, etc.).
+     * Sidebar nodes: single links or grouped items (e.g. Operations → Job Portal).
      *
-     * @return list<array{key: string, label: string, icon: string, route: string}>
+     * @return list<array{type: 'link', key: string, label: string, icon: string, route: string}|array{type: 'group', key: string, label: string, icon: string, children: list<array{key: string, label: string, icon: string, route: string}>}>
      */
-    public function visibleNavigation(): array
+    public function visibleSidebarNodes(): array
     {
         $out = [];
 
@@ -79,17 +79,30 @@ class User extends Authenticatable
                 continue;
             }
 
-            $routeName = $meta['route'];
-            if ($routeName === null) {
+            $children = $meta['children'] ?? [];
+
+            if ($children !== []) {
+                $out[] = [
+                    'type' => 'group',
+                    'key' => $key,
+                    'label' => $meta['label'],
+                    'icon' => $meta['icon'],
+                    'children' => $children,
+                ];
+
                 continue;
             }
 
-            $out[] = [
-                'key' => $key,
-                'label' => $meta['label'],
-                'icon' => $meta['icon'],
-                'route' => $routeName,
-            ];
+            $routeName = $meta['route'] ?? null;
+            if (is_string($routeName) && $routeName !== '') {
+                $out[] = [
+                    'type' => 'link',
+                    'key' => $key,
+                    'label' => $meta['label'],
+                    'icon' => $meta['icon'],
+                    'route' => $routeName,
+                ];
+            }
         }
 
         return $out;

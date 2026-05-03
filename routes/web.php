@@ -1,7 +1,11 @@
 <?php
 
+use App\Http\Controllers\Careers\CareersController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ModuleSurfaceController;
+use App\Http\Controllers\Operations\JobPortal\ApplicationController;
+use App\Http\Controllers\Operations\JobPortal\JobPortalDashboardController;
+use App\Http\Controllers\Operations\JobPortal\VacancyController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfileModuleAccessController;
 use App\Http\Controllers\SettingsController;
@@ -10,6 +14,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/careers', [CareersController::class, 'index'])->name('careers.index');
+Route::get('/careers/{slug}', [CareersController::class, 'show'])->name('careers.show');
+Route::post('/careers/{slug}/apply', [CareersController::class, 'storeApplication'])
+    ->middleware('throttle:10,1')
+    ->name('careers.apply');
 
 Route::middleware(['auth', 'verified', 'module:dashboard'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
@@ -22,9 +32,14 @@ Route::middleware(['auth', 'verified', 'module:site_architect'])->group(function
 });
 
 Route::middleware(['auth', 'verified', 'module:operations'])->group(function () {
-    Route::get('/operations', [ModuleSurfaceController::class, 'show'])
-        ->defaults('momModule', 'operations')
-        ->name('modules.operations');
+    Route::redirect('/operations', '/operations/job-portal')->name('modules.operations');
+
+    Route::prefix('operations/job-portal')->name('operations.job-portal.')->group(function () {
+        Route::get('/', JobPortalDashboardController::class)->name('index');
+        Route::post('vacancies/{vacancy}/duplicate', [VacancyController::class, 'duplicate'])->name('vacancies.duplicate');
+        Route::resource('vacancies', VacancyController::class);
+        Route::resource('applications', ApplicationController::class)->only(['index', 'show', 'update']);
+    });
 });
 
 Route::middleware(['auth', 'verified', 'module:marketing'])->group(function () {

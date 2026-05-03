@@ -25,6 +25,7 @@
         $resolvedWelcome = match (true) {
             request()->routeIs('profile.*') => __('Account security and identity preferences.'),
             request()->routeIs('settings.*') => __('Workspace configuration and preferences.'),
+            request()->routeIs('operations.job-portal.*') => __('Hiring operations and applicant pipeline.'),
             request()->routeIs('modules.*') => __('Focused module workspace.'),
             default => __('Welcome back — here is your intelligence snapshot.'),
         };

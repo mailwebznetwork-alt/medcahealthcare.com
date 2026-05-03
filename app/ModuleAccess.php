@@ -58,7 +58,7 @@ final class ModuleAccess
     /**
      * Sidebar + route metadata (single source of truth).
      *
-     * @return array<string, array{label: string, icon: string, route: string|null}>
+     * @return array<string, array{label: string, icon: string, route: string|null, children?: list<array{key: string, label: string, icon: string, route: string}>}>
      */
     public static function navigation(): array
     {
@@ -76,7 +76,15 @@ final class ModuleAccess
             self::OPERATIONS => [
                 'label' => 'Operations',
                 'icon' => 'workflow',
-                'route' => 'modules.operations',
+                'route' => null,
+                'children' => [
+                    [
+                        'key' => 'job_portal',
+                        'label' => 'Job Portal',
+                        'icon' => 'briefcase-business',
+                        'route' => 'operations.job-portal.index',
+                    ],
+                ],
             ],
             self::MARKETING => [
                 'label' => 'Marketing',

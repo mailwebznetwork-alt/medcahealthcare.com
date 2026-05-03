@@ -255,6 +255,11 @@ body.mom-body::after {
     opacity: 0.9;
 }
 
+/** Tighter rhythm when nav dividers sit between <li> rows in the sidebar list */
+.mom-nav-divider--sidebar {
+    margin: 0.65rem 0;
+}
+
 /* ---- Premium card shell (exact stack) ---- */
 
 .mom-card {

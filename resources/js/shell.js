@@ -1,6 +1,7 @@
 import { createIcons } from 'lucide';
 import {
     Activity,
+    BriefcaseBusiness,
     ChevronRight,
     CircleUser,
     Database,
@@ -27,6 +28,7 @@ import {
 
 const lucideIcons = {
     Activity,
+    BriefcaseBusiness,
     ChevronRight,
     CircleUser,
     Database,
