@@ -67,7 +67,7 @@ function mountAnalyticsChart() {
                 stops: [0, 100],
                 colorStops: [
                     { offset: 0, color: gold, opacity: 0.4 },
-                    { offset: 100, color: '#16100c', opacity: 0 },
+                    { offset: 100, color: '#1c1613', opacity: 0 },
                 ],
             },
         },
@@ -115,7 +115,7 @@ function mountAnalyticsChart() {
             hover: {
                 size: 4,
                 colors: [gold],
-                strokeColors: '#1a120d',
+                strokeColors: '#14110e',
                 strokeWidth: 2,
             },
         },
@@ -155,7 +155,7 @@ function mountTrafficDonut() {
         stroke: {
             show: true,
             width: 2,
-            colors: ['#1a120d'],
+            colors: ['#14110e'],
         },
         plotOptions: {
             pie: {

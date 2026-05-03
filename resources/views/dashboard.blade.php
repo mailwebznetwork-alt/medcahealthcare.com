@@ -28,7 +28,7 @@
                 @endphp
                 <article class="mom-card mom-card-interactive px-5 py-4">
                     <p class="mom-micro">{{ $kpi['label'] }}</p>
-                    <p class="mt-2 flex flex-wrap items-baseline gap-x-3">
+                    <p class="mt-2 flex flex-wrap items-baseline gap-x-8">
                         <span class="mom-metric leading-none">{{ $kpi['value'] }}</span>
                         <span
                             class="mom-micro normal-case"
@@ -43,7 +43,7 @@
                         <defs>
                             <linearGradient id="spark-fill-{{ $loop->index }}" x1="0" x2="0" y1="0" y2="1">
                                 <stop offset="0%" stop-color="#d4a95f" stop-opacity="0.2" />
-                                <stop offset="100%" stop-color="#16100c" stop-opacity="0" />
+                                <stop offset="100%" stop-color="#1c1613" stop-opacity="0" />
                             </linearGradient>
                         </defs>
                         <path
