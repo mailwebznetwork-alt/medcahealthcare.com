@@ -80,7 +80,7 @@
                                     href="{{ route('dashboard') }}"
                                     @class([
                                         'mom-nav-active flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-mom-gold transition-all duration-320 ease-premium' => $navDashboard,
-                                        'flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(212,169,95,0.06)]' => ! $navDashboard,
+                                        'flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(160,135,80,0.06)]' => ! $navDashboard,
                                     ])
                                 >
                                     <i data-lucide="layout-dashboard" class="h-[18px] w-[18px] shrink-0 {{ $navDashboard ? '' : 'opacity-80' }}"></i>
@@ -92,7 +92,7 @@
                                     href="{{ route('profile.edit') }}"
                                     @class([
                                         'mom-nav-active flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-mom-gold transition-all duration-320 ease-premium' => $navProfile,
-                                        'flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(212,169,95,0.06)]' => ! $navProfile,
+                                        'flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(160,135,80,0.06)]' => ! $navProfile,
                                     ])
                                 >
                                     <i data-lucide="circle-user" class="h-[18px] w-[18px] shrink-0 {{ $navProfile ? '' : 'opacity-80' }}"></i>
@@ -102,7 +102,7 @@
                             <li>
                                 <a
                                     href="#"
-                                    class="flex items-center gap-3 rounded-full px-3 py-2.5 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(212,169,95,0.06)]"
+                                    class="flex items-center gap-3 rounded-full px-3 py-2.5 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(160,135,80,0.06)]"
                                 >
                                     <i data-lucide="line-chart" class="h-[18px] w-[18px] shrink-0 opacity-80"></i>
                                     <span class="text-sm font-medium">{{ __('Analytics') }}</span>
@@ -119,7 +119,7 @@
                             <li>
                                 <a
                                     href="#"
-                                    class="flex items-center gap-3 rounded-full px-3 py-2.5 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(212,169,95,0.06)]"
+                                    class="flex items-center gap-3 rounded-full px-3 py-2.5 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(160,135,80,0.06)]"
                                 >
                                     <i data-lucide="users" class="h-[18px] w-[18px] shrink-0 opacity-80"></i>
                                     <span class="text-sm font-medium">Users</span>
@@ -128,7 +128,7 @@
                             <li>
                                 <a
                                     href="#"
-                                    class="flex items-center gap-3 rounded-full px-3 py-2.5 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(212,169,95,0.06)]"
+                                    class="flex items-center gap-3 rounded-full px-3 py-2.5 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(160,135,80,0.06)]"
                                 >
                                     <i data-lucide="folder-kanban" class="h-[18px] w-[18px] shrink-0 opacity-80"></i>
                                     <span class="text-sm font-medium">Projects</span>
@@ -145,7 +145,7 @@
                             <li>
                                 <a
                                     href="#"
-                                    class="flex items-center gap-3 rounded-full px-3 py-2.5 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(212,169,95,0.06)]"
+                                    class="flex items-center gap-3 rounded-full px-3 py-2.5 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(160,135,80,0.06)]"
                                 >
                                     <i data-lucide="sparkles" class="h-[18px] w-[18px] shrink-0 opacity-80"></i>
                                     <span class="text-sm font-medium">AI Studio</span>
@@ -154,7 +154,7 @@
                             <li>
                                 <a
                                     href="#"
-                                    class="flex items-center gap-3 rounded-full px-3 py-2.5 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(212,169,95,0.06)]"
+                                    class="flex items-center gap-3 rounded-full px-3 py-2.5 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(160,135,80,0.06)]"
                                 >
                                     <i data-lucide="file-chart-column" class="h-[18px] w-[18px] shrink-0 opacity-80"></i>
                                     <span class="text-sm font-medium">Reports</span>
@@ -173,7 +173,7 @@
                 >
                     <button
                         type="button"
-                        class="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(255,255,255,0.045)] text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)] hover:text-[var(--text-primary)] lg:hidden"
+                        class="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(255,255,255,0.045)] text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(160,135,80,0.16)] hover:text-[var(--text-primary)] lg:hidden"
                         @click="mobileNav = true"
                         aria-label="Open navigation"
                     >
@@ -193,7 +193,7 @@
                             <input
                                 type="search"
                                 placeholder="Search intelligence, entities, signals…"
-                                class="w-full rounded-full border border-[rgba(255,255,255,0.045)] bg-[rgba(28,20,14,0.88)] py-2.5 pl-11 pr-24 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] shadow-mom-inner outline-none ring-offset-0 transition-all duration-320 ease-premium focus:border-[rgba(212,169,95,0.28)] focus:shadow-[0_0_24px_rgba(212,169,95,0.12)]"
+                                class="w-full rounded-full border border-[rgba(255,255,255,0.045)] bg-[rgba(28,20,14,0.88)] py-2.5 pl-11 pr-24 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] shadow-mom-inner outline-none ring-offset-0 transition-all duration-320 ease-premium focus:border-[rgba(160,135,80,0.28)] focus:shadow-[0_0_24px_rgba(160,135,80,0.12)]"
                             />
                             <kbd
                                 class="pointer-events-none absolute right-3 hidden rounded-md border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-2 py-0.5 font-mono text-[11px] text-[var(--text-muted)] sm:inline-block"
@@ -208,7 +208,7 @@
                     >
                         <button
                             type="button"
-                            class="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] text-xs font-semibold text-mom-gold transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.35)] hover:shadow-[0_0_20px_rgba(212,169,95,0.12)]"
+                            class="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(160,135,80,0.22)] bg-[rgba(160,135,80,0.08)] text-xs font-semibold text-mom-gold transition-all duration-320 ease-premium hover:border-[rgba(160,135,80,0.35)] hover:shadow-[0_0_20px_rgba(160,135,80,0.12)]"
                             @click="profileOpen = ! profileOpen"
                             x-bind:aria-expanded="profileOpen"
                             aria-haspopup="true"
@@ -228,14 +228,14 @@
                             x-transition:leave-start="opacity-100 translate-y-0"
                             x-transition:leave-end="opacity-0 translate-y-1"
                             @click.outside="profileOpen = false"
-                            class="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-[min(18rem,calc(100vw-2.5rem))] rounded-mom-lg border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-matte)] p-4 shadow-mom-elevated ring-1 ring-[rgba(212,169,95,0.06)]"
+                            class="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-[min(18rem,calc(100vw-2.5rem))] rounded-mom-lg border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-matte)] p-4 shadow-mom-elevated ring-1 ring-[rgba(160,135,80,0.06)]"
                             style="display: none;"
                             role="menu"
                             aria-orientation="vertical"
                         >
                             <div class="flex items-start gap-3 border-b border-[rgba(255,255,255,0.045)] pb-4">
                                 <div
-                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] text-xs font-semibold tracking-wide text-mom-gold"
+                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[rgba(160,135,80,0.22)] bg-[rgba(160,135,80,0.08)] text-xs font-semibold tracking-wide text-mom-gold"
                                     aria-hidden="true"
                                 >
                                     {{ $initials ?: 'AU' }}

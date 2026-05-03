@@ -15,7 +15,7 @@
     ][$maxWidth];
 
     $panelClass = $variant === 'mom'
-        ? 'mb-6 overflow-hidden transform transition-all sm:w-full '.$maxWidth.' sm:mx-auto rounded-mom-lg border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-matte)] shadow-mom-elevated ring-1 ring-[rgba(212,169,95,0.06)]'
+        ? 'mb-6 overflow-hidden transform transition-all sm:w-full '.$maxWidth.' sm:mx-auto rounded-mom-lg border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-matte)] shadow-mom-elevated ring-1 ring-[rgba(160,135,80,0.06)]'
         : 'mb-6 bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:w-full '.$maxWidth.' sm:mx-auto';
 
     $backdropClass = $variant === 'mom'

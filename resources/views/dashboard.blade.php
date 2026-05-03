@@ -29,7 +29,7 @@
                     <svg viewBox="0 0 120 36" class="mt-3 h-7 w-full" preserveAspectRatio="none" aria-hidden="true">
                         <defs>
                             <linearGradient id="spark-fill-{{ $loop->index }}" x1="0" x2="0" y1="0" y2="1">
-                                <stop offset="0%" stop-color="#d4a95f" stop-opacity="0.2" />
+                                <stop offset="0%" stop-color="#a08750" stop-opacity="0.2" />
                                 <stop offset="100%" stop-color="#1c1613" stop-opacity="0" />
                             </linearGradient>
                         </defs>
@@ -41,7 +41,7 @@
                         <path
                             d="{{ $kpi['path'] }}"
                             fill="none"
-                            stroke="#d4a95f"
+                            stroke="#a08750"
                             stroke-width="2"
                             stroke-linecap="round"
                             stroke-linejoin="round"
@@ -78,7 +78,7 @@
                         <p class="mom-micro">Live stream</p>
                         <h2 class="mom-section-title mt-2">Real-time activity</h2>
                     </div>
-                    <span class="mom-live-pulse rounded-mom-pill border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-mom-gold">Live</span>
+                    <span class="mom-live-pulse rounded-mom-pill border border-[rgba(160,135,80,0.22)] bg-[rgba(160,135,80,0.08)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-mom-gold">Live</span>
                 </div>
                 <ul class="mt-6 space-y-5">
                     @foreach ([
@@ -91,7 +91,7 @@
                         <li class="flex gap-4">
                             <span class="relative mt-1.5 flex h-2 w-2 shrink-0">
                                 <span
-                                    class="absolute inset-0 rounded-full {{ $item['tone'] === 'gold' ? 'bg-mom-gold shadow-[0_0_12px_rgba(212,169,95,0.45)]' : 'bg-[rgba(255,255,255,0.12)]' }}"
+                                    class="absolute inset-0 rounded-full {{ $item['tone'] === 'gold' ? 'bg-mom-gold shadow-[0_0_12px_rgba(160,135,80,0.45)]' : 'bg-[rgba(255,255,255,0.12)]' }}"
                                 ></span>
                             </span>
                             <div class="min-w-0">
@@ -122,7 +122,7 @@
                             </div>
                             <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--bg-card-track)]">
                                 <div
-                                    class="h-full rounded-full bg-gradient-to-r from-[rgba(212,169,95,0.25)] to-[#d4a95f] shadow-[0_0_18px_rgba(212,169,95,0.25)]"
+                                    class="h-full rounded-full bg-gradient-to-r from-[rgba(160,135,80,0.25)] to-[#a08750] shadow-[0_0_18px_rgba(160,135,80,0.25)]"
                                     style="width: {{ $pct }}%"
                                 ></div>
                             </div>
@@ -182,7 +182,7 @@
                     </div>
                     <button
                         type="button"
-                        class="rounded-mom-pill border border-[rgba(255,255,255,0.045)] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)] hover:text-[var(--text-primary)]"
+                        class="rounded-mom-pill border border-[rgba(255,255,255,0.045)] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(160,135,80,0.16)] hover:text-[var(--text-primary)]"
                     >
                         View all
                     </button>
@@ -225,7 +225,7 @@
                         <div class="flex flex-col items-center gap-3">
                             <div
                                 class="relative grid h-[92px] w-[92px] place-items-center rounded-full p-[3px]"
-                                style="background: conic-gradient(#d4a95f {{ $pct }}%, rgba(255,255,255,0.06) 0);"
+                                style="background: conic-gradient(#a08750 {{ $pct }}%, rgba(255,255,255,0.06) 0);"
                             >
                                 <div
                                     class="flex h-full w-full flex-col items-center justify-center rounded-full border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-matte-deep)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
@@ -260,9 +260,9 @@
                     @foreach ([['sparkles', 'Compose insight'], ['shield-check', 'Policies'], ['database', 'Connectors'], ['gauge', 'Latency']] as [$icon, $lbl])
                         <button
                             type="button"
-                            class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)]"
+                            class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(160,135,80,0.16)]"
                         >
-                            <span class="flex h-9 w-9 items-center justify-center rounded-mom-sm border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] text-mom-gold">
+                            <span class="flex h-9 w-9 items-center justify-center rounded-mom-sm border border-[rgba(160,135,80,0.22)] bg-[rgba(160,135,80,0.08)] text-mom-gold">
                                 <i data-lucide="{{ $icon }}" class="h-[16px] w-[16px]"></i>
                             </span>
                             <span class="text-[13px] font-medium leading-snug text-[var(--text-primary)]">{{ $lbl }}</span>
