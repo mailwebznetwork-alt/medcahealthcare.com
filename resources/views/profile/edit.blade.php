@@ -10,6 +10,12 @@
         <hr class="mom-section-separator" aria-hidden="true" />
 
         <div class="mom-card p-6">
+            @include('profile.partials.update-module-access-form')
+        </div>
+
+        <hr class="mom-section-separator" aria-hidden="true" />
+
+        <div class="mom-card p-6">
             @include('profile.partials.update-password-form')
         </div>
 

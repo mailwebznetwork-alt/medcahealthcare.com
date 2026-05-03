@@ -22,13 +22,14 @@
 
     $resolvedWelcome = $welcomeLine;
     if ($resolvedWelcome === null) {
-        $resolvedWelcome = request()->routeIs('profile.*')
-            ? __('Account security and identity preferences.')
-            : __('Welcome back — here is your intelligence snapshot.');
+        $resolvedWelcome = match (true) {
+            request()->routeIs('profile.*') => __('Account security and identity preferences.'),
+            request()->routeIs('settings.*') => __('Workspace configuration and preferences.'),
+            request()->routeIs('modules.*') => __('Focused module workspace.'),
+            default => __('Welcome back — here is your intelligence snapshot.'),
+        };
     }
 
-    $navDashboard = request()->routeIs('dashboard');
-    $navProfile = request()->routeIs('profile.edit');
 @endphp
 
 <!DOCTYPE html>
@@ -71,98 +72,7 @@
                     <span class="text-[calc(1.125rem*1.3)] font-semibold leading-tight tracking-tight text-mom-wordmark">MarkOnMinds</span>
                 </div>
 
-                <nav class="mom-sidebar-nav-scroll flex min-h-0 flex-1 flex-col gap-0 overflow-y-auto px-4 py-8">
-                    <div>
-                        <p class="mom-micro mb-3 px-3">Main</p>
-                        <ul class="space-y-1">
-                            <li>
-                                <a
-                                    href="{{ route('dashboard') }}"
-                                    @class([
-                                        'mom-nav-active flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-mom-gold transition-all duration-320 ease-premium' => $navDashboard,
-                                        'flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(212,169,95,0.06)]' => ! $navDashboard,
-                                    ])
-                                >
-                                    <i data-lucide="layout-dashboard" class="h-[18px] w-[18px] shrink-0 {{ $navDashboard ? '' : 'opacity-80' }}"></i>
-                                    <span>{{ __('Dashboard') }}</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="{{ route('profile.edit') }}"
-                                    @class([
-                                        'mom-nav-active flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-mom-gold transition-all duration-320 ease-premium' => $navProfile,
-                                        'flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(212,169,95,0.06)]' => ! $navProfile,
-                                    ])
-                                >
-                                    <i data-lucide="circle-user" class="h-[18px] w-[18px] shrink-0 {{ $navProfile ? '' : 'opacity-80' }}"></i>
-                                    <span>{{ __('Profile') }}</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="#"
-                                    class="flex items-center gap-3 rounded-full px-3 py-2.5 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(212,169,95,0.06)]"
-                                >
-                                    <i data-lucide="line-chart" class="h-[18px] w-[18px] shrink-0 opacity-80"></i>
-                                    <span class="text-sm font-medium">{{ __('Analytics') }}</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <hr class="mom-nav-divider" aria-hidden="true" />
-
-                    <div>
-                        <p class="mom-micro mb-3 px-3">Operations</p>
-                        <ul class="space-y-1">
-                            <li>
-                                <a
-                                    href="#"
-                                    class="flex items-center gap-3 rounded-full px-3 py-2.5 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(212,169,95,0.06)]"
-                                >
-                                    <i data-lucide="users" class="h-[18px] w-[18px] shrink-0 opacity-80"></i>
-                                    <span class="text-sm font-medium">Users</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="#"
-                                    class="flex items-center gap-3 rounded-full px-3 py-2.5 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(212,169,95,0.06)]"
-                                >
-                                    <i data-lucide="folder-kanban" class="h-[18px] w-[18px] shrink-0 opacity-80"></i>
-                                    <span class="text-sm font-medium">Projects</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <hr class="mom-nav-divider" aria-hidden="true" />
-
-                    <div>
-                        <p class="mom-micro mb-3 px-3">Insights</p>
-                        <ul class="space-y-1">
-                            <li>
-                                <a
-                                    href="#"
-                                    class="flex items-center gap-3 rounded-full px-3 py-2.5 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(212,169,95,0.06)]"
-                                >
-                                    <i data-lucide="sparkles" class="h-[18px] w-[18px] shrink-0 opacity-80"></i>
-                                    <span class="text-sm font-medium">AI Studio</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="#"
-                                    class="flex items-center gap-3 rounded-full px-3 py-2.5 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(212,169,95,0.06)]"
-                                >
-                                    <i data-lucide="file-chart-column" class="h-[18px] w-[18px] shrink-0 opacity-80"></i>
-                                    <span class="text-sm font-medium">Reports</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </nav>
+                <x-mom-sidebar-nav :user="$user" />
             </aside>
 
             {{-- Main column: neutral app canvas; warm text scope optional --}}
@@ -252,8 +162,8 @@
                                     class="mom-subtext inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[var(--text-muted)] transition-colors duration-320 ease-premium hover:text-[var(--text-secondary)]"
                                     @click="profileOpen = false"
                                 >
-                                    <i data-lucide="settings" class="h-3.5 w-3.5 shrink-0"></i>
-                                    {{ __('Settings') }}
+                                    <i data-lucide="circle-user" class="h-3.5 w-3.5 shrink-0"></i>
+                                    {{ __('Account') }}
                                 </a>
                                 <form method="POST" action="{{ route('logout') }}" class="inline">
                                     @csrf
