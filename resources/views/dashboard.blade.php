@@ -15,6 +15,10 @@
     $bottomAny = $w['user_management'] || $w['growth_center'] || $w['dashboard'];
 @endphp
 
+@push('mom-module-toolbar')
+    @include('dashboard.partials.toolbar')
+@endpush
+
 <x-layouts.markonminds
     page-title="Dashboard Overview"
     welcome-line="Welcome back — intelligence surfaces reflect your assigned modules."

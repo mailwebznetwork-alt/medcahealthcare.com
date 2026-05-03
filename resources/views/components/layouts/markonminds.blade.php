@@ -50,7 +50,17 @@
     </head>
     <body
         class="mom-body font-sans antialiased text-[var(--text-primary)]"
-        x-data="{ mobileNav: false }"
+        x-data="{
+            mobileNav: false,
+            sidebarCollapsed: false,
+            toggleSidebar() {
+                this.sidebarCollapsed = ! this.sidebarCollapsed;
+                if (typeof localStorage !== 'undefined') {
+                    localStorage.setItem('mom-sidebar-collapsed', this.sidebarCollapsed ? '1' : '0');
+                }
+            },
+        }"
+        x-init="if (typeof localStorage !== 'undefined' && localStorage.getItem('mom-sidebar-collapsed') === '1') { sidebarCollapsed = true }"
         @keydown.escape.window="mobileNav = false"
     >
         <div class="mom-noise" aria-hidden="true"></div>
@@ -67,8 +77,12 @@
         <div id="mom-shell" class="relative z-10 flex min-h-screen">
             {{-- Sidebar --}}
             <aside
-                class="mom-sidebar-pane fixed inset-y-0 left-0 z-50 flex min-h-0 w-[260px] -translate-x-full flex-col border-r border-[rgba(255,255,255,0.045)] transition-transform duration-320 ease-premium lg:sticky lg:top-0 lg:h-screen lg:max-h-[100dvh] lg:shrink-0 lg:self-start lg:translate-x-0"
-                :class="{ '!translate-x-0': mobileNav }"
+                id="mom-sidebar"
+                class="mom-sidebar-pane fixed inset-y-0 left-0 z-50 flex min-h-0 w-[260px] min-w-[260px] -translate-x-full flex-col border-r border-[rgba(255,255,255,0.045)] transition-all duration-320 ease-premium lg:sticky lg:top-0 lg:h-screen lg:max-h-[100dvh] lg:shrink-0 lg:self-start lg:translate-x-0"
+                :class="{
+                    '!translate-x-0': mobileNav,
+                    'lg:w-0 lg:min-w-0 lg:overflow-hidden lg:border-transparent lg:opacity-0 lg:pointer-events-none': sidebarCollapsed && ! mobileNav,
+                }"
             >
                 <div class="flex h-[72px] shrink-0 items-center gap-3 border-b border-[rgba(255,255,255,0.045)] px-6">
                     <span class="text-[calc(1.125rem*1.3)] font-semibold leading-tight tracking-tight text-mom-wordmark">MarkOnMinds</span>
@@ -87,9 +101,30 @@
                         type="button"
                         class="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(255,255,255,0.045)] text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)] hover:text-[var(--text-primary)] lg:hidden"
                         @click="mobileNav = true"
-                        aria-label="Open navigation"
+                        aria-label="{{ __('Open navigation') }}"
                     >
                         <i data-lucide="panel-left" class="h-[18px] w-[18px]"></i>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="relative hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[rgba(255,255,255,0.045)] text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)] hover:text-[var(--text-primary)] lg:inline-flex"
+                        @click="toggleSidebar()"
+                        aria-controls="mom-sidebar"
+                        :aria-expanded="!sidebarCollapsed"
+                        x-bind:aria-label="sidebarCollapsed ? @js(__('Show sidebar')) : @js(__('Hide sidebar'))"
+                    >
+                        <i
+                            x-show="!sidebarCollapsed"
+                            class="absolute h-[18px] w-[18px]"
+                            data-lucide="panel-left-close"
+                        ></i>
+                        <i
+                            x-show="sidebarCollapsed"
+                            class="absolute h-[18px] w-[18px]"
+                            x-cloak
+                            data-lucide="panel-left"
+                        ></i>
                     </button>
 
                     <div class="hidden min-w-0 flex-1 md:block">
@@ -183,9 +218,14 @@
                     </div>
                 </header>
 
-                <main class="flex-1 px-8 py-8">
-                    {{ $slot }}
-                </main>
+                <div class="mom-app-main-column flex min-h-0 min-w-0 flex-1 flex-col">
+                    <div class="mom-app-main-body flex min-h-0 flex-1 flex-col flex-col-reverse">
+                        <main class="mom-app-main-slot w-full max-w-[1680px] flex-1 self-center px-8 pb-12 pt-6">
+                            {{ $slot }}
+                        </main>
+                        @stack('mom-module-toolbar')
+                    </div>
+                </div>
             </div>
         </div>
 

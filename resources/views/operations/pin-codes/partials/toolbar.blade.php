@@ -15,34 +15,31 @@
 
 <nav class="flex flex-wrap gap-3" aria-label="{{ __('Pin codes') }}">
     @can('create', \App\Models\PinCode::class)
-        <a
-            href="{{ route('operations.pin-codes.create') }}"
-            class="inline-flex items-center justify-center rounded-mom-md border border-[rgba(212,169,95,0.28)] bg-[linear-gradient(180deg,rgba(212,169,95,0.22),rgba(212,169,95,0.12))] px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#0a0a0a] shadow-[0_0_24px_rgba(212,169,95,0.15)] transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.4)] hover:shadow-[0_0_32px_rgba(212,169,95,0.22)]"
-        >{{ __('Add pin code') }}</a>
+        <a href="{{ route('operations.pin-codes.create') }}" class="mom-toolbar-pill mom-toolbar-pill-gold">{{ __('Add pin code') }}</a>
     @endcan
     <a
         href="{{ route('operations.pin-codes.overview') }}"
         @class([
-            'inline-flex items-center justify-center rounded-mom-md px-5 py-2.5 text-xs font-semibold uppercase tracking-widest shadow-mom-inner transition-all duration-320 ease-premium',
-            'border border-mom-gold text-mom-gold' => $overviewActive,
-            'border border-[rgba(255,255,255,0.045)] bg-[rgba(255,255,255,0.03)] text-[var(--text-secondary)] hover:border-[rgba(212,169,95,0.16)] hover:text-[var(--text-primary)]' => ! $overviewActive,
+            'mom-toolbar-pill',
+            'mom-toolbar-pill-active' => $overviewActive,
+            'mom-toolbar-pill-muted' => ! $overviewActive,
         ])
     >{{ __('Overview') }}</a>
     <a
         href="{{ route('operations.pin-codes.directory') }}"
         @class([
-            'inline-flex items-center justify-center rounded-mom-md px-5 py-2.5 text-xs font-semibold uppercase tracking-widest shadow-mom-inner transition-all duration-320 ease-premium',
-            'border border-mom-gold text-mom-gold' => $directoryActive,
-            'border border-[rgba(255,255,255,0.045)] bg-[rgba(255,255,255,0.03)] text-[var(--text-secondary)] hover:border-[rgba(212,169,95,0.16)] hover:text-[var(--text-primary)]' => ! $directoryActive,
+            'mom-toolbar-pill',
+            'mom-toolbar-pill-active' => $directoryActive,
+            'mom-toolbar-pill-muted' => ! $directoryActive,
         ])
     >{{ __('Directory') }}</a>
     @can('import', \App\Models\PinCode::class)
         <a
             href="{{ route('operations.pin-codes.bulk-import') }}"
             @class([
-                'inline-flex items-center justify-center rounded-mom-md px-5 py-2.5 text-xs font-semibold uppercase tracking-widest shadow-mom-inner transition-all duration-320 ease-premium',
-                'border border-mom-gold text-mom-gold' => $bulkImportActive,
-                'border border-[rgba(255,255,255,0.045)] bg-[rgba(255,255,255,0.03)] text-[var(--text-secondary)] hover:border-[rgba(212,169,95,0.16)] hover:text-[var(--text-primary)]' => ! $bulkImportActive,
+                'mom-toolbar-pill',
+                'mom-toolbar-pill-active' => $bulkImportActive,
+                'mom-toolbar-pill-muted' => ! $bulkImportActive,
             ])
         >{{ __('Bulk import') }}</a>
     @endcan

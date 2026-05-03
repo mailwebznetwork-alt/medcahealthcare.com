@@ -1,3 +1,7 @@
+@push('mom-module-toolbar')
+    @include('partials.backend-module-toolbar', ['title' => $title])
+@endpush
+
 <x-app-layout
     :page-title="$title"
     :welcome-line="__('Operational workspace for this module.')"
