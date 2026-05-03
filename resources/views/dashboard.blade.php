@@ -21,13 +21,17 @@
                 ['label' => 'Conversion', 'value' => '3.28%', 'delta' => '+0.6%', 'path' => 'M0,20 L20,16 L40,24 L58,12 L78,18 L96,8 L120,14'],
                 ['label' => 'Avg. session', 'value' => '4m 12s', 'delta' => '−2.1%', 'path' => 'M0,14 L22,20 L42,10 L62,18 L82,8 L102,14 L120,6'],
             ] as $kpi)
-                <article class="mom-card mom-card-interactive p-6">
-                    <div class="flex justify-end">
-                        <span class="mom-micro text-[var(--success)]">{{ $kpi['delta'] }}</span>
-                    </div>
-                    <p class="mom-micro mt-6">{{ $kpi['label'] }}</p>
-                    <p class="mom-metric mt-2">{{ $kpi['value'] }}</p>
-                    <svg viewBox="0 0 120 36" class="mt-5 h-9 w-full" preserveAspectRatio="none" aria-hidden="true">
+                <article class="mom-card mom-card-interactive px-5 py-4">
+                    <p class="mom-micro">{{ $kpi['label'] }}</p>
+                    <p class="mom-metric mt-2 leading-none">
+                        <span>{{ $kpi['value'] }}</span><span
+                            @class([
+                                'text-[var(--success)]' => str_starts_with($kpi['delta'], '+'),
+                                'text-[var(--danger)]' => ! str_starts_with($kpi['delta'], '+'),
+                            ])
+                        > ({{ $kpi['delta'] }})</span>
+                    </p>
+                    <svg viewBox="0 0 120 36" class="mt-3 h-7 w-full" preserveAspectRatio="none" aria-hidden="true">
                         <defs>
                             <linearGradient id="spark-fill-{{ $loop->index }}" x1="0" x2="0" y1="0" y2="1">
                                 <stop offset="0%" stop-color="#d4a95f" stop-opacity="0.2" />
