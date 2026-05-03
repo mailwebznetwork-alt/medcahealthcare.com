@@ -8,6 +8,7 @@ use App\Support\RootAccount;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -47,6 +48,84 @@ class User extends Authenticatable
     public function isRootSuperAdmin(): bool
     {
         return RootAccount::isRootUser($this);
+    }
+
+    /**
+     * Whether this account is excluded from edit / activate / delete in User Management.
+     */
+    public function isProfileReadOnlyInUserManagement(): bool
+    {
+        if ($this->isRootSuperAdmin()) {
+            return false;
+        }
+
+        $emails = config('user_management.profile_readonly_emails', []);
+        if ($emails !== [] && in_array(strtolower((string) $this->email), $emails, true)) {
+            return true;
+        }
+
+        $names = config('user_management.profile_readonly_names', []);
+        if ($names !== [] && in_array(strtolower(trim((string) $this->name)), $names, true)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Exclude profile read-only identities from the User Management user list (root always kept).
+     *
+     * @param  Builder<User>  $query
+     */
+    public function scopeVisibleInUserManagementDirectory(Builder $query): void
+    {
+        $emails = config('user_management.profile_readonly_emails', []);
+        $names = config('user_management.profile_readonly_names', []);
+
+        if ($emails === [] && $names === []) {
+            return;
+        }
+
+        $table = $query->getModel()->getTable();
+        $rootEmail = strtolower(trim((string) config('root_account.email', '')));
+
+        $query->where(function (Builder $outer) use ($emails, $names, $rootEmail, $table): void {
+            if ($rootEmail !== '') {
+                $outer->whereRaw("lower({$table}.email) = ?", [$rootEmail])
+                    ->orWhere(function (Builder $inner) use ($emails, $names, $table): void {
+                        self::applyUserManagementDirectoryReadonlyExclusions($inner, $emails, $names, $table);
+                    });
+            } else {
+                self::applyUserManagementDirectoryReadonlyExclusions($outer, $emails, $names, $table);
+            }
+        });
+    }
+
+    /**
+     * @param  Builder<User>  $query
+     * @param  array<int, string>  $emails
+     * @param  array<int, string>  $names
+     */
+    private static function applyUserManagementDirectoryReadonlyExclusions(Builder $query, array $emails, array $names, string $table): void
+    {
+        $parts = [];
+        $bindings = [];
+
+        if ($emails !== []) {
+            $placeholders = implode(',', array_fill(0, count($emails), '?'));
+            $parts[] = "lower({$table}.email) not in ({$placeholders})";
+            $bindings = array_merge($bindings, $emails);
+        }
+
+        if ($names !== []) {
+            $placeholders = implode(',', array_fill(0, count($names), '?'));
+            $parts[] = "lower(trim({$table}.name)) not in ({$placeholders})";
+            $bindings = array_merge($bindings, $names);
+        }
+
+        if ($parts !== []) {
+            $query->whereRaw(implode(' and ', $parts), $bindings);
+        }
     }
 
     /**

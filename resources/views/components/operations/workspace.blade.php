@@ -3,10 +3,10 @@
     :welcome-line="__('Run-state, hiring, coverage, and operational management workspace.')"
 >
     <div class="operations-workspace">
-        @include('operations.partials.primary-tabs')
-        <div class="mt-0 border-b border-[rgba(255,255,255,0.045)]">
-            @include('operations.partials.secondary-tabs')
+        <div class="border-b border-[rgba(255,255,255,0.045)]">
+            @include('operations.partials.primary-tabs')
         </div>
+        {{-- Secondary tabs partial kept: operations.partials.secondary-tabs --}}
         <div class="mt-10">
             {{ $slot }}
         </div>

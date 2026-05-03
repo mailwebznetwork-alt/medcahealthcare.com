@@ -29,6 +29,10 @@ class UserPolicy
             return false;
         }
 
+        if ($model->isProfileReadOnlyInUserManagement()) {
+            return false;
+        }
+
         if ($model->isRootSuperAdmin() && ! RootAccount::isRootUser($user)) {
             return false;
         }
@@ -39,6 +43,10 @@ class UserPolicy
     public function delete(User $user, User $model): bool
     {
         if (! $user->hasModuleAccess(ModuleAccess::USER_MANAGEMENT)) {
+            return false;
+        }
+
+        if ($model->isProfileReadOnlyInUserManagement()) {
             return false;
         }
 
@@ -65,6 +73,10 @@ class UserPolicy
     public function changeActiveState(User $user, User $model): bool
     {
         if (! $user->hasModuleAccess(ModuleAccess::USER_MANAGEMENT)) {
+            return false;
+        }
+
+        if ($model->isProfileReadOnlyInUserManagement()) {
             return false;
         }
 

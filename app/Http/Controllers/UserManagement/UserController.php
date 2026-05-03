@@ -20,7 +20,9 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $query = User::query()->orderBy('name');
+        $query = User::query()
+            ->visibleInUserManagementDirectory()
+            ->orderBy('name');
 
         if ($search = trim((string) $request->query('q', ''))) {
             $query->where(function ($q) use ($search) {
@@ -47,6 +49,7 @@ class UserController extends Controller
         $users = $query->paginate(15)->withQueryString();
 
         $roleLabels = User::query()
+            ->visibleInUserManagementDirectory()
             ->whereNotNull('role_label')
             ->where('role_label', '!=', '')
             ->distinct()

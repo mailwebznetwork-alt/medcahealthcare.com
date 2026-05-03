@@ -81,6 +81,110 @@ it('allows the root super administrator to edit another user', function () {
         ->assertOk();
 });
 
+it('prevents modifying user management read-only accounts by display name', function () {
+    config([
+        'user_management.profile_readonly_emails' => [],
+        'user_management.profile_readonly_names' => ['locked persona'],
+    ]);
+
+    $locked = User::factory()->create([
+        'email_verified_at' => now(),
+        'name' => 'Locked Persona',
+        'module_access' => umAll(true),
+    ]);
+
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'module_access' => umAll(true),
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('user-management.edit', $locked))
+        ->assertForbidden();
+
+    $this->actingAs($admin)
+        ->patch(route('user-management.deactivate', $locked))
+        ->assertForbidden();
+
+    $this->actingAs($admin)
+        ->delete(route('user-management.destroy', $locked))
+        ->assertForbidden();
+});
+
+it('omits profile read-only users from the user management index', function () {
+    config([
+        'user_management.profile_readonly_emails' => [],
+        'user_management.profile_readonly_names' => ['hidden from index'],
+    ]);
+
+    User::factory()->create([
+        'email_verified_at' => now(),
+        'name' => 'Hidden From Index',
+        'module_access' => umAll(true),
+    ]);
+
+    User::factory()->create([
+        'email_verified_at' => now(),
+        'name' => 'Visible Colleague',
+        'module_access' => umAll(true),
+    ]);
+
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'module_access' => umAll(true),
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('user-management.index'))
+        ->assertOk()
+        ->assertSee('Visible Colleague')
+        ->assertDontSee('Hidden From Index');
+});
+
+it('still lists the root super administrator on the index when the read-only name list overlaps', function () {
+    config([
+        'user_management.profile_readonly_emails' => [],
+        'user_management.profile_readonly_names' => ['wdjerrie'],
+    ]);
+
+    $root = User::factory()->rootSuperAdmin()->create([
+        'email_verified_at' => now(),
+        'module_access' => umAll(true),
+    ]);
+
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'module_access' => umAll(true),
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('user-management.index'))
+        ->assertOk()
+        ->assertSee($root->email);
+});
+
+it('prevents modifying user management read-only accounts by email', function () {
+    config([
+        'user_management.profile_readonly_emails' => ['readonly-lock@example.com'],
+        'user_management.profile_readonly_names' => [],
+    ]);
+
+    $locked = User::factory()->create([
+        'email_verified_at' => now(),
+        'email' => 'readonly-lock@example.com',
+        'module_access' => umAll(true),
+    ]);
+
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'module_access' => umAll(true),
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('user-management.edit', $locked))
+        ->assertForbidden();
+});
+
 it('logs out inactive users on the next request', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
