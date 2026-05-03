@@ -28,14 +28,14 @@
                 @endphp
                 <article class="mom-card mom-card-interactive px-5 py-4">
                     <p class="mom-micro">{{ $kpi['label'] }}</p>
-                    <p class="mt-2 flex flex-wrap items-baseline gap-x-8">
-                        <span class="mom-metric leading-none">{{ $kpi['value'] }}</span>
+                    <p class="mt-2 flex flex-wrap items-baseline gap-x-16">
+                        <span class="mom-metric shrink-0 leading-none">{{ $kpi['value'] }}</span>
                         <span
-                            class="mom-micro normal-case"
+                            class="shrink-0 text-[11px] font-medium tracking-[0.12em] normal-case leading-normal"
                             @class([
-                                '!text-[var(--success)]' => $kpiDeltaPositive,
-                                '!text-[var(--danger)]' => $kpiDeltaNegative,
-                                '!text-[var(--text-muted)]' => ! $kpiDeltaPositive && ! $kpiDeltaNegative,
+                                'text-emerald-400' => $kpiDeltaPositive,
+                                'text-rose-500' => $kpiDeltaNegative,
+                                'text-[var(--text-muted)]' => ! $kpiDeltaPositive && ! $kpiDeltaNegative,
                             ])
                         >({{ $kpi['delta'] }})</span>
                     </p>
