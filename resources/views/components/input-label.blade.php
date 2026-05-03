@@ -1,5 +1,12 @@
-@props(['value'])
+@props(['value', 'variant' => 'default'])
 
-<label {{ $attributes->merge(['class' => 'block font-medium text-sm text-gray-700']) }}>
+@php
+    $baseClass = match ($variant) {
+        'mom' => 'block font-medium text-sm text-[var(--text-secondary)]',
+        default => 'block font-medium text-sm text-gray-700',
+    };
+@endphp
+
+<label {{ $attributes->merge(['class' => $baseClass]) }}>
     {{ $value ?? $slot }}
 </label>

@@ -1,50 +1,4 @@
 import ApexCharts from 'apexcharts';
-import { createIcons } from 'lucide';
-import {
-    Activity,
-    Bell,
-    ChevronRight,
-    Database,
-    FileChartColumn,
-    FolderKanban,
-    Gauge,
-    Layers,
-    LayoutDashboard,
-    LineChart,
-    LogOut,
-    Moon,
-    Orbit,
-    PanelLeft,
-    Search,
-    Settings,
-    ShieldCheck,
-    Sparkles,
-    TrendingUp,
-    Users,
-} from 'lucide';
-
-const lucideIcons = {
-    Activity,
-    Bell,
-    ChevronRight,
-    Database,
-    FileChartColumn,
-    FolderKanban,
-    Gauge,
-    Layers,
-    LayoutDashboard,
-    LineChart,
-    LogOut,
-    Moon,
-    Orbit,
-    PanelLeft,
-    Search,
-    Settings,
-    ShieldCheck,
-    Sparkles,
-    TrendingUp,
-    Users,
-};
 
 const gold = '#d4a95f';
 const grid = 'rgba(255,255,255,0.03)';
@@ -56,7 +10,7 @@ const muted = '#9a9a9a';
 function mountAnalyticsChart() {
     const el = document.querySelector('#mom-chart-analytics');
 
-    if (!el) {
+    if (! el) {
         return null;
     }
 
@@ -180,7 +134,7 @@ function mountAnalyticsChart() {
 function mountTrafficDonut() {
     const el = document.querySelector('#mom-chart-traffic');
 
-    if (!el) {
+    if (! el) {
         return null;
     }
 
@@ -262,21 +216,7 @@ function mountTrafficDonut() {
     return chart;
 }
 
-function bootIcons() {
-    createIcons({
-        icons: lucideIcons,
-        attrs: {
-            'stroke-width': 1.75,
-        },
-    });
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-    bootIcons();
     mountAnalyticsChart();
     mountTrafficDonut();
-});
-
-document.addEventListener('livewire:navigated', () => {
-    bootIcons();
 });

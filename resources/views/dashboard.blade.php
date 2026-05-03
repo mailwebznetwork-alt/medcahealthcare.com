@@ -1,3 +1,7 @@
+@push('scripts')
+    @vite(['resources/js/dashboard.js'])
+@endpush
+
 <x-layouts.markonminds
     page-title="Dashboard Overview"
     welcome-line="Welcome back — intelligence surfaces update in near real-time."
