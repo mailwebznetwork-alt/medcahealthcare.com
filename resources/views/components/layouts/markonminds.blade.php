@@ -68,7 +68,7 @@
                 :class="{ '!translate-x-0': mobileNav }"
             >
                 <div class="flex h-[72px] shrink-0 items-center gap-3 border-b border-[rgba(255,255,255,0.045)] px-6">
-                    <span class="text-lg font-semibold tracking-tight text-mom-gold">MarkOnMinds</span>
+                    <span class="text-[calc(1.125rem*1.3)] font-semibold leading-tight tracking-tight text-mom-gold">MarkOnMinds</span>
                 </div>
 
                 <nav class="mom-sidebar-nav-scroll flex min-h-0 flex-1 flex-col gap-0 overflow-y-auto px-4 py-8">
