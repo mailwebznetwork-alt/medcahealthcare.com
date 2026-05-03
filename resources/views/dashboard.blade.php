@@ -21,24 +21,12 @@
                 ['label' => 'Conversion', 'value' => '3.28%', 'delta' => '+0.6%', 'path' => 'M0,20 L20,16 L40,24 L58,12 L78,18 L96,8 L120,14'],
                 ['label' => 'Avg. session', 'value' => '4m 12s', 'delta' => '−2.1%', 'path' => 'M0,14 L22,20 L42,10 L62,18 L82,8 L102,14 L120,6'],
             ] as $kpi)
-                @php
-                    $deltaFirst = mb_substr((string) $kpi['delta'], 0, 1);
-                    $kpiDeltaPositive = $deltaFirst === '+';
-                    $kpiDeltaNegative = $deltaFirst === '-' || $deltaFirst === "\u{2212}";
-                @endphp
                 <article class="mom-card mom-card-interactive px-5 py-4">
-                    <p class="mom-micro">{{ $kpi['label'] }}</p>
-                    <p class="mt-2 flex flex-wrap items-baseline gap-x-24">
-                        <span class="mom-metric shrink-0 leading-none">{{ $kpi['value'] }}</span>
-                        <span
-                            class="shrink-0 text-[11px] font-medium tracking-[0.12em] normal-case leading-normal"
-                            @class([
-                                'text-emerald-400' => $kpiDeltaPositive,
-                                'text-rose-500' => $kpiDeltaNegative,
-                                'text-[var(--text-muted)]' => ! $kpiDeltaPositive && ! $kpiDeltaNegative,
-                            ])
-                        >({{ $kpi['delta'] }})</span>
-                    </p>
+                    <div class="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                        <span class="mom-micro">{{ $kpi['label'] }}</span>
+                        <span class="mom-micro normal-case">({{ $kpi['delta'] }})</span>
+                    </div>
+                    <p class="mom-metric mt-2 leading-none">{{ $kpi['value'] }}</p>
                     <svg viewBox="0 0 120 36" class="mt-3 h-7 w-full" preserveAspectRatio="none" aria-hidden="true">
                         <defs>
                             <linearGradient id="spark-fill-{{ $loop->index }}" x1="0" x2="0" y1="0" y2="1">
