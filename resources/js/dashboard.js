@@ -1,8 +1,8 @@
 import ApexCharts from 'apexcharts';
 
-const gold = '#d4a95f';
+const gold = '#d4af37';
 const grid = 'rgba(255,255,255,0.03)';
-const muted = '#9a9a9a';
+const muted = '#a89884';
 
 /**
  * @returns {import('apexcharts').default | null}
@@ -49,7 +49,7 @@ function mountAnalyticsChart() {
                 color: gold,
             },
         },
-        colors: [gold, 'rgba(212,169,95,0.42)'],
+        colors: [gold, 'rgba(212,175,55,0.42)'],
         dataLabels: { enabled: false },
         stroke: {
             curve: 'smooth',
@@ -67,7 +67,7 @@ function mountAnalyticsChart() {
                 stops: [0, 100],
                 colorStops: [
                     { offset: 0, color: gold, opacity: 0.4 },
-                    { offset: 100, color: '#1c1613', opacity: 0 },
+                    { offset: 100, color: '#211c18', opacity: 0 },
                 ],
             },
         },
@@ -98,7 +98,7 @@ function mountAnalyticsChart() {
             labels: { colors: muted },
             markers: {
                 strokeWidth: 0,
-                fillColors: [gold, 'rgba(212,169,95,0.42)'],
+                fillColors: [gold, 'rgba(212,175,55,0.42)'],
             },
         },
         tooltip: {
@@ -151,7 +151,7 @@ function mountTrafficDonut() {
             },
         },
         labels: ['Organic', 'Direct', 'Social', 'Referral'],
-        colors: ['#d4a95f', '#c49a5c', '#a67d42', '#6e522a'],
+        colors: ['#d4af37', '#c5a059', '#a67d42', '#6e522a'],
         stroke: {
             show: true,
             width: 2,

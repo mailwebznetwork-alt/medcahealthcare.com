@@ -9,42 +9,40 @@
 
 :root {
     /**
-     * Matte brown shell — base viewport + left rail + main chrome (clearly brown, not gray).
-     * Cards use --bg-card-* for a step up in lightness.
+     * Reference dashboard: deep chocolate canvas, sidebar one step darker, cards lifted,
+     * tan/gold text + accent (#d4af37 family).
      */
-    /* Matte brown shell — lifted chroma so it reads brown under vignette + noise */
-    --bg-app: #16100c;
-    --bg-sidebar: #120d09;
-    --bg-surface: #18120e;
-    --bg-elevated: #1f1812;
-    --bg-hover: #261f18;
+    --bg-app: #1a1512;
+    --bg-sidebar: #14100d;
+    --bg-surface: #1e1814;
+    --bg-elevated: #252018;
+    --bg-hover: #2c241c;
 
-    /* Topbar scrim (matches --bg-app) */
-    --bg-topbar-scrim: rgba(22, 16, 12, 0.86);
+    /* Topbar scrim (same family as --bg-app) */
+    --bg-topbar-scrim: rgba(26, 21, 18, 0.9);
 
     /**
-     * Matte dark brown foreground (reference swatch ~#1c1613 / #211a16).
-     * Low-chroma coffee — cards read as flat matte panels vs shell.
+     * Cards: step above canvas (reference: widgets slightly lighter than field).
      */
-    --bg-card-matte: #1c1613;
-    --bg-card-matte-deep: #14110e;
-    --bg-card-matte-raised: #211a16;
+    --bg-card-matte: #211c18;
+    --bg-card-matte-deep: #171310;
+    --bg-card-matte-raised: #2a231d;
     --bg-card-table-head: rgba(42, 36, 32, 0.62);
     --bg-card-track: rgba(36, 30, 26, 0.75);
     --bg-card-nested: rgba(48, 40, 34, 0.5);
 
-    /** Sidebar wordmark only — muted bronze (reference #a08750) */
-    --mom-wordmark: #a08750;
+    /** Sidebar wordmark — muted tan (reference) */
+    --mom-wordmark: #c5a059;
 
-    /** Primary UI accent — warm aurum (charts, nav bloom, CTAs) */
-    --accent-gold: #d4a95f;
-    --accent-gold-soft: rgba(212, 169, 95, 0.12);
-    --accent-gold-border: rgba(212, 169, 95, 0.22);
-    --accent-gold-glow: rgba(212, 169, 95, 0.14);
+    /** Primary UI accent — gold highlights / charts (reference ~#d4af37) */
+    --accent-gold: #d4af37;
+    --accent-gold-soft: rgba(212, 175, 55, 0.14);
+    --accent-gold-border: rgba(212, 175, 55, 0.28);
+    --accent-gold-glow: rgba(212, 175, 55, 0.16);
 
-    --text-primary: #f5f5f5;
-    --text-secondary: #9a9a9a;
-    --text-muted: #5f5f5f;
+    --text-primary: #e8dcc4;
+    --text-secondary: #a89884;
+    --text-muted: #7a6c5c;
 
     --success: #62c370;
     --danger: #e25c5c;
@@ -62,12 +60,12 @@
     --shadow-surface: 0 10px 30px rgba(0, 0, 0, 0.35);
     --shadow-elevated: 0 20px 50px rgba(0, 0, 0, 0.45);
     --shadow-hover: 0 30px 60px rgba(0, 0, 0, 0.55);
-    --shadow-glow: 0 0 40px rgba(212, 169, 95, 0.08);
+    --shadow-glow: 0 0 40px rgba(212, 175, 55, 0.1);
     --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
     --border-default: 1px solid rgba(255, 255, 255, 0.045);
-    --border-hover: 1px solid rgba(212, 169, 95, 0.16);
-    --border-active: 1px solid rgba(212, 169, 95, 0.28);
+    --border-hover: 1px solid rgba(212, 175, 55, 0.2);
+    --border-active: 1px solid rgba(212, 175, 55, 0.32);
 
     --mom-transition: 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -90,7 +88,7 @@ body.mom-body {
     background-color: var(--bg-sidebar);
     background-image:
         radial-gradient(ellipse 90% 55% at 20% 0%, rgba(130, 88, 52, 0.12), transparent 52%),
-        linear-gradient(180deg, rgba(212, 169, 95, 0.06) 0%, transparent 40%),
+        linear-gradient(180deg, rgba(212, 175, 55, 0.06) 0%, transparent 40%),
         linear-gradient(90deg, rgba(0, 0, 0, 0.28) 0%, transparent 42%);
 }
 
@@ -99,7 +97,7 @@ body.mom-body {
     background-color: var(--bg-app);
     background-image:
         radial-gradient(ellipse 88% 58% at 50% -5%, rgba(115, 78, 48, 0.14), transparent 55%),
-        radial-gradient(ellipse 75% 48% at 78% -6%, rgba(212, 169, 95, 0.09), transparent 52%),
+        radial-gradient(ellipse 75% 48% at 78% -6%, rgba(212, 175, 55, 0.09), transparent 52%),
         linear-gradient(180deg, rgba(200, 160, 115, 0.07) 0%, transparent 50%);
 }
 
@@ -109,7 +107,7 @@ body.mom-body {
     background-color: var(--bg-app);
     background-image:
         radial-gradient(ellipse 88% 58% at 50% -5%, rgba(115, 78, 48, 0.14), transparent 55%),
-        radial-gradient(ellipse 75% 48% at 78% -6%, rgba(212, 169, 95, 0.09), transparent 52%),
+        radial-gradient(ellipse 75% 48% at 78% -6%, rgba(212, 175, 55, 0.09), transparent 52%),
         linear-gradient(180deg, rgba(200, 160, 115, 0.07) 0%, transparent 50%);
 }
 
@@ -132,7 +130,7 @@ body.mom-body {
     background-color: var(--bg-app);
     background-image:
         radial-gradient(ellipse 88% 58% at 50% -5%, rgba(115, 78, 48, 0.14), transparent 55%),
-        radial-gradient(ellipse 75% 48% at 78% -6%, rgba(212, 169, 95, 0.09), transparent 52%),
+        radial-gradient(ellipse 75% 48% at 78% -6%, rgba(212, 175, 55, 0.09), transparent 52%),
         linear-gradient(180deg, rgba(200, 160, 115, 0.07) 0%, transparent 50%);
     box-shadow: 0 12px 28px -14px rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(14px) saturate(150%);
@@ -158,9 +156,9 @@ body.mom-body {
  * Scoped tokens inherit to dashboard/profile content using var(--text-*).
  */
 .mom-main-matte-brown-fg {
-    --text-primary: #eae4dc;
-    --text-secondary: #c4b5a8;
-    --text-muted: #948777;
+    --text-primary: #ebe3d6;
+    --text-secondary: #b8a896;
+    --text-muted: #8a7a6a;
     color: var(--text-primary);
 }
 
@@ -171,7 +169,7 @@ body.mom-body::before {
     z-index: 0;
     pointer-events: none;
     background:
-        radial-gradient(ellipse 78% 52% at 10% 0%, rgba(212, 169, 95, 0.07), transparent 56%),
+        radial-gradient(ellipse 78% 52% at 10% 0%, rgba(212, 175, 55, 0.07), transparent 56%),
         radial-gradient(ellipse 70% 48% at 88% 18%, rgba(100, 72, 48, 0.12), transparent 54%),
         radial-gradient(ellipse 95% 60% at 48% 35%, rgba(255, 236, 210, 0.035), transparent 58%);
 }
@@ -207,7 +205,7 @@ body.mom-body::after {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #1e293b;
+    background: rgba(212, 175, 55, 0.35);
     border-radius: var(--radius-sm);
 }
 
@@ -218,7 +216,7 @@ body.mom-body::after {
 .mom-sidebar-nav-scroll {
     scrollbar-gutter: stable;
     scrollbar-width: thin;
-    scrollbar-color: rgba(212, 169, 95, 0.42) rgba(12, 9, 6, 0.55);
+    scrollbar-color: rgba(212, 175, 55, 0.42) rgba(12, 9, 6, 0.55);
 }
 
 .mom-sidebar-nav-scroll::-webkit-scrollbar {
@@ -232,13 +230,13 @@ body.mom-body::after {
 }
 
 .mom-sidebar-nav-scroll::-webkit-scrollbar-thumb {
-    background: rgba(212, 169, 95, 0.42);
+    background: rgba(212, 175, 55, 0.42);
     border-radius: 10px;
     border: 2px solid rgba(12, 9, 6, 0.35);
 }
 
 .mom-sidebar-nav-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(212, 169, 95, 0.58);
+    background: rgba(212, 175, 55, 0.58);
 }
 
 /* ---- Section separators (page blocks, stacked cards) ---- */
@@ -254,7 +252,7 @@ body.mom-body::after {
         90deg,
         transparent 0%,
         rgba(255, 255, 255, 0.05) 12%,
-        rgba(212, 169, 95, 0.3) 50%,
+        rgba(212, 175, 55, 0.3) 50%,
         rgba(255, 255, 255, 0.05) 88%,
         transparent 100%
     );
@@ -284,7 +282,7 @@ body.mom-body::after {
     background: linear-gradient(
         90deg,
         transparent 0%,
-        rgba(212, 169, 95, 0.2) 50%,
+        rgba(212, 175, 55, 0.2) 50%,
         transparent 100%
     );
     opacity: 0.9;
@@ -305,7 +303,7 @@ body.mom-body::after {
     box-shadow:
         var(--shadow-inner),
         0 12px 28px rgba(10, 6, 4, 0.4),
-        0 0 32px rgba(212, 169, 95, 0.03);
+        0 0 32px rgba(212, 175, 55, 0.03);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border-radius: var(--radius-lg);
@@ -322,7 +320,7 @@ body.mom-body::after {
     box-shadow:
         var(--shadow-inner),
         var(--shadow-hover),
-        0 0 52px rgba(212, 169, 95, 0.1);
+        0 0 52px rgba(212, 175, 55, 0.1);
 }
 
 /* Utilities referenced by Tailwind @apply extensions */
@@ -364,13 +362,13 @@ body.mom-body::after {
 .mom-nav-active {
     background: linear-gradient(
         135deg,
-        rgba(212, 169, 95, 0.14),
-        rgba(212, 169, 95, 0.05)
+        rgba(212, 175, 55, 0.14),
+        rgba(212, 175, 55, 0.05)
     );
-    border: 1px solid rgba(212, 169, 95, 0.22);
+    border: 1px solid rgba(212, 175, 55, 0.22);
     border-radius: var(--radius-pill);
     box-shadow:
-        0 0 28px rgba(212, 169, 95, 0.12),
+        0 0 28px rgba(212, 175, 55, 0.12),
         inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
@@ -390,10 +388,10 @@ body.mom-body::after {
 @keyframes mom-glow-pulse {
     0%,
     100% {
-        box-shadow: 0 0 0 0 rgba(212, 169, 95, 0.22);
+        box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.22);
     }
     50% {
-        box-shadow: 0 0 22px 0 rgba(212, 169, 95, 0.35);
+        box-shadow: 0 0 22px 0 rgba(212, 175, 55, 0.35);
     }
 }
 
@@ -421,14 +419,14 @@ body.mom-body::after {
 }
 
 .mom-table tbody tr:hover {
-    background-color: rgba(52, 44, 38, 0.35);
+    background-color: rgba(58, 48, 40, 0.42);
 }
 
 /* ApexCharts container polish */
 
 .mom-apex .apexcharts-tooltip {
-    background: rgba(28, 22, 19, 0.96) !important;
-    border: 1px solid rgba(212, 169, 95, 0.22) !important;
+    background: rgba(33, 28, 24, 0.96) !important;
+    border: 1px solid rgba(212, 175, 55, 0.22) !important;
     backdrop-filter: blur(12px);
     border-radius: var(--radius-md) !important;
     box-shadow: var(--shadow-elevated) !important;
