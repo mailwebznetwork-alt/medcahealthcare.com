@@ -22,10 +22,8 @@
                 ['label' => 'Avg. session', 'value' => '4m 12s', 'delta' => '−2.1%', 'path' => 'M0,14 L22,20 L42,10 L62,18 L82,8 L102,14 L120,6'],
             ] as $kpi)
                 <article class="mom-card mom-card-interactive px-5 py-4">
-                    {{-- One label string (natural space between words); gap to delta ≈ one word-space via 1ch --}}
-                    <div class="mom-micro flex flex-wrap items-baseline gap-x-[1ch] gap-y-1">
-                        <span>{{ $kpi['label'] }}</span>
-                        <span class="normal-case">({{ $kpi['delta'] }})</span>
+                    <div class="mom-micro">
+                        {{ $kpi['label'] }} <span class="normal-case">({{ $kpi['delta'] }})</span>
                     </div>
                     <p class="mom-metric mt-2 leading-none">{{ $kpi['value'] }}</p>
                     <svg viewBox="0 0 120 36" class="mt-3 h-7 w-full" preserveAspectRatio="none" aria-hidden="true">
