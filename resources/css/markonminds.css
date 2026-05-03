@@ -65,6 +65,17 @@ body.mom-body {
         linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 42%);
 }
 
+/**
+ * Right column only: matte brown foreground (warm brown neutrals; not cold gray).
+ * Scoped tokens inherit to dashboard/profile content using var(--text-*).
+ */
+.mom-main-matte-brown-fg {
+    --text-primary: #eae4dc;
+    --text-secondary: #c4b5a8;
+    --text-muted: #948777;
+    color: var(--text-primary);
+}
+
 body.mom-body::before {
     content: '';
     position: fixed;

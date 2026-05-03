@@ -200,8 +200,8 @@
                 </div>
             </aside>
 
-            {{-- Main column: same pane background as sidebar --}}
-            <div class="mom-main-pane flex min-w-0 flex-1 flex-col lg:ml-0">
+            {{-- Main column: same pane as sidebar + matte brown foreground (right window only) --}}
+            <div class="mom-main-pane mom-main-matte-brown-fg flex min-w-0 flex-1 flex-col lg:ml-0">
                 {{-- Topbar --}}
                 <header
                     class="sticky top-0 z-30 flex h-[72px] items-center gap-6 border-b border-[rgba(255,255,255,0.045)] bg-[rgba(7,7,7,0.72)] px-8 shadow-mom-surface backdrop-blur-xl backdrop-saturate-150"
