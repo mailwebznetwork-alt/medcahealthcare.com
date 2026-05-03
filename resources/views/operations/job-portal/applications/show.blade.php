@@ -1,7 +1,6 @@
-<x-app-layout
-    :page-title="$application->full_name"
-    :welcome-line="$application->vacancy?->title"
->
+<x-operations.workspace>
+    <h2 class="mom-section-title mb-2">{{ $application->full_name }}</h2>
+    <p class="mom-subtext mb-8 text-[var(--text-secondary)]">{{ $application->vacancy?->title ?? '—' }}</p>
     @if (session('status') === 'application-updated')
         <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('Pipeline stage updated.') }}</p>
     @endif
@@ -59,4 +58,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-operations.workspace>

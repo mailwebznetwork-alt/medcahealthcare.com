@@ -35,7 +35,18 @@ class JobPortalDashboardController extends Controller
             ->where('workflow_status', VacancyWorkflowStatus::Published)
             ->count();
 
-        return view('operations.job-portal.dashboard', [
+        $recentVacancies = Vacancy::query()
+            ->orderByDesc('updated_at')
+            ->limit(6)
+            ->get(['id', 'title', 'city', 'workflow_status', 'is_active', 'updated_at']);
+
+        $recentApplications = Application::query()
+            ->with(['vacancy:id,title'])
+            ->orderByDesc('created_at')
+            ->limit(6)
+            ->get(['id', 'vacancy_id', 'full_name', 'pipeline_status', 'created_at']);
+
+        return view('operations.job-portal.overview', [
             'metrics' => [
                 'total_vacancies' => $totalVacancies,
                 'active_vacancies' => $activeVacancies,
@@ -43,6 +54,8 @@ class JobPortalDashboardController extends Controller
                 'whatsapp_applies' => $whatsappApplies,
                 'published_jobs' => $publishedJobs,
             ],
+            'recentVacancies' => $recentVacancies,
+            'recentApplications' => $recentApplications,
         ]);
     }
 }

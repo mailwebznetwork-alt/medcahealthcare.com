@@ -1,7 +1,6 @@
-<x-app-layout
-    :page-title="__('Pin codes')"
-    :welcome-line="__('Location operations, serviceability, and local SEO readiness.')"
->
+<x-operations.workspace>
+    <h2 class="mom-section-title mb-8">{{ __('Directory') }}</h2>
+
     @if (session('status') === 'pin-code-created')
         <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('Pin code created.') }}</p>
     @endif
@@ -18,44 +17,8 @@
         <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('Pin code deactivated.') }}</p>
     @endif
 
-    @php
-        $importResult = session('import_result');
-    @endphp
-    @if (is_array($importResult))
-        <div class="mom-card mb-6 p-5" role="status">
-            <p class="mom-section-title">{{ __('Import summary') }}</p>
-            <ul class="mom-body-text mt-3 list-inside list-disc space-y-1 text-[var(--text-secondary)]">
-                <li>{{ __('Created: :n', ['n' => (int) ($importResult['created'] ?? 0)]) }}</li>
-                <li>{{ __('Skipped (duplicates): :n', ['n' => (int) ($importResult['skipped'] ?? 0)]) }}</li>
-                <li>{{ __('Failed rows: :n', ['n' => (int) ($importResult['failed'] ?? 0)]) }}</li>
-            </ul>
-            @if (! empty($importResult['errors']) && is_array($importResult['errors']))
-                <div class="mom-subtext mt-4 max-h-40 overflow-y-auto rounded-mom-sm border border-[rgba(255,255,255,0.06)] bg-[rgba(0,0,0,0.15)] p-3">
-                    @foreach ($importResult['errors'] as $err)
-                        <p class="text-[var(--warning)]">{{ $err }}</p>
-                    @endforeach
-                </div>
-            @endif
-        </div>
-    @endif
-
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-        @foreach ([
-            ['label' => __('Total pincodes'), 'value' => number_format($metrics['total']), 'hint' => __('All records in the directory')],
-            ['label' => __('Serviceable areas'), 'value' => number_format($metrics['serviceable']), 'hint' => __('Eligible for operational coverage')],
-            ['label' => __('Non-serviceable'), 'value' => number_format($metrics['non_serviceable']), 'hint' => __('Explicitly excluded from service')],
-            ['label' => __('Active locations'), 'value' => number_format($metrics['active']), 'hint' => __('Records currently enabled')],
-        ] as $card)
-            <article class="mom-card px-5 py-4">
-                <p class="mom-micro">{{ $card['label'] }}</p>
-                <p class="mom-metric mt-2 leading-none">{{ $card['value'] }}</p>
-                <p class="mom-subtext mt-2">{{ $card['hint'] }}</p>
-            </article>
-        @endforeach
-    </div>
-
-    <div class="mt-8 flex flex-wrap items-end justify-between gap-4">
-        <form method="get" action="{{ route('operations.pin-codes.index') }}" class="flex flex-1 flex-wrap gap-3">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+        <form method="get" action="{{ route('operations.pin-codes.directory') }}" class="flex flex-1 flex-wrap gap-3">
             <x-text-input name="q" type="search" class="min-w-[12rem] flex-1" :value="request('q')" placeholder="{{ __('Search pincode, area, city, locality…') }}" variant="mom" />
             <select name="city" class="rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
                 <option value="">{{ __('All cities') }}</option>
@@ -75,14 +38,9 @@
             </select>
             <x-secondary-button variant="mom" type="submit">{{ __('Filter') }}</x-secondary-button>
         </form>
-        <div class="flex flex-wrap gap-3">
-            @can('import', \App\Models\PinCode::class)
-                <a href="{{ route('operations.pin-codes.import.create') }}" class="inline-flex items-center justify-center rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[rgba(255,255,255,0.03)] px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)] shadow-mom-inner transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)] hover:text-[var(--text-primary)]">{{ __('Bulk import') }}</a>
-            @endcan
-            @can('create', \App\Models\PinCode::class)
-                <a href="{{ route('operations.pin-codes.create') }}" class="inline-flex items-center justify-center rounded-mom-md border border-[rgba(212,169,95,0.28)] bg-[linear-gradient(180deg,rgba(212,169,95,0.22),rgba(212,169,95,0.12))] px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#0a0a0a] shadow-[0_0_24px_rgba(212,169,95,0.15)] transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.4)]">{{ __('Add pin code') }}</a>
-            @endcan
-        </div>
+        @can('create', \App\Models\PinCode::class)
+            <a href="{{ route('operations.pin-codes.create') }}" class="inline-flex items-center justify-center rounded-mom-md border border-[rgba(212,169,95,0.28)] bg-[linear-gradient(180deg,rgba(212,169,95,0.22),rgba(212,169,95,0.12))] px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#0a0a0a] shadow-[0_0_24px_rgba(212,169,95,0.15)] transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.4)]">{{ __('Add pin code') }}</a>
+        @endcan
     </div>
 
     <div class="mom-card mt-8 overflow-hidden p-0">
@@ -178,4 +136,4 @@
             </div>
         @endif
     </div>
-</x-app-layout>
+</x-operations.workspace>

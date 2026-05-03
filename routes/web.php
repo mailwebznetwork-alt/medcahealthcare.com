@@ -38,16 +38,25 @@ Route::middleware(['auth', 'active', 'verified', 'module:operations'])->group(fu
     Route::get('/operations', OperationsHubController::class)->name('modules.operations');
 
     Route::prefix('operations/job-portal')->name('operations.job-portal.')->group(function () {
-        Route::get('/', JobPortalDashboardController::class)->name('index');
+        Route::get('/', function () {
+            return redirect()->route('operations.job-portal.overview');
+        })->name('index');
+        Route::get('overview', JobPortalDashboardController::class)->name('overview');
         Route::post('vacancies/{vacancy}/duplicate', [VacancyController::class, 'duplicate'])->name('vacancies.duplicate');
         Route::resource('vacancies', VacancyController::class);
         Route::resource('applications', ApplicationController::class)->only(['index', 'show', 'update']);
     });
 
     Route::prefix('operations/pin-codes')->name('operations.pin-codes.')->group(function () {
-        Route::get('/', [PinCodeController::class, 'index'])->name('index');
-        Route::get('import', [PinCodeImportController::class, 'create'])->name('import.create');
-        Route::post('import', [PinCodeImportController::class, 'store'])->name('import.store');
+        Route::get('/', function () {
+            return redirect()->route('operations.pin-codes.overview');
+        })->name('index');
+        Route::get('overview', [PinCodeController::class, 'overview'])->name('overview');
+        Route::get('directory', [PinCodeController::class, 'directory'])->name('directory');
+        Route::get('bulk-import', [PinCodeImportController::class, 'create'])->name('bulk-import');
+        Route::post('bulk-import/preview', [PinCodeImportController::class, 'preview'])->name('bulk-import.preview');
+        Route::post('bulk-import/confirm', [PinCodeImportController::class, 'confirm'])->name('bulk-import.confirm');
+        Route::post('bulk-import/cancel', [PinCodeImportController::class, 'cancel'])->name('bulk-import.cancel');
         Route::get('create', [PinCodeController::class, 'create'])->name('create');
         Route::post('/', [PinCodeController::class, 'store'])->name('store');
         Route::get('{pin_code}/edit', [PinCodeController::class, 'edit'])->name('edit');

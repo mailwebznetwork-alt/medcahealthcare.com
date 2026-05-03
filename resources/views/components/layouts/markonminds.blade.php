@@ -25,9 +25,7 @@
         $resolvedWelcome = match (true) {
             request()->routeIs('profile.*') => __('Account security and identity preferences.'),
             request()->routeIs('settings.*') => __('Workspace configuration and preferences.'),
-            request()->routeIs('operations.job-portal.*') => __('Hiring operations and applicant pipeline.'),
-            request()->routeIs('operations.pin-codes.*') => __('Location coverage, serviceability, and local SEO readiness.'),
-            request()->routeIs('modules.operations') => __('Operational workspaces and hiring tools.'),
+            request()->routeIs('operations.job-portal.*', 'operations.pin-codes.*', 'modules.operations') => __('Run-state, hiring, coverage, and operational management workspace.'),
             request()->routeIs('user-management.*') => __('People, access, and directory control.'),
             request()->routeIs('modules.*') => __('Focused module workspace.'),
             default => __('Welcome back — here is your intelligence snapshot.'),
@@ -186,16 +184,7 @@
                 </header>
 
                 <main class="flex-1 px-8 py-8">
-                    @if (request()->routeIs('modules.operations', 'operations.job-portal.*', 'operations.pin-codes.*'))
-                        <div class="flex flex-col gap-8 lg:flex-row-reverse lg:items-start lg:gap-10">
-                            @include('operations.partials.workspace-rail')
-                            <div class="min-w-0 flex-1">
-                                {{ $slot }}
-                            </div>
-                        </div>
-                    @else
-                        {{ $slot }}
-                    @endif
+                    {{ $slot }}
                 </main>
             </div>
         </div>

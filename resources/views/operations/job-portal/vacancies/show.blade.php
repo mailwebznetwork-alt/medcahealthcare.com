@@ -1,7 +1,5 @@
-<x-app-layout
-    :page-title="$vacancy->title"
-    :welcome-line="__('Vacancy record.')"
->
+<x-operations.workspace>
+    <h2 class="mom-section-title mb-8">{{ $vacancy->title }}</h2>
     <div class="mom-card p-6">
         <dl class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
@@ -21,4 +19,4 @@
             <a href="{{ route('operations.job-portal.vacancies.edit', $vacancy) }}" class="text-mom-gold hover:underline">{{ __('Edit vacancy') }}</a>
         </div>
     </div>
-</x-app-layout>
+</x-operations.workspace>

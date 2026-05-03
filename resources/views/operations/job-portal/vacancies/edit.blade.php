@@ -1,7 +1,5 @@
-<x-app-layout
-    :page-title="__('Edit vacancy')"
-    :welcome-line="__('Refine content, SEO, and publishing state.')"
->
+<x-operations.workspace>
+    <h2 class="mom-section-title mb-8">{{ __('Edit vacancy') }}</h2>
     @if (session('status') === 'vacancy-created' || session('status') === 'vacancy-updated' || session('status') === 'vacancy-duplicated')
         <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('Vacancy saved.') }}</p>
     @endif
@@ -32,4 +30,4 @@
             <x-danger-button variant="mom" type="submit">{{ __('Delete') }}</x-danger-button>
         </form>
     </div>
-</x-app-layout>
+</x-operations.workspace>

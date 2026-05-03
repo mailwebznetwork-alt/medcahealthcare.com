@@ -18,13 +18,115 @@ final class PinCodeCsvImporter
     /**
      * @return array{created: int, skipped: int, failed: int, errors: list<string>}
      */
-    public function import(UploadedFile $file): array
+    public function import(UploadedFile|string $source): array
     {
-        $path = $file->getRealPath();
-        if ($path === false) {
+        $path = $this->resolvePath($source);
+        if ($path === null) {
             return ['created' => 0, 'skipped' => 0, 'failed' => 0, 'errors' => [__('Could not read the uploaded file.')]];
         }
 
+        return $this->importFromPath($path);
+    }
+
+    /**
+     * Parse headers and return sample rows for UI preview (no DB writes).
+     *
+     * @return array{
+     *     valid: bool,
+     *     errors: list<string>,
+     *     rows: list<array{line: int, status: string, pincode: string|null, area_name: string|null, city: string|null, detail: string|null}>,
+     *     total_data_rows: int
+     * }
+     */
+    public function preview(UploadedFile $file, int $limit = 25): array
+    {
+        $path = $this->resolvePath($file);
+        if ($path === null) {
+            return ['valid' => false, 'errors' => [__('Could not read the uploaded file.')], 'rows' => [], 'total_data_rows' => 0];
+        }
+
+        $handle = fopen($path, 'rb');
+        if ($handle === false) {
+            return ['valid' => false, 'errors' => [__('Could not open the CSV file.')], 'rows' => [], 'total_data_rows' => 0];
+        }
+
+        $first = fgets($handle);
+        if ($first === false) {
+            fclose($handle);
+
+            return ['valid' => false, 'errors' => [__('The CSV file is empty.')], 'rows' => [], 'total_data_rows' => 0];
+        }
+
+        if (str_starts_with($first, "\xEF\xBB\xBF")) {
+            $first = substr($first, 3);
+        }
+
+        $headers = str_getcsv($first);
+        $map = $this->buildHeaderMap($headers);
+
+        foreach (self::REQUIRED_HEADERS as $required) {
+            if (! isset($map[$required])) {
+                fclose($handle);
+
+                return [
+                    'valid' => false,
+                    'errors' => [__('Missing required column: :col.', ['col' => $required])],
+                    'rows' => [],
+                    'total_data_rows' => 0,
+                ];
+            }
+        }
+
+        $rows = [];
+        $totalDataRows = 0;
+        $lineNo = 1;
+
+        while (($row = fgetcsv($handle)) !== false) {
+            $lineNo++;
+            if ($this->rowIsEmpty($row)) {
+                continue;
+            }
+
+            $totalDataRows++;
+            if (count($rows) >= $limit) {
+                continue;
+            }
+
+            $data = $this->normalizeRow($row, $map);
+            if ($data === null) {
+                $rows[] = [
+                    'line' => $lineNo,
+                    'status' => 'invalid',
+                    'pincode' => null,
+                    'area_name' => null,
+                    'city' => null,
+                    'detail' => __('Invalid pincode or missing required fields.'),
+                ];
+
+                continue;
+            }
+
+            $duplicate = PinCode::query()->where('pincode', $data['pincode'])->exists();
+            $rows[] = [
+                'line' => $lineNo,
+                'status' => $duplicate ? 'duplicate' : 'ready',
+                'pincode' => $data['pincode'],
+                'area_name' => $data['area_name'],
+                'city' => $data['city'],
+                'detail' => $duplicate ? __('Already in directory (will be skipped).') : null,
+            ];
+        }
+
+        fclose($handle);
+
+        return ['valid' => true, 'errors' => [], 'rows' => $rows, 'total_data_rows' => $totalDataRows];
+    }
+
+    /**
+     * @return array{created: int, skipped: int, failed: int, errors: list<string>}
+     */
+    private function importFromPath(string $path): array
+    {
         $handle = fopen($path, 'rb');
         if ($handle === false) {
             return ['created' => 0, 'skipped' => 0, 'failed' => 0, 'errors' => [__('Could not open the CSV file.')]];
@@ -111,6 +213,19 @@ final class PinCodeCsvImporter
             'failed' => $failed,
             'errors' => $errors,
         ];
+    }
+
+    private function resolvePath(UploadedFile|string $source): ?string
+    {
+        if ($source instanceof UploadedFile) {
+            $path = $source->getRealPath();
+
+            return $path !== false ? $path : null;
+        }
+
+        $resolved = realpath($source);
+
+        return $resolved !== false ? $resolved : (is_readable($source) ? $source : null);
     }
 
     /**

@@ -1,7 +1,5 @@
-<x-app-layout
-    :page-title="__('Vacancies')"
-    :welcome-line="__('Create, publish, and govern open roles.')"
->
+<x-operations.workspace>
+    <h2 class="mom-section-title mb-8">{{ __('Vacancies') }}</h2>
     @if (session('status') === 'vacancy-deleted')
         <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('Vacancy removed.') }}</p>
     @endif
@@ -76,4 +74,4 @@
             </div>
         @endif
     </div>
-</x-app-layout>
+</x-operations.workspace>

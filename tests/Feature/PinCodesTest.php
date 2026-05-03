@@ -1,11 +1,12 @@
 <?php
 
 use App\Models\PinCode;
+use App\Models\PinCodeImportLog;
 use App\Models\User;
 use App\ModuleAccess;
 use Illuminate\Http\UploadedFile;
 
-it('forbids pin codes when the user lacks operations access', function () {
+it('forbids pin codes directory when the user lacks operations access', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
         'module_access' => collect(ModuleAccess::keys())
@@ -14,11 +15,11 @@ it('forbids pin codes when the user lacks operations access', function () {
     ]);
 
     $this->actingAs($user)
-        ->get(route('operations.pin-codes.index'))
+        ->get(route('operations.pin-codes.directory'))
         ->assertForbidden();
 });
 
-it('allows operations users to open the pin codes directory', function () {
+it('allows operations users to open pin codes overview', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
         'module_access' => collect(ModuleAccess::keys())
@@ -27,9 +28,9 @@ it('allows operations users to open the pin codes directory', function () {
     ]);
 
     $this->actingAs($user)
-        ->get(route('operations.pin-codes.index'))
+        ->get(route('operations.pin-codes.overview'))
         ->assertOk()
-        ->assertSee(__('Pin codes'), false);
+        ->assertSee(__('Pin Codes'), false);
 });
 
 it('creates a pin code from the form', function () {
@@ -55,7 +56,7 @@ it('creates a pin code from the form', function () {
             'slug' => '',
             'geo_page_ready' => '0',
         ])
-        ->assertRedirect(route('operations.pin-codes.index'));
+        ->assertRedirect(route('operations.pin-codes.directory'));
 
     $row = PinCode::query()->where('pincode', '560076')->first();
     expect($row)->not->toBeNull()
@@ -63,7 +64,7 @@ it('creates a pin code from the form', function () {
         ->and($row->slug)->not->toBeNull();
 });
 
-it('imports CSV rows and skips duplicate pincodes', function () {
+it('imports CSV after preview and confirm', function () {
     PinCode::factory()->create(['pincode' => '560001', 'area_name' => 'Existing', 'city' => 'Bangalore']);
 
     $user = User::factory()->create([
@@ -75,17 +76,24 @@ it('imports CSV rows and skips duplicate pincodes', function () {
 
     $csv = "pincode,area_name,city,locality,serviceability,delivery_charge\n560001,Duplicate,BLR,,1,\n560002,New Area,Bangalore,JP Nagar,1,25.50\n";
 
-    $this->actingAs($user)
-        ->post(route('operations.pin-codes.import.store'), [
-            'file' => UploadedFile::fake()->createWithContent('pins.csv', $csv),
-        ])
-        ->assertRedirect(route('operations.pin-codes.index'));
+    $this->actingAs($user);
+
+    $this->post(route('operations.pin-codes.bulk-import.preview'), [
+        'file' => UploadedFile::fake()->createWithContent('pins.csv', $csv),
+    ])
+        ->assertRedirect(route('operations.pin-codes.bulk-import'));
+
+    $this->post(route('operations.pin-codes.bulk-import.confirm'), [
+        'confirm_import' => '1',
+    ])
+        ->assertRedirect(route('operations.pin-codes.overview'));
 
     expect(PinCode::query()->where('pincode', '560002')->exists())->toBeTrue()
-        ->and(PinCode::query()->where('pincode', '560001')->count())->toBe(1);
+        ->and(PinCode::query()->where('pincode', '560001')->count())->toBe(1)
+        ->and(PinCodeImportLog::query()->count())->toBe(1);
 });
 
-it('rejects CSV import when required columns are missing', function () {
+it('rejects CSV preview when required columns are missing', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
         'module_access' => collect(ModuleAccess::keys())
@@ -96,13 +104,9 @@ it('rejects CSV import when required columns are missing', function () {
     $csv = "foo,bar\n1,2\n";
 
     $this->actingAs($user)
-        ->post(route('operations.pin-codes.import.store'), [
+        ->post(route('operations.pin-codes.bulk-import.preview'), [
             'file' => UploadedFile::fake()->createWithContent('bad.csv', $csv),
         ])
-        ->assertRedirect(route('operations.pin-codes.index'));
-
-    $result = session('import_result');
-    expect($result)->toBeArray()
-        ->and($result['created'] ?? 0)->toBe(0)
-        ->and($result['errors'] ?? [])->not->toBeEmpty();
+        ->assertRedirect(route('operations.pin-codes.bulk-import'))
+        ->assertSessionHasErrors('file');
 });

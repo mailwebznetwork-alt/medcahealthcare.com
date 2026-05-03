@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Operations;
 
 use App\Http\Controllers\Controller;
-use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class OperationsHubController extends Controller
 {
     /**
-     * Landing workspace for Operations; Job Portal lives in the right-hand rail tabs.
+     * Default Operations entry: Job Portal overview.
      */
-    public function __invoke(): View
+    public function __invoke(): RedirectResponse
     {
-        return view('operations.hub');
+        return redirect()->route('operations.job-portal.overview');
     }
 }

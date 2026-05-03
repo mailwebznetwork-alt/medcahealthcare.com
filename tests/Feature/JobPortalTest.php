@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Models\Vacancy;
 use App\ModuleAccess;
 
-it('allows operations users to open the operations hub', function () {
+it('redirects operations entry to the job portal overview', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
         'module_access' => collect(ModuleAccess::keys())
@@ -17,11 +17,10 @@ it('allows operations users to open the operations hub', function () {
 
     $this->actingAs($user)
         ->get(route('modules.operations'))
-        ->assertOk()
-        ->assertSee(__('Operations command center'), false);
+        ->assertRedirect(route('operations.job-portal.overview'));
 });
 
-it('allows operations users to open the job portal dashboard', function () {
+it('allows operations users to open the job portal overview', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
         'module_access' => collect(ModuleAccess::keys())
@@ -30,8 +29,9 @@ it('allows operations users to open the job portal dashboard', function () {
     ]);
 
     $this->actingAs($user)
-        ->get(route('operations.job-portal.index'))
-        ->assertOk();
+        ->get(route('operations.job-portal.overview'))
+        ->assertOk()
+        ->assertSee(__('Create vacancy'), false);
 });
 
 it('lists a published public vacancy on the careers site', function () {
