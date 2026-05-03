@@ -122,7 +122,7 @@
                                 <span class="text-sm font-medium text-[var(--text-primary)]">{{ $name }}</span>
                                 <span class="mom-subtext">{{ $pct }}%</span>
                             </div>
-                            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-[rgba(255,255,255,0.04)]">
+                            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--bg-card-track)]">
                                 <div
                                     class="h-full rounded-full bg-gradient-to-r from-[rgba(212,169,95,0.25)] to-[#d4a95f] shadow-[0_0_18px_rgba(212,169,95,0.25)]"
                                     style="width: {{ $pct }}%"
@@ -146,7 +146,7 @@
                 </div>
                 <div class="mom-table mt-6 overflow-hidden rounded-mom-md border border-[rgba(255,255,255,0.045)]">
                     <table class="w-full text-left text-[13px]">
-                        <thead class="bg-[rgba(255,255,255,0.02)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                        <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
                             <tr>
                                 <th class="px-4 py-3 font-medium">Node</th>
                                 <th class="px-4 py-3 font-medium">State</th>
@@ -189,7 +189,7 @@
                 </div>
                 <div class="mom-table mt-6 overflow-hidden rounded-mom-md border border-[rgba(255,255,255,0.045)]">
                     <table class="w-full text-left text-[13px]">
-                        <thead class="bg-[rgba(255,255,255,0.02)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                        <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
                             <tr>
                                 <th class="px-4 py-3 font-medium">User</th>
                                 <th class="px-4 py-3 font-medium">Role</th>
@@ -228,7 +228,7 @@
                                 style="background: conic-gradient(#d4a95f {{ $pct }}%, rgba(255,255,255,0.06) 0);"
                             >
                                 <div
-                                    class="flex h-full w-full flex-col items-center justify-center rounded-full border border-[rgba(255,255,255,0.045)] bg-[#121212] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                                    class="flex h-full w-full flex-col items-center justify-center rounded-full border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-matte-deep)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                                 >
                                     <span class="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">{{ $label }}</span>
                                     <span class="mom-metric mt-1 text-[22px]">{{ $pct }}</span>
@@ -260,7 +260,7 @@
                     @foreach ([['sparkles', 'Compose insight'], ['shield-check', 'Policies'], ['database', 'Connectors'], ['gauge', 'Latency']] as [$icon, $lbl])
                         <button
                             type="button"
-                            class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[rgba(255,255,255,0.02)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)]"
+                            class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)]"
                         >
                             <span class="flex h-9 w-9 items-center justify-center rounded-mom-sm border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] text-mom-gold">
                                 <i data-lucide="{{ $icon }}" class="h-[16px] w-[16px]"></i>

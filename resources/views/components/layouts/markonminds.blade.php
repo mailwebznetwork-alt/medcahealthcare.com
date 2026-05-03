@@ -161,10 +161,7 @@
                 </nav>
 
                 <div class="border-t border-[rgba(255,255,255,0.045)] p-4">
-                    <div
-                        class="rounded-mom-lg border border-[rgba(255,255,255,0.045)] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-6 shadow-mom-inner"
-                        style="box-shadow: var(--shadow-inner), 0 0 36px rgba(212,169,95,0.05);"
-                    >
+                    <div class="mom-card p-6">
                         <div class="flex items-start gap-3">
                             <div
                                 class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] text-xs font-semibold tracking-wide text-mom-gold"

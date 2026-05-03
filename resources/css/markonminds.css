@@ -11,6 +11,14 @@
 
     --bg-sidebar: #090909;
 
+    /* Matte brown surfaces (cards, panels, modal, nested UI) */
+    --bg-card-matte: #1a1410;
+    --bg-card-matte-deep: #14100d;
+    --bg-card-matte-raised: #221b15;
+    --bg-card-table-head: rgba(48, 40, 33, 0.55);
+    --bg-card-track: rgba(40, 33, 27, 0.65);
+    --bg-card-nested: rgba(52, 44, 36, 0.45);
+
     --accent-gold: #d4a95f;
     --accent-gold-soft: rgba(212, 169, 95, 0.12);
     --accent-gold-border: rgba(212, 169, 95, 0.22);
@@ -127,9 +135,9 @@ body.mom-body::after {
 
 .mom-card {
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
-        radial-gradient(circle at top left, rgba(212, 169, 95, 0.06), transparent 45%),
-        #121212;
+        linear-gradient(180deg, rgba(255, 244, 230, 0.045), rgba(255, 244, 230, 0.014)),
+        radial-gradient(circle at top left, rgba(212, 169, 95, 0.09), transparent 48%),
+        var(--bg-card-matte);
     box-shadow:
         var(--shadow-inner),
         var(--shadow-surface),
@@ -156,7 +164,7 @@ body.mom-body::after {
 /* Utilities referenced by Tailwind @apply extensions */
 
 .atmospheric-surface {
-    background-color: var(--bg-surface);
+    background-color: var(--bg-card-matte-raised);
     border: var(--border-default);
     box-shadow: var(--shadow-surface);
 }
@@ -166,7 +174,7 @@ body.mom-body::after {
 }
 
 .matte-panel {
-    background-color: var(--bg-elevated);
+    background-color: var(--bg-card-matte-raised);
     border: var(--border-default);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
@@ -181,7 +189,7 @@ body.mom-body::after {
 }
 
 .elevated-surface {
-    background-color: var(--bg-elevated);
+    background-color: var(--bg-card-matte-raised);
     border: var(--border-default);
     box-shadow: var(--shadow-surface), var(--shadow-glow);
     border-radius: var(--radius-lg);
@@ -249,13 +257,13 @@ body.mom-body::after {
 }
 
 .mom-table tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.025);
+    background-color: rgba(62, 52, 42, 0.22);
 }
 
 /* ApexCharts container polish */
 
 .mom-apex .apexcharts-tooltip {
-    background: rgba(18, 18, 18, 0.92) !important;
+    background: rgba(26, 20, 16, 0.94) !important;
     border: 1px solid rgba(212, 169, 95, 0.22) !important;
     backdrop-filter: blur(12px);
     border-radius: var(--radius-md) !important;
