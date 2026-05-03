@@ -31,6 +31,13 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
 - Check for existing components to reuse before writing a new one.
 
+## MarkOnMinds backend UI (visual lock)
+
+- **Frozen unless requested**: Do not change MarkOnMinds shell colors, typography, spacing tokens, or shared `variant="mom"` components unless the user explicitly asks for a specific visual change.
+- **Canonical files**: `resources/css/markonminds.css`, `tailwind.config.js` (mom-* extensions), `resources/views/components/layouts/markonminds.blade.php`, and mom Blade components under `resources/views/components/`.
+- **Authenticated pages** must render only via **`x-app-layout`** or **`x-layouts.markonminds`** (same layout component today). New `auth`-middleware views should follow `dashboard` / `profile` patterns.
+- Guest/auth marketing views (`welcome`, Breeze `layouts/guest`) are excluded from this lock unless the user extends the scope.
+
 ## Verification Scripts
 
 - Do not create verification scripts or tinker when tests cover that functionality and prove they work. Unit and feature tests are more important.

@@ -1,6 +1,10 @@
 /**
  * MarkOnMinds — strict design token engine (CSS variables only + layered rendering).
  * Reference image is source of truth — tokens MUST NOT drift.
+ *
+ * VISUAL LOCK (backend / authenticated shell): do not edit colors, fonts, or chrome
+ * here unless the product owner explicitly requests a change. See AGENTS.md and
+ * `.cursor/rules/markonminds-backend-ui-lock.mdc`.
  */
 
 :root {
