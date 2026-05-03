@@ -1,3 +1,35 @@
+@import './markonminds.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    .mom-title-page {
+        @apply text-[28px] font-semibold leading-[1.2] text-[var(--text-primary)];
+    }
+
+    .mom-section-title {
+        @apply text-[18px] font-medium text-[var(--text-primary)];
+    }
+
+    .mom-metric {
+        @apply text-[32px] font-bold tracking-tight text-[var(--text-primary)];
+    }
+
+    .mom-micro {
+        @apply text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)];
+    }
+
+    .mom-body-text {
+        @apply text-sm text-[var(--text-secondary)];
+    }
+
+    .mom-subtext {
+        @apply text-[13px] text-[var(--text-secondary)];
+    }
+
+    .mom-sidebar-label {
+        @apply text-sm font-medium text-[var(--text-secondary)];
+    }
+}

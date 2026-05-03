@@ -1,0 +1,217 @@
+/**
+ * MarkOnMinds — strict design token engine (CSS variables only + layered rendering).
+ */
+
+:root {
+    --bg-app: #070707;
+    --bg-sidebar: #090909;
+    --bg-surface: #101010;
+    --bg-elevated: #151515;
+    --bg-hover: #1b1b1b;
+
+    --accent-gold: #d4a95f;
+    --accent-gold-soft: rgba(212, 169, 95, 0.12);
+    --accent-gold-border: rgba(212, 169, 95, 0.22);
+    --accent-gold-glow: rgba(212, 169, 95, 0.14);
+
+    --text-primary: #f5f5f5;
+    --text-secondary: #9a9a9a;
+    --text-muted: #5f5f5f;
+
+    --success: #62c370;
+    --danger: #e25c5c;
+    --warning: #e2b85c;
+
+    --border-soft: rgba(255, 255, 255, 0.05);
+    --border-fade: rgba(255, 255, 255, 0.025);
+
+    --shadow-surface: 0 10px 30px rgba(0, 0, 0, 0.35);
+    --shadow-elevated: 0 20px 50px rgba(0, 0, 0, 0.45);
+    --shadow-glow: 0 0 40px rgba(212, 169, 95, 0.08);
+    --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+    --border-default: 1px solid rgba(255, 255, 255, 0.045);
+    --border-hover: 1px solid rgba(212, 169, 95, 0.16);
+    --border-active: 1px solid rgba(212, 169, 95, 0.28);
+
+    --mom-transition: 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---- Atmospheric rendering (body layers) ---- */
+
+body.mom-body {
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    min-height: 100vh;
+    position: relative;
+    isolation: isolate;
+}
+
+body.mom-body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 85% 55% at 12% -5%, rgba(212, 169, 95, 0.09), transparent 58%),
+        radial-gradient(ellipse 70% 45% at 88% 15%, rgba(212, 169, 95, 0.035), transparent 55%),
+        radial-gradient(ellipse 90% 60% at 48% 35%, rgba(255, 255, 255, 0.025), transparent 62%);
+}
+
+body.mom-body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 40%, transparent 32%, rgba(0, 0, 0, 0.62) 100%);
+}
+
+/* Matte noise texture */
+.mom-noise {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.017;
+    mix-blend-mode: soft-light;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---- Scrollbar (sidebar) ---- */
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 10px;
+}
+
+/* ---- Premium card shell ---- */
+
+.mom-card {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+        radial-gradient(circle at top left, rgba(212, 169, 95, 0.06), transparent 45%),
+        #121212;
+    box-shadow:
+        var(--shadow-inner),
+        var(--shadow-surface),
+        0 0 40px rgba(212, 169, 95, 0.03);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 22px;
+    border: var(--border-default);
+    transition:
+        transform var(--mom-transition),
+        box-shadow var(--mom-transition),
+        border-color var(--mom-transition);
+}
+
+.mom-card-interactive:hover {
+    transform: translateY(-2px);
+    border: var(--border-hover);
+    box-shadow:
+        var(--shadow-inner),
+        var(--shadow-surface),
+        0 0 48px rgba(212, 169, 95, 0.09);
+}
+
+/* Utilities referenced by Tailwind @apply extensions */
+
+.atmospheric-surface {
+    background-color: var(--bg-surface);
+    border: var(--border-default);
+    box-shadow: var(--shadow-surface);
+}
+
+.glow-gold {
+    box-shadow: var(--shadow-glow);
+}
+
+.matte-panel {
+    background-color: var(--bg-elevated);
+    border: var(--border-default);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.cinematic-shadow {
+    box-shadow: var(--shadow-elevated);
+}
+
+.premium-border {
+    border: var(--border-default);
+}
+
+/* Sidebar active bloom */
+
+.mom-nav-active {
+    background: linear-gradient(
+        135deg,
+        rgba(212, 169, 95, 0.14),
+        rgba(212, 169, 95, 0.05)
+    );
+    border: 1px solid rgba(212, 169, 95, 0.22);
+    box-shadow:
+        0 0 28px rgba(212, 169, 95, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Fade-up reveal */
+
+@keyframes mom-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mom-reveal {
+    animation: mom-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* KPI sparkline (inline SVG helper) */
+
+.mom-sparkline {
+    stroke: var(--accent-gold);
+    stroke-width: 2;
+    fill: none;
+    opacity: 0.85;
+}
+
+/* Table row hover */
+
+.mom-table tbody tr {
+    transition: background-color var(--mom-transition);
+}
+
+.mom-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.025);
+}
+
+/* ApexCharts container polish */
+
+.mom-apex .apexcharts-tooltip {
+    background: rgba(18, 18, 18, 0.92) !important;
+    border: 1px solid rgba(212, 169, 95, 0.22) !important;
+    backdrop-filter: blur(12px);
+    border-radius: 12px !important;
+    box-shadow: var(--shadow-elevated) !important;
+}
+
+.mom-apex .apexcharts-tooltip-title {
+    color: var(--text-secondary) !important;
+}
+
+.mom-apex .apexcharts-tooltip-text,
+.mom-apex .apexcharts-tooltip-text-y-value {
+    color: var(--text-primary) !important;
+}
