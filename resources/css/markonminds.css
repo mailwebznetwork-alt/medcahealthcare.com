@@ -9,11 +9,11 @@
     --bg-elevated: #151515;
     --bg-hover: #1b1b1b;
 
-    /* Shared brown pane (sidebar + main column) */
-    --bg-main-brown: #161210;
-    --bg-main-brown-soft: #1a1612;
-    --bg-main-brown-header: rgba(22, 18, 14, 0.82);
-    --bg-sidebar: var(--bg-main-brown);
+    /* Left sidebar only: warm brown pane */
+    --bg-sidebar-brown: #161210;
+    --bg-sidebar-brown-soft: #1a1612;
+
+    --bg-sidebar: #090909;
 
     --accent-gold: #d4a95f;
     --accent-gold-soft: rgba(212, 169, 95, 0.12);
@@ -60,13 +60,22 @@ body.mom-body {
     isolation: isolate;
 }
 
-/* Sidebar + main: same brown pane (shared window treatment). */
-.mom-brown-pane {
+/* Left sidebar only — brown (e.g. /profile nav column). */
+.mom-sidebar-pane {
     min-height: 100vh;
-    background-color: var(--bg-main-brown);
+    background-color: var(--bg-sidebar-brown);
     background-image:
-        radial-gradient(ellipse 85% 55% at 70% 0%, rgba(212, 169, 95, 0.045), transparent 55%),
-        linear-gradient(180deg, rgba(45, 36, 28, 0.35) 0%, transparent 42%);
+        radial-gradient(ellipse 90% 60% at 12% 0%, rgba(212, 169, 95, 0.055), transparent 58%),
+        linear-gradient(180deg, rgba(45, 36, 28, 0.38) 0%, transparent 45%);
+}
+
+/* Right main column — dark charcoal (unchanged from app canvas; not brown). */
+.mom-main-pane {
+    min-height: 100vh;
+    background-color: var(--bg-app);
+    background-image:
+        radial-gradient(ellipse 85% 55% at 70% 0%, rgba(212, 169, 95, 0.035), transparent 55%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 42%);
 }
 
 body.mom-body::before {

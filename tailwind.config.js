@@ -54,8 +54,8 @@ export default {
                 'mom-success': 'var(--success)',
                 'mom-danger': 'var(--danger)',
                 'mom-warning': 'var(--warning)',
-                'mom-main-brown': 'var(--bg-main-brown)',
-                'mom-main-brown-soft': 'var(--bg-main-brown-soft)',
+                'mom-sidebar-brown': 'var(--bg-sidebar-brown)',
+                'mom-sidebar-brown-soft': 'var(--bg-sidebar-brown-soft)',
             },
             backgroundImage: {
                 'mom-sidebar-edge':
