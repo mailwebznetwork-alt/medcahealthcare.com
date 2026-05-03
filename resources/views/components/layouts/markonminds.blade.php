@@ -64,7 +64,7 @@
         <div id="mom-shell" class="relative z-10 flex min-h-screen">
             {{-- Sidebar --}}
             <aside
-                class="mom-sidebar-pane fixed inset-y-0 left-0 z-50 flex w-[260px] -translate-x-full flex-col border-r border-[rgba(255,255,255,0.045)] transition-transform duration-320 ease-premium lg:static lg:translate-x-0"
+                class="mom-main-pane fixed inset-y-0 left-0 z-50 flex w-[260px] -translate-x-full flex-col border-r border-[rgba(255,255,255,0.045)] transition-transform duration-320 ease-premium lg:static lg:translate-x-0"
                 :class="{ '!translate-x-0': mobileNav }"
             >
                 <div class="flex h-[72px] shrink-0 items-center gap-3 border-b border-[rgba(255,255,255,0.045)] px-6">
@@ -200,7 +200,7 @@
                 </div>
             </aside>
 
-            {{-- Main column: dark content area (not brown — brown is sidebar only) --}}
+            {{-- Main column: same pane background as sidebar --}}
             <div class="mom-main-pane flex min-w-0 flex-1 flex-col lg:ml-0">
                 {{-- Topbar --}}
                 <header

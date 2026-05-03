@@ -9,10 +9,6 @@
     --bg-elevated: #151515;
     --bg-hover: #1b1b1b;
 
-    /* Left sidebar only: warm brown pane */
-    --bg-sidebar-brown: #161210;
-    --bg-sidebar-brown-soft: #1a1612;
-
     --bg-sidebar: #090909;
 
     --accent-gold: #d4a95f;
@@ -60,16 +56,7 @@ body.mom-body {
     isolation: isolate;
 }
 
-/* Left sidebar only — brown (e.g. /profile nav column). */
-.mom-sidebar-pane {
-    min-height: 100vh;
-    background-color: var(--bg-sidebar-brown);
-    background-image:
-        radial-gradient(ellipse 90% 60% at 12% 0%, rgba(212, 169, 95, 0.055), transparent 58%),
-        linear-gradient(180deg, rgba(45, 36, 28, 0.38) 0%, transparent 45%);
-}
-
-/* Right main column — dark charcoal (unchanged from app canvas; not brown). */
+/* Sidebar + main: identical canvas (same as right-hand content window). */
 .mom-main-pane {
     min-height: 100vh;
     background-color: var(--bg-app);
