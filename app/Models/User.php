@@ -147,6 +147,27 @@ class User extends Authenticatable
         return implode(' · ', $labels);
     }
 
+    /**
+     * Lucide icon names (kebab-case for data-lucide) for enabled modules, in canonical sidebar order.
+     *
+     * @return list<string>
+     */
+    public function enabledModuleAccessIcons(): array
+    {
+        $icons = [];
+        foreach (ModuleAccess::keys() as $key) {
+            if (! $this->hasModuleAccess($key)) {
+                continue;
+            }
+            $icon = ModuleAccess::navigation()[$key]['icon'] ?? null;
+            if (is_string($icon) && $icon !== '') {
+                $icons[] = $icon;
+            }
+        }
+
+        return $icons;
+    }
+
     public function profileImageUrl(): ?string
     {
         if ($this->profile_image_path === null || $this->profile_image_path === '') {

@@ -68,7 +68,7 @@
 
     <div class="mom-table mt-8 overflow-hidden rounded-mom-lg border border-[rgba(255,255,255,0.045)]">
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[56rem] text-left text-[13px]">
+            <table class="w-full min-w-[44rem] text-left text-[13px]">
                 <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
                     <tr>
                         <th class="px-4 py-3 font-medium">{{ __('User') }}</th>
@@ -76,12 +76,15 @@
                         <th class="px-4 py-3 font-medium">{{ __('Role') }}</th>
                         <th class="px-4 py-3 font-medium">{{ __('Status') }}</th>
                         <th class="px-4 py-3 font-medium">{{ __('Last login') }}</th>
-                        <th class="px-4 py-3 font-medium">{{ __('Access') }}</th>
-                        <th class="px-4 py-3 font-medium text-right">{{ __('Actions') }}</th>
+                        <th class="w-[1%] whitespace-nowrap px-4 py-3 font-medium">{{ __('Access') }}</th>
+                        <th class="w-[1%] whitespace-nowrap px-4 py-3 font-medium text-right">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
                     @forelse ($users as $row)
+                        @php
+                            $accessIcons = $row->enabledModuleAccessIcons();
+                        @endphp
                         <tr>
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-3">
@@ -116,42 +119,100 @@
                             <td class="px-4 py-3 text-[var(--text-muted)]">
                                 {{ $row->last_login_at?->timezone(config('app.timezone'))->format('Y-m-d H:i') ?? __('Never') }}
                             </td>
-                            <td class="max-w-[14rem] truncate px-4 py-3 text-[12px]" title="{{ $row->moduleAccessSummary() }}">
-                                {{ $row->moduleAccessSummary() }}
+                            <td class="px-4 py-3">
+                                <span class="sr-only">{{ $row->moduleAccessSummary() }}</span>
+                                <div class="flex flex-wrap items-center gap-2.5" aria-hidden="true">
+                                    @foreach ($accessIcons as $icon)
+                                        <i data-lucide="{{ $icon }}" class="h-4 w-4 shrink-0 text-[var(--text-muted)] opacity-[0.82]"></i>
+                                    @endforeach
+                                    @if ($accessIcons === [])
+                                        <span class="text-[var(--text-muted)]">—</span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-4 py-3 text-right">
-                                <div class="flex flex-wrap justify-end gap-2">
-                                    @can('update', $row)
-                                        <a href="{{ route('user-management.edit', $row) }}" class="text-mom-gold hover:underline">{{ __('Edit') }}</a>
-                                    @endcan
-                                    @can('changeActiveState', $row)
-                                        @if ($row->is_active)
-                                            <form method="post" action="{{ route('user-management.deactivate', $row) }}" class="inline">
-                                                @csrf
-                                                @method('patch')
-                                                <button type="submit" class="text-[var(--text-muted)] hover:text-[var(--text-secondary)]">{{ __('Deactivate') }}</button>
-                                            </form>
-                                        @else
-                                            <form method="post" action="{{ route('user-management.activate', $row) }}" class="inline">
-                                                @csrf
-                                                @method('patch')
-                                                <button type="submit" class="text-[var(--text-muted)] hover:text-[var(--text-secondary)]">{{ __('Activate') }}</button>
-                                            </form>
-                                        @endif
-                                    @endcan
-                                    @can('delete', $row)
-                                        <form
-                                            method="post"
-                                            action="{{ route('user-management.destroy', $row) }}"
-                                            class="inline"
-                                            onsubmit="return confirm('{{ __('Delete this user permanently?') }}');"
+                                @canany(['update', 'changeActiveState', 'delete'], $row)
+                                    <div
+                                        class="relative inline-block text-left"
+                                        x-data="{ open: false }"
+                                        @keydown.escape.window="open = false"
+                                    >
+                                        <button
+                                            type="button"
+                                            class="inline-flex items-center justify-center rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[rgba(255,255,255,0.03)] px-3 py-1.5 text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)] shadow-mom-inner transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)] hover:text-[var(--text-primary)]"
+                                            @click="open = ! open"
+                                            x-bind:aria-expanded="open"
+                                            aria-haspopup="true"
+                                            aria-controls="user-row-menu-{{ $row->id }}"
+                                        >{{ __('Modify') }}</button>
+                                        <div
+                                            id="user-row-menu-{{ $row->id }}"
+                                            x-show="open"
+                                            x-transition:enter="transition ease-out duration-200"
+                                            x-transition:enter-start="opacity-0 translate-y-1"
+                                            x-transition:enter-end="opacity-100 translate-y-0"
+                                            x-transition:leave="transition ease-in duration-150"
+                                            x-transition:leave-start="opacity-100 translate-y-0"
+                                            x-transition:leave-end="opacity-0 translate-y-1"
+                                            @click.outside="open = false"
+                                            class="absolute right-0 top-[calc(100%+0.35rem)] z-30 w-[min(12rem,calc(100vw-2rem))] rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-matte)] py-1 shadow-mom-elevated ring-1 ring-[rgba(212,169,95,0.06)]"
+                                            style="display: none;"
+                                            role="menu"
                                         >
-                                            @csrf
-                                            @method('delete')
-                                            <button type="submit" class="text-[var(--danger)] hover:underline">{{ __('Delete') }}</button>
-                                        </form>
-                                    @endcan
-                                </div>
+                                            @can('update', $row)
+                                                <a
+                                                    href="{{ route('user-management.edit', $row) }}"
+                                                    role="menuitem"
+                                                    class="block px-4 py-2.5 text-left text-sm text-[var(--text-secondary)] transition-colors duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+                                                    @click="open = false"
+                                                >{{ __('Edit') }}</a>
+                                            @endcan
+                                            @can('changeActiveState', $row)
+                                                @if ($row->is_active)
+                                                    <form method="post" action="{{ route('user-management.deactivate', $row) }}" role="none">
+                                                        @csrf
+                                                        @method('patch')
+                                                        <button
+                                                            type="submit"
+                                                            role="menuitem"
+                                                            class="block w-full px-4 py-2.5 text-left text-sm text-[var(--text-secondary)] transition-colors duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+                                                        >{{ __('Deactivate') }}</button>
+                                                    </form>
+                                                @else
+                                                    <form method="post" action="{{ route('user-management.activate', $row) }}" role="none">
+                                                        @csrf
+                                                        @method('patch')
+                                                        <button
+                                                            type="submit"
+                                                            role="menuitem"
+                                                            class="block w-full px-4 py-2.5 text-left text-sm text-[var(--text-secondary)] transition-colors duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+                                                        >{{ __('Activate') }}</button>
+                                                    </form>
+                                                @endif
+                                            @endcan
+                                            @can('delete', $row)
+                                                <div class="my-1 border-t border-[rgba(255,255,255,0.045)]" aria-hidden="true"></div>
+                                                <form
+                                                    method="post"
+                                                    action="{{ route('user-management.destroy', $row) }}"
+                                                    class="px-1 pb-1"
+                                                    role="none"
+                                                    onsubmit="return confirm('{{ __('Delete this user permanently?') }}');"
+                                                >
+                                                    @csrf
+                                                    @method('delete')
+                                                    <button
+                                                        type="submit"
+                                                        role="menuitem"
+                                                        class="block w-full rounded-mom-sm px-3 py-2 text-left text-sm text-[var(--text-muted)] transition-colors duration-320 ease-premium hover:bg-[rgba(220,38,38,0.06)] hover:text-[var(--danger)]"
+                                                    >{{ __('Delete') }}</button>
+                                                </form>
+                                            @endcan
+                                        </div>
+                                    </div>
+                                @else
+                                    <span class="text-[var(--text-muted)]">—</span>
+                                @endcanany
                             </td>
                         </tr>
                     @empty
