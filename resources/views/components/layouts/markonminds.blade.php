@@ -27,6 +27,7 @@
             request()->routeIs('settings.*') => __('Workspace configuration and preferences.'),
             request()->routeIs('operations.job-portal.*') => __('Hiring operations and applicant pipeline.'),
             request()->routeIs('modules.operations') => __('Operational workspaces and hiring tools.'),
+            request()->routeIs('user-management.*') => __('People, access, and directory control.'),
             request()->routeIs('modules.*') => __('Focused module workspace.'),
             default => __('Welcome back — here is your intelligence snapshot.'),
         };

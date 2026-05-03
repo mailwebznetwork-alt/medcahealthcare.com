@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -51,6 +52,16 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user !== null && ! $user->is_active) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => __('This account has been deactivated. Contact an administrator.'),
+            ]);
+        }
     }
 
     /**

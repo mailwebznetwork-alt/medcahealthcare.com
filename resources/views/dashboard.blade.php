@@ -4,6 +4,7 @@
 
 @php
     $w = $dashboardWidgets;
+    $m = $metrics;
     $sep = false;
     $midCount = (int) $w['site_architect'] + (int) $w['marketing'] + (int) $w['security'];
     $midGrid = match (true) {
@@ -16,52 +17,50 @@
 
 <x-layouts.markonminds
     page-title="Dashboard Overview"
-    welcome-line="Welcome back — intelligence surfaces update in near real-time."
+    welcome-line="Welcome back — intelligence surfaces reflect your assigned modules."
 >
     <div class="mom-reveal w-full max-w-full">
         <div class="space-y-1 pb-8 md:hidden md:pb-0">
             <h1 class="mom-title-page">Dashboard Overview</h1>
-            <p class="mom-subtext">Welcome back — intelligence surfaces update in near real-time.</p>
+            <p class="mom-subtext">Welcome back — intelligence surfaces reflect your assigned modules.</p>
         </div>
 
         @if ($w['dashboard'])
             <section class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-                @foreach ([
-                    ['label' => 'Total revenue', 'value' => '$482.4k', 'delta' => '+12.4%', 'path' => 'M0,28 L16,24 L32,30 L48,16 L64,22 L80,12 L96,18 L112,8 L120,14'],
-                    ['label' => 'Active users', 'value' => '18,942', 'delta' => '+4.1%', 'path' => 'M0,22 L18,26 L36,18 L54,24 L72,14 L90,20 L108,10 L120,16'],
-                    ['label' => 'Conversion', 'value' => '3.28%', 'delta' => '+0.6%', 'path' => 'M0,20 L20,16 L40,24 L58,12 L78,18 L96,8 L120,14'],
-                    ['label' => 'Avg. session', 'value' => '4m 12s', 'delta' => '−2.1%', 'path' => 'M0,14 L22,20 L42,10 L62,18 L82,8 L102,14 L120,6'],
-                ] as $kpi)
+                @if ($m['users_total'] !== null)
                     <article class="mom-card mom-card-interactive px-5 py-4">
-                        <div class="mom-micro">
-                            {{ $kpi['label'] }} <span class="normal-case">({{ $kpi['delta'] }})</span>
-                        </div>
-                        <p class="mom-metric mt-2 leading-none">{{ $kpi['value'] }}</p>
-                        <svg viewBox="0 0 120 36" class="mt-3 h-7 w-full" preserveAspectRatio="none" aria-hidden="true">
-                            <defs>
-                                <linearGradient id="spark-fill-{{ $loop->index }}" x1="0" x2="0" y1="0" y2="1">
-                                    <stop offset="0%" stop-color="#d4a95f" stop-opacity="0.2" />
-                                    <stop offset="100%" stop-color="#1c1613" stop-opacity="0" />
-                                </linearGradient>
-                            </defs>
-                            <path
-                                d="{{ $kpi['path'] }} L120,36 L0,36 Z"
-                                fill="url(#spark-fill-{{ $loop->index }})"
-                                opacity="0.85"
-                            />
-                            <path
-                                d="{{ $kpi['path'] }}"
-                                fill="none"
-                                stroke="#d4a95f"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                vector-effect="non-scaling-stroke"
-                                opacity="0.9"
-                            />
-                        </svg>
+                        <p class="mom-micro">{{ __('Team members') }}</p>
+                        <p class="mom-metric mt-2 leading-none">{{ number_format((int) $m['users_total']) }}</p>
+                        <p class="mom-subtext mt-2">{{ __('All accounts in the workspace directory.') }}</p>
                     </article>
-                @endforeach
+                    <article class="mom-card mom-card-interactive px-5 py-4">
+                        <p class="mom-micro">{{ __('Active accounts') }}</p>
+                        <p class="mom-metric mt-2 leading-none">{{ number_format((int) $m['users_active']) }}</p>
+                        <p class="mom-subtext mt-2">{{ __('Users with sign-in privileges.') }}</p>
+                    </article>
+                    <article class="mom-card mom-card-interactive px-5 py-4">
+                        <p class="mom-micro">{{ __('Verified emails') }}</p>
+                        <p class="mom-metric mt-2 leading-none">{{ number_format((int) $m['users_verified']) }}</p>
+                        <p class="mom-subtext mt-2">{{ __('Addresses that completed verification.') }}</p>
+                    </article>
+                    <article class="mom-card mom-card-interactive px-5 py-4">
+                        <p class="mom-micro">{{ __('Inactive accounts') }}</p>
+                        <p class="mom-metric mt-2 leading-none">{{ number_format((int) $m['users_inactive']) }}</p>
+                        <p class="mom-subtext mt-2">{{ __('Suspended or deactivated users.') }}</p>
+                    </article>
+                @else
+                    <article class="mom-card mom-card-interactive px-5 py-4 sm:col-span-2">
+                        <p class="mom-micro">{{ __('Your session') }}</p>
+                        <p class="mom-metric mt-2 leading-none">{{ auth()->user()->last_login_at?->timezone(config('app.timezone'))->format('M j, H:i') ?? __('First visit') }}</p>
+                        <p class="mom-subtext mt-2">{{ __('Last recorded sign-in for this account.') }}</p>
+                    </article>
+                    <article class="mom-card mom-card-interactive px-5 py-4 sm:col-span-2">
+                        <p class="mom-micro">{{ __('Workspace') }}</p>
+                        <p class="mom-body-text mt-2 text-[var(--text-secondary)]">
+                            {{ __('Module access is managed centrally in User Management. Request changes from an administrator if you need additional surfaces.') }}
+                        </p>
+                    </article>
+                @endif
             </section>
             @php $sep = true; @endphp
         @endif
@@ -78,16 +77,16 @@
                     <div class="mom-card mom-apex p-6 {{ $pair ? 'lg:col-span-8' : '' }}">
                         <div class="flex flex-wrap items-end justify-between gap-4">
                             <div>
-                                <p class="mom-micro">Performance intelligence</p>
-                                <h2 class="mom-section-title mt-2">Analytics overview</h2>
-                                <p class="mom-subtext mt-2 max-w-xl">Dual-signal trace across acquisition and retention layers — matte baseline vs illuminated primary curve.</p>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="mom-micro text-[var(--text-secondary)]">FY snapshot</span>
-                                <i data-lucide="chevron-right" class="h-4 w-4 text-[var(--text-muted)]"></i>
+                                <p class="mom-micro">{{ __('Performance intelligence') }}</p>
+                                <h2 class="mom-section-title mt-2">{{ __('Analytics overview') }}</h2>
+                                <p class="mom-subtext mt-2 max-w-xl">
+                                    {{ __('Charts activate when acquisition and retention signals are connected. No sample data is shown here.') }}
+                                </p>
                             </div>
                         </div>
-                        <div id="mom-chart-analytics" class="mt-6 w-full"></div>
+                        <div class="mt-8 rounded-mom-md border border-dashed border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] px-6 py-12 text-center text-sm text-[var(--text-muted)]">
+                            {{ __('Awaiting connected analytics pipeline.') }}
+                        </div>
                     </div>
                 @endif
 
@@ -95,32 +94,36 @@
                     <aside class="mom-card flex flex-col p-6 {{ $pair ? 'lg:col-span-4' : '' }}">
                         <div class="flex items-center justify-between gap-3">
                             <div>
-                                <p class="mom-micro">Live stream</p>
-                                <h2 class="mom-section-title mt-2">Real-time activity</h2>
+                                <p class="mom-micro">{{ __('Operations') }}</p>
+                                <h2 class="mom-section-title mt-2">{{ __('Hiring snapshot') }}</h2>
                             </div>
-                            <span class="mom-live-pulse rounded-mom-pill border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-mom-gold">Live</span>
                         </div>
-                        <ul class="mt-6 space-y-5">
-                            @foreach ([
-                                ['t' => 'Now', 's' => 'Insight pipeline refreshed — cohort delta stable.', 'tone' => 'gold'],
-                                ['t' => '2m', 's' => 'New enterprise workspace provisioned.', 'tone' => 'muted'],
-                                ['t' => '6m', 's' => 'SEO cluster weights recalibrated.', 'tone' => 'muted'],
-                                ['t' => '14m', 's' => 'API latency envelope tightened.', 'tone' => 'muted'],
-                                ['t' => '22m', 's' => 'Governance policy mirrored to satellite region.', 'tone' => 'muted'],
-                            ] as $item)
-                                <li class="flex gap-4">
-                                    <span class="relative mt-1.5 flex h-2 w-2 shrink-0">
-                                        <span
-                                            class="absolute inset-0 rounded-full {{ $item['tone'] === 'gold' ? 'bg-mom-gold shadow-[0_0_12px_rgba(212,169,95,0.45)]' : 'bg-[rgba(255,255,255,0.12)]' }}"
-                                        ></span>
-                                    </span>
-                                    <div class="min-w-0">
-                                        <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">{{ $item['t'] }}</p>
-                                        <p class="mom-body-text mt-1 leading-relaxed text-[var(--text-secondary)]">{{ $item['s'] }}</p>
+                        @if ($m['vacancies_total'] !== null)
+                            <dl class="mt-6 space-y-4">
+                                <div class="flex items-center justify-between gap-3 border-b border-[rgba(255,255,255,0.045)] pb-4">
+                                    <dt class="mom-body-text text-[var(--text-secondary)]">{{ __('Vacancies') }}</dt>
+                                    <dd class="mom-metric text-xl">{{ number_format((int) $m['vacancies_total']) }}</dd>
+                                </div>
+                                <div class="flex items-center justify-between gap-3 border-b border-[rgba(255,255,255,0.045)] pb-4">
+                                    <dt class="mom-body-text text-[var(--text-secondary)]">{{ __('Published') }}</dt>
+                                    <dd class="mom-metric text-xl">{{ number_format((int) $m['vacancies_published']) }}</dd>
+                                </div>
+                                @if ($m['applications_recent'] !== null)
+                                    <div class="flex items-center justify-between gap-3">
+                                        <dt class="mom-body-text text-[var(--text-secondary)]">{{ __('Applications (7d)') }}</dt>
+                                        <dd class="mom-metric text-xl">{{ number_format((int) $m['applications_recent']) }}</dd>
                                     </div>
-                                </li>
-                            @endforeach
-                        </ul>
+                                @endif
+                            </dl>
+                            <a
+                                href="{{ route('modules.operations') }}"
+                                class="mom-subtext mt-6 inline-flex items-center gap-1 text-mom-gold hover:underline"
+                            >{{ __('Open operations') }} <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i></a>
+                        @else
+                            <p class="mom-body-text mt-6 text-[var(--text-secondary)]">
+                                {{ __('Job portal metrics appear when the hiring workspace is provisioned.') }}
+                            </p>
+                        @endif
                     </aside>
                 @endif
             </section>
@@ -135,67 +138,39 @@
                 @if ($w['site_architect'])
                     <div class="mom-card mom-card-interactive p-6">
                         <div class="flex items-center justify-between gap-3">
-                            <h2 class="mom-section-title">Top services</h2>
+                            <h2 class="mom-section-title">{{ __('Site architect') }}</h2>
                             <i data-lucide="layers" class="h-[18px] w-[18px] text-[var(--text-muted)]"></i>
                         </div>
-                        <ul class="mt-6 space-y-5">
-                            @foreach ([['Enterprise CX', 92], ['Predictive CRM', 84], ['Signal Fabric', 76], ['Ledger Vault', 68]] as [$name, $pct])
-                                <li>
-                                    <div class="flex items-center justify-between gap-3">
-                                        <span class="text-sm font-medium text-[var(--text-primary)]">{{ $name }}</span>
-                                        <span class="mom-subtext">{{ $pct }}%</span>
-                                    </div>
-                                    <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--bg-card-track)]">
-                                        <div
-                                            class="h-full rounded-full bg-gradient-to-r from-[rgba(212,169,95,0.25)] to-[#d4a95f] shadow-[0_0_18px_rgba(212,169,95,0.25)]"
-                                            style="width: {{ $pct }}%"
-                                        ></div>
-                                    </div>
-                                </li>
-                            @endforeach
-                        </ul>
+                        <p class="mom-body-text mt-4 text-[var(--text-secondary)]">
+                            {{ __('Structure, services, and composition tools open here when the experience blueprint is connected.') }}
+                        </p>
+                        <a href="{{ route('modules.site-architect') }}" class="mom-subtext mt-6 inline-flex items-center gap-1 text-mom-gold hover:underline">
+                            {{ __('Open workspace') }} <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+                        </a>
                     </div>
                 @endif
 
                 @if ($w['marketing'])
                     <div class="mom-card mom-apex p-6">
-                        <h2 class="mom-section-title">Traffic sources</h2>
-                        <p class="mom-subtext mt-2">Attribution donut — matte core, aurum spectrum slices.</p>
-                        <div id="mom-chart-traffic" class="mx-auto mt-2 max-w-[280px]"></div>
+                        <h2 class="mom-section-title">{{ __('Marketing') }}</h2>
+                        <p class="mom-subtext mt-2">
+                            {{ __('Attribution and campaign intelligence render after acquisition sources are linked.') }}
+                        </p>
+                        <div class="mt-8 rounded-mom-md border border-dashed border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] px-6 py-12 text-center text-sm text-[var(--text-muted)]">
+                            {{ __('No campaign telemetry ingested yet.') }}
+                        </div>
                     </div>
                 @endif
 
                 @if ($w['security'])
                     <div class="mom-card p-6">
                         <div class="flex items-center justify-between gap-3">
-                            <h2 class="mom-section-title">System status</h2>
+                            <h2 class="mom-section-title">{{ __('Security posture') }}</h2>
                             <i data-lucide="activity" class="h-[18px] w-[18px] text-[var(--text-muted)]"></i>
                         </div>
-                        <div class="mom-table mt-6 overflow-hidden rounded-mom-md border border-[rgba(255,255,255,0.045)]">
-                            <table class="w-full text-left text-[13px]">
-                                <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
-                                    <tr>
-                                        <th class="px-4 py-3 font-medium">Node</th>
-                                        <th class="px-4 py-3 font-medium">State</th>
-                                        <th class="px-4 py-3 font-medium text-right">Latency</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
-                                    @foreach ([['Edge EU', 'Operational', '42ms', true], ['Core US', 'Operational', '38ms', true], ['Analytics GL', 'Degraded', '118ms', false], ['Failover', 'Standby', '—', true]] as [$node, $state, $ms, $ok])
-                                        <tr>
-                                            <td class="px-4 py-3 font-medium text-[var(--text-primary)]">{{ $node }}</td>
-                                            <td class="px-4 py-3">
-                                                <span class="inline-flex items-center gap-2">
-                                                    <span class="h-1.5 w-1.5 rounded-full {{ $ok && $state !== 'Degraded' ? 'bg-[var(--success)]' : 'bg-[var(--warning)]' }}"></span>
-                                                    {{ $state }}
-                                                </span>
-                                            </td>
-                                            <td class="px-4 py-3 text-right text-[var(--text-muted)]">{{ $ms }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+                        <p class="mom-body-text mt-4 text-[var(--text-secondary)]">
+                            {{ __('Live node tables, latency envelopes, and alert routing will surface when monitoring integrations are configured.') }}
+                        </p>
                     </div>
                 @endif
             </section>
@@ -211,38 +186,40 @@
                     <div class="mom-card p-6 sm:col-span-2 xl:col-span-1">
                         <div class="flex flex-wrap items-center justify-between gap-4">
                             <div>
-                                <p class="mom-micro">Directory</p>
-                                <h2 class="mom-section-title mt-2">Recent users</h2>
+                                <p class="mom-micro">{{ __('Directory') }}</p>
+                                <h2 class="mom-section-title mt-2">{{ __('Recent users') }}</h2>
                             </div>
-                            <button
-                                type="button"
+                            <a
+                                href="{{ route('user-management.index') }}"
                                 class="rounded-mom-pill border border-[rgba(255,255,255,0.045)] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)] hover:text-[var(--text-primary)]"
-                            >
-                                View all
-                            </button>
+                            >{{ __('Manage users') }}</a>
                         </div>
                         <div class="mom-table mt-6 overflow-hidden rounded-mom-md border border-[rgba(255,255,255,0.045)]">
                             <table class="w-full text-left text-[13px]">
                                 <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
                                     <tr>
-                                        <th class="px-4 py-3 font-medium">User</th>
-                                        <th class="px-4 py-3 font-medium">Role</th>
-                                        <th class="px-4 py-3 font-medium text-right">Status</th>
+                                        <th class="px-4 py-3 font-medium">{{ __('User') }}</th>
+                                        <th class="px-4 py-3 font-medium">{{ __('Role') }}</th>
+                                        <th class="px-4 py-3 font-medium text-right">{{ __('Status') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-[rgba(255,255,255,0.045)]">
-                                    @foreach ([['Amelia Voss', 'Director', true], ['Jonah Pike', 'Analyst', true], ['Meera Shah', 'Operator', false], ['Leo Marin', 'Architect', true], ['Noor Khalid', 'Reviewer', true]] as [$name, $role, $active])
+                                    @forelse ($m['recent_users'] as $ru)
                                         <tr class="text-[var(--text-secondary)]">
-                                            <td class="px-4 py-3 font-medium text-[var(--text-primary)]">{{ $name }}</td>
-                                            <td class="px-4 py-3">{{ $role }}</td>
+                                            <td class="px-4 py-3 font-medium text-[var(--text-primary)]">{{ $ru->name }}</td>
+                                            <td class="px-4 py-3">{{ $ru->role_label ?: '—' }}</td>
                                             <td class="px-4 py-3 text-right">
                                                 <span class="inline-flex items-center gap-2 justify-end">
-                                                    <span class="h-1.5 w-1.5 rounded-full {{ $active ? 'bg-[var(--success)]' : 'bg-[var(--danger)]' }}"></span>
-                                                    <span>{{ $active ? 'Active' : 'Suspended' }}</span>
+                                                    <span class="h-1.5 w-1.5 rounded-full {{ $ru->is_active ? 'bg-[var(--success)]' : 'bg-[var(--danger)]' }}"></span>
+                                                    <span>{{ $ru->is_active ? __('Active') : __('Inactive') }}</span>
                                                 </span>
                                             </td>
                                         </tr>
-                                    @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="3" class="px-4 py-6 text-center text-[var(--text-muted)]">{{ __('No users yet.') }}</td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
@@ -253,62 +230,78 @@
                     <div class="mom-card p-6 sm:col-span-2 xl:col-span-1">
                         <div class="flex items-center gap-2">
                             <i data-lucide="orbit" class="h-[18px] w-[18px] text-mom-gold"></i>
-                            <h2 class="mom-section-title">AI insights</h2>
+                            <h2 class="mom-section-title">{{ __('Experimentation') }}</h2>
                         </div>
-                        <p class="mom-subtext mt-2">Weighted rings — calm intelligence, not spectacle.</p>
-                        <div class="mt-8 grid grid-cols-2 gap-6">
-                            @foreach ([['SEO', 82], ['AIO', 64], ['KWD', 91], ['SPD', 74]] as [$label, $pct])
-                                <div class="flex flex-col items-center gap-3">
-                                    <div
-                                        class="relative grid h-[92px] w-[92px] place-items-center rounded-full p-[3px]"
-                                        style="background: conic-gradient(#d4a95f {{ $pct }}%, rgba(255,255,255,0.06) 0);"
-                                    >
-                                        <div
-                                            class="flex h-full w-full flex-col items-center justify-center rounded-full border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-matte-deep)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-                                        >
-                                            <span class="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">{{ $label }}</span>
-                                            <span class="mom-metric mt-1 text-[22px]">{{ $pct }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
+                        <p class="mom-subtext mt-2">
+                            {{ __('Ring scorecards populate when experimentation programs emit outcomes.') }}
+                        </p>
+                        <div class="mt-8 rounded-mom-md border border-dashed border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] px-6 py-10 text-center text-sm text-[var(--text-muted)]">
+                            {{ __('No active experiments recorded.') }}
                         </div>
                     </div>
                 @endif
 
                 @if ($w['growth_center'])
                     <div class="mom-card flex flex-col p-6 sm:col-span-2 xl:col-span-1">
-                        <h2 class="mom-section-title">KPI scorecard</h2>
-                        <dl class="mt-6 flex flex-1 flex-col justify-between space-y-5">
-                            @foreach ([['North star', '0.74', 'QoQ momentum'], ['Retention', '94.2%', 'Rolling 90d'], ['Risk index', 'Low', 'Governance']] as [$k, $v, $sub])
-                                <div class="flex items-start justify-between gap-3 border-b border-[rgba(255,255,255,0.045)] pb-5 last:border-0 last:pb-0">
-                                    <div class="min-w-0">
-                                        <dt class="text-[13px] font-medium text-[var(--text-primary)]">{{ $k }}</dt>
-                                        <dd class="mom-subtext mt-1">{{ $sub }}</dd>
-                                    </div>
-                                    <dd class="shrink-0 text-base font-semibold tabular-nums text-mom-gold">{{ $v }}</dd>
-                                </div>
-                            @endforeach
-                        </dl>
+                        <h2 class="mom-section-title">{{ __('North-star readiness') }}</h2>
+                        <p class="mom-body-text mt-3 flex-1 text-[var(--text-secondary)]">
+                            {{ __('KPI scorecards stay empty until leadership metrics are wired from your analytics warehouse.') }}
+                        </p>
                     </div>
                 @endif
 
                 @if ($w['dashboard'])
                     <div class="mom-card flex flex-col p-6 sm:col-span-2 xl:col-span-1">
-                        <h2 class="mom-section-title">Quick actions</h2>
+                        <h2 class="mom-section-title">{{ __('Shortcuts') }}</h2>
                         <div class="mt-6 grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
-                            @foreach ([['sparkles', 'Compose insight'], ['shield-check', 'Policies'], ['database', 'Connectors'], ['gauge', 'Latency']] as [$icon, $lbl])
-                                <button
-                                    type="button"
+                            @if ($w['user_management'])
+                                <a
+                                    href="{{ route('user-management.index') }}"
                                     class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)]"
                                 >
                                     <span class="flex h-9 w-9 items-center justify-center rounded-mom-sm border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] text-mom-gold">
-                                        <i data-lucide="{{ $icon }}" class="h-[16px] w-[16px]"></i>
+                                        <i data-lucide="users-round" class="h-[16px] w-[16px]"></i>
                                     </span>
-                                    <span class="text-[13px] font-medium leading-snug text-[var(--text-primary)]">{{ $lbl }}</span>
-                                    <span class="mom-micro text-[var(--text-muted)]">Execute</span>
-                                </button>
-                            @endforeach
+                                    <span class="text-[13px] font-medium leading-snug text-[var(--text-primary)]">{{ __('User management') }}</span>
+                                    <span class="mom-micro text-[var(--text-muted)]">{{ __('Directory & access') }}</span>
+                                </a>
+                            @endif
+                            @if ($w['operations'])
+                                <a
+                                    href="{{ route('modules.operations') }}"
+                                    class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)]"
+                                >
+                                    <span class="flex h-9 w-9 items-center justify-center rounded-mom-sm border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] text-mom-gold">
+                                        <i data-lucide="workflow" class="h-[16px] w-[16px]"></i>
+                                    </span>
+                                    <span class="text-[13px] font-medium leading-snug text-[var(--text-primary)]">{{ __('Operations') }}</span>
+                                    <span class="mom-micro text-[var(--text-muted)]">{{ __('Hiring workspace') }}</span>
+                                </a>
+                            @endif
+                            @if ($w['settings'])
+                                <a
+                                    href="{{ route('settings.index') }}"
+                                    class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)]"
+                                >
+                                    <span class="flex h-9 w-9 items-center justify-center rounded-mom-sm border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] text-mom-gold">
+                                        <i data-lucide="settings" class="h-[16px] w-[16px]"></i>
+                                    </span>
+                                    <span class="text-[13px] font-medium leading-snug text-[var(--text-primary)]">{{ __('Settings') }}</span>
+                                    <span class="mom-micro text-[var(--text-muted)]">{{ __('Workspace') }}</span>
+                                </a>
+                            @endif
+                            @if ($w['security'])
+                                <a
+                                    href="{{ route('modules.security') }}"
+                                    class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)]"
+                                >
+                                    <span class="flex h-9 w-9 items-center justify-center rounded-mom-sm border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] text-mom-gold">
+                                        <i data-lucide="shield-check" class="h-[16px] w-[16px]"></i>
+                                    </span>
+                                    <span class="text-[13px] font-medium leading-snug text-[var(--text-primary)]">{{ __('Security') }}</span>
+                                    <span class="mom-micro text-[var(--text-muted)]">{{ __('Posture') }}</span>
+                                </a>
+                            @endif
                         </div>
                     </div>
                 @endif
@@ -320,7 +313,7 @@
             <div class="mom-card p-8">
                 <h2 class="mom-section-title">{{ __('No dashboard panels enabled') }}</h2>
                 <p class="mom-body-text mt-2 max-w-xl text-[var(--text-secondary)]">
-                    {{ __('Enable modules under Account → Module access to restore KPIs and intelligence tiles.') }}
+                    {{ __('Enable the Dashboard module under User Management to restore operational summaries.') }}
                 </p>
             </div>
         @endif

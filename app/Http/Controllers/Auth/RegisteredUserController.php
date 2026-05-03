@@ -41,7 +41,11 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'module_access' => ModuleAccess::defaultGrants(),
+            'module_access' => array_merge(
+                array_fill_keys(ModuleAccess::keys(), false),
+                [ModuleAccess::DASHBOARD => true],
+            ),
+            'is_active' => true,
         ]);
 
         event(new Registered($user));

@@ -91,7 +91,7 @@ final class ModuleAccess
             self::USER_MANAGEMENT => [
                 'label' => 'User Management',
                 'icon' => 'users-round',
-                'route' => 'modules.user-management',
+                'route' => 'user-management.index',
             ],
             self::SECURITY => [
                 'label' => 'Security',

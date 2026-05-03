@@ -29,10 +29,28 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
+            'phone' => null,
+            'profile_image_path' => null,
+            'role_label' => null,
+            'is_active' => true,
+            'last_login_at' => null,
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
             'module_access' => ModuleAccess::defaultGrants(),
         ];
+    }
+
+    /**
+     * Root super administrator (email matches config root_account.email).
+     */
+    public function rootSuperAdmin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email' => config('root_account.email', 'wdjerrie@markonminds.test'),
+            'name' => 'WDJERRIE',
+            'role_label' => 'Root Super Admin',
+            'module_access' => ModuleAccess::defaultGrants(),
+        ]);
     }
 
     /**

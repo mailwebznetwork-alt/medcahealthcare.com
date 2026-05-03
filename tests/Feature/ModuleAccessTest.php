@@ -37,8 +37,13 @@ it('does not render sidebar links for modules the user cannot access', function 
         ->assertDontSee(route('modules.marketing'), false);
 });
 
-it('allows updating module access from the profile form', function () {
-    $user = User::factory()->create([
+it('allows an administrator to update another user module access', function () {
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'module_access' => array_merge(moduleAccessAll(true), []),
+    ]);
+
+    $subject = User::factory()->create([
         'email_verified_at' => now(),
         'module_access' => moduleAccessAll(true),
     ]);
@@ -46,13 +51,18 @@ it('allows updating module access from the profile form', function () {
     $payload = moduleAccessAll(true);
     $payload[ModuleAccess::OPERATIONS] = false;
 
-    $this->actingAs($user)
-        ->patch(route('profile.module-access.update'), [
+    $this->actingAs($admin)
+        ->put(route('user-management.update', $subject), [
+            'name' => $subject->name,
+            'email' => $subject->email,
+            'phone' => $subject->phone,
+            'role_label' => $subject->role_label,
             'module_access' => $payload,
+            'is_active' => 1,
         ])
-        ->assertRedirect(route('profile.edit'));
+        ->assertRedirect(route('user-management.index'));
 
-    expect($user->fresh()->hasModuleAccess(ModuleAccess::OPERATIONS))->toBeFalse();
+    expect($subject->fresh()->hasModuleAccess(ModuleAccess::OPERATIONS))->toBeFalse();
 });
 
 it('blocks the dashboard when dashboard access is disabled', function () {

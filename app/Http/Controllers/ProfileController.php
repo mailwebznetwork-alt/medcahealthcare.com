@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -46,7 +47,13 @@ class ProfileController extends Controller
             'password' => ['required', 'current_password'],
         ]);
 
+        /** @var User $user */
         $user = $request->user();
+
+        if ($user->isRootSuperAdmin()) {
+            return Redirect::route('profile.edit')
+                ->withErrors(['email' => __('The protected root administrator account cannot be deleted.')], 'userDeletion');
+        }
 
         Auth::logout();
 

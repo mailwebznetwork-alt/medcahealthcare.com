@@ -24,8 +24,24 @@
         </div>
 
         <div>
+            <x-input-label for="phone" :value="__('Phone')" variant="mom" />
+            <x-text-input id="phone" name="phone" type="text" class="mt-2 block w-full" :value="old('phone', $user->phone)" autocomplete="tel" variant="mom" />
+            <x-input-error class="mt-2" :messages="$errors->get('phone')" variant="mom" />
+        </div>
+
+        <div>
             <x-input-label for="email" :value="__('Email')" variant="mom" />
-            <x-text-input id="email" name="email" type="email" class="mt-2 block w-full" :value="old('email', $user->email)" required autocomplete="username" variant="mom" />
+            <x-text-input
+                id="email"
+                name="email"
+                type="email"
+                class="mt-2 block w-full"
+                :value="old('email', $user->email)"
+                required
+                autocomplete="username"
+                variant="mom"
+                :readonly="$user->isRootSuperAdmin()"
+            />
             <x-input-error class="mt-2" :messages="$errors->get('email')" variant="mom" />
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
