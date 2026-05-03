@@ -123,7 +123,7 @@
                                 <span class="sr-only">{{ $row->moduleAccessSummary() }}</span>
                                 <div class="flex flex-wrap items-center gap-2.5" aria-hidden="true">
                                     @foreach ($accessIcons as $icon)
-                                        <i data-lucide="{{ $icon }}" class="h-4 w-4 shrink-0 text-[var(--text-muted)] opacity-[0.82]"></i>
+                                        <i data-lucide="{{ $icon }}" class="h-4 w-4 shrink-0 text-[var(--text-secondary)]"></i>
                                     @endforeach
                                     @if ($accessIcons === [])
                                         <span class="text-[var(--text-muted)]">—</span>
@@ -136,10 +136,10 @@
                                         @can('update', $row)
                                             <a
                                                 href="{{ route('user-management.edit', $row) }}"
-                                                class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-muted)] opacity-[0.82] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:opacity-100"
+                                                class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
                                                 aria-label="{{ __('Edit') }}"
                                             >
-                                                <i data-lucide="pencil" class="h-4 w-4 shrink-0"></i>
+                                                <i data-lucide="pencil" class="h-4 w-4 shrink-0 text-current"></i>
                                             </a>
                                         @endcan
                                         @can('changeActiveState', $row)
@@ -149,10 +149,10 @@
                                                     @method('patch')
                                                     <button
                                                         type="submit"
-                                                        class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-muted)] opacity-[0.82] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:opacity-100"
+                                                        class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
                                                         aria-label="{{ __('Deactivate') }}"
                                                     >
-                                                        <i data-lucide="user-minus" class="h-4 w-4 shrink-0"></i>
+                                                        <i data-lucide="user-minus" class="h-4 w-4 shrink-0 text-current"></i>
                                                     </button>
                                                 </form>
                                             @else
@@ -161,10 +161,10 @@
                                                     @method('patch')
                                                     <button
                                                         type="submit"
-                                                        class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-muted)] opacity-[0.82] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:opacity-100"
+                                                        class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
                                                         aria-label="{{ __('Activate') }}"
                                                     >
-                                                        <i data-lucide="user-plus" class="h-4 w-4 shrink-0"></i>
+                                                        <i data-lucide="user-plus" class="h-4 w-4 shrink-0 text-current"></i>
                                                     </button>
                                                 </form>
                                             @endif
@@ -180,10 +180,10 @@
                                                 @method('delete')
                                                 <button
                                                     type="submit"
-                                                    class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-muted)] opacity-[0.82] transition-all duration-320 ease-premium hover:bg-[rgba(220,38,38,0.08)] hover:text-[var(--danger)] hover:opacity-100"
+                                                    class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[rgba(220,38,38,0.08)] hover:text-[var(--danger)]"
                                                     aria-label="{{ __('Delete') }}"
                                                 >
-                                                    <i data-lucide="trash-2" class="h-4 w-4 shrink-0"></i>
+                                                    <i data-lucide="trash-2" class="h-4 w-4 shrink-0 text-current"></i>
                                                 </button>
                                             </form>
                                         @endcan

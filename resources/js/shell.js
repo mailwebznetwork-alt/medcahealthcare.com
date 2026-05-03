@@ -67,7 +67,7 @@ const lucideIcons = {
     Workflow,
 };
 
-function bootIcons() {
+export function bootIcons() {
     createIcons({
         icons: lucideIcons,
         attrs: {
@@ -76,9 +76,20 @@ function bootIcons() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    bootIcons();
-});
+function scheduleLucideIcons() {
+    const run = () => {
+        bootIcons();
+        requestAnimationFrame(() => bootIcons());
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run, { once: true });
+    } else {
+        run();
+    }
+}
+
+scheduleLucideIcons();
 
 document.addEventListener('livewire:navigated', () => {
     bootIcons();

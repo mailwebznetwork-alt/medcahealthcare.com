@@ -46,7 +46,7 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=noto-sans:400,500,600,700&display=swap" rel="stylesheet" />
 
-        @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/shell.js'])
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body
         class="mom-body font-sans antialiased text-[var(--text-primary)]"
