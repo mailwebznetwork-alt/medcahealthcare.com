@@ -132,83 +132,61 @@
                             </td>
                             <td class="px-4 py-3 text-right">
                                 @canany(['update', 'changeActiveState', 'delete'], $row)
-                                    <div
-                                        class="relative inline-block text-left"
-                                        x-data="{ open: false }"
-                                        @keydown.escape.window="open = false"
-                                    >
-                                        <button
-                                            type="button"
-                                            class="inline-flex items-center justify-center rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[rgba(255,255,255,0.03)] px-3 py-1.5 text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)] shadow-mom-inner transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)] hover:text-[var(--text-primary)]"
-                                            @click="open = ! open"
-                                            x-bind:aria-expanded="open"
-                                            aria-haspopup="true"
-                                            aria-controls="user-row-menu-{{ $row->id }}"
-                                        >{{ __('Modify') }}</button>
-                                        <div
-                                            id="user-row-menu-{{ $row->id }}"
-                                            x-show="open"
-                                            x-transition:enter="transition ease-out duration-200"
-                                            x-transition:enter-start="opacity-0 translate-y-1"
-                                            x-transition:enter-end="opacity-100 translate-y-0"
-                                            x-transition:leave="transition ease-in duration-150"
-                                            x-transition:leave-start="opacity-100 translate-y-0"
-                                            x-transition:leave-end="opacity-0 translate-y-1"
-                                            @click.outside="open = false"
-                                            class="absolute right-0 top-[calc(100%+0.35rem)] z-30 w-[min(12rem,calc(100vw-2rem))] rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-matte)] py-1 shadow-mom-elevated ring-1 ring-[rgba(212,169,95,0.06)]"
-                                            style="display: none;"
-                                            role="menu"
-                                        >
-                                            @can('update', $row)
-                                                <a
-                                                    href="{{ route('user-management.edit', $row) }}"
-                                                    role="menuitem"
-                                                    class="block px-4 py-2.5 text-left text-sm text-[var(--text-secondary)] transition-colors duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
-                                                    @click="open = false"
-                                                >{{ __('Edit') }}</a>
-                                            @endcan
-                                            @can('changeActiveState', $row)
-                                                @if ($row->is_active)
-                                                    <form method="post" action="{{ route('user-management.deactivate', $row) }}" role="none">
-                                                        @csrf
-                                                        @method('patch')
-                                                        <button
-                                                            type="submit"
-                                                            role="menuitem"
-                                                            class="block w-full px-4 py-2.5 text-left text-sm text-[var(--text-secondary)] transition-colors duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
-                                                        >{{ __('Deactivate') }}</button>
-                                                    </form>
-                                                @else
-                                                    <form method="post" action="{{ route('user-management.activate', $row) }}" role="none">
-                                                        @csrf
-                                                        @method('patch')
-                                                        <button
-                                                            type="submit"
-                                                            role="menuitem"
-                                                            class="block w-full px-4 py-2.5 text-left text-sm text-[var(--text-secondary)] transition-colors duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
-                                                        >{{ __('Activate') }}</button>
-                                                    </form>
-                                                @endif
-                                            @endcan
-                                            @can('delete', $row)
-                                                <div class="my-1 border-t border-[rgba(255,255,255,0.045)]" aria-hidden="true"></div>
-                                                <form
-                                                    method="post"
-                                                    action="{{ route('user-management.destroy', $row) }}"
-                                                    class="px-1 pb-1"
-                                                    role="none"
-                                                    onsubmit="return confirm('{{ __('Delete this user permanently?') }}');"
-                                                >
+                                    <div class="flex items-center justify-end gap-1" role="group" aria-label="{{ __('User actions') }}">
+                                        @can('update', $row)
+                                            <a
+                                                href="{{ route('user-management.edit', $row) }}"
+                                                class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-muted)] opacity-[0.82] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:opacity-100"
+                                                aria-label="{{ __('Edit') }}"
+                                            >
+                                                <i data-lucide="pencil" class="h-4 w-4 shrink-0"></i>
+                                            </a>
+                                        @endcan
+                                        @can('changeActiveState', $row)
+                                            @if ($row->is_active)
+                                                <form method="post" action="{{ route('user-management.deactivate', $row) }}" class="inline-flex">
                                                     @csrf
-                                                    @method('delete')
+                                                    @method('patch')
                                                     <button
                                                         type="submit"
-                                                        role="menuitem"
-                                                        class="block w-full rounded-mom-sm px-3 py-2 text-left text-sm text-[var(--text-muted)] transition-colors duration-320 ease-premium hover:bg-[rgba(220,38,38,0.06)] hover:text-[var(--danger)]"
-                                                    >{{ __('Delete') }}</button>
+                                                        class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-muted)] opacity-[0.82] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:opacity-100"
+                                                        aria-label="{{ __('Deactivate') }}"
+                                                    >
+                                                        <i data-lucide="user-minus" class="h-4 w-4 shrink-0"></i>
+                                                    </button>
                                                 </form>
-                                            @endcan
-                                        </div>
+                                            @else
+                                                <form method="post" action="{{ route('user-management.activate', $row) }}" class="inline-flex">
+                                                    @csrf
+                                                    @method('patch')
+                                                    <button
+                                                        type="submit"
+                                                        class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-muted)] opacity-[0.82] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:opacity-100"
+                                                        aria-label="{{ __('Activate') }}"
+                                                    >
+                                                        <i data-lucide="user-plus" class="h-4 w-4 shrink-0"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @endcan
+                                        @can('delete', $row)
+                                            <form
+                                                method="post"
+                                                action="{{ route('user-management.destroy', $row) }}"
+                                                class="inline-flex"
+                                                onsubmit="return confirm('{{ __('Delete this user permanently?') }}');"
+                                            >
+                                                @csrf
+                                                @method('delete')
+                                                <button
+                                                    type="submit"
+                                                    class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-muted)] opacity-[0.82] transition-all duration-320 ease-premium hover:bg-[rgba(220,38,38,0.08)] hover:text-[var(--danger)] hover:opacity-100"
+                                                    aria-label="{{ __('Delete') }}"
+                                                >
+                                                    <i data-lucide="trash-2" class="h-4 w-4 shrink-0"></i>
+                                                </button>
+                                            </form>
+                                        @endcan
                                     </div>
                                 @else
                                     <span class="text-[var(--text-muted)]">—</span>
