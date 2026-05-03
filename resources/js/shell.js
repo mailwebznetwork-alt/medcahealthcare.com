@@ -17,7 +17,6 @@ import {
     Settings,
     ShieldCheck,
     Sparkles,
-    TrendingUp,
     Users,
 } from 'lucide';
 
@@ -39,7 +38,6 @@ const lucideIcons = {
     Settings,
     ShieldCheck,
     Sparkles,
-    TrendingUp,
     Users,
 };
 

@@ -22,12 +22,7 @@
                 ['label' => 'Avg. session', 'value' => '4m 12s', 'delta' => '−2.1%', 'path' => 'M0,14 L22,20 L42,10 L62,18 L82,8 L102,14 L120,6'],
             ] as $kpi)
                 <article class="mom-card mom-card-interactive p-6">
-                    <div class="flex items-start justify-between gap-4">
-                        <div
-                            class="flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.12)] text-mom-gold shadow-[0_0_24px_rgba(212,169,95,0.08)]"
-                        >
-                            <i data-lucide="trending-up" class="h-[18px] w-[18px]"></i>
-                        </div>
+                    <div class="flex justify-end">
                         <span class="mom-micro text-[var(--success)]">{{ $kpi['delta'] }}</span>
                     </div>
                     <p class="mom-micro mt-6">{{ $kpi['label'] }}</p>
