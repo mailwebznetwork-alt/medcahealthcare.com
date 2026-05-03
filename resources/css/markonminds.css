@@ -154,7 +154,7 @@ body.mom-body::after {
     background-repeat: repeat;
 }
 
-/* ---- Scrollbar (sidebar) ---- */
+/* ---- Scrollbars (sidebar nav + generic) ---- */
 
 .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
@@ -163,6 +163,36 @@ body.mom-body::after {
 .custom-scrollbar::-webkit-scrollbar-thumb {
     background: #1e293b;
     border-radius: var(--radius-sm);
+}
+
+/**
+ * Left sidebar nav: always scrollable region between header + profile card;
+ * min-h-0 + flex-1 on the element lets overflow-y work inside flex column.
+ */
+.mom-sidebar-nav-scroll {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(212, 169, 95, 0.42) rgba(12, 9, 6, 0.55);
+}
+
+.mom-sidebar-nav-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+.mom-sidebar-nav-scroll::-webkit-scrollbar-track {
+    margin: 6px 0;
+    background: rgba(8, 6, 4, 0.45);
+    border-radius: 10px;
+}
+
+.mom-sidebar-nav-scroll::-webkit-scrollbar-thumb {
+    background: rgba(212, 169, 95, 0.42);
+    border-radius: 10px;
+    border: 2px solid rgba(12, 9, 6, 0.35);
+}
+
+.mom-sidebar-nav-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(212, 169, 95, 0.58);
 }
 
 /* ---- Section separators (page blocks, stacked cards) ---- */

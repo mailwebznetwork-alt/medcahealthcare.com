@@ -64,14 +64,14 @@
         <div id="mom-shell" class="relative z-10 flex min-h-screen">
             {{-- Sidebar --}}
             <aside
-                class="mom-sidebar-pane fixed inset-y-0 left-0 z-50 flex w-[260px] -translate-x-full flex-col border-r border-[rgba(255,255,255,0.045)] transition-transform duration-320 ease-premium lg:static lg:translate-x-0"
+                class="mom-sidebar-pane fixed inset-y-0 left-0 z-50 flex min-h-0 w-[260px] -translate-x-full flex-col border-r border-[rgba(255,255,255,0.045)] transition-transform duration-320 ease-premium lg:sticky lg:top-0 lg:h-screen lg:max-h-[100dvh] lg:shrink-0 lg:self-start lg:translate-x-0"
                 :class="{ '!translate-x-0': mobileNav }"
             >
                 <div class="flex h-[72px] shrink-0 items-center gap-3 border-b border-[rgba(255,255,255,0.045)] px-6">
                     <span class="text-lg font-semibold tracking-tight text-mom-gold">MarkOnMinds</span>
                 </div>
 
-                <nav class="custom-scrollbar flex flex-1 flex-col gap-0 overflow-y-auto px-4 py-8">
+                <nav class="mom-sidebar-nav-scroll flex min-h-0 flex-1 flex-col gap-0 overflow-y-auto px-4 py-8">
                     <div>
                         <p class="mom-micro mb-3 px-3">Main</p>
                         <ul class="space-y-1">
