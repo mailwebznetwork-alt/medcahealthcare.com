@@ -120,7 +120,7 @@ body.mom-body {
 
 /**
  * Sticky module toolbars (stacked above page content via layout flex-col-reverse).
- * Authority-tinted strip aligned with Medca shell; complements matte brown main column.
+ * Matches topbar / main matte brown scrim so the strip does not read as a separate navy band.
  */
 .mom-module-toolbar-host {
     position: sticky;
@@ -130,7 +130,10 @@ body.mom-body {
     flex-shrink: 0;
     align-self: stretch;
     border-bottom: var(--border-default);
-    background: linear-gradient(180deg, rgba(10, 15, 28, 0.97) 0%, rgba(12, 10, 8, 0.94) 100%);
+    background-color: var(--bg-topbar-scrim);
+    background-image:
+        radial-gradient(ellipse 88% 70% at 50% -30%, rgba(115, 78, 48, 0.14), transparent 52%),
+        linear-gradient(180deg, rgba(200, 160, 115, 0.06) 0%, transparent 58%);
     box-shadow: 0 12px 28px -14px rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(14px) saturate(150%);
     -webkit-backdrop-filter: blur(14px) saturate(150%);
