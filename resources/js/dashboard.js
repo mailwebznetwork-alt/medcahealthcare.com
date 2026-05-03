@@ -67,7 +67,7 @@ function mountAnalyticsChart() {
                 stops: [0, 100],
                 colorStops: [
                     { offset: 0, color: gold, opacity: 0.4 },
-                    { offset: 100, color: '#070707', opacity: 0 },
+                    { offset: 100, color: '#0f0c08', opacity: 0 },
                 ],
             },
         },

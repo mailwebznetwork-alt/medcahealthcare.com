@@ -36,7 +36,7 @@
                         <defs>
                             <linearGradient id="spark-fill-{{ $loop->index }}" x1="0" x2="0" y1="0" y2="1">
                                 <stop offset="0%" stop-color="#d4a95f" stop-opacity="0.2" />
-                                <stop offset="100%" stop-color="#070707" stop-opacity="0" />
+                                <stop offset="100%" stop-color="#0f0c08" stop-opacity="0" />
                             </linearGradient>
                         </defs>
                         <path

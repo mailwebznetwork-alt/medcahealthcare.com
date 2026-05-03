@@ -4,12 +4,18 @@
  */
 
 :root {
-    --bg-app: #070707;
-    --bg-surface: #101010;
-    --bg-elevated: #151515;
-    --bg-hover: #1b1b1b;
+    /**
+     * Matte brown shell — base viewport + left rail + main chrome (clearly brown, not gray).
+     * Cards use --bg-card-* for a step up in lightness.
+     */
+    --bg-app: #0f0c08;
+    --bg-sidebar: #0c0906;
+    --bg-surface: #14100c;
+    --bg-elevated: #1a1510;
+    --bg-hover: #221c16;
 
-    --bg-sidebar: #090909;
+    /* Topbar blur layer (opaque brown, matches --bg-app) */
+    --bg-topbar-scrim: rgba(15, 12, 8, 0.82);
 
     /* Matte brown surfaces (cards, panels, modal, nested UI) */
     --bg-card-matte: #1a1410;
@@ -65,26 +71,36 @@ body.mom-body {
 }
 
 /**
- * Shell panes (left sidebar + right main): neutral charcoal only.
- * Gold / matte brown belong on cards (.mom-card), not the window chrome.
+ * Shell panes: matte brown canvas (sidebar slightly deeper than main).
  */
 .mom-sidebar-pane {
     min-height: 100vh;
     background-color: var(--bg-sidebar);
-    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.014) 0%, transparent 40%);
+    background-image:
+        linear-gradient(180deg, rgba(212, 169, 95, 0.055) 0%, transparent 38%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.35) 0%, transparent 45%);
 }
 
 .mom-content-pane {
     min-height: 100vh;
     background-color: var(--bg-app);
-    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.018) 0%, transparent 42%);
+    background-image:
+        radial-gradient(ellipse 75% 48% at 72% -8%, rgba(212, 169, 95, 0.06), transparent 52%),
+        linear-gradient(180deg, rgba(255, 236, 210, 0.04) 0%, transparent 48%);
 }
 
-/* Back-compat: prefer mom-sidebar-pane / mom-content-pane in layout. */
+/* Back-compat: same brown shell as main column. */
 .mom-main-pane {
     min-height: 100vh;
     background-color: var(--bg-app);
-    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.018) 0%, transparent 42%);
+    background-image:
+        radial-gradient(ellipse 75% 48% at 72% -8%, rgba(212, 169, 95, 0.06), transparent 52%),
+        linear-gradient(180deg, rgba(255, 236, 210, 0.04) 0%, transparent 48%);
+}
+
+/* Sticky topbar: matches shell brown with blur (replaces flat charcoal scrim). */
+.mom-topbar-scrim {
+    background-color: var(--bg-topbar-scrim);
 }
 
 /**
@@ -104,7 +120,10 @@ body.mom-body::before {
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    background: radial-gradient(ellipse 95% 65% at 48% 28%, rgba(255, 255, 255, 0.024), transparent 58%);
+    background:
+        radial-gradient(ellipse 78% 52% at 10% 0%, rgba(212, 169, 95, 0.07), transparent 56%),
+        radial-gradient(ellipse 70% 48% at 88% 18%, rgba(100, 72, 48, 0.12), transparent 54%),
+        radial-gradient(ellipse 95% 60% at 48% 35%, rgba(255, 236, 210, 0.035), transparent 58%);
 }
 
 body.mom-body::after {
