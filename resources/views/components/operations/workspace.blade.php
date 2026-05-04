@@ -3,13 +3,13 @@
     :welcome-line="__('Run-state, hiring, coverage, and operational management workspace.')"
 >
     <div class="operations-workspace">
-        <div class="border-b border-[rgba(255,255,255,0.045)]">
+        <div class="border-b border-[var(--border-panel-soft)]">
             @include('operations.partials.primary-tabs')
         </div>
 
         @if (request()->routeIs('operations.job-portal.*', 'operations.pin-codes.*'))
             <div
-                class="sticky top-[72px] z-20 -mx-8 border-b border-[rgba(255,255,255,0.045)] bg-[rgba(10,15,28,0.92)] px-8 py-4 shadow-[0_12px_24px_-12px_rgba(0,0,0,0.45)] backdrop-blur-md"
+                class="mom-sticky-toolbar sticky top-[72px] z-20 -mx-8 px-8 py-4"
             >
                 @if (request()->routeIs('operations.job-portal.*'))
                     @include('operations.job-portal.partials.toolbar')

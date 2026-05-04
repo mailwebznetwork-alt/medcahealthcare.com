@@ -1,4 +1,4 @@
-﻿<x-operations.workspace>
+<x-operations.workspace>
     <h2 class="mom-section-title mb-2">{{ __('Bulk import') }}</h2>
     <p class="mom-subtext mb-8 max-w-3xl text-[var(--text-secondary)]">
         {{ __('Upload a UTF-8 CSV (Excel: Save As CSV). Preview the first rows, confirm, then track outcomes in history below.') }}
@@ -38,10 +38,10 @@
                                 <td class="px-4 py-3">
                                     <span class="rounded-mom-pill border border-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide">{{ $row['status'] }}</span>
                                 </td>
-                                <td class="px-4 py-3">{{ $row['pincode'] ?? '—' }}</td>
-                                <td class="px-4 py-3">{{ $row['area_name'] ?? '—' }}</td>
-                                <td class="px-4 py-3">{{ $row['city'] ?? '—' }}</td>
-                                <td class="px-4 py-3 mom-micro">{{ $row['detail'] ?? '—' }}</td>
+                                <td class="px-4 py-3">{{ $row['pincode'] ?? '�' }}</td>
+                                <td class="px-4 py-3">{{ $row['area_name'] ?? '�' }}</td>
+                                <td class="px-4 py-3">{{ $row['city'] ?? '�' }}</td>
+                                <td class="px-4 py-3 mom-micro">{{ $row['detail'] ?? '�' }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -55,7 +55,7 @@
                 <form method="post" action="{{ route('operations.pin-codes.bulk-import.confirm') }}" class="flex flex-wrap items-center gap-4">
                     @csrf
                     <label class="flex cursor-pointer items-center gap-2 text-[13px] text-[var(--text-secondary)]">
-                        <input type="checkbox" name="confirm_import" value="1" class="h-4 w-4 rounded border-[rgba(255,255,255,0.12)] bg-[rgba(28,22,18,0.75)] text-mom-gold focus:ring-1 focus:ring-[rgba(212,169,95,0.35)]" />
+                        <input type="checkbox" name="confirm_import" value="1" class="h-4 w-4 rounded border-[rgba(255,255,255,0.12)] bg-[rgba(28,22,18,0.75)] text-mom-gold focus:ring-1 focus:ring-[rgba(197,160,89,0.35)]" />
                         {{ __('I confirm this import should run against the live directory.') }}
                     </label>
                     <x-primary-button variant="mom" type="submit">{{ __('Run import') }}</x-primary-button>
@@ -80,7 +80,7 @@
                     type="file"
                     accept=".csv,text/csv,text/plain"
                     required
-                    class="mt-2 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-md file:border-0 file:bg-[rgba(212,169,95,0.18)] file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-widest file:text-[#0a0a0a]"
+                    class="mt-2 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-md file:border-0 file:bg-[var(--accent-gold-soft)] file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-widest file:text-mom-gold"
                 />
                 <x-input-error class="mt-2" :messages="$errors->get('file')" variant="mom" />
             </div>
@@ -113,7 +113,7 @@
                         @foreach ($importLogs as $log)
                             <tr>
                                 <td class="px-4 py-3 text-[var(--text-primary)]">{{ $log->created_at->timezone(config('app.timezone'))->format('Y-m-d H:i') }}</td>
-                                <td class="px-4 py-3">{{ $log->user?->name ?? '—' }}</td>
+                                <td class="px-4 py-3">{{ $log->user?->name ?? '�' }}</td>
                                 <td class="px-4 py-3">
                                     <span class="max-w-[12rem] truncate font-mono text-[12px]" title="{{ $log->original_filename }}">{{ $log->original_filename }}</span>
                                 </td>

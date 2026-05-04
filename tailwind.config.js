@@ -58,7 +58,7 @@ export default {
             },
             backgroundImage: {
                 'mom-sidebar-edge':
-                    'linear-gradient(180deg, rgba(212,169,95,0.04) 0%, transparent 38%)',
+                    'linear-gradient(180deg, rgba(197,160,89,0.04) 0%, transparent 38%)',
             },
         },
     },

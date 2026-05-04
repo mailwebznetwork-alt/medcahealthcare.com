@@ -39,7 +39,7 @@
             <x-secondary-button variant="mom" type="submit">{{ __('Filter') }}</x-secondary-button>
         </form>
         @can('create', \App\Models\PinCode::class)
-            <a href="{{ route('operations.pin-codes.create') }}" class="inline-flex items-center justify-center rounded-mom-md border border-[rgba(212,169,95,0.28)] bg-[linear-gradient(180deg,rgba(212,169,95,0.22),rgba(212,169,95,0.12))] px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#0a0a0a] shadow-[0_0_24px_rgba(212,169,95,0.15)] transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.4)]">{{ __('Add pin code') }}</a>
+            <a href="{{ route('operations.pin-codes.create') }}" class="mom-cta-primary">{{ __('Add pin code') }}</a>
         @endcan
     </div>
 

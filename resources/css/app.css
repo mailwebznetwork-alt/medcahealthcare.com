@@ -18,7 +18,7 @@
     }
 
     .mom-micro {
-        @apply text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)];
+        @apply text-[11px] font-medium uppercase tracking-[0.12em] text-mom-gold;
     }
 
     .mom-body-text {

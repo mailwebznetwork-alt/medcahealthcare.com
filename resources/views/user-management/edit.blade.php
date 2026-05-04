@@ -1,4 +1,4 @@
-﻿<x-app-layout
+<x-app-layout
     :page-title="__('Edit user')"
     :welcome-line="$user->email"
 >
@@ -8,7 +8,7 @@
             @method('put')
 
             @if ($user->isRootSuperAdmin())
-                <div class="rounded-mom-md border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.06)] px-4 py-3 text-sm text-[var(--text-secondary)]">
+                <div class="rounded-mom-md border border-[rgba(197,160,89,0.22)] bg-[rgba(197,160,89,0.06)] px-4 py-3 text-sm text-[var(--text-secondary)]">
                     {{ __('This is the protected root administrator. Module access stays fully enabled; destructive actions are disabled for every account.') }}
                 </div>
             @endif
@@ -82,7 +82,7 @@
                             name="profile_image"
                             type="file"
                             accept="image/*"
-                            class="mt-2 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-md file:border-0 file:bg-[rgba(212,169,95,0.12)] file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-wide file:text-mom-gold"
+                            class="mt-2 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-md file:border-0 file:bg-[rgba(197,160,89,0.12)] file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-wide file:text-mom-gold"
                         />
                         <x-input-error class="mt-2" :messages="$errors->get('profile_image')" />
                     </div>
@@ -119,7 +119,7 @@
                 <x-primary-button variant="mom">{{ __('Save changes') }}</x-primary-button>
                 <a
                     href="{{ route('user-management.index') }}"
-                    class="inline-flex items-center justify-center rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[rgba(255,255,255,0.03)] px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)] shadow-mom-inner transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)] hover:text-[var(--text-primary)]"
+                    class="mom-cta-ghost"
                 >{{ __('Back to directory') }}</a>
             </div>
         </form>

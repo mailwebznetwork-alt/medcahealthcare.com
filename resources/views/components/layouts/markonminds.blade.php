@@ -67,10 +67,10 @@
         <div id="mom-shell" class="relative z-10 flex min-h-screen">
             {{-- Sidebar --}}
             <aside
-                class="mom-sidebar-pane fixed inset-y-0 left-0 z-50 flex min-h-0 w-[260px] -translate-x-full flex-col border-r border-[rgba(255,255,255,0.045)] transition-transform duration-320 ease-premium lg:sticky lg:top-0 lg:h-screen lg:max-h-[100dvh] lg:shrink-0 lg:self-start lg:translate-x-0"
+                class="mom-sidebar-pane fixed inset-y-0 left-0 z-50 flex min-h-0 w-[260px] -translate-x-full flex-col border-r border-[var(--border-panel-soft)] transition-transform duration-320 ease-premium lg:sticky lg:top-0 lg:h-screen lg:max-h-[100dvh] lg:shrink-0 lg:self-start lg:translate-x-0"
                 :class="{ '!translate-x-0': mobileNav }"
             >
-                <div class="flex h-[72px] shrink-0 items-center gap-3 border-b border-[rgba(255,255,255,0.045)] px-6">
+                <div class="flex h-[72px] shrink-0 items-center gap-3 border-b border-[var(--border-panel-soft)] px-6">
                     <span class="text-[calc(1.125rem*1.3)] font-semibold leading-tight tracking-tight text-mom-wordmark">MarkOnMinds</span>
                 </div>
 
@@ -81,11 +81,11 @@
             <div class="mom-content-pane mom-main-matte-brown-fg flex min-w-0 flex-1 flex-col lg:ml-0">
                 {{-- Topbar --}}
                 <header
-                    class="mom-topbar-scrim sticky top-0 z-30 flex h-[72px] items-center gap-6 border-b border-[rgba(255,255,255,0.045)] px-8 shadow-mom-surface backdrop-blur-xl backdrop-saturate-150"
+                    class="mom-topbar-scrim sticky top-0 z-30 flex h-[72px] items-center gap-6 border-b border-[var(--border-panel-soft)] px-8 shadow-mom-surface backdrop-blur-xl backdrop-saturate-150"
                 >
                     <button
                         type="button"
-                        class="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(255,255,255,0.045)] text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)] hover:text-[var(--text-primary)] lg:hidden"
+                        class="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-panel-soft)] text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(197,160,89,0.2)] hover:text-[var(--text-primary)] lg:hidden"
                         @click="mobileNav = true"
                         aria-label="Open navigation"
                     >
@@ -105,7 +105,7 @@
                             <input
                                 type="search"
                                 placeholder="Search intelligence, entities, signals…"
-                                class="w-full rounded-full border border-[rgba(255,255,255,0.045)] bg-[rgba(28,20,14,0.88)] py-2.5 pl-11 pr-24 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] shadow-mom-inner outline-none ring-offset-0 transition-all duration-320 ease-premium focus:border-[rgba(212,169,95,0.28)] focus:shadow-[0_0_24px_rgba(212,169,95,0.12)]"
+                                class="w-full rounded-full border border-[var(--border-panel-soft)] bg-[color:rgba(28,22,22,0.92)] py-2.5 pl-11 pr-24 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] shadow-mom-inner outline-none ring-offset-0 transition-all duration-320 ease-premium focus:border-[rgba(197,160,89,0.35)] focus:shadow-[0_0_24px_rgba(197,160,89,0.12)]"
                             />
                             <kbd
                                 class="pointer-events-none absolute right-3 hidden rounded-md border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-2 py-0.5 font-mono text-[11px] text-[var(--text-muted)] sm:inline-block"
@@ -120,7 +120,7 @@
                     >
                         <button
                             type="button"
-                            class="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] text-xs font-semibold text-mom-gold transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.35)] hover:shadow-[0_0_20px_rgba(212,169,95,0.12)]"
+                            class="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(197,160,89,0.28)] bg-[rgba(197,160,89,0.08)] text-xs font-semibold text-mom-gold transition-all duration-320 ease-premium hover:border-[rgba(197,160,89,0.4)] hover:shadow-[0_0_20px_rgba(197,160,89,0.12)]"
                             @click="profileOpen = ! profileOpen"
                             x-bind:aria-expanded="profileOpen"
                             aria-haspopup="true"
@@ -140,14 +140,14 @@
                             x-transition:leave-start="opacity-100 translate-y-0"
                             x-transition:leave-end="opacity-0 translate-y-1"
                             @click.outside="profileOpen = false"
-                            class="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-[min(18rem,calc(100vw-2.5rem))] rounded-mom-lg border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-matte)] p-4 shadow-mom-elevated ring-1 ring-[rgba(212,169,95,0.06)]"
+                            class="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-[min(18rem,calc(100vw-2.5rem))] rounded-mom-lg border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] p-4 shadow-mom-elevated ring-1 ring-[rgba(197,160,89,0.08)]"
                             style="display: none;"
                             role="menu"
                             aria-orientation="vertical"
                         >
                             <div class="flex items-start gap-3 border-b border-[rgba(255,255,255,0.045)] pb-4">
                                 <div
-                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] text-xs font-semibold tracking-wide text-mom-gold"
+                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[rgba(197,160,89,0.28)] bg-[rgba(197,160,89,0.08)] text-xs font-semibold tracking-wide text-mom-gold"
                                     aria-hidden="true"
                                 >
                                     {{ $initials ?: 'AU' }}
@@ -183,7 +183,7 @@
                     </div>
                 </header>
 
-                <main class="flex-1 px-8 py-8">
+                <main class="mom-backend-main flex-1 px-8 py-8">
                     {{ $slot }}
                 </main>
             </div>

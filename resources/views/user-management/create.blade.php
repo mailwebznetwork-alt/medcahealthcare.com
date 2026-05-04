@@ -1,4 +1,4 @@
-﻿<x-app-layout
+<x-app-layout
     :page-title="__('Create user')"
     :welcome-line="__('Provision identity, role label, and module access.')"
 >
@@ -36,7 +36,7 @@
                             placeholder="{{ __('e.g. Operations Staff') }}"
                             variant="mom"
                         />
-                        <p class="mom-subtext mt-1">{{ __('Operational designation only — access is controlled by modules below.') }}</p>
+                        <p class="mom-subtext mt-1">{{ __('Operational designation only � access is controlled by modules below.') }}</p>
                         <x-input-error class="mt-2" :messages="$errors->get('role_label')" />
                     </div>
                     <div>
@@ -55,7 +55,7 @@
                             name="profile_image"
                             type="file"
                             accept="image/*"
-                            class="mt-1 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-md file:border-0 file:bg-[rgba(212,169,95,0.12)] file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-wide file:text-mom-gold"
+                            class="mt-1 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-md file:border-0 file:bg-[rgba(197,160,89,0.12)] file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-wide file:text-mom-gold"
                         />
                         <x-input-error class="mt-2" :messages="$errors->get('profile_image')" />
                     </div>
@@ -90,7 +90,7 @@
                 <x-primary-button variant="mom">{{ __('Create user') }}</x-primary-button>
                 <a
                     href="{{ route('user-management.index') }}"
-                    class="inline-flex items-center justify-center rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[rgba(255,255,255,0.03)] px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)] shadow-mom-inner transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)] hover:text-[var(--text-primary)]"
+                    class="mom-cta-ghost"
                 >{{ __('Cancel') }}</a>
             </div>
         </form>
