@@ -132,7 +132,7 @@
                 <ul class="mt-6 space-y-2">
                     @foreach ($contentParts as $idx => $part)
                         <li wire:key="part-{{ $idx }}-{{ $part['type'] }}-{{ $part['slug'] }}" class="flex flex-wrap items-center justify-between gap-2 rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] px-3 py-2 font-mono text-xs text-[var(--text-secondary)]">
-                            <span>{{ '{{'.$part['type'].':'.$part['slug'].'}}' }}</span>
+                            <span>{{ '{{'.$part['type'].':'.$part['slug'].str_repeat('}', 2) }}</span>
                             <span class="flex flex-wrap gap-1">
                                 @if ($part['type'] === 'block')
                                     <button type="button" wire:click="editBlockFromPart({{ $idx }})" class="text-mom-gold hover:underline">{{ __('Edit') }}</button>
