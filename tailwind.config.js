@@ -18,13 +18,12 @@ export default {
                 4.5: '18px',
                 5.5: '22px',
             },
-            /** Aligned with `markonminds.css` `--radius-pill` — one geometry for cards + controls */
             borderRadius: {
-                mom: '999px',
-                'mom-sm': '999px',
-                'mom-md': '999px',
-                'mom-lg': '999px',
-                'mom-xl': '999px',
+                mom: '22px',
+                'mom-sm': '10px',
+                'mom-md': '16px',
+                'mom-lg': '22px',
+                'mom-xl': '28px',
                 'mom-pill': '999px',
             },
             transitionTimingFunction: {
