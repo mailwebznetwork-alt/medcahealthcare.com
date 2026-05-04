@@ -3,7 +3,7 @@
     :welcome-line="__('Run-state, hiring, coverage, and operational management workspace.')"
 >
     <div class="operations-workspace">
-        <div class="border-b border-[var(--border-panel-soft)]">
+        <div class="mom-ops-primary-tabs-wrap">
             @include('operations.partials.primary-tabs')
         </div>
 

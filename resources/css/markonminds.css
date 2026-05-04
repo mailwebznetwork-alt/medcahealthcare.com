@@ -50,6 +50,8 @@
     --warning: #e2b85c;
 
     --border-soft: rgba(255, 255, 255, 0.045);
+    /** Hairline under Operations primary tabs — ribbon-free strip */
+    --border-tabstrip-divider: rgba(255, 255, 255, 0.05);
     --border-fade: rgba(255, 255, 255, 0.025);
     /* Reference panel edge — warm brown, not cold gray */
     --border-panel: #3d342d;
@@ -132,6 +134,18 @@ body.mom-body {
     box-shadow: none;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+}
+
+/**
+ * Operations — primary tab row: part of the page surface, not a separate ribbon.
+ * background: transparent inherits the main column (.mom-content-pane) paint (--bg-app).
+ * Optional global base e.g. #051F20: set --bg-app in :root (affects full shell, not this class alone).
+ */
+.mom-ops-primary-tabs-wrap {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border-tabstrip-divider);
+    box-shadow: none;
 }
 
 /**
