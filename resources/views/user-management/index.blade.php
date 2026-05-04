@@ -33,7 +33,7 @@
                 <select
                     id="user-status"
                     name="status"
-                    class="w-full mom-control-pill border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner"
+                    class="w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner"
                     onchange="this.form.submit()"
                 >
                     <option value="all" @selected(request('status', 'all') === 'all')>{{ __('All') }}</option>
@@ -46,7 +46,7 @@
                 <select
                     id="user-role"
                     name="role"
-                    class="w-full mom-control-pill border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner"
+                    class="w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner"
                     onchange="this.form.submit()"
                 >
                     <option value="">{{ __('All roles') }}</option>
@@ -136,7 +136,7 @@
                                         @can('update', $row)
                                             <a
                                                 href="{{ route('user-management.edit', $row) }}"
-                                                class="inline-flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+                                                class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
                                                 aria-label="{{ __('Edit') }}"
                                             >
                                                 <i data-lucide="pencil" class="h-4 w-4 shrink-0 text-current"></i>
@@ -149,7 +149,7 @@
                                                     @method('patch')
                                                     <button
                                                         type="submit"
-                                                        class="inline-flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+                                                        class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
                                                         aria-label="{{ __('Deactivate') }}"
                                                     >
                                                         <i data-lucide="user-minus" class="h-4 w-4 shrink-0 text-current"></i>
@@ -161,7 +161,7 @@
                                                     @method('patch')
                                                     <button
                                                         type="submit"
-                                                        class="inline-flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+                                                        class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
                                                         aria-label="{{ __('Activate') }}"
                                                     >
                                                         <i data-lucide="user-plus" class="h-4 w-4 shrink-0 text-current"></i>
@@ -180,7 +180,7 @@
                                                 @method('delete')
                                                 <button
                                                     type="submit"
-                                                    class="inline-flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[rgba(220,38,38,0.08)] hover:text-[var(--danger)]"
+                                                    class="inline-flex h-8 w-8 items-center justify-center rounded-mom-sm text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[rgba(220,38,38,0.08)] hover:text-[var(--danger)]"
                                                     aria-label="{{ __('Delete') }}"
                                                 >
                                                     <i data-lucide="trash-2" class="h-4 w-4 shrink-0 text-current"></i>

@@ -264,14 +264,6 @@ body.mom-body {
 }
 
 /**
- * Form controls — pill radius locked to CTAs / topbar search (same `--radius-pill` as Image 4).
- * Apply to inputs, selects, textareas, and danger buttons; keep cards/modals on `--radius-card` / `rounded-mom-lg`.
- */
-.mom-control-pill {
-    border-radius: var(--radius-pill);
-}
-
-/**
  * Right column only: matte brown foreground (warm brown neutrals; not cold gray).
  * Scoped tokens inherit to dashboard/profile content using var(--text-*).
  */
@@ -598,7 +590,7 @@ body.mom-body::after {
     background: rgba(28, 22, 19, 0.96) !important;
     border: 1px solid rgba(197, 160, 89, 0.22) !important;
     backdrop-filter: blur(12px);
-    border-radius: var(--radius-pill) !important;
+    border-radius: var(--radius-md) !important;
     box-shadow: var(--shadow-elevated) !important;
 }
 

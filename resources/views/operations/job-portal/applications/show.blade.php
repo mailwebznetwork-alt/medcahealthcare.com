@@ -44,7 +44,7 @@
                 @method('patch')
                 <div>
                     <x-input-label for="pipeline_status" :value="__('Stage')" variant="mom" />
-                    <select id="pipeline_status" name="pipeline_status" class="mt-2 block w-full mom-control-pill border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
+                    <select id="pipeline_status" name="pipeline_status" class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
                         @foreach (\App\Enums\ApplicationPipelineStatus::cases() as $st)
                             <option value="{{ $st->value }}" @selected($application->pipeline_status->value === $st->value)>{{ $st->label() }}</option>
                         @endforeach

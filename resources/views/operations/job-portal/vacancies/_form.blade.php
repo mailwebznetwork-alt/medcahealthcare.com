@@ -41,7 +41,7 @@
             </div>
             <div>
                 <x-input-label for="employment_type" :value="__('Employment type')" variant="mom" />
-                <select id="employment_type" name="employment_type" class="mt-2 block w-full mom-control-pill border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">
+                <select id="employment_type" name="employment_type" class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">
                     @foreach (EmploymentType::cases() as $type)
                         <option value="{{ $type->value }}" @selected(old('employment_type', $vacancy->employment_type?->value ?? EmploymentType::FullTime->value) === $type->value)>
                             {{ $type->label() }}
@@ -80,7 +80,7 @@
         <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
                 <x-input-label for="workflow_status" :value="__('Workflow status')" variant="mom" />
-                <select id="workflow_status" name="workflow_status" class="mt-2 block w-full mom-control-pill border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">
+                <select id="workflow_status" name="workflow_status" class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">
                     @foreach (VacancyWorkflowStatus::cases() as $st)
                         <option value="{{ $st->value }}" @selected(old('workflow_status', $vacancy->workflow_status?->value ?? VacancyWorkflowStatus::Draft->value) === $st->value)>
                             {{ $st->label() }}
@@ -91,7 +91,7 @@
             </div>
             <div>
                 <x-input-label for="visibility" :value="__('Visibility')" variant="mom" />
-                <select id="visibility" name="visibility" class="mt-2 block w-full mom-control-pill border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">
+                <select id="visibility" name="visibility" class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">
                     @foreach (VacancyVisibility::cases() as $vis)
                         <option value="{{ $vis->value }}" @selected(old('visibility', $vacancy->visibility?->value ?? VacancyVisibility::Public->value) === $vis->value)>
                             {{ $vis->label() }}
@@ -123,17 +123,17 @@
         <div class="mt-6 space-y-6">
             <div>
                 <x-input-label for="summary" :value="__('Summary')" variant="mom" />
-                <textarea id="summary" name="summary" rows="3" class="mt-2 block w-full mom-control-pill border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">{{ old('summary', $vacancy->summary) }}</textarea>
+                <textarea id="summary" name="summary" rows="3" class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">{{ old('summary', $vacancy->summary) }}</textarea>
                 <x-input-error class="mt-2" :messages="$errors->get('summary')" variant="mom" />
             </div>
             <div>
                 <x-input-label for="description" :value="__('Full description')" variant="mom" />
-                <textarea id="description" name="description" rows="10" class="mt-2 block w-full mom-control-pill border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">{{ old('description', $vacancy->description) }}</textarea>
+                <textarea id="description" name="description" rows="10" class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">{{ old('description', $vacancy->description) }}</textarea>
                 <x-input-error class="mt-2" :messages="$errors->get('description')" variant="mom" />
             </div>
             <div>
                 <x-input-label for="requirements" :value="__('Requirements')" variant="mom" />
-                <textarea id="requirements" name="requirements" rows="6" class="mt-2 block w-full mom-control-pill border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">{{ old('requirements', $vacancy->requirements) }}</textarea>
+                <textarea id="requirements" name="requirements" rows="6" class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">{{ old('requirements', $vacancy->requirements) }}</textarea>
                 <x-input-error class="mt-2" :messages="$errors->get('requirements')" variant="mom" />
             </div>
         </div>
@@ -149,7 +149,7 @@
             </div>
             <div class="md:col-span-2">
                 <x-input-label for="seo_description" :value="__('SEO description')" variant="mom" />
-                <textarea id="seo_description" name="seo_description" rows="3" class="mt-2 block w-full mom-control-pill border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">{{ old('seo_description', $vacancy->seo_description) }}</textarea>
+                <textarea id="seo_description" name="seo_description" rows="3" class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">{{ old('seo_description', $vacancy->seo_description) }}</textarea>
                 <x-input-error class="mt-2" :messages="$errors->get('seo_description')" variant="mom" />
             </div>
             <div class="md:col-span-2">
@@ -172,7 +172,7 @@
             </div>
             <div>
                 <x-input-label for="ai_context" :value="__('AI context (internal)')" variant="mom" />
-                <textarea id="ai_context" name="ai_context" rows="4" class="mt-2 block w-full mom-control-pill border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">{{ old('ai_context', $vacancy->ai_context) }}</textarea>
+                <textarea id="ai_context" name="ai_context" rows="4" class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">{{ old('ai_context', $vacancy->ai_context) }}</textarea>
                 <x-input-error class="mt-2" :messages="$errors->get('ai_context')" variant="mom" />
             </div>
         </div>

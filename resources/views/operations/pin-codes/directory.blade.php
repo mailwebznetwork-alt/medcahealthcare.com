@@ -20,18 +20,18 @@
     <div class="flex flex-wrap items-end justify-between gap-4">
         <form method="get" action="{{ route('operations.pin-codes.directory') }}" class="flex flex-1 flex-wrap gap-3">
             <x-text-input name="q" type="search" class="min-w-[12rem] flex-1" :value="request('q')" placeholder="{{ __('Search pincode, area, city, locality…') }}" variant="mom" />
-            <select name="city" class="mom-control-pill border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
+            <select name="city" class="rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
                 <option value="">{{ __('All cities') }}</option>
                 @foreach ($cities as $c)
                     <option value="{{ $c }}" @selected(request('city') === $c)>{{ $c }}</option>
                 @endforeach
             </select>
-            <select name="serviceable" class="mom-control-pill border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
+            <select name="serviceable" class="rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
                 <option value="">{{ __('Serviceability') }}</option>
                 <option value="1" @selected(request('serviceable') === '1')>{{ __('Serviceable') }}</option>
                 <option value="0" @selected(request('serviceable') === '0')>{{ __('Not serviceable') }}</option>
             </select>
-            <select name="active" class="mom-control-pill border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
+            <select name="active" class="rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
                 <option value="">{{ __('Status') }}</option>
                 <option value="1" @selected(request('active') === '1')>{{ __('Active') }}</option>
                 <option value="0" @selected(request('active') === '0')>{{ __('Inactive') }}</option>

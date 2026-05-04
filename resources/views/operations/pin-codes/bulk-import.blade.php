@@ -80,7 +80,7 @@
                     type="file"
                     accept=".csv,text/csv,text/plain"
                     required
-                    class="mt-2 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-full file:border-0 file:bg-[var(--accent-gold-soft)] file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-widest file:text-mom-gold"
+                    class="mt-2 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-md file:border-0 file:bg-[var(--accent-gold-soft)] file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-widest file:text-mom-gold"
                 />
                 <x-input-error class="mt-2" :messages="$errors->get('file')" variant="mom" />
             </div>
