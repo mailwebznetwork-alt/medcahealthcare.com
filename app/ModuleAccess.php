@@ -71,7 +71,7 @@ final class ModuleAccess
             self::SITE_ARCHITECT => [
                 'label' => 'Site Architect',
                 'icon' => 'drafting-compass',
-                'route' => 'modules.site-architect',
+                'route' => 'site-architect.pages.index',
             ],
             self::OPERATIONS => [
                 'label' => 'Operations',

@@ -144,7 +144,7 @@
                         <p class="mom-body-text mt-4 text-[var(--text-secondary)]">
                             {{ __('Structure, services, and composition tools open here when the experience blueprint is connected.') }}
                         </p>
-                        <a href="{{ route('modules.site-architect') }}" class="mom-subtext mt-6 inline-flex items-center gap-1 text-mom-gold hover:underline">
+                        <a href="{{ route('site-architect.pages.index') }}" class="mom-subtext mt-6 inline-flex items-center gap-1 text-mom-gold hover:underline">
                             {{ __('Open workspace') }} <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
                         </a>
                     </div>

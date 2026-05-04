@@ -26,6 +26,7 @@
             request()->routeIs('profile.*') => __('Account security and identity preferences.'),
             request()->routeIs('settings.*') => __('Workspace configuration and preferences.'),
             request()->routeIs('operations.job-portal.*', 'operations.pin-codes.*', 'operations.services.*', 'modules.operations') => __('Run-state, hiring, coverage, and operational management workspace.'),
+            request()->routeIs('site-architect.*') => __('Structure-only content, reusable blocks, PIN-code GEO.'),
             request()->routeIs('user-management.*') => __('People, access, and directory control.'),
             request()->routeIs('modules.*') => __('Focused module workspace.'),
             default => __('Welcome back — here is your intelligence snapshot.'),

@@ -1,3 +1,6 @@
-<x-app-layout :page-title="__('Pages')" :welcome-line="__('Structure-only content, reusable blocks, PIN-code GEO.')">
+<x-site-architect.workspace
+    :page-title="__('Site Architect')"
+    :welcome-line="__('Structure-only content, reusable blocks, PIN-code GEO.')"
+>
     @livewire('site-architect.pages')
-</x-app-layout>
+</x-site-architect.workspace>

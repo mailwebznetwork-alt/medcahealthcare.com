@@ -38,9 +38,9 @@ Route::middleware(['auth', 'active', 'verified', 'module:dashboard'])->group(fun
 });
 
 Route::middleware(['auth', 'active', 'verified', 'module:site_architect'])->group(function () {
-    Route::get('/site-architect', [ModuleSurfaceController::class, 'show'])
-        ->defaults('momModule', 'site_architect')
-        ->name('modules.site-architect');
+    Route::get('/site-architect', function () {
+        return redirect()->route('site-architect.pages.index');
+    })->name('modules.site-architect');
 
     Route::prefix('site-architect')->name('site-architect.')->group(function () {
         Route::view('/pages', 'site-architect.pages-shell')->name('pages.index');
