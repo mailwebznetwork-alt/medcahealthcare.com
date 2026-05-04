@@ -1,4 +1,4 @@
-@extends('layouts.careers')
+@extends('layouts.app')
 
 @section('title', __('Careers').' — '.config('app.name'))
 
