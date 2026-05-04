@@ -1,4 +1,4 @@
-﻿@php
+@php
     /** @var \App\Models\PinCode $pinCode */
 @endphp
 
@@ -35,12 +35,12 @@
             <div class="flex flex-col gap-4 pt-1 md:col-span-2 md:flex-row md:flex-wrap md:items-center">
                 <div class="flex items-center gap-3">
                     <input type="hidden" name="is_serviceable" value="0" />
-                    <input id="is_serviceable" name="is_serviceable" type="checkbox" value="1" class="h-4 w-4 rounded border-[rgba(255,255,255,0.12)] bg-[rgba(28,22,18,0.75)] text-mom-gold focus:ring-1 focus:ring-[rgba(212,169,95,0.35)]" @checked(old('is_serviceable', $pinCode->is_serviceable)) />
+                    <input id="is_serviceable" name="is_serviceable" type="checkbox" value="1" class="h-4 w-4 rounded border-[rgba(255,255,255,0.12)] bg-[rgba(28,22,18,0.75)] text-mom-gold focus:ring-1 focus:ring-[rgba(197,160,89,0.35)]" @checked(old('is_serviceable', $pinCode->is_serviceable)) />
                     <x-input-label for="is_serviceable" :value="__('Serviceable area')" variant="mom" />
                 </div>
                 <div class="flex items-center gap-3">
                     <input type="hidden" name="is_active" value="0" />
-                    <input id="is_active" name="is_active" type="checkbox" value="1" class="h-4 w-4 rounded border-[rgba(255,255,255,0.12)] bg-[rgba(28,22,18,0.75)] text-mom-gold focus:ring-1 focus:ring-[rgba(212,169,95,0.35)]" @checked(old('is_active', $pinCode->is_active)) />
+                    <input id="is_active" name="is_active" type="checkbox" value="1" class="h-4 w-4 rounded border-[rgba(255,255,255,0.12)] bg-[rgba(28,22,18,0.75)] text-mom-gold focus:ring-1 focus:ring-[rgba(197,160,89,0.35)]" @checked(old('is_active', $pinCode->is_active)) />
                     <x-input-label for="is_active" :value="__('Active record')" variant="mom" />
                 </div>
             </div>
@@ -62,7 +62,7 @@
                     id="meta_description"
                     name="meta_description"
                     rows="4"
-                    class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner placeholder:text-[var(--text-muted)] focus:border-[rgba(212,169,95,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(212,169,95,0.22)]"
+                    class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner placeholder:text-[var(--text-muted)] focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]"
                 >{{ old('meta_description', $pinCode->meta_description) }}</textarea>
                 <x-input-error class="mt-2" :messages="$errors->get('meta_description')" variant="mom" />
             </div>
@@ -72,7 +72,7 @@
                     id="seo_keywords"
                     name="seo_keywords"
                     rows="3"
-                    class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner placeholder:text-[var(--text-muted)] focus:border-[rgba(212,169,95,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(212,169,95,0.22)]"
+                    class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner placeholder:text-[var(--text-muted)] focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]"
                 >{{ old('seo_keywords', $pinCode->seo_keywords) }}</textarea>
                 <x-input-error class="mt-2" :messages="$errors->get('seo_keywords')" variant="mom" />
             </div>
@@ -84,7 +84,7 @@
             </div>
             <div class="flex items-center gap-3 md:col-span-2">
                 <input type="hidden" name="geo_page_ready" value="0" />
-                <input id="geo_page_ready" name="geo_page_ready" type="checkbox" value="1" class="h-4 w-4 rounded border-[rgba(255,255,255,0.12)] bg-[rgba(28,22,18,0.75)] text-mom-gold focus:ring-1 focus:ring-[rgba(212,169,95,0.35)]" @checked(old('geo_page_ready', $pinCode->geo_page_ready)) />
+                <input id="geo_page_ready" name="geo_page_ready" type="checkbox" value="1" class="h-4 w-4 rounded border-[rgba(255,255,255,0.12)] bg-[rgba(28,22,18,0.75)] text-mom-gold focus:ring-1 focus:ring-[rgba(197,160,89,0.35)]" @checked(old('geo_page_ready', $pinCode->geo_page_ready)) />
                 <x-input-label for="geo_page_ready" :value="__('Marked ready for geo landing page')" variant="mom" />
             </div>
         </div>

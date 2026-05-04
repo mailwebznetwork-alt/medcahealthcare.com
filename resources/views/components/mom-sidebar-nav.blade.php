@@ -1,4 +1,4 @@
-﻿@props([
+@props([
     'user',
 ])
 
@@ -32,7 +32,7 @@
                         href="{{ route($node['route']) }}"
                         @class([
                             'mom-nav-active flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-mom-gold transition-all duration-320 ease-premium' => $active,
-                            'flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(212,169,95,0.06)]' => ! $active,
+                            'flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(197,160,89,0.06)]' => ! $active,
                         ])
                     >
                         <i

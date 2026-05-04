@@ -1,4 +1,4 @@
-ï»¿@push('scripts')
+@push('scripts')
     @vite(['resources/js/dashboard.js'])
 @endpush
 
@@ -17,12 +17,12 @@
 
 <x-layouts.markonminds
     page-title="Dashboard Overview"
-    welcome-line="Welcome back â€” intelligence surfaces reflect your assigned modules."
+    welcome-line="Welcome back — intelligence surfaces reflect your assigned modules."
 >
     <div class="mom-reveal w-full max-w-full">
         <div class="space-y-1 pb-8 md:hidden md:pb-0">
             <h1 class="mom-title-page">Dashboard Overview</h1>
-            <p class="mom-subtext">Welcome back â€” intelligence surfaces reflect your assigned modules.</p>
+            <p class="mom-subtext">Welcome back — intelligence surfaces reflect your assigned modules.</p>
         </div>
 
         @if ($w['dashboard'])
@@ -191,7 +191,7 @@
                             </div>
                             <a
                                 href="{{ route('user-management.index') }}"
-                                class="rounded-mom-pill border border-[rgba(255,255,255,0.045)] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)] hover:text-[var(--text-primary)]"
+                                class="rounded-mom-pill border border-[rgba(255,255,255,0.045)] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(197,160,89,0.16)] hover:text-[var(--text-primary)]"
                             >{{ __('Manage users') }}</a>
                         </div>
                         <div class="mom-table mt-6 overflow-hidden rounded-mom-md border border-[rgba(255,255,255,0.045)]">
@@ -207,7 +207,7 @@
                                     @forelse ($m['recent_users'] as $ru)
                                         <tr class="text-[var(--text-secondary)]">
                                             <td class="px-4 py-3 font-medium text-[var(--text-primary)]">{{ $ru->name }}</td>
-                                            <td class="px-4 py-3">{{ $ru->role_label ?: 'â€”' }}</td>
+                                            <td class="px-4 py-3">{{ $ru->role_label ?: '—' }}</td>
                                             <td class="px-4 py-3 text-right">
                                                 <span class="inline-flex items-center gap-2 justify-end">
                                                     <span class="h-1.5 w-1.5 rounded-full {{ $ru->is_active ? 'bg-[var(--success)]' : 'bg-[var(--danger)]' }}"></span>
@@ -257,9 +257,9 @@
                             @if ($w['user_management'])
                                 <a
                                     href="{{ route('user-management.index') }}"
-                                    class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)]"
+                                    class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(197,160,89,0.16)]"
                                 >
-                                    <span class="flex h-9 w-9 items-center justify-center rounded-mom-sm border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] text-mom-gold">
+                                    <span class="flex h-9 w-9 items-center justify-center rounded-mom-sm border border-[rgba(197,160,89,0.22)] bg-[rgba(197,160,89,0.08)] text-mom-gold">
                                         <i data-lucide="users-round" class="h-[16px] w-[16px]"></i>
                                     </span>
                                     <span class="text-[13px] font-medium leading-snug text-[var(--text-primary)]">{{ __('User management') }}</span>
@@ -269,9 +269,9 @@
                             @if ($w['operations'])
                                 <a
                                     href="{{ route('modules.operations') }}"
-                                    class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)]"
+                                    class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(197,160,89,0.16)]"
                                 >
-                                    <span class="flex h-9 w-9 items-center justify-center rounded-mom-sm border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] text-mom-gold">
+                                    <span class="flex h-9 w-9 items-center justify-center rounded-mom-sm border border-[rgba(197,160,89,0.22)] bg-[rgba(197,160,89,0.08)] text-mom-gold">
                                         <i data-lucide="workflow" class="h-[16px] w-[16px]"></i>
                                     </span>
                                     <span class="text-[13px] font-medium leading-snug text-[var(--text-primary)]">{{ __('Operations') }}</span>
@@ -281,9 +281,9 @@
                             @if ($w['settings'])
                                 <a
                                     href="{{ route('settings.index') }}"
-                                    class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)]"
+                                    class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(197,160,89,0.16)]"
                                 >
-                                    <span class="flex h-9 w-9 items-center justify-center rounded-mom-sm border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] text-mom-gold">
+                                    <span class="flex h-9 w-9 items-center justify-center rounded-mom-sm border border-[rgba(197,160,89,0.22)] bg-[rgba(197,160,89,0.08)] text-mom-gold">
                                         <i data-lucide="settings" class="h-[16px] w-[16px]"></i>
                                     </span>
                                     <span class="text-[13px] font-medium leading-snug text-[var(--text-primary)]">{{ __('Settings') }}</span>
@@ -293,9 +293,9 @@
                             @if ($w['security'])
                                 <a
                                     href="{{ route('modules.security') }}"
-                                    class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(212,169,95,0.16)]"
+                                    class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(197,160,89,0.16)]"
                                 >
-                                    <span class="flex h-9 w-9 items-center justify-center rounded-mom-sm border border-[rgba(212,169,95,0.22)] bg-[rgba(212,169,95,0.08)] text-mom-gold">
+                                    <span class="flex h-9 w-9 items-center justify-center rounded-mom-sm border border-[rgba(197,160,89,0.22)] bg-[rgba(197,160,89,0.08)] text-mom-gold">
                                         <i data-lucide="shield-check" class="h-[16px] w-[16px]"></i>
                                     </span>
                                     <span class="text-[13px] font-medium leading-snug text-[var(--text-primary)]">{{ __('Security') }}</span>

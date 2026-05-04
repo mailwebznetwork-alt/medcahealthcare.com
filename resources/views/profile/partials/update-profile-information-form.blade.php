@@ -1,4 +1,4 @@
-﻿<section>
+<section>
     <header>
         <h2 class="mom-section-title">
             {{ __('Profile Information') }}
@@ -49,7 +49,7 @@
                     <p class="mom-body-text mt-3">
                         {{ __('Your email address is unverified.') }}
 
-                        <button form="send-verification" type="submit" class="text-[var(--accent-gold)] underline decoration-[rgba(212,169,95,0.35)] underline-offset-2 transition-colors duration-320 ease-premium hover:text-[var(--text-primary)]">
+                        <button form="send-verification" type="submit" class="text-[var(--accent-gold)] underline decoration-[rgba(197,160,89,0.35)] underline-offset-2 transition-colors duration-320 ease-premium hover:text-[var(--text-primary)]">
                             {{ __('Click here to re-send the verification email.') }}
                         </button>
                     </p>
