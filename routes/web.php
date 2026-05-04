@@ -68,6 +68,8 @@ Route::middleware(['auth', 'active', 'verified', 'module:site_architect'])->grou
         })->name('blogs.preview');
 
         Route::view('/block-factory', 'site-architect.block-factory-shell')->name('block-factory.index');
+
+        Route::view('/media', 'site-architect.media-library-shell')->name('media.index');
     });
 });
 
