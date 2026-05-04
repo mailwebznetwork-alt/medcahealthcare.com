@@ -406,7 +406,8 @@ body.mom-body::after {
 }
 
 /**
- * Sidebar — section break (same hairline token as backend tab strips / rails).
+ * Legacy standalone divider (optional). Nav items now use `.mom-sidebar-nav-list` + `divide-y`
+ * with `--border-tabstrip-divider` between every row — add new keys to `$sectionKeys` in Blade.
  */
 .mom-sidebar-section-divider {
     display: block;
@@ -415,6 +416,11 @@ body.mom-body::after {
     margin: 12px 0;
     border: 0;
     border-bottom: 1px solid var(--border-tabstrip-divider);
+}
+
+/** Sidebar list: paired with Blade `divide-y divide-[color:var(--border-tabstrip-divider)]` */
+.mom-sidebar-nav-list {
+    list-style: none;
 }
 
 /**
