@@ -7,7 +7,7 @@
  * `.cursor/rules/markonminds-backend-ui-lock.mdc`.
  */
 
-:root {
+ :root {
     /**
      * Matte brown shell — backend right column + cards (reference: deep brown + aurum).
      * Global tokens: keep chrome aligned across dashboard, operations, and modules.
@@ -604,3 +604,5 @@ body.mom-body::after {
 .mom-apex .apexcharts-tooltip-text-y-value {
     color: var(--text-primary) !important;
 }
+
+
