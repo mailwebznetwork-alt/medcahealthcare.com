@@ -27,7 +27,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 ## Conventions
 
-- **Git:** When you complete implementation or review that changes tracked files, **commit** those changes with a clear message (run Pint/tests as required first). Do not leave agreed work uncommitted unless the user opts out.
+- **Git:** When you complete implementation, pass review, or the user asks to **commit all changes** / **commit after review**, **stage and commit** all intended tracked files with a clear message (Pint, `npm run build` when relevant, tests as required first). Do not leave agreed or reviewed work uncommitted unless the user opts out. See `.cursor/rules/commit-all-changes.mdc`.
 - You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, and naming.
 - Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
 - Check for existing components to reuse before writing a new one.
