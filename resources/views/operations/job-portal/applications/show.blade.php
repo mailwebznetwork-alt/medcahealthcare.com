@@ -53,7 +53,7 @@
                 </div>
                 <x-primary-button variant="mom" type="submit">{{ __('Save stage') }}</x-primary-button>
             </form>
-            <div class="mt-8 border-t border-[rgba(255,255,255,0.045)] pt-6">
+            <div class="mom-backend-hairline-t mt-8 pt-6">
                 <a href="{{ route('operations.job-portal.applications.index') }}" class="text-[var(--text-muted)] hover:text-[var(--text-secondary)]">{{ __('← Back to applications') }}</a>
             </div>
         </div>

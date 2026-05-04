@@ -145,7 +145,7 @@
                             role="menu"
                             aria-orientation="vertical"
                         >
-                            <div class="flex items-start gap-3 border-b border-[rgba(255,255,255,0.045)] pb-4">
+                            <div class="mom-backend-hairline-b flex items-start gap-3 pb-4">
                                 <div
                                     class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[rgba(197,160,89,0.28)] bg-[rgba(197,160,89,0.08)] text-xs font-semibold tracking-wide text-mom-gold"
                                     aria-hidden="true"

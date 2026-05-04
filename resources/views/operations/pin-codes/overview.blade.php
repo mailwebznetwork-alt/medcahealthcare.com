@@ -40,7 +40,7 @@
             <p class="mom-micro">{{ __('Local SEO readiness') }}</p>
             <p class="mom-metric mt-2 leading-none">{{ number_format($seo['geo_page_ready']) }}</p>
             <p class="mom-subtext mt-2">{{ __('Locations flagged for future geo landing pages') }}</p>
-            <dl class="mom-subtext mt-4 space-y-2 border-t border-[var(--border-panel-soft)] pt-4 text-[var(--text-secondary)]">
+            <dl class="mom-backend-hairline-t mom-subtext mt-4 space-y-2 pt-4 text-[var(--text-secondary)]">
                 <div class="flex justify-between gap-4">
                     <dt>{{ __('With meta title') }}</dt>
                     <dd class="font-medium text-[var(--text-primary)]">{{ number_format($seo['with_meta_title']) }}</dd>
@@ -69,7 +69,7 @@
     </div>
 
     <div class="mom-card mt-12 overflow-hidden p-0">
-        <div class="border-b border-[var(--border-panel-soft)] px-5 py-4">
+        <div class="mom-backend-hairline-b px-5 py-4">
             <h3 class="mom-section-title text-base">{{ __('Import history') }}</h3>
             <p class="mom-subtext mt-1">{{ __('Recent CSV runs, outcomes, and status.') }}</p>
         </div>
@@ -88,7 +88,7 @@
                             <th class="px-4 py-3 font-medium">{{ __('Status') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[var(--border-panel-soft)] text-[var(--text-secondary)]">
+                    <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                         @foreach ($importLogs as $log)
                             <tr>
                                 <td class="px-4 py-3 text-[var(--text-primary)]">{{ $log->created_at->timezone(config('app.timezone'))->format('Y-m-d H:i') }}</td>

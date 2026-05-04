@@ -17,12 +17,12 @@
 
 <x-layouts.markonminds
     page-title="Dashboard Overview"
-    welcome-line="Welcome back — intelligence surfaces reflect your assigned modules."
+    welcome-line="Welcome back ? intelligence surfaces reflect your assigned modules."
 >
     <div class="mom-reveal w-full max-w-full">
         <div class="space-y-1 pb-8 md:hidden md:pb-0">
             <h1 class="mom-title-page">Dashboard Overview</h1>
-            <p class="mom-subtext">Welcome back — intelligence surfaces reflect your assigned modules.</p>
+            <p class="mom-subtext">Welcome back ? intelligence surfaces reflect your assigned modules.</p>
         </div>
 
         @if ($w['dashboard'])
@@ -100,11 +100,11 @@
                         </div>
                         @if ($m['vacancies_total'] !== null)
                             <dl class="mt-6 space-y-4">
-                                <div class="flex items-center justify-between gap-3 border-b border-[rgba(255,255,255,0.045)] pb-4">
+                                <div class="mom-backend-hairline-b flex items-center justify-between gap-3 pb-4">
                                     <dt class="mom-body-text text-[var(--text-secondary)]">{{ __('Vacancies') }}</dt>
                                     <dd class="mom-metric text-xl">{{ number_format((int) $m['vacancies_total']) }}</dd>
                                 </div>
-                                <div class="flex items-center justify-between gap-3 border-b border-[rgba(255,255,255,0.045)] pb-4">
+                                <div class="mom-backend-hairline-b flex items-center justify-between gap-3 pb-4">
                                     <dt class="mom-body-text text-[var(--text-secondary)]">{{ __('Published') }}</dt>
                                     <dd class="mom-metric text-xl">{{ number_format((int) $m['vacancies_published']) }}</dd>
                                 </div>
@@ -194,7 +194,7 @@
                                 class="rounded-mom-pill border border-[rgba(255,255,255,0.045)] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(197,160,89,0.16)] hover:text-[var(--text-primary)]"
                             >{{ __('Manage users') }}</a>
                         </div>
-                        <div class="mom-table mt-6 overflow-hidden rounded-mom-md border border-[rgba(255,255,255,0.045)]">
+                        <div class="mom-table mt-6 overflow-hidden rounded-mom-md border border-[var(--border-panel-soft)]">
                             <table class="w-full text-left text-[13px]">
                                 <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
                                     <tr>
@@ -207,7 +207,7 @@
                                     @forelse ($m['recent_users'] as $ru)
                                         <tr class="text-[var(--text-secondary)]">
                                             <td class="px-4 py-3 font-medium text-[var(--text-primary)]">{{ $ru->name }}</td>
-                                            <td class="px-4 py-3">{{ $ru->role_label ?: '—' }}</td>
+                                            <td class="px-4 py-3">{{ $ru->role_label ?: '?' }}</td>
                                             <td class="px-4 py-3 text-right">
                                                 <span class="inline-flex items-center gap-2 justify-end">
                                                     <span class="h-1.5 w-1.5 rounded-full {{ $ru->is_active ? 'bg-[var(--success)]' : 'bg-[var(--danger)]' }}"></span>

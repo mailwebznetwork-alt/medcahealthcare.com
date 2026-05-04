@@ -36,7 +36,7 @@
                             <th class="px-4 py-3 font-medium text-right">{{ __('View') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                    <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                         @foreach ($applications as $application)
                             <tr>
                                 <td class="px-4 py-3 font-medium text-[var(--text-primary)]">{{ $application->full_name }}</td>
@@ -52,7 +52,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="border-t border-[rgba(255,255,255,0.045)] px-4 py-3">
+            <div class="mom-backend-hairline-t px-4 py-3">
                 {{ $applications->links() }}
             </div>
         @endif

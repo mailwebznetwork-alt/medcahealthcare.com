@@ -1,4 +1,4 @@
-<x-operations.workspace>
+﻿<x-operations.workspace>
     <h2 class="mom-section-title mb-2">{{ __('Bulk import') }}</h2>
     <p class="mom-subtext mb-8 max-w-3xl text-[var(--text-secondary)]">
         {{ __('Upload a UTF-8 CSV (Excel: Save As CSV). Preview the first rows, confirm, then track outcomes in history below.') }}
@@ -13,7 +13,7 @@
 
     @if (is_array($staging) && ! empty($staging['preview_rows']))
         <div class="mom-card mb-8 overflow-hidden p-0">
-            <div class="border-b border-[rgba(255,255,255,0.045)] px-5 py-4">
+            <div class="mom-backend-hairline-b px-5 py-4">
                 <h3 class="mom-section-title text-base">{{ __('Import preview') }}</h3>
                 <p class="mom-subtext mt-1">
                     {{ __('Showing up to :n sample rows. Total data rows detected: :t.', ['n' => count($staging['preview_rows']), 't' => number_format((int) ($staging['total_data_rows'] ?? 0))]) }}
@@ -31,7 +31,7 @@
                             <th class="px-4 py-3 font-medium">{{ __('Note') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                    <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                         @foreach ($staging['preview_rows'] as $row)
                             <tr>
                                 <td class="px-4 py-3 font-mono text-[12px] text-[var(--text-primary)]">{{ $row['line'] }}</td>
@@ -47,7 +47,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="flex flex-wrap items-center justify-between gap-4 border-t border-[rgba(255,255,255,0.045)] px-5 py-4">
+            <div class="mom-backend-hairline-t flex flex-wrap items-center justify-between gap-4 px-5 py-4">
                 <form method="post" action="{{ route('operations.pin-codes.bulk-import.cancel') }}" class="inline">
                     @csrf
                     <x-secondary-button variant="mom" type="submit">{{ __('Cancel staging') }}</x-secondary-button>
@@ -89,7 +89,7 @@
     </div>
 
     <div class="mom-card overflow-hidden p-0">
-        <div class="border-b border-[rgba(255,255,255,0.045)] px-5 py-4">
+        <div class="mom-backend-hairline-b px-5 py-4">
             <h3 class="mom-section-title text-base">{{ __('Import history') }}</h3>
             <p class="mom-subtext mt-1">{{ __('Status, row counts, and errors from prior confirmed runs.') }}</p>
         </div>
@@ -109,7 +109,7 @@
                             <th class="px-4 py-3 font-medium">{{ __('Status') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                    <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                         @foreach ($importLogs as $log)
                             <tr>
                                 <td class="px-4 py-3 text-[var(--text-primary)]">{{ $log->created_at->timezone(config('app.timezone'))->format('Y-m-d H:i') }}</td>

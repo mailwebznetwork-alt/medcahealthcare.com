@@ -14,7 +14,7 @@
         </div>
     </form>
 
-    <div class="mt-10 flex flex-wrap gap-3 border-t border-[rgba(255,255,255,0.045)] pt-8">
+    <div class="mom-backend-hairline-t mt-10 flex flex-wrap gap-3 pt-8">
         <form method="post" action="{{ route('operations.job-portal.vacancies.duplicate', $vacancy) }}">
             @csrf
             <x-secondary-button variant="mom" type="submit">{{ __('Duplicate as draft') }}</x-secondary-button>

@@ -126,9 +126,26 @@ body.mom-body {
 }
 
 /**
- * Sticky action row — continuous canvas: no own fill or rails (tabs border-b + page texture show through).
+ * Backend main column — “right pane” surface rails (tabs, toolbars, section caps).
+ * Principle: no ribbon blocks — transparent fill, inherit .mom-content-pane / --bg-app;
+ * separation only via --border-tabstrip-divider (same token app-wide).
+ *
+ * mom-backend-tabstrip      — primary/secondary tab rows (Job Portal, Pin Codes, etc.)
+ * mom-backend-toolbar-row   — sticky CTA row under tabs (alias: mom-sticky-toolbar)
+ * mom-backend-hairline-b / -t — hairline bottom or top (card caps, footers)
+ *
+ * Legacy alias: mom-ops-primary-tabs-wrap → keep for includes; prefer mom-backend-tabstrip.
  */
-.mom-sticky-toolbar {
+.mom-backend-tabstrip,
+.mom-ops-primary-tabs-wrap {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border-tabstrip-divider);
+    box-shadow: none;
+}
+
+.mom-sticky-toolbar,
+.mom-backend-toolbar-row {
     background-color: transparent;
     border: none;
     box-shadow: none;
@@ -136,16 +153,12 @@ body.mom-body {
     -webkit-backdrop-filter: none;
 }
 
-/**
- * Operations — primary tab row: part of the page surface, not a separate ribbon.
- * background: transparent inherits the main column (.mom-content-pane) paint (--bg-app).
- * Optional global base e.g. #051F20: set --bg-app in :root (affects full shell, not this class alone).
- */
-.mom-ops-primary-tabs-wrap {
-    background: transparent;
-    border: none;
+.mom-backend-hairline-b {
     border-bottom: 1px solid var(--border-tabstrip-divider);
-    box-shadow: none;
+}
+
+.mom-backend-hairline-t {
+    border-top: 1px solid var(--border-tabstrip-divider);
 }
 
 /**

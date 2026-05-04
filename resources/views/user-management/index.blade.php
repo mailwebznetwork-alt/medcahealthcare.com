@@ -66,7 +66,7 @@
         @endcan
     </div>
 
-    <div class="mom-table mt-8 overflow-hidden rounded-mom-lg border border-[rgba(255,255,255,0.045)]">
+    <div class="mom-table mt-8 overflow-hidden rounded-mom-lg border border-[var(--border-panel-soft)]">
         <div class="overflow-x-auto">
             <table class="w-full min-w-[44rem] text-left text-[13px]">
                 <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
