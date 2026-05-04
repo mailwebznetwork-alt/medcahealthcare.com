@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Careers\CareersController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MarketingEmailOpenController;
 use App\Http\Controllers\ModuleSurfaceController;
 use App\Http\Controllers\Operations\JobPortal\ApplicationController;
 use App\Http\Controllers\Operations\JobPortal\JobPortalDashboardController;
@@ -21,6 +22,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('home');
 });
+
+Route::get('/t/mail/{token}/open.gif', [MarketingEmailOpenController::class, 'pixel'])
+    ->middleware('throttle:120,1')
+    ->name('marketing.email-open-pixel');
 
 Route::get('/careers', [CareersController::class, 'index'])->name('careers.index');
 Route::get('/careers/{slug}', [CareersController::class, 'show'])->name('careers.show');
@@ -118,9 +123,7 @@ Route::middleware(['auth', 'active', 'verified', 'module:operations'])->group(fu
 });
 
 Route::middleware(['auth', 'active', 'verified', 'module:marketing'])->group(function () {
-    Route::get('/marketing', [ModuleSurfaceController::class, 'show'])
-        ->defaults('momModule', 'marketing')
-        ->name('modules.marketing');
+    Route::view('/marketing', 'marketing.dashboard-shell')->name('modules.marketing');
 });
 
 Route::middleware(['auth', 'active', 'verified', 'module:growth_center'])->group(function () {

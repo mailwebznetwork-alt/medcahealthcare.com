@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Models\Block;
 use App\Models\Blog;
+use App\Models\MarketingCampaign;
+use App\Models\MarketingSetting;
 use App\Models\Media;
 use App\Models\Page;
 use App\Models\PinCode;
@@ -11,6 +13,8 @@ use App\Models\Service;
 use App\Models\User;
 use App\Policies\BlockPolicy;
 use App\Policies\BlogPolicy;
+use App\Policies\MarketingCampaignPolicy;
+use App\Policies\MarketingSettingPolicy;
 use App\Policies\MediaPolicy;
 use App\Policies\PagePolicy;
 use App\Policies\PinCodePolicy;
@@ -21,6 +25,7 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
@@ -73,6 +78,12 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Blog::class, BlogPolicy::class);
         Gate::policy(Media::class, MediaPolicy::class);
         Gate::policy(Page::class, PagePolicy::class);
+        Gate::policy(MarketingSetting::class, MarketingSettingPolicy::class);
+        Gate::policy(MarketingCampaign::class, MarketingCampaignPolicy::class);
+
+        View::composer('layouts.app', function ($view): void {
+            $view->with('marketingSettings', MarketingSetting::current());
+        });
 
         Paginator::useTailwind();
 

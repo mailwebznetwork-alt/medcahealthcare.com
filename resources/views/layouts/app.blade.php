@@ -9,6 +9,7 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=noto-sans:400,500,600,700&display=swap" rel="stylesheet" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <x-marketing.tracking-head :settings="$marketingSettings ?? null" />
         @stack('schema')
         <title>
             @isset($page)
@@ -51,6 +52,7 @@
 
         @include('global.footer')
         @include('global.floating')
+        <x-marketing.tracking-body :settings="$marketingSettings ?? null" />
         @stack('scripts')
     </body>
 </html>

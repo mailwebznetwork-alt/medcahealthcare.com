@@ -84,6 +84,7 @@
                             href="{{ $vacancy->whatsapp_apply_url }}"
                             target="_blank"
                             rel="noopener noreferrer"
+                            onclick="if(typeof gtag==='function'){gtag('event','whatsapp_click');}"
                             class="mom-cta-primary mt-4 w-full"
                         >{{ __('Open WhatsApp') }}</a>
                     </div>
