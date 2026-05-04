@@ -124,13 +124,11 @@ body.mom-body {
 }
 
 /**
- * Sticky action row — no lifted panel: flush with --bg-app; one rule under the row.
- * The rule above the buttons is the primary-tabs `border-b` in operations.workspace.
+ * Sticky action row — continuous canvas: no own fill or rails (tabs border-b + page texture show through).
  */
 .mom-sticky-toolbar {
-    background-color: var(--bg-app);
-    border-top: none;
-    border-bottom: 1px solid var(--border-panel-soft);
+    background-color: transparent;
+    border: none;
     box-shadow: none;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
