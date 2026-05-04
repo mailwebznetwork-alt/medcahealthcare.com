@@ -1,4 +1,4 @@
-﻿@extends('layouts.careers')
+@extends('layouts.careers')
 
 @php
     use Illuminate\Support\Str;
@@ -118,7 +118,7 @@
                         </div>
                         <div>
                             <x-input-label for="cover_message" :value="__('Message')" variant="mom" />
-                            <textarea id="cover_message" name="cover_message" rows="4" class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('cover_message') }}</textarea>
+                            <textarea id="cover_message" name="cover_message" rows="4" class="mt-2 block w-full rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('cover_message') }}</textarea>
                         </div>
                         <input type="hidden" name="source" value="web" />
                         <label class="flex items-start gap-2 text-[13px] text-[var(--text-secondary)]">

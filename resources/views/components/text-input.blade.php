@@ -2,7 +2,7 @@
 
 @php
     $baseClass = match ($variant) {
-        'mom' => 'border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] shadow-mom-inner rounded-mom-md focus:border-[rgba(197,160,89,0.28)] focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]',
+        'mom' => 'border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] shadow-mom-inner rounded-mom-chrome focus:border-[rgba(197,160,89,0.28)] focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]',
         default => 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm',
     };
 @endphp

@@ -62,7 +62,7 @@
                     id="meta_description"
                     name="meta_description"
                     rows="4"
-                    class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner placeholder:text-[var(--text-muted)] focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]"
+                    class="mt-2 block w-full rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner placeholder:text-[var(--text-muted)] focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]"
                 >{{ old('meta_description', $pinCode->meta_description) }}</textarea>
                 <x-input-error class="mt-2" :messages="$errors->get('meta_description')" variant="mom" />
             </div>
@@ -72,7 +72,7 @@
                     id="seo_keywords"
                     name="seo_keywords"
                     rows="3"
-                    class="mt-2 block w-full rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner placeholder:text-[var(--text-muted)] focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]"
+                    class="mt-2 block w-full rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner placeholder:text-[var(--text-muted)] focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]"
                 >{{ old('seo_keywords', $pinCode->seo_keywords) }}</textarea>
                 <x-input-error class="mt-2" :messages="$errors->get('seo_keywords')" variant="mom" />
             </div>

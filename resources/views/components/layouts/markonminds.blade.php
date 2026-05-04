@@ -105,7 +105,7 @@
                             <input
                                 type="search"
                                 placeholder="Search intelligence, entities, signals…"
-                                class="w-full rounded-full border border-[var(--border-panel-soft)] bg-[color:rgba(28,22,22,0.92)] py-2.5 pl-11 pr-24 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] shadow-mom-inner outline-none ring-offset-0 transition-all duration-320 ease-premium focus:border-[rgba(197,160,89,0.35)] focus:shadow-[0_0_24px_rgba(197,160,89,0.12)]"
+                                class="w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[color:rgba(28,22,22,0.92)] py-2.5 pl-11 pr-24 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] shadow-mom-inner outline-none ring-offset-0 transition-all duration-320 ease-premium focus:border-[rgba(197,160,89,0.35)] focus:shadow-[0_0_24px_rgba(197,160,89,0.12)]"
                             />
                             <kbd
                                 class="pointer-events-none absolute right-3 hidden rounded-md border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-2 py-0.5 font-mono text-[11px] text-[var(--text-muted)] sm:inline-block"
@@ -140,7 +140,7 @@
                             x-transition:leave-start="opacity-100 translate-y-0"
                             x-transition:leave-end="opacity-0 translate-y-1"
                             @click.outside="profileOpen = false"
-                            class="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-[min(18rem,calc(100vw-2.5rem))] rounded-mom-lg border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] p-4 shadow-mom-elevated ring-1 ring-[rgba(197,160,89,0.08)]"
+                            class="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-[min(18rem,calc(100vw-2.5rem))] rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] p-4 shadow-mom-elevated ring-1 ring-[rgba(197,160,89,0.08)]"
                             style="display: none;"
                             role="menu"
                             aria-orientation="vertical"

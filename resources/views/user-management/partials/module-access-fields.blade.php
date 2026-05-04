@@ -4,7 +4,7 @@
         $checked = $user ? $user->hasModuleAccess($key) : false;
     @endphp
     <label @class([
-        'flex items-start gap-3 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-4 transition-all duration-320 ease-premium',
+        'flex items-start gap-3 rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-4 transition-all duration-320 ease-premium',
         'cursor-pointer hover:border-[rgba(197,160,89,0.16)]' => ! $disabled,
         'cursor-not-allowed opacity-60' => $disabled,
     ])>

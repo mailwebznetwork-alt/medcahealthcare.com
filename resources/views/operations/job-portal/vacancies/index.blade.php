@@ -1,4 +1,4 @@
-﻿<x-operations.workspace>
+<x-operations.workspace>
     <h2 class="mom-section-title mb-8">{{ __('Vacancies') }}</h2>
     @if (session('status') === 'vacancy-deleted')
         <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('Vacancy removed.') }}</p>
@@ -7,13 +7,13 @@
     <div class="flex flex-wrap items-end justify-between gap-4">
         <form method="get" action="{{ route('operations.job-portal.vacancies.index') }}" class="flex flex-1 flex-wrap gap-3">
             <x-text-input name="q" type="search" class="min-w-[12rem] flex-1" :value="request('q')" placeholder="{{ __('Search title, department, city, PIN…') }}" variant="mom" />
-            <select name="workflow_status" class="rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
+            <select name="workflow_status" class="rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
                 <option value="">{{ __('All statuses') }}</option>
                 @foreach (\App\Enums\VacancyWorkflowStatus::cases() as $st)
                     <option value="{{ $st->value }}" @selected(request('workflow_status') === $st->value)>{{ $st->label() }}</option>
                 @endforeach
             </select>
-            <select name="visibility" class="rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
+            <select name="visibility" class="rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
                 <option value="">{{ __('All visibility') }}</option>
                 @foreach (\App\Enums\VacancyVisibility::cases() as $vis)
                     <option value="{{ $vis->value }}" @selected(request('visibility') === $vis->value)>{{ $vis->label() }}</option>
@@ -53,7 +53,7 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3">
-                                    <span class="rounded-mom-pill border border-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+                                    <span class="rounded-mom-chrome border border-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
                                         {{ $vacancy->workflow_status->label() }}
                                     </span>
                                     @if (! $vacancy->is_active)

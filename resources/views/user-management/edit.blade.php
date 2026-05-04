@@ -8,7 +8,7 @@
             @method('put')
 
             @if ($user->isRootSuperAdmin())
-                <div class="rounded-mom-md border border-[rgba(197,160,89,0.22)] bg-[rgba(197,160,89,0.06)] px-4 py-3 text-sm text-[var(--text-secondary)]">
+                <div class="rounded-mom-chrome border border-[rgba(197,160,89,0.22)] bg-[rgba(197,160,89,0.06)] px-4 py-3 text-sm text-[var(--text-secondary)]">
                     {{ __('This is the protected root administrator. Module access stays fully enabled; destructive actions are disabled for every account.') }}
                 </div>
             @endif
@@ -82,14 +82,14 @@
                             name="profile_image"
                             type="file"
                             accept="image/*"
-                            class="mt-2 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-md file:border-0 file:bg-[rgba(197,160,89,0.12)] file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-wide file:text-mom-gold"
+                            class="mt-2 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-chrome file:border-0 file:bg-[rgba(197,160,89,0.12)] file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-wide file:text-mom-gold"
                         />
                         <x-input-error class="mt-2" :messages="$errors->get('profile_image')" />
                     </div>
                     @unless ($user->isRootSuperAdmin())
                         <div class="sm:col-span-2">
                             <input type="hidden" name="is_active" value="0" />
-                            <label class="flex cursor-pointer items-center gap-3 rounded-mom-md border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-4">
+                            <label class="flex cursor-pointer items-center gap-3 rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-4">
                                 <input
                                     type="checkbox"
                                     name="is_active"

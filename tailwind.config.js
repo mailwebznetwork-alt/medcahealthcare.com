@@ -18,6 +18,10 @@ export default {
                 4.5: '18px',
                 5.5: '22px',
             },
+            /**
+             * `mom-chrome` — same as cards (`--radius-card`): inputs, CTAs, tables, search, modals.
+             * True circular icon targets keep `rounded-full` in Blade, not this token.
+             */
             borderRadius: {
                 mom: '22px',
                 'mom-sm': '10px',
@@ -25,6 +29,7 @@ export default {
                 'mom-lg': '22px',
                 'mom-xl': '28px',
                 'mom-pill': '999px',
+                'mom-chrome': 'var(--radius-card)',
             },
             transitionTimingFunction: {
                 premium: 'cubic-bezier(0.22, 1, 0.36, 1)',

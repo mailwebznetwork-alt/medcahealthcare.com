@@ -1,4 +1,4 @@
-﻿<x-operations.workspace>
+<x-operations.workspace>
     <h2 class="mom-section-title mb-2">{{ __('Bulk import') }}</h2>
     <p class="mom-subtext mb-8 max-w-3xl text-[var(--text-secondary)]">
         {{ __('Upload a UTF-8 CSV (Excel: Save As CSV). Preview the first rows, confirm, then track outcomes in history below.') }}
@@ -36,7 +36,7 @@
                             <tr>
                                 <td class="px-4 py-3 font-mono text-[12px] text-[var(--text-primary)]">{{ $row['line'] }}</td>
                                 <td class="px-4 py-3">
-                                    <span class="rounded-mom-pill border border-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide">{{ $row['status'] }}</span>
+                                    <span class="rounded-mom-chrome border border-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide">{{ $row['status'] }}</span>
                                 </td>
                                 <td class="px-4 py-3">{{ $row['pincode'] ?? '�' }}</td>
                                 <td class="px-4 py-3">{{ $row['area_name'] ?? '�' }}</td>
@@ -80,7 +80,7 @@
                     type="file"
                     accept=".csv,text/csv,text/plain"
                     required
-                    class="mt-2 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-md file:border-0 file:bg-[var(--accent-gold-soft)] file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-widest file:text-mom-gold"
+                    class="mt-2 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-chrome file:border-0 file:bg-[var(--accent-gold-soft)] file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-widest file:text-mom-gold"
                 />
                 <x-input-error class="mt-2" :messages="$errors->get('file')" variant="mom" />
             </div>
@@ -121,7 +121,7 @@
                                 <td class="px-4 py-3">{{ number_format($log->rows_skipped) }}</td>
                                 <td class="px-4 py-3">{{ number_format($log->rows_failed) }}</td>
                                 <td class="px-4 py-3">
-                                    <span class="rounded-mom-pill border border-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide">{{ $log->status }}</span>
+                                    <span class="rounded-mom-chrome border border-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide">{{ $log->status }}</span>
                                 </td>
                             </tr>
                         @endforeach

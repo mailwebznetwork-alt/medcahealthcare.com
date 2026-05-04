@@ -1,13 +1,13 @@
 <x-operations.workspace>
     <h2 class="mom-section-title mb-8">{{ __('Applications') }}</h2>
     <form method="get" action="{{ route('operations.job-portal.applications.index') }}" class="mb-8 flex flex-wrap gap-3">
-        <select name="vacancy_id" class="min-w-[14rem] rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
+        <select name="vacancy_id" class="min-w-[14rem] rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
             <option value="">{{ __('All vacancies') }}</option>
             @foreach ($vacancies as $v)
                 <option value="{{ $v->id }}" @selected(request('vacancy_id') == $v->id)>{{ $v->title }}</option>
             @endforeach
         </select>
-        <select name="pipeline_status" class="rounded-mom-md border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
+        <select name="pipeline_status" class="rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
             <option value="">{{ __('All stages') }}</option>
             @foreach (\App\Enums\ApplicationPipelineStatus::cases() as $st)
                 <option value="{{ $st->value }}" @selected(request('pipeline_status') === $st->value)>{{ $st->label() }}</option>

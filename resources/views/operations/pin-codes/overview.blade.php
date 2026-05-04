@@ -11,7 +11,7 @@
                 <li>{{ __('Failed rows: :n', ['n' => (int) ($importResult['failed'] ?? 0)]) }}</li>
             </ul>
             @if (! empty($importResult['errors']) && is_array($importResult['errors']))
-                <div class="mom-subtext mt-4 max-h-40 overflow-y-auto rounded-mom-sm border border-[rgba(255,255,255,0.06)] bg-[rgba(0,0,0,0.15)] p-3">
+                <div class="mom-subtext mt-4 max-h-40 overflow-y-auto rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(0,0,0,0.15)] p-3">
                     @foreach ($importResult['errors'] as $err)
                         <p class="text-[var(--warning)]">{{ $err }}</p>
                     @endforeach
@@ -99,7 +99,7 @@
                                 <td class="px-4 py-3">{{ number_format($log->rows_skipped) }}</td>
                                 <td class="px-4 py-3">{{ number_format($log->rows_failed) }}</td>
                                 <td class="px-4 py-3">
-                                    <span class="rounded-mom-pill border border-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide">{{ str_replace('_', ' ', $log->status) }}</span>
+                                    <span class="rounded-mom-chrome border border-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide">{{ str_replace('_', ' ', $log->status) }}</span>
                                 </td>
                             </tr>
                         @endforeach
