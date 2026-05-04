@@ -1,4 +1,4 @@
-<x-user-management.shell
+﻿<x-app-layout
     :page-title="__('Create user')"
     :welcome-line="__('Provision identity, role label, and module access.')"
 >
@@ -95,4 +95,4 @@
             </div>
         </form>
     </div>
-</x-user-management.shell>
+</x-app-layout>

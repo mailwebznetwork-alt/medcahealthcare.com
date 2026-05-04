@@ -1,4 +1,7 @@
-<x-user-management.shell :page-title="__('User Management')">
+﻿<x-app-layout
+    :page-title="__('User Management')"
+    :welcome-line="__('Directory, access, and operational identity in one place.')"
+>
     @if (session('status') === 'user-created')
         <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('User created.') }}</p>
     @elseif (session('status') === 'user-updated')
@@ -205,4 +208,4 @@
     <div class="mt-6">
         {{ $users->links() }}
     </div>
-</x-user-management.shell>
+</x-app-layout>

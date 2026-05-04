@@ -1,7 +1,3 @@
-@push('mom-module-toolbar')
-    @include('profile.partials.toolbar')
-@endpush
-
 <x-app-layout
     :page-title="__('Profile')"
     :welcome-line="__('Manage your identity, credentials, and account lifecycle.')"

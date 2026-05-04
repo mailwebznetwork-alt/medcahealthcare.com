@@ -1,4 +1,4 @@
-@php
+﻿@php
     /** @var \App\Models\Vacancy $vacancy */
     use App\Enums\EmploymentType;
     use App\Enums\VacancyVisibility;

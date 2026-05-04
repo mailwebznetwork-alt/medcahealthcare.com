@@ -1,4 +1,7 @@
-<x-user-management.shell :page-title="__('Edit user')" :welcome-line="$user->email">
+﻿<x-app-layout
+    :page-title="__('Edit user')"
+    :welcome-line="$user->email"
+>
     <div class="mx-auto max-w-3xl">
         <form method="post" action="{{ route('user-management.update', $user) }}" class="space-y-8" enctype="multipart/form-data">
             @csrf
@@ -121,4 +124,4 @@
             </div>
         </form>
     </div>
-</x-user-management.shell>
+</x-app-layout>

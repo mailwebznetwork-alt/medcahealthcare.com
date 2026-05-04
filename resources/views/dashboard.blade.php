@@ -1,4 +1,4 @@
-@push('scripts')
+﻿@push('scripts')
     @vite(['resources/js/dashboard.js'])
 @endpush
 
@@ -14,10 +14,6 @@
     };
     $bottomAny = $w['user_management'] || $w['growth_center'] || $w['dashboard'];
 @endphp
-
-@push('mom-module-toolbar')
-    @include('dashboard.partials.toolbar')
-@endpush
 
 <x-layouts.markonminds
     page-title="Dashboard Overview"

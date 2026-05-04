@@ -1,4 +1,4 @@
-@extends('layouts.careers')
+﻿@extends('layouts.careers')
 
 @php
     use Illuminate\Support\Str;
