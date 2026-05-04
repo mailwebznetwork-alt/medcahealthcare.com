@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Block;
 use App\Models\Blog;
+use App\Models\Lead;
 use App\Models\MarketingCampaign;
 use App\Models\MarketingSetting;
 use App\Models\Media;
@@ -13,6 +14,7 @@ use App\Models\Service;
 use App\Models\User;
 use App\Policies\BlockPolicy;
 use App\Policies\BlogPolicy;
+use App\Policies\LeadPolicy;
 use App\Policies\MarketingCampaignPolicy;
 use App\Policies\MarketingSettingPolicy;
 use App\Policies\MediaPolicy;
@@ -80,6 +82,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Page::class, PagePolicy::class);
         Gate::policy(MarketingSetting::class, MarketingSettingPolicy::class);
         Gate::policy(MarketingCampaign::class, MarketingCampaignPolicy::class);
+        Gate::policy(Lead::class, LeadPolicy::class);
 
         View::composer('layouts.app', function ($view): void {
             $view->with('marketingSettings', MarketingSetting::current());

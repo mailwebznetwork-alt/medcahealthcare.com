@@ -2,6 +2,7 @@
     $jobActive = request()->routeIs('operations.job-portal.*');
     $pinActive = request()->routeIs('operations.pin-codes.*');
     $servicesActive = request()->routeIs('operations.services.*');
+    $bookingsActive = request()->routeIs('operations.bookings.*');
 @endphp
 
 <nav class="flex flex-wrap gap-0" aria-label="{{ __('Operations workspaces') }}">
@@ -29,4 +30,12 @@
             'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => ! $servicesActive,
         ])
     >{{ __('Services') }}</a>
+    <a
+        href="{{ route('operations.bookings.index') }}"
+        @class([
+            'inline-flex items-center border-b px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
+            'border-mom-gold text-mom-gold' => $bookingsActive,
+            'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => ! $bookingsActive,
+        ])
+    >{{ __('Bookings') }}</a>
 </nav>

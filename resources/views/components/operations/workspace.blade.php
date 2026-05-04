@@ -6,12 +6,15 @@
 @php
     $resolvedPageTitle = $pageTitle;
     if ($resolvedPageTitle === null) {
-        $resolvedPageTitle = request()->routeIs('operations.services.*')
-            ? __('Enterprise Services')
-            : __('Operations');
+        $resolvedPageTitle = match (true) {
+            request()->routeIs('operations.services.*') => __('Enterprise Services'),
+            request()->routeIs('operations.bookings.*') => __('Bookings'),
+            default => __('Operations'),
+        };
     }
     $resolvedWelcome = $welcomeLine ?? match (true) {
         request()->routeIs('operations.services.*') => __('Service operations, SEO, AEO, GEO, and reusable content by service code.'),
+        request()->routeIs('operations.bookings.*') => __('Lead intake and conversion — simple queues, no CRM overhead.'),
         default => __('Run-state, hiring, coverage, and operational management workspace.'),
     };
 @endphp

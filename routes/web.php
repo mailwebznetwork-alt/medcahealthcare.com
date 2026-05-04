@@ -15,6 +15,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserManagement\UserController;
 use App\Models\Blog;
+use App\Models\Lead;
 use App\Models\Page;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -119,6 +120,13 @@ Route::middleware(['auth', 'active', 'verified', 'module:operations'])->group(fu
         Route::delete('{pin_code}', [PinCodeController::class, 'destroy'])->name('destroy');
         Route::patch('{pin_code}/activate', [PinCodeController::class, 'activate'])->name('activate');
         Route::patch('{pin_code}/deactivate', [PinCodeController::class, 'deactivate'])->name('deactivate');
+    });
+
+    Route::prefix('operations/bookings')->name('operations.bookings.')->group(function () {
+        Route::view('/', 'operations.bookings.index-shell')->name('index');
+        Route::get('{lead}', function (Lead $lead) {
+            return view('operations.bookings.show-shell', ['lead' => $lead]);
+        })->name('show');
     });
 });
 
