@@ -406,14 +406,47 @@ body.mom-body::after {
 }
 
 /**
- * Sidebar — section break between grouped nav lists (structured, calm rhythm).
+ * Sidebar — section break (same hairline token as backend tab strips / rails).
  */
 .mom-sidebar-section-divider {
     display: block;
     width: 100%;
+    height: 0;
     margin: 12px 0;
     border: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid var(--border-tabstrip-divider);
+}
+
+/**
+ * Sidebar links — fixed icon column so Lucide SVGs align vertically with labels.
+ */
+.mom-sidebar-link {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    align-items: center;
+    column-gap: 12px;
+    padding: 10px 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25;
+    border-radius: var(--radius-pill);
+}
+
+.mom-sidebar-link__icon {
+    display: flex;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+}
+
+.mom-sidebar-link__icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.mom-sidebar-link__label {
+    min-width: 0;
 }
 
 /* ---- Premium card shell (exact stack) ---- */
@@ -488,7 +521,7 @@ body.mom-body::after {
         rgba(197, 160, 89, 0.14),
         rgba(197, 160, 89, 0.05)
     );
-    border: 1px solid rgba(197, 160, 89, 0.22);
+    border: 1px solid var(--accent-gold-border);
     border-radius: var(--radius-pill);
     box-shadow:
         0 0 28px rgba(197, 160, 89, 0.12),

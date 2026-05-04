@@ -50,7 +50,7 @@
         @endif
 
         @if ($sectionRendered)
-            <hr class="mom-sidebar-section-divider" aria-hidden="true" />
+            <div class="mom-sidebar-section-divider" role="presentation" aria-hidden="true"></div>
         @endif
 
         <ul class="flex flex-col gap-y-3" role="list">
@@ -68,15 +68,14 @@
                     <a
                         href="{{ route($navNode['route']) }}"
                         @class([
-                            'mom-nav-active flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-mom-gold transition-all duration-320 ease-premium' => $active,
-                            'flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(197,160,89,0.06)]' => ! $active,
+                            'mom-sidebar-link mom-nav-active text-mom-gold transition-all duration-320 ease-premium' => $active,
+                            'mom-sidebar-link text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(197,160,89,0.06)]' => ! $active,
                         ])
                     >
-                        <i
-                            data-lucide="{{ $navNode['icon'] }}"
-                            class="h-[18px] w-[18px] shrink-0 {{ $active ? '' : 'opacity-80' }}"
-                        ></i>
-                        <span class="truncate">{{ __($navNode['label']) }}</span>
+                        <span class="mom-sidebar-link__icon {{ $active ? '' : 'opacity-80' }}" aria-hidden="true">
+                            <i data-lucide="{{ $navNode['icon'] }}"></i>
+                        </span>
+                        <span class="mom-sidebar-link__label truncate">{{ __($navNode['label']) }}</span>
                     </a>
                 </li>
             @endforeach
@@ -92,7 +91,7 @@
     @endphp
     @if ($orphanLinks->isNotEmpty())
         @if ($sectionRendered)
-            <hr class="mom-sidebar-section-divider" aria-hidden="true" />
+            <div class="mom-sidebar-section-divider" role="presentation" aria-hidden="true"></div>
         @endif
         <ul class="flex flex-col gap-y-3" role="list">
             @foreach ($orphanLinks as $navNode)
@@ -105,15 +104,14 @@
                     <a
                         href="{{ route($navNode['route']) }}"
                         @class([
-                            'mom-nav-active flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-mom-gold transition-all duration-320 ease-premium' => $active,
-                            'flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(197,160,89,0.06)]' => ! $active,
+                            'mom-sidebar-link mom-nav-active text-mom-gold transition-all duration-320 ease-premium' => $active,
+                            'mom-sidebar-link text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(197,160,89,0.06)]' => ! $active,
                         ])
                     >
-                        <i
-                            data-lucide="{{ $navNode['icon'] }}"
-                            class="h-[18px] w-[18px] shrink-0 {{ $active ? '' : 'opacity-80' }}"
-                        ></i>
-                        <span class="truncate">{{ __($navNode['label']) }}</span>
+                        <span class="mom-sidebar-link__icon {{ $active ? '' : 'opacity-80' }}" aria-hidden="true">
+                            <i data-lucide="{{ $navNode['icon'] }}"></i>
+                        </span>
+                        <span class="mom-sidebar-link__label truncate">{{ __($navNode['label']) }}</span>
                     </a>
                 </li>
             @endforeach
@@ -126,7 +124,7 @@
             @continue
         @endif
         @if ($sectionRendered)
-            <hr class="mom-sidebar-section-divider" aria-hidden="true" />
+            <div class="mom-sidebar-section-divider" role="presentation" aria-hidden="true"></div>
         @endif
         <div class="flex flex-col gap-y-3">
             <p class="mom-micro px-3">{{ __($navNode['label']) }}</p>
@@ -141,15 +139,14 @@
                         <a
                             href="{{ route($child['route']) }}"
                             @class([
-                                'mom-nav-active flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-mom-gold transition-all duration-320 ease-premium' => $childActive,
-                                'flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]' => ! $childActive,
+                                'mom-sidebar-link mom-nav-active text-mom-gold transition-all duration-320 ease-premium' => $childActive,
+                                'mom-sidebar-link text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]' => ! $childActive,
                             ])
                         >
-                            <i
-                                data-lucide="{{ $child['icon'] }}"
-                                class="h-[18px] w-[18px] shrink-0 {{ $childActive ? '' : 'opacity-80' }}"
-                            ></i>
-                            <span class="truncate">{{ __($child['label']) }}</span>
+                            <span class="mom-sidebar-link__icon {{ $childActive ? '' : 'opacity-80' }}" aria-hidden="true">
+                                <i data-lucide="{{ $child['icon'] }}"></i>
+                            </span>
+                            <span class="mom-sidebar-link__label truncate">{{ __($child['label']) }}</span>
                         </a>
                     </li>
                 @endforeach
