@@ -13,6 +13,7 @@ use App\Http\Controllers\Operations\Services\ServiceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserManagement\UserController;
+use App\Models\Blog;
 use App\Models\Page;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +34,15 @@ Route::get('/p/{page:slug}', function (Page $page) {
     return view('layouts.app', ['page' => $page]);
 })->name('pages.public');
 
+Route::get('/blog/{blog:slug}', function (Blog $blog) {
+    abort_unless($blog->is_published, 404);
+    if ($blog->published_at?->isFuture()) {
+        abort(404);
+    }
+
+    return view('layouts.app', ['blog' => $blog]);
+})->name('blog.public');
+
 Route::middleware(['auth', 'active', 'verified', 'module:dashboard'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 });
@@ -49,6 +59,13 @@ Route::middleware(['auth', 'active', 'verified', 'module:site_architect'])->grou
 
             return view('layouts.app', ['page' => $page]);
         })->name('pages.preview');
+
+        Route::view('/blogs', 'site-architect.blogs-shell')->name('blogs.index');
+        Route::get('/blogs/{blog}/preview', function (Blog $blog) {
+            Gate::authorize('view', $blog);
+
+            return view('layouts.app', ['blog' => $blog]);
+        })->name('blogs.preview');
     });
 });
 
