@@ -57,14 +57,17 @@
     --border-panel: #3d342d;
     --border-panel-soft: rgba(61, 52, 45, 0.55);
 
-    --radius-sm: 10px;
-    --radius-md: 16px;
-    /* Stat + content cards (reference ~12px) */
-    --radius-card: 12px;
-    --radius-lg: 22px;
-    --radius-cta: 8px;
-    --radius-xl: 28px;
+    /**
+     * Radius — unified pill for surfaces + controls (product: no separate “card md” vs CTA).
+     * Scrollbar thumbs keep literal px below so thin tracks stay readable.
+     */
     --radius-pill: 999px;
+    --radius-sm: var(--radius-pill);
+    --radius-md: var(--radius-pill);
+    --radius-card: var(--radius-pill);
+    --radius-lg: var(--radius-pill);
+    --radius-cta: var(--radius-pill);
+    --radius-xl: var(--radius-pill);
 
     --shadow-surface: 0 10px 30px rgba(0, 0, 0, 0.35);
     --shadow-elevated: 0 20px 50px rgba(0, 0, 0, 0.45);
@@ -264,11 +267,10 @@ body.mom-body {
 }
 
 /**
- * Form controls — pill radius locked to CTAs / topbar search (same `--radius-pill` as Image 4).
- * Apply to inputs, selects, textareas, and danger buttons; keep cards/modals on `--radius-card` / `rounded-mom-lg`.
+ * Form controls — same pill as CTAs; `!important` wins over `@tailwindcss/forms` base input radius.
  */
 .mom-control-pill {
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-pill) !important;
 }
 
 /**
@@ -326,7 +328,7 @@ body.mom-body::after {
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
     background: var(--border-panel);
-    border-radius: var(--radius-sm);
+    border-radius: 10px;
 }
 
 /**
