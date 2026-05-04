@@ -103,7 +103,7 @@ class Blogs extends Component
                 ->values()
                 ->all();
             if ($slugs !== []) {
-                $blockNameMap = Block::query()->whereIn('slug', $slugs)->pluck('name', 'slug')->all();
+                $blockNameMap = Block::query()->whereIn('block_slug', $slugs)->pluck('block_name', 'block_slug')->all();
             }
         }
 
@@ -346,10 +346,10 @@ class Blogs extends Component
 
         $this->blockEditingSlug = $slug;
         if ($slug !== null) {
-            $block = Block::query()->where('slug', $slug)->firstOrFail();
-            $this->block_name = $block->name;
-            $this->block_slug = $block->slug;
-            $this->block_code = $block->blade_html;
+            $block = Block::query()->where('block_slug', $slug)->firstOrFail();
+            $this->block_name = $block->block_name;
+            $this->block_slug = $block->block_slug;
+            $this->block_code = $block->code;
         } else {
             $this->block_name = '';
             $this->block_slug = '';
@@ -373,7 +373,7 @@ class Blogs extends Component
 
     public function saveBlockInModal(): void
     {
-        $blockId = Block::query()->where('slug', $this->block_slug)->value('id');
+        $blockId = Block::query()->where('block_slug', $this->block_slug)->value('id');
 
         $this->validate([
             'block_name' => ['required', 'string', 'max:255'],
@@ -382,7 +382,7 @@ class Blogs extends Component
                 'string',
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('blocks', 'slug')->ignore($blockId),
+                Rule::unique('blocks', 'block_slug')->ignore($blockId),
             ],
             'block_code' => ['required', 'string'],
         ]);
@@ -396,8 +396,8 @@ class Blogs extends Component
         }
 
         Block::query()->updateOrCreate(
-            ['slug' => $this->block_slug],
-            ['name' => $this->block_name, 'blade_html' => $this->block_code]
+            ['block_slug' => $this->block_slug],
+            ['block_name' => $this->block_name, 'code' => $this->block_code]
         );
 
         if ($this->blockEditingSlug === null) {

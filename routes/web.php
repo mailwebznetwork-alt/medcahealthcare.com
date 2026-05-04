@@ -66,6 +66,8 @@ Route::middleware(['auth', 'active', 'verified', 'module:site_architect'])->grou
 
             return view('layouts.app', ['blog' => $blog]);
         })->name('blogs.preview');
+
+        Route::view('/block-factory', 'site-architect.block-factory-shell')->name('block-factory.index');
     });
 });
 

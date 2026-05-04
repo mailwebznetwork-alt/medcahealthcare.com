@@ -31,13 +31,16 @@ class ContentParser
                 }
 
                 if ($type === 'block') {
-                    $block = Block::query()->where('slug', $slug)->first();
+                    $block = Block::query()
+                        ->where('block_slug', $slug)
+                        ->where('is_active', true)
+                        ->first();
 
-                    if ($block === null || ! is_string($block->blade_html) || $block->blade_html === '') {
+                    if ($block === null || ! is_string($block->code) || $block->code === '') {
                         return '';
                     }
 
-                    return Blade::render($block->blade_html, []);
+                    return Blade::render($block->code, []);
                 }
 
                 return '';
