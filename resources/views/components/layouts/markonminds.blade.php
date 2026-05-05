@@ -1,4 +1,4 @@
-@props([
+﻿@props([
     'pageTitle' => null,
     'welcomeLine' => null,
 ])
@@ -85,10 +85,7 @@
             <div class="mom-content-pane mom-main-matte-brown-fg flex min-w-0 flex-1 flex-col lg:ml-0">
                 {{-- Topbar --}}
                 <header
-                    @class([
-                        'mom-topbar-scrim sticky top-0 z-30 flex h-[72px] items-center gap-6 px-8 backdrop-blur-xl backdrop-saturate-150',
-                        'border-b border-[var(--border-panel-soft)] shadow-mom-surface' => ! request()->routeIs('user-management.*'),
-                    ])
+                    class="mom-topbar-scrim sticky top-0 z-30 flex h-[72px] items-center gap-6 border-b border-[var(--border-panel-soft)] px-8 shadow-mom-surface backdrop-blur-xl backdrop-saturate-150"
                 >
                     <button
                         type="button"
@@ -190,13 +187,7 @@
                     </div>
                 </header>
 
-                <main
-                    @class([
-                        'mom-backend-main flex-1 px-8 pb-8',
-                        'pt-0' => request()->routeIs('user-management.*'),
-                        'pt-8' => ! request()->routeIs('user-management.*'),
-                    ])
-                >
+                <main class="mom-backend-main flex-1 px-8 py-8">
                     {{ $slot }}
                 </main>
             </div>
