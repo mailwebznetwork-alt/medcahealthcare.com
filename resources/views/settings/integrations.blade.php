@@ -52,7 +52,9 @@
                 <span class="mom-micro mb-1 block">{{ __('Integration') }}</span>
                 <select name="name" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]">
                     @foreach ($availableIntegrations as $option)
-                        <option value="{{ $option['name'] }}">{{ $option['label'] }} ({{ $option['type'] }})</option>
+                        <option value="{{ $option['name'] }}">
+                            {{ $option['label'] }} ({{ $option['type'] }}){{ ($option['is_added'] ?? false) ? ' - Added' : '' }}
+                        </option>
                     @endforeach
                 </select>
             </label>

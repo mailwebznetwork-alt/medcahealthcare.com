@@ -12,6 +12,7 @@ use App\Services\Integrations\IntegrationRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
@@ -42,13 +43,12 @@ class IntegrationController extends Controller
             ->values()
             ->all();
 
-        $addedNames = collect($existing)->pluck('name')->all();
         $available = collect($this->registry->all())
-            ->filter(fn (array $definition, string $name): bool => ! in_array($name, $addedNames, true))
             ->map(fn (array $definition, string $name): array => [
                 'name' => $name,
                 'label' => (string) ($definition['label'] ?? $name),
                 'type' => (string) ($definition['type'] ?? 'misc'),
+                'is_added' => collect($existing)->pluck('name')->contains($name),
             ])
             ->values()
             ->all();
@@ -108,19 +108,20 @@ class IntegrationController extends Controller
             return redirect()->route('settings.index')->withErrors(['integration' => __('Selected integration is invalid.')]);
         }
 
-        $alreadyExists = Integration::query()->where('name', $name)->exists();
-        if ($alreadyExists) {
-            return redirect()->route('settings.index')->withErrors(['integration' => __('Integration already added.')]);
-        }
+        $integration = Integration::query()->firstOrCreate(
+            ['name' => $name],
+            [
+                'type' => (string) $definition['type'],
+                'credentials' => [],
+                'is_enabled' => false,
+            ]
+        );
 
-        Integration::query()->create([
-            'name' => $name,
-            'type' => (string) $definition['type'],
-            'credentials' => [],
-            'is_enabled' => false,
-        ]);
+        $status = $integration->wasRecentlyCreated
+            ? __('Integration ":name" added.', ['name' => $name])
+            : __('Integration ":name" already exists.', ['name' => $name]);
 
-        return redirect()->route('settings.index')->with('status', __('Integration ":name" added.', ['name' => $name]));
+        return redirect()->route('settings.index')->with('status', $status);
     }
 
     public function update(Request $request, string $name)
@@ -167,6 +168,13 @@ class IntegrationController extends Controller
                 'is_enabled' => (bool) ($validated['is_enabled'] ?? $integration->is_enabled),
             ])->save();
 
+            if ((bool) ($validated['is_enabled'] ?? false) === true) {
+                Integration::query()
+                    ->where('name', $integration->name)
+                    ->whereKeyNot($integration->id)
+                    ->update(['is_enabled' => false]);
+            }
+
             $this->activityLogService->log(
                 'integration_updated',
                 'integrations',
@@ -202,7 +210,17 @@ class IntegrationController extends Controller
         }
 
         try {
-            $integration->forceFill(['is_enabled' => ! $integration->is_enabled])->save();
+            $nextEnabledState = ! $integration->is_enabled;
+            DB::transaction(function () use ($integration, $nextEnabledState): void {
+                $integration->forceFill(['is_enabled' => $nextEnabledState])->save();
+
+                if ($nextEnabledState) {
+                    Integration::query()
+                        ->where('name', $integration->name)
+                        ->whereKeyNot($integration->id)
+                        ->update(['is_enabled' => false]);
+                }
+            });
 
             $this->activityLogService->log(
                 'integration_toggled',

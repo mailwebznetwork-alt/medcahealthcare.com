@@ -52,11 +52,11 @@ class SettingsController extends Controller
 
             $addedNames = $integrations->pluck('name')->all();
             $availableIntegrations = collect($definitions)
-                ->filter(fn (array $definition, string $name): bool => ! in_array($name, $addedNames, true))
                 ->map(fn (array $definition, string $name): array => [
                     'name' => $name,
                     'label' => (string) ($definition['label'] ?? $name),
                     'type' => (string) ($definition['type'] ?? 'misc'),
+                    'is_added' => in_array($name, $addedNames, true),
                 ])
                 ->values()
                 ->all();
