@@ -4,7 +4,7 @@ namespace App\Services\Growth;
 
 use App\Models\BusinessProfile;
 use App\Models\GeoLocation;
-use App\Models\Pincode;
+use App\Models\GrowthPincode;
 use Illuminate\Support\Facades\Schema;
 
 class GeoService
@@ -32,9 +32,9 @@ class GeoService
         );
     }
 
-    public function addPincode(array $data): Pincode
+    public function addPincode(array $data): GrowthPincode
     {
-        return Pincode::query()->create([
+        return GrowthPincode::query()->create([
             'business_profile_id' => $this->resolveBusinessProfileId(),
             'geo_location_id' => $data['geo_location_id'] ?? null,
             'pincode' => $data['pincode'],
@@ -44,10 +44,10 @@ class GeoService
         ]);
     }
 
-    public function updatePincode(int $id, array $data): ?Pincode
+    public function updatePincode(int $id, array $data): ?GrowthPincode
     {
-        $pincode = Pincode::query()->find($id);
-        if (! $pincode instanceof Pincode) {
+        $pincode = GrowthPincode::query()->find($id);
+        if (! $pincode instanceof GrowthPincode) {
             return null;
         }
 
@@ -75,9 +75,9 @@ class GeoService
 
         return [
             'total_locations' => GeoLocation::query()->count(),
-            'total_pincodes' => Pincode::query()->count(),
-            'serviceable_pincodes' => Pincode::query()->where('serviceable', true)->count(),
-            'high_priority_pincodes' => Pincode::query()->where('priority', 'high')->count(),
+            'total_pincodes' => GrowthPincode::query()->count(),
+            'serviceable_pincodes' => GrowthPincode::query()->where('serviceable', true)->count(),
+            'high_priority_pincodes' => GrowthPincode::query()->where('priority', 'high')->count(),
         ];
     }
 }

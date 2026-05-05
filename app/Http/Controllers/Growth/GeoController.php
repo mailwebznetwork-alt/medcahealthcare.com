@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Growth\StoreGeoRequest;
 use App\Http\Requests\Growth\StorePincodeRequest;
 use App\Models\GeoLocation;
-use App\Models\Pincode;
+use App\Models\GrowthPincode;
 use App\Services\Growth\GeoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,7 +36,7 @@ class GeoController extends Controller
     public function pincodes(Request $request): RedirectResponse|Response
     {
         if ($request->expectsJson()) {
-            return response(['data' => Pincode::query()->latest('id')->limit(100)->get()]);
+            return response(['data' => GrowthPincode::query()->latest('id')->limit(100)->get()]);
         }
 
         return redirect()->route('growth-center.competitors.index', ['tab' => 'geo']);

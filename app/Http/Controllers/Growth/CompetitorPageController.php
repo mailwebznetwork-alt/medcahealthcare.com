@@ -8,8 +8,8 @@ use App\Models\CompetitorKeyword;
 use App\Models\CompetitorLead;
 use App\Models\CompetitorTracking;
 use App\Models\GeoLocation;
+use App\Models\GrowthPincode;
 use App\Models\Intercept;
-use App\Models\Pincode;
 use App\Models\SeoAiSignal;
 use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
@@ -94,7 +94,7 @@ class CompetitorPageController extends Controller
             $geoLocation = GeoLocation::query()->latest('id')->first();
         }
         if (Schema::hasTable('pincodes')) {
-            $pincodes = Pincode::query()->latest('id')->limit(100)->get();
+            $pincodes = GrowthPincode::query()->latest('id')->limit(100)->get();
         }
         if (Schema::hasTable('intercepts')) {
             $warRoomDashboard = $this->warRoomService->getDashboard();

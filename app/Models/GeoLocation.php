@@ -25,6 +25,6 @@ class GeoLocation extends Model
 
     public function pincodes(): HasMany
     {
-        return $this->hasMany(Pincode::class);
+        return $this->hasMany(GrowthPincode::class);
     }
 }

@@ -3,8 +3,8 @@
 namespace App\Services\Growth;
 
 use App\Models\BusinessProfile;
+use App\Models\GrowthPincode;
 use App\Models\PageSeo;
-use App\Models\Pincode;
 use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
 use Illuminate\Support\Collection;
@@ -119,7 +119,7 @@ class SeoService
             return collect();
         }
 
-        return Pincode::query()
+        return GrowthPincode::query()
             ->whereNotNull('landing_page')
             ->pluck('landing_page');
     }

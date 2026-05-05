@@ -1,9 +1,9 @@
 <?php
 
 use App\Models\BusinessProfile;
+use App\Models\GrowthPincode;
 use App\Models\PageElement;
 use App\Models\PageSeo;
-use App\Models\Pincode;
 use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
 use Illuminate\Support\Facades\Schema;
@@ -69,7 +69,7 @@ it('serves sitemap and discovery payload using page and geo data', function () {
         'type' => 'text',
     ]);
 
-    Pincode::query()->create([
+    GrowthPincode::query()->create([
         'business_profile_id' => $profile->id,
         'pincode' => '560076',
         'serviceable' => true,
