@@ -12,6 +12,23 @@ function integrationsAllModulesOn(): array
         ->all();
 }
 
+it('renders integrations HTML when GET admin integrations index without JSON accept header', function () {
+    if (! Schema::hasTable('integrations')) {
+        $this->markTestSkipped('Integrations table is not migrated.');
+    }
+
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'module_access' => integrationsAllModulesOn(),
+        'role' => 'admin',
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.settings.integrations.index'))
+        ->assertOk()
+        ->assertSee('Integrations');
+});
+
 it('lists integrations for admin users', function () {
     if (! Schema::hasTable('integrations')) {
         $this->markTestSkipped('Integrations table is not migrated.');

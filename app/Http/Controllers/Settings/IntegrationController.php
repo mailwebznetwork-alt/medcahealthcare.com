@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\SettingsController;
 use App\Models\Integration;
 use App\Models\IntegrationAccount;
 use App\Services\ActivityLogService;
 use App\Services\Integrations\CredentialVault;
 use App\Services\Integrations\GoogleBusinessProfileService;
 use App\Services\Integrations\IntegrationRegistry;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -29,8 +31,12 @@ class IntegrationController extends Controller
         private readonly CredentialVault $credentialVault
     ) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse|View
     {
+        if (! $request->expectsJson()) {
+            return app(SettingsController::class)();
+        }
+
         $existing = Integration::query()
             ->orderBy('name')
             ->when(
