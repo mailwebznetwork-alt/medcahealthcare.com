@@ -17,6 +17,7 @@ use App\Models\SeoTechnical;
 use App\Services\CompetitorComparisonService;
 use App\Services\Growth\GeoService;
 use App\Services\Growth\WarRoomService;
+use App\Support\WarRoomRollup;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -117,6 +118,7 @@ class CompetitorPageController extends Controller
 
         return view('growth-center.competitors.index', [
             'competitors' => $competitors,
+            'warRoomRollup' => WarRoomRollup::cached(),
             'allCompetitors' => Competitor::query()->orderBy('name')->get(['id', 'name']),
             'allKeywords' => CompetitorKeyword::query()
                 ->with('competitor:id,name')
@@ -160,6 +162,8 @@ class CompetitorPageController extends Controller
             ]
         );
 
+        WarRoomRollup::forget();
+
         return redirect()
             ->route('growth-center.competitors.index')
             ->with('status', __('Competitor saved successfully.'));
@@ -200,6 +204,8 @@ class CompetitorPageController extends Controller
             $count++;
         }
 
+        WarRoomRollup::forget();
+
         return redirect()
             ->route('growth-center.competitors.index')
             ->with('status', __('Bulk import completed. :count competitor(s) processed.', ['count' => $count]));
@@ -220,6 +226,8 @@ class CompetitorPageController extends Controller
     public function destroy(Competitor $competitor): RedirectResponse
     {
         $competitor->delete();
+
+        WarRoomRollup::forget();
 
         return redirect()
             ->route('growth-center.competitors.index')
@@ -247,6 +255,8 @@ class CompetitorPageController extends Controller
                 'difficulty' => $validated['difficulty'] ?? null,
             ]
         );
+
+        WarRoomRollup::forget();
 
         return redirect()
             ->route('growth-center.competitors.index')
@@ -300,6 +310,8 @@ class CompetitorPageController extends Controller
             $processed++;
         }
 
+        WarRoomRollup::forget();
+
         return redirect()
             ->route('growth-center.competitors.index')
             ->with('status', __('Bulk keywords saved. :count keyword(s) processed.', ['count' => $processed]));
@@ -323,6 +335,8 @@ class CompetitorPageController extends Controller
             'recorded_date' => $validated['recorded_date'],
         ]);
 
+        WarRoomRollup::forget();
+
         return redirect()
             ->route('growth-center.competitors.index')
             ->with('status', __('Tracking data added successfully.'));
@@ -345,6 +359,8 @@ class CompetitorPageController extends Controller
                 ? json_encode(['note' => trim($validated['details'])], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
                 : null,
         ]);
+
+        WarRoomRollup::forget();
 
         return redirect()
             ->route('growth-center.competitors.index')
