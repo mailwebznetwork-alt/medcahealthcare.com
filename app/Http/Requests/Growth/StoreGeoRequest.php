@@ -22,11 +22,9 @@ class StoreGeoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'label' => ['required', 'string', 'max:120'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'radius_km' => ['required', 'integer', 'min:1', 'max:200'],
-            'is_active' => ['nullable', 'boolean'],
         ];
     }
 }

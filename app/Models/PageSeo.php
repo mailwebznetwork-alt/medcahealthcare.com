@@ -4,21 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class SeoEntity extends Model
+class PageSeo extends Model
 {
+    protected $table = 'page_seo';
+
     protected $fillable = [
         'business_profile_id',
-        'organization_name',
-        'logo',
-        'same_as',
+        'page_slug',
         'meta_title',
         'meta_description',
+        'schema_json',
     ];
 
     protected function casts(): array
     {
         return [
-            'same_as' => 'array',
+            'schema_json' => 'array',
         ];
     }
 }

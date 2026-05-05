@@ -9,6 +9,7 @@ use App\Services\Growth\AeoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class AeoController extends Controller
 {
@@ -29,5 +30,17 @@ class AeoController extends Controller
 
         return redirect()->route('growth-center.competitors.index', ['tab' => 'aeo'])
             ->with('status', __('AEO signals saved.'));
+    }
+
+    public function llmTxt(): SymfonyResponse
+    {
+        return response($this->aeoService->generateLlmTxt(), 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+        ]);
+    }
+
+    public function discovery(): Response
+    {
+        return response($this->aeoService->generateDiscoveryData());
     }
 }

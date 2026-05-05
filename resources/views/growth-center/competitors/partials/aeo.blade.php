@@ -20,4 +20,16 @@
         </div>
         <button type="submit" class="mom-cta-primary !px-3 !py-2 !text-[11px]">{{ __('Save AEO Signals') }}</button>
     </form>
+
+    <div class="mt-6 rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.45)] p-4">
+        <p class="mom-micro">{{ __('Global LLM access') }}</p>
+        <pre class="mom-body-text mt-3 whitespace-pre-wrap text-[var(--text-secondary)]">User-agent: GPTBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /</pre>
+    </div>
 </section>

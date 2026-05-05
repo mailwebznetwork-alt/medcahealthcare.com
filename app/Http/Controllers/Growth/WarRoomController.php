@@ -36,7 +36,7 @@ class WarRoomController extends Controller
     {
         $data = $request->validated();
         if (! isset($data['status'])) {
-            $data['status'] = 'active';
+            $data['status'] = 'pending';
         }
 
         $this->warRoomService->createIntercept($data);

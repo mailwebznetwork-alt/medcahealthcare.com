@@ -8,11 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class GeoLocation extends Model
 {
     protected $fillable = [
-        'label',
+        'business_profile_id',
         'latitude',
         'longitude',
         'radius_km',
-        'is_active',
     ];
 
     protected function casts(): array
@@ -21,7 +20,6 @@ class GeoLocation extends Model
             'latitude' => 'float',
             'longitude' => 'float',
             'radius_km' => 'integer',
-            'is_active' => 'boolean',
         ];
     }
 

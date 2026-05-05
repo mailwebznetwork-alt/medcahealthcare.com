@@ -8,18 +8,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Intercept extends Model
 {
     protected $fillable = [
+        'business_profile_id',
+        'keyword',
         'competitor_id',
-        'title',
-        'channel',
+        'gap_type',
+        'action',
         'priority',
         'status',
-        'notes',
     ];
 
     protected function casts(): array
     {
         return [
-            'priority' => 'integer',
+            'business_profile_id' => 'integer',
         ];
     }
 

@@ -22,11 +22,10 @@ class StoreSeoTechnicalRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'robots_enabled' => ['required', 'boolean'],
+            'robots_txt' => ['nullable', 'string'],
             'sitemap_enabled' => ['required', 'boolean'],
-            'canonical_mode' => ['required', 'in:self,domain'],
-            'robots_content' => ['nullable', 'string'],
-            'sitemap_url' => ['nullable', 'url', 'max:255'],
+            'canonical_url' => ['nullable', 'url', 'max:2048'],
+            'indexable' => ['required', 'boolean'],
         ];
     }
 }

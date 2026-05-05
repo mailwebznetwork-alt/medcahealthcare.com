@@ -23,11 +23,11 @@ class StoreInterceptRequest extends FormRequest
     {
         return [
             'competitor_id' => ['nullable', 'integer', 'exists:competitors,id'],
-            'title' => ['required', 'string', 'max:255'],
-            'channel' => ['required', 'string', 'max:40'],
-            'priority' => ['required', 'integer', 'min:1', 'max:3'],
-            'status' => ['nullable', 'in:active,completed,paused'],
-            'notes' => ['nullable', 'string'],
+            'keyword' => ['required', 'string', 'max:255'],
+            'gap_type' => ['required', 'string', 'max:120'],
+            'action' => ['required', 'string'],
+            'priority' => ['required', 'in:high,medium,low'],
+            'status' => ['nullable', 'in:pending,in_progress,completed'],
         ];
     }
 }

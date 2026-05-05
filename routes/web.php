@@ -26,6 +26,11 @@ use App\Models\Page;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/robots.txt', [SeoController::class, 'robotsTxt'])->name('public.robots');
+Route::get('/sitemap.xml', [SeoController::class, 'sitemapXml'])->name('public.sitemap');
+Route::get('/llm.txt', [AeoController::class, 'llmTxt'])->name('public.llm');
+Route::get('/ai-discovery', [AeoController::class, 'discovery'])->name('public.ai-discovery');
+
 Route::get('/', function () {
     return view('home');
 });

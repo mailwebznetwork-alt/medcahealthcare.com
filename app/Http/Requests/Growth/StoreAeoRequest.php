@@ -25,7 +25,6 @@ class StoreAeoRequest extends FormRequest
             'ai_crawl_enabled' => ['required', 'boolean'],
             'llm_visibility_score' => ['required', 'integer', 'min:0', 'max:100'],
             'entity_consistency_score' => ['required', 'integer', 'min:0', 'max:100'],
-            'notes' => ['nullable', 'array'],
         ];
     }
 }

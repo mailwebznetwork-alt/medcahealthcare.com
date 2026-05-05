@@ -23,10 +23,10 @@ class StorePincodeRequest extends FormRequest
     {
         return [
             'geo_location_id' => ['nullable', 'integer', 'exists:geo_locations,id'],
-            'code' => ['required', 'string', 'max:20'],
-            'city' => ['nullable', 'string', 'max:120'],
-            'state' => ['nullable', 'string', 'max:120'],
-            'is_active' => ['nullable', 'boolean'],
+            'pincode' => ['required', 'string', 'max:20'],
+            'serviceable' => ['required', 'boolean'],
+            'landing_page' => ['nullable', 'string', 'max:255'],
+            'priority' => ['required', 'in:high,medium,low'],
         ];
     }
 }

@@ -15,11 +15,11 @@ class StoreSeoEntityRequest extends FormRequest
     {
         return [
             'organization_name' => ['required', 'string', 'max:255'],
-            'website' => ['nullable', 'url', 'max:255'],
-            'default_language' => ['nullable', 'string', 'max:12'],
-            'knowledge_graph_id' => ['nullable', 'string', 'max:255'],
-            'social_profiles' => ['nullable', 'array'],
-            'social_profiles.*' => ['nullable', 'url', 'max:255'],
+            'logo' => ['nullable', 'string', 'max:2048'],
+            'same_as' => ['nullable', 'array'],
+            'same_as.*' => ['nullable', 'url', 'max:2048'],
+            'meta_title' => ['nullable', 'string', 'max:255'],
+            'meta_description' => ['nullable', 'string'],
         ];
     }
 }

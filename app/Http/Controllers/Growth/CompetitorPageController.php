@@ -74,7 +74,8 @@ class CompetitorPageController extends Controller
         $geoLocation = null;
         $pincodes = collect();
         $warRoomDashboard = [
-            'active_intercepts' => 0,
+            'pending_intercepts' => 0,
+            'in_progress_intercepts' => 0,
             'completed_intercepts' => 0,
             'high_priority_count' => 0,
             'intercepts' => collect(),
@@ -117,7 +118,7 @@ class CompetitorPageController extends Controller
             'seoAiSignal' => $seoAiSignal,
             'geoLocation' => $geoLocation,
             'pincodes' => $pincodes,
-            'geoStats' => $this->geoService->getStats(),
+            'geoStats' => $this->geoService->getCoverageStats(),
             'warRoomDashboard' => $warRoomDashboard,
             'intercepts' => Schema::hasTable('intercepts')
                 ? Intercept::query()->with('competitor:id,name')->latest('id')->limit(100)->get()

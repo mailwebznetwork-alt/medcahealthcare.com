@@ -15,17 +15,18 @@ class Pincode extends Model
     protected $table = 'pincodes';
 
     protected $fillable = [
+        'business_profile_id',
         'geo_location_id',
-        'code',
-        'city',
-        'state',
-        'is_active',
+        'pincode',
+        'serviceable',
+        'landing_page',
+        'priority',
     ];
 
     protected function casts(): array
     {
         return [
-            'is_active' => 'boolean',
+            'serviceable' => 'boolean',
         ];
     }
 

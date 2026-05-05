@@ -11,6 +11,7 @@ use App\Services\Growth\SeoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class SeoController extends Controller
 {
@@ -52,5 +53,19 @@ class SeoController extends Controller
 
         return redirect()->route('growth-center.competitors.index', ['tab' => 'seo'])
             ->with('status', __('SEO technical settings saved.'));
+    }
+
+    public function robotsTxt(): SymfonyResponse
+    {
+        return response($this->seoService->generateRobots(), 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+        ]);
+    }
+
+    public function sitemapXml(): SymfonyResponse
+    {
+        return response($this->seoService->generateSitemap(), 200, [
+            'Content-Type' => 'application/xml; charset=UTF-8',
+        ]);
     }
 }
