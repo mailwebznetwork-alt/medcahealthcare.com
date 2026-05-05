@@ -6,16 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UserManagement\StoreUserRequest;
 use App\Http\Requests\UserManagement\UpdateUserRequest;
 use App\Models\User;
+use App\Services\ActivityLogService;
 use App\Support\RootAccount;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class UserController extends Controller
 {
+    public function __construct(private readonly ActivityLogService $activityLogService) {}
+
     public function index(Request $request): View
     {
         $this->authorize('viewAny', User::class);
@@ -72,18 +76,49 @@ class UserController extends Controller
         $user->fill([
             'name' => $request->validated('name'),
             'email' => $request->validated('email'),
-            'phone' => $request->validated('phone'),
-            'role_label' => $request->validated('role_label'),
-            'module_access' => $request->normalizedModuleAccess(),
-            'is_active' => $request->boolean('is_active'),
+            'role' => $request->validated('role'),
         ]);
         $user->password = Hash::make($request->validated('password'));
 
         if ($request->hasFile('profile_image')) {
-            $user->profile_image_path = $request->file('profile_image')->store('profile-images', 'public');
+            $file = $request->file('profile_image');
+
+            if (! $file->isValid()) {
+                $this->activityLogService->log(
+                    'upload_validation_failure',
+                    'user_management',
+                    sprintf('Invalid upload while creating user from IP %s.', (string) $request->ip())
+                );
+
+                throw ValidationException::withMessages([
+                    'profile_image' => __('Invalid uploaded file.'),
+                ]);
+            }
+
+            $mimeType = (string) $file->getMimeType();
+            $allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+
+            if (! in_array($mimeType, $allowedMimeTypes, true)) {
+                $this->activityLogService->log(
+                    'upload_validation_failure',
+                    'user_management',
+                    sprintf('Rejected mime type "%s" while creating user.', $mimeType)
+                );
+
+                throw ValidationException::withMessages([
+                    'profile_image' => __('Invalid file mime type.'),
+                ]);
+            }
+
+            $user->profile_image_path = $file->store('uploads', 'public');
         }
 
         $user->save();
+        $this->activityLogService->log(
+            'user_create',
+            'user_management',
+            sprintf('Created user ID %d.', $user->id)
+        );
 
         return redirect()->route('user-management.index')->with('status', 'user-created');
     }
@@ -100,14 +135,8 @@ class UserController extends Controller
         $user->fill([
             'name' => $request->validated('name'),
             'email' => $request->validated('email'),
-            'phone' => $request->validated('phone'),
-            'role_label' => $request->validated('role_label'),
-            'module_access' => $request->normalizedModuleAccess($user),
+            'role' => $request->validated('role'),
         ]);
-
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->validated('password'));
-        }
 
         if ($request->boolean('remove_profile_image') && $user->profile_image_path) {
             Storage::disk('public')->delete($user->profile_image_path);
@@ -115,10 +144,39 @@ class UserController extends Controller
         }
 
         if ($request->hasFile('profile_image')) {
+            $file = $request->file('profile_image');
+
+            if (! $file->isValid()) {
+                $this->activityLogService->log(
+                    'upload_validation_failure',
+                    'user_management',
+                    sprintf('Invalid upload while updating user ID %d.', $user->id)
+                );
+
+                throw ValidationException::withMessages([
+                    'profile_image' => __('Invalid uploaded file.'),
+                ]);
+            }
+
+            $mimeType = (string) $file->getMimeType();
+            $allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+
+            if (! in_array($mimeType, $allowedMimeTypes, true)) {
+                $this->activityLogService->log(
+                    'upload_validation_failure',
+                    'user_management',
+                    sprintf('Rejected mime type "%s" while updating user ID %d.', $mimeType, $user->id)
+                );
+
+                throw ValidationException::withMessages([
+                    'profile_image' => __('Invalid file mime type.'),
+                ]);
+            }
+
             if ($user->profile_image_path) {
                 Storage::disk('public')->delete($user->profile_image_path);
             }
-            $user->profile_image_path = $request->file('profile_image')->store('profile-images', 'public');
+            $user->profile_image_path = $file->store('uploads', 'public');
         }
 
         if (! RootAccount::isRootUser($user)) {
@@ -126,6 +184,11 @@ class UserController extends Controller
         }
 
         $user->save();
+        $this->activityLogService->log(
+            'user_update',
+            'user_management',
+            sprintf('Updated user ID %d.', $user->id)
+        );
 
         return redirect()->route('user-management.index')->with('status', 'user-updated');
     }
@@ -133,12 +196,18 @@ class UserController extends Controller
     public function destroy(User $user): RedirectResponse
     {
         $this->authorize('delete', $user);
+        $userId = $user->id;
 
         if ($user->profile_image_path) {
             Storage::disk('public')->delete($user->profile_image_path);
         }
 
         $user->delete();
+        $this->activityLogService->log(
+            'user_delete',
+            'user_management',
+            sprintf('Deleted user ID %d.', $userId)
+        );
 
         return redirect()->route('user-management.index')->with('status', 'user-deleted');
     }

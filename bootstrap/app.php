@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\AutoLogout;
+use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureModuleAccess;
 use Illuminate\Foundation\Application;
@@ -14,9 +16,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->api(prepend: [
+            'throttle:60,1',
+        ]);
+
         $middleware->alias([
             'module' => EnsureModuleAccess::class,
             'active' => EnsureAccountIsActive::class,
+            'role' => CheckRole::class,
+            'auto.logout' => AutoLogout::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

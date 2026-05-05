@@ -49,11 +49,11 @@ Route::get('/blog/{blog:slug}', function (Blog $blog) {
     return view('layouts.app', ['blog' => $blog]);
 })->name('blog.public');
 
-Route::middleware(['auth', 'active', 'verified', 'module:dashboard'])->group(function () {
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:dashboard', 'role:viewer,editor,manager,admin,super_admin'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 });
 
-Route::middleware(['auth', 'active', 'verified', 'module:site_architect'])->group(function () {
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:site_architect', 'role:editor,manager,admin,super_admin'])->group(function () {
     Route::get('/site-architect', function () {
         return redirect()->route('site-architect.pages.index');
     })->name('modules.site-architect');
@@ -79,7 +79,7 @@ Route::middleware(['auth', 'active', 'verified', 'module:site_architect'])->grou
     });
 });
 
-Route::middleware(['auth', 'active', 'verified', 'module:operations'])->group(function () {
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operations', 'role:manager,admin,super_admin'])->group(function () {
     Route::get('/operations', OperationsHubController::class)->name('modules.operations');
 
     Route::prefix('operations/job-portal')->name('operations.job-portal.')->group(function () {
@@ -130,38 +130,46 @@ Route::middleware(['auth', 'active', 'verified', 'module:operations'])->group(fu
     });
 });
 
-Route::middleware(['auth', 'active', 'verified', 'module:marketing'])->group(function () {
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:marketing', 'role:manager,admin,super_admin'])->group(function () {
     Route::view('/marketing', 'marketing.dashboard-shell')->name('modules.marketing');
 });
 
-Route::middleware(['auth', 'active', 'verified', 'module:growth_center'])->group(function () {
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:growth_center', 'role:viewer,editor,manager,admin,super_admin'])->group(function () {
     Route::get('/growth-center', [ModuleSurfaceController::class, 'show'])
         ->defaults('momModule', 'growth_center')
         ->name('modules.growth-center');
 });
 
-Route::middleware(['auth', 'active', 'verified', 'module:user_management'])->prefix('user-management')->name('user-management.')->group(function () {
-    Route::get('/', [UserController::class, 'index'])->name('index');
-    Route::get('create', [UserController::class, 'create'])->name('create');
-    Route::post('/', [UserController::class, 'store'])->name('store');
-    Route::get('{user}/edit', [UserController::class, 'edit'])->name('edit');
-    Route::put('{user}', [UserController::class, 'update'])->name('update');
-    Route::delete('{user}', [UserController::class, 'destroy'])->name('destroy');
-    Route::patch('{user}/activate', [UserController::class, 'activate'])->name('activate');
-    Route::patch('{user}/deactivate', [UserController::class, 'deactivate'])->name('deactivate');
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:user_management'])->prefix('user-management')->name('user-management.')->group(function () {
+    Route::middleware(['role:viewer,editor,manager,admin,super_admin'])->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+    });
+
+    Route::middleware(['role:manager,admin,super_admin'])->group(function () {
+        Route::get('create', [UserController::class, 'create'])->name('create');
+        Route::post('/', [UserController::class, 'store'])->name('store');
+        Route::get('{user}/edit', [UserController::class, 'edit'])->name('edit');
+        Route::put('{user}', [UserController::class, 'update'])->name('update');
+        Route::patch('{user}/activate', [UserController::class, 'activate'])->name('activate');
+        Route::patch('{user}/deactivate', [UserController::class, 'deactivate'])->name('deactivate');
+    });
+
+    Route::middleware(['role:super_admin'])->group(function () {
+        Route::delete('{user}', [UserController::class, 'destroy'])->name('destroy');
+    });
 });
 
-Route::middleware(['auth', 'active', 'verified', 'module:security'])->group(function () {
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:security', 'role:admin,super_admin'])->group(function () {
     Route::get('/security', [ModuleSurfaceController::class, 'show'])
         ->defaults('momModule', 'security')
         ->name('modules.security');
 });
 
-Route::middleware(['auth', 'active', 'verified', 'module:settings'])->group(function () {
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings', 'role:admin,super_admin'])->group(function () {
     Route::get('/settings', SettingsController::class)->name('settings.index');
 });
 
-Route::middleware(['auth', 'active'])->group(function () {
+Route::middleware(['auth', 'active', 'auto.logout'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
