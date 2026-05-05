@@ -152,6 +152,7 @@
                         <th class="px-4 py-3 font-medium text-right">{{ __('Leads') }}</th>
                         <th class="px-4 py-3 font-medium">{{ __('Status') }}</th>
                         <th class="px-4 py-3 font-medium">{{ __('Intercept') }}</th>
+                        <th class="px-4 py-3 font-medium text-right">{{ __('Action') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
@@ -163,10 +164,23 @@
                             <td class="px-4 py-3 text-right">{{ number_format((int) $competitor->leads_count) }}</td>
                             <td class="px-4 py-3">{{ $competitor->is_active ? __('Active') : __('Inactive') }}</td>
                             <td class="px-4 py-3">{{ $competitor->is_intercept_target ? __('Yes') : __('No') }}</td>
+                            <td class="px-4 py-3 text-right">
+                                <form method="post" action="{{ route('growth-center.competitors.destroy', $competitor) }}" class="inline">
+                                    @csrf
+                                    @method('delete')
+                                    <button
+                                        type="submit"
+                                        class="mom-cta-ghost !px-3 !py-2 !text-[11px] text-[var(--danger)]"
+                                        onclick="return confirm('Remove this competitor?')"
+                                    >
+                                        {{ __('Remove') }}
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-8 text-center text-[var(--text-muted)]">{{ __('No competitors available.') }}</td>
+                            <td colspan="7" class="px-4 py-8 text-center text-[var(--text-muted)]">{{ __('No competitors available.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

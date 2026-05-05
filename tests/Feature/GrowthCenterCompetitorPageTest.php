@@ -92,3 +92,30 @@ it('bulk stores and compares competitors from growth center', function () {
         ->assertSeeText('Comparison Result')
         ->assertSeeText('Keyword Overlap');
 });
+
+it('removes competitor from growth center list', function () {
+    if (! Schema::hasTable('competitors')) {
+        $this->markTestSkipped('Competitors table is not migrated.');
+    }
+
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'role' => 'manager',
+        'module_access' => ['growth_center' => true],
+    ]);
+
+    $competitor = Competitor::query()->create([
+        'name' => 'Delete Me Competitor',
+        'website' => 'https://deleteme.example.com',
+        'is_active' => true,
+        'is_intercept_target' => false,
+    ]);
+
+    $this->actingAs($user)
+        ->delete(route('growth-center.competitors.destroy', $competitor))
+        ->assertRedirect(route('growth-center.competitors.index'));
+
+    $this->assertDatabaseMissing('competitors', [
+        'id' => $competitor->id,
+    ]);
+});

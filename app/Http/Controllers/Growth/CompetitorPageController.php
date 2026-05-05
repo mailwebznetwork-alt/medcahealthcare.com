@@ -129,4 +129,13 @@ class CompetitorPageController extends Controller
             'compare_ids' => implode(',', $validated['competitor_ids']),
         ]);
     }
+
+    public function destroy(Competitor $competitor): RedirectResponse
+    {
+        $competitor->delete();
+
+        return redirect()
+            ->route('growth-center.competitors.index')
+            ->with('status', __('Competitor removed successfully.'));
+    }
 }

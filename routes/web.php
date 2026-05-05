@@ -144,6 +144,7 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:growth_c
     Route::post('/growth-center/competitors', [CompetitorPageController::class, 'store'])->name('growth-center.competitors.store');
     Route::post('/growth-center/competitors/bulk', [CompetitorPageController::class, 'bulkStore'])->name('growth-center.competitors.bulk-store');
     Route::post('/growth-center/competitors/compare', [CompetitorPageController::class, 'compare'])->name('growth-center.competitors.compare');
+    Route::delete('/growth-center/competitors/{competitor}', [CompetitorPageController::class, 'destroy'])->name('growth-center.competitors.destroy');
 });
 
 Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:user_management'])->prefix('user-management')->name('user-management.')->group(function () {
