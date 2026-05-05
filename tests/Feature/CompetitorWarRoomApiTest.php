@@ -28,11 +28,11 @@ it('stores competitors in bulk and returns paginated list', function () {
                 'website' => 'https://beta.example.com',
             ],
         ],
-    ])->assertOk()->assertJsonPath('success', true);
+    ])->assertCreated()->assertJsonPath('message', 'Competitors successfully added.');
 
     $this->getJson('/api/admin/growth/competitors')
         ->assertOk()
-        ->assertJsonPath('success', true);
+        ->assertJsonStructure(['data', 'total', 'current_page']);
 });
 
 it('returns compare and summary payloads', function () {
@@ -86,11 +86,9 @@ it('returns compare and summary payloads', function () {
     $this->postJson('/api/admin/growth/competitors/compare', [
         'competitor_ids' => [$a->id, $b->id],
     ])->assertOk()
-        ->assertJsonPath('success', true)
-        ->assertJsonStructure(['data' => ['comparison', 'keyword_overlap']]);
+        ->assertJsonStructure(['comparison', 'keyword_overlap']);
 
     $this->getJson('/api/admin/growth/competitors/summary')
         ->assertOk()
-        ->assertJsonPath('success', true)
-        ->assertJsonStructure(['data' => ['best_competitor', 'worst_competitor']]);
+        ->assertJsonStructure(['best_competitor', 'worst_competitor']);
 });

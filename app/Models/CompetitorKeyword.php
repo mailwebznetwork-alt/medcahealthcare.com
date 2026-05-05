@@ -14,17 +14,7 @@ class CompetitorKeyword extends Model
         'intent_type',
         'search_volume',
         'difficulty',
-        'is_active',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'boolean',
-            'search_volume' => 'integer',
-            'difficulty' => 'integer',
-        ];
-    }
 
     public function competitor(): BelongsTo
     {
@@ -33,25 +23,24 @@ class CompetitorKeyword extends Model
 
     public function trackings(): HasMany
     {
-        return $this->hasMany(CompetitorTracking::class, 'competitor_keyword_id');
+        return $this->hasMany(CompetitorTracking::class);
     }
 
     public function leads(): HasMany
     {
-        return $this->hasMany(CompetitorLead::class, 'competitor_keyword_id');
+        return $this->hasMany(CompetitorLead::class);
     }
 
     public function conversionRate(): float
     {
-        $clicks = (int) $this->trackings()->sum('clicks');
+        $clicks = $this->trackings()->sum('clicks');
+
         if ($clicks === 0) {
             return 0.0;
         }
 
-        $conversions = (int) $this->leads()
-            ->where('status', 'converted')
-            ->count();
+        $conversions = $this->leads()->count();
 
-        return round($conversions / $clicks, 4);
+        return round(($conversions / $clicks) * 100, 2);
     }
 }

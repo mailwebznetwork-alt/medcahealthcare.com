@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CompetitorTracking extends Model
 {
+    protected $table = 'competitor_trackings';
+
     protected $fillable = [
         'competitor_keyword_id',
         'clicks',
@@ -15,12 +17,12 @@ class CompetitorTracking extends Model
         'recorded_date',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'recorded_date' => 'date',
-        ];
-    }
+    protected $casts = [
+        'recorded_date' => 'date',
+        'clicks' => 'integer',
+        'impressions' => 'integer',
+        'position' => 'integer',
+    ];
 
     public function keyword(): BelongsTo
     {

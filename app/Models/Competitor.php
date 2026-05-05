@@ -6,12 +6,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Competitor extends Model
 {
-    use SoftDeletes;
-
     protected $fillable = [
         'name',
         'website',
@@ -19,22 +16,14 @@ class Competitor extends Model
         'is_intercept_target',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'boolean',
-            'is_intercept_target' => 'boolean',
-        ];
-    }
+    protected $casts = [
+        'is_active' => 'boolean',
+        'is_intercept_target' => 'boolean',
+    ];
 
-    public function scopeActive(Builder $query): void
+    public function scopeActive(Builder $query): Builder
     {
-        $query->where('is_active', true);
-    }
-
-    public function scopeInterceptTargets(Builder $query): void
-    {
-        $query->where('is_intercept_target', true);
+        return $query->where('is_active', true);
     }
 
     public function keywords(): HasMany
@@ -54,11 +43,24 @@ class Competitor extends Model
 
     public function leads(): HasManyThrough
     {
-        return $this->hasManyThrough(
-            CompetitorLead::class,
-            CompetitorKeyword::class,
-            'competitor_id',
-            'competitor_keyword_id'
-        );
+        return $this->hasManyThrough(CompetitorLead::class, CompetitorKeyword::class);
+    }
+
+    public function keywordsCount(): int
+    {
+        if (array_key_exists('keywords_count', $this->getAttributes())) {
+            return (int) $this->keywords_count;
+        }
+
+        return $this->keywords()->count();
+    }
+
+    public function totalConversions(): int
+    {
+        if (array_key_exists('leads_count', $this->getAttributes())) {
+            return (int) $this->leads_count;
+        }
+
+        return $this->leads()->count();
     }
 }

@@ -14,13 +14,6 @@ class CompetitorLead extends Model
         'status',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'details' => 'array',
-        ];
-    }
-
     public function keyword(): BelongsTo
     {
         return $this->belongsTo(CompetitorKeyword::class, 'competitor_keyword_id');
