@@ -27,7 +27,7 @@
 
 @section('content')
     <article class="px-6 py-10 md:px-12">
-        <header class="max-w-3xl border-b border-[rgba(255,255,255,0.045)] pb-8">
+        <header class="max-w-3xl border-b border-slate-200 pb-8">
             <p class="mom-micro text-[var(--text-muted)]">{{ config('careers.organization_name') }}</p>
             <h1 class="mom-title-page mt-2">{{ $vacancy->title }}</h1>
             <p class="mom-subtext mt-3">
@@ -85,7 +85,7 @@
                             target="_blank"
                             rel="noopener noreferrer"
                             onclick="if(typeof gtag==='function'){gtag('event','whatsapp_click');}"
-                            class="mom-cta-primary mt-4 w-full"
+                            class="mt-4 flex w-full items-center justify-center rounded-lg bg-[#25D366] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:brightness-105"
                         >{{ __('Open WhatsApp') }}</a>
                     </div>
                 @endif
@@ -95,38 +95,38 @@
                     <form method="post" action="{{ route('careers.apply', ['slug' => $vacancy->slug]) }}" class="mt-6 space-y-4">
                         @csrf
                         <div>
-                            <x-input-label for="full_name" :value="__('Full name')" variant="mom" />
-                            <x-text-input id="full_name" name="full_name" type="text" class="mt-2 block w-full" :value="old('full_name')" required variant="mom" />
-                            <x-input-error class="mt-2" :messages="$errors->get('full_name')" variant="mom" />
+                            <x-input-label for="full_name" :value="__('Full name')" variant="public" />
+                            <x-text-input id="full_name" name="full_name" type="text" class="mt-2 block w-full" :value="old('full_name')" required variant="public" />
+                            <x-input-error class="mt-2" :messages="$errors->get('full_name')" variant="public" />
                         </div>
                         <div>
-                            <x-input-label for="email" :value="__('Email')" variant="mom" />
-                            <x-text-input id="email" name="email" type="email" class="mt-2 block w-full" :value="old('email')" required variant="mom" />
-                            <x-input-error class="mt-2" :messages="$errors->get('email')" variant="mom" />
+                            <x-input-label for="email" :value="__('Email')" variant="public" />
+                            <x-text-input id="email" name="email" type="email" class="mt-2 block w-full" :value="old('email')" required variant="public" />
+                            <x-input-error class="mt-2" :messages="$errors->get('email')" variant="public" />
                         </div>
                         <div>
-                            <x-input-label for="phone" :value="__('Phone')" variant="mom" />
-                            <x-text-input id="phone" name="phone" type="tel" class="mt-2 block w-full" :value="old('phone')" required variant="mom" />
-                            <x-input-error class="mt-2" :messages="$errors->get('phone')" variant="mom" />
+                            <x-input-label for="phone" :value="__('Phone')" variant="public" />
+                            <x-text-input id="phone" name="phone" type="tel" class="mt-2 block w-full" :value="old('phone')" required variant="public" />
+                            <x-input-error class="mt-2" :messages="$errors->get('phone')" variant="public" />
                         </div>
                         <div>
-                            <x-input-label for="city" :value="__('City (optional)')" variant="mom" />
-                            <x-text-input id="city" name="city" type="text" class="mt-2 block w-full" :value="old('city')" variant="mom" />
+                            <x-input-label for="city" :value="__('City (optional)')" variant="public" />
+                            <x-text-input id="city" name="city" type="text" class="mt-2 block w-full" :value="old('city')" variant="public" />
                         </div>
                         <div>
-                            <x-input-label for="pin_code" :value="__('PIN code (optional)')" variant="mom" />
-                            <x-text-input id="pin_code" name="pin_code" type="text" class="mt-2 block w-full" :value="old('pin_code')" variant="mom" />
+                            <x-input-label for="pin_code" :value="__('PIN code (optional)')" variant="public" />
+                            <x-text-input id="pin_code" name="pin_code" type="text" class="mt-2 block w-full" :value="old('pin_code')" variant="public" />
                         </div>
                         <div>
-                            <x-input-label for="cover_message" :value="__('Message')" variant="mom" />
-                            <textarea id="cover_message" name="cover_message" rows="4" class="mt-2 block w-full rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('cover_message') }}</textarea>
+                            <x-input-label for="cover_message" :value="__('Message')" variant="public" />
+                            <textarea id="cover_message" name="cover_message" rows="4" class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-[#0046ad] focus:ring-1 focus:ring-[#0046ad]">{{ old('cover_message') }}</textarea>
                         </div>
                         <input type="hidden" name="source" value="web" />
-                        <label class="flex items-start gap-2 text-[13px] text-[var(--text-secondary)]">
-                            <input type="checkbox" name="whatsapp_click" value="1" class="mt-1 h-4 w-4 rounded border-[rgba(255,255,255,0.12)] bg-[rgba(28,22,18,0.75)] text-mom-gold" @checked(old('whatsapp_click')) />
+                        <label class="flex items-start gap-2 text-[13px] text-slate-600">
+                            <input type="checkbox" name="whatsapp_click" value="1" class="mt-1 h-4 w-4 rounded border-slate-300 text-[#0046ad] focus:ring-[#0046ad]" @checked(old('whatsapp_click')) />
                             <span>{{ __('I reached this role through a WhatsApp link') }}</span>
                         </label>
-                        <x-primary-button variant="mom" type="submit">{{ __('Submit application') }}</x-primary-button>
+                        <x-primary-button variant="public" type="submit">{{ __('Submit application') }}</x-primary-button>
                     </form>
                 </div>
             </aside>

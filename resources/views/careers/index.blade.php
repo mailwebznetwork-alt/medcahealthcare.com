@@ -3,7 +3,7 @@
 @section('title', __('Careers').' — '.config('app.name'))
 
 @section('content')
-    <header class="border-b border-[rgba(255,255,255,0.045)] px-6 py-10 md:px-12">
+    <header class="border-b border-slate-200 px-6 py-10 md:px-12">
         <p class="mom-micro text-[var(--text-muted)]">{{ config('careers.organization_name') }}</p>
         <h1 class="mom-title-page mt-2">{{ __('Careers') }}</h1>
         <p class="mom-subtext mt-3 max-w-2xl">{{ __('Open roles across our operating footprint. Structured listings with clear locations and application paths.') }}</p>

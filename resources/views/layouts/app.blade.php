@@ -4,11 +4,13 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="theme-color" content="#0f172a">
         <style>[x-cloak]{display:none!important}</style>
         @stack('meta')
         @include('global.partials.site-seo-meta')
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=noto-sans:400,500,600,700&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <x-marketing.tracking-head :settings="$marketingSettings ?? null" />
         @stack('schema')
@@ -22,7 +24,7 @@
             @endisset
         </title>
     </head>
-    <body class="flex min-h-screen flex-col bg-[var(--bg-app)] font-sans antialiased text-[var(--text-primary)]">
+    <body class="medca-public-surface flex min-h-screen flex-col bg-slate-50 font-medca-sans antialiased text-slate-800">
         @include('global.header')
 
         <main id="main-content" class="relative z-0 flex-1">
@@ -33,7 +35,7 @@
             @elseif(isset($blog))
                 <article class="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
                     @if ($blog->featured_image)
-                        <div class="mb-8 overflow-hidden rounded-mom-chrome border border-[var(--border-panel-soft)]">
+                        <div class="mb-8 overflow-hidden rounded-lg border border-slate-200 shadow-sm">
                             <img
                                 src="{{ \Illuminate\Support\Str::startsWith($blog->featured_image, ['http://', 'https://']) ? $blog->featured_image : asset('storage/'.$blog->featured_image) }}"
                                 alt=""

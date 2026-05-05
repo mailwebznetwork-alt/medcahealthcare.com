@@ -3,6 +3,7 @@
 @php
     $baseClass = match ($variant) {
         'mom' => 'text-sm text-[var(--danger)] space-y-1',
+        'public' => 'space-y-1 text-sm text-red-600',
         default => 'text-sm text-red-600 space-y-1',
     };
 @endphp

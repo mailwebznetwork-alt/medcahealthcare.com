@@ -13,6 +13,8 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['"Noto Sans"', ...defaultTheme.fontFamily.sans],
+                /** Public marketing shell (layouts.app) — matches Medca clinical typography */
+                'medca-sans': ['"Plus Jakarta Sans"', ...defaultTheme.fontFamily.sans],
             },
             spacing: {
                 4.5: '18px',

@@ -3,6 +3,7 @@
 @php
     $baseClass = match ($variant) {
         'mom' => 'block font-medium text-sm text-[var(--text-secondary)]',
+        'public' => 'block text-sm font-medium text-slate-700',
         default => 'block font-medium text-sm text-gray-700',
     };
 @endphp

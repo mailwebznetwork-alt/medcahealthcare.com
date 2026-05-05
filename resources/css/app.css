@@ -4,6 +4,45 @@
 @tailwind components;
 @tailwind utilities;
 
+/**
+ * Public marketing pages (layouts.app only). Scoped so authenticated mom shell tokens stay unchanged.
+ */
+body.medca-public-surface {
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --accent-gold: #0046ad;
+    --accent-gold-soft: rgba(0, 70, 173, 0.08);
+    --accent-gold-border: rgba(0, 70, 173, 0.22);
+    --border-panel-soft: rgba(15, 23, 42, 0.12);
+    --border-panel: #e2e8f0;
+    --bg-app: #f8fafc;
+    --bg-sidebar: #ffffff;
+    --bg-surface: #ffffff;
+    --bg-elevated: #f1f5f9;
+    --bg-hover: #f1f5f9;
+    --bg-card-matte: #ffffff;
+    --shadow-surface: 0 4px 14px rgba(15, 23, 42, 0.08);
+    --shadow-elevated: 0 12px 28px rgba(15, 23, 42, 0.1);
+    --shadow-hover: 0 16px 36px rgba(15, 23, 42, 0.12);
+    --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    --shadow-glow: 0 0 24px rgba(0, 70, 173, 0.06);
+    --border-default: 1px solid rgba(15, 23, 42, 0.1);
+    --border-hover: 1px solid rgba(0, 70, 173, 0.28);
+}
+
+/** Flatten brown-shell card chrome for public CMS/careers pages */
+body.medca-public-surface .mom-card {
+    background: var(--bg-card-matte);
+    box-shadow: var(--shadow-surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+body.medca-public-surface .mom-card-interactive:hover {
+    box-shadow: var(--shadow-hover);
+}
+
 @layer components {
     .mom-title-page {
         @apply text-[28px] font-semibold leading-[1.2] text-[var(--text-primary)];
