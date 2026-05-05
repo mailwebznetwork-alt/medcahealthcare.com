@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="medca-public-root">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta name="theme-color" content="#0f172a">
+        <meta name="theme-color" content="#1d4ed8">
         <style>[x-cloak]{display:none!important}</style>
         @stack('meta')
         @include('global.partials.site-seo-meta')
@@ -27,13 +27,13 @@
     <body class="medca-public-surface flex min-h-screen flex-col bg-slate-50 font-medca-sans antialiased text-slate-800">
         @include('global.header')
 
-        <main id="main-content" class="relative z-0 flex-1">
+        <main id="main-content" class="relative z-0 mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-6 lg:px-8">
             @isset($page)
-                <div class="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+                <div class="w-full py-4 md:py-6">
                     {!! \App\Services\ContentParser::parse($page->content ?? '') !!}
                 </div>
             @elseif(isset($blog))
-                <article class="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+                <article class="w-full py-4 md:py-6">
                     @if ($blog->featured_image)
                         <div class="mb-8 overflow-hidden rounded-lg border border-slate-200 shadow-sm">
                             <img

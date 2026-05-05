@@ -3,6 +3,7 @@
 @section('title', config('medca.brand_name').' — '.config('app.name'))
 
 @section('content')
+    <div id="callback" class="scroll-mt-24" tabindex="-1"></div>
     @auth
         @if (
             auth()->user()->hasModuleAccess(\App\ModuleAccess::DASHBOARD)
@@ -25,7 +26,7 @@
                         @if (auth()->user()->hasModuleAccess(\App\ModuleAccess::GROWTH_CENTER) && Route::has('growth-center.readiness'))
                             <a
                                 href="{{ route('growth-center.readiness') }}"
-                                class="inline-flex items-center justify-center rounded bg-[#0046ad] px-3 py-2 text-center text-[11px] font-bold uppercase tracking-widest text-white shadow-sm transition hover:brightness-105"
+                                class="inline-flex items-center justify-center rounded bg-clinical-700 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-widest text-white shadow-sm transition hover:bg-clinical-800"
                             >
                                 {{ __('SEO readiness hub') }}
                             </a>
@@ -35,7 +36,7 @@
             </div>
         @endif
     @endauth
-    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+    <div class="w-full py-10 md:py-16">
         <p class="mom-micro">{{ config('medca.top_bar_claim') }}</p>
         <h1 class="mom-title-page mt-4 max-w-2xl">{{ config('medca.brand_name') }}</h1>
         <p class="mom-subtext mt-4 max-w-2xl">{{ config('medca.tagline') }}</p>

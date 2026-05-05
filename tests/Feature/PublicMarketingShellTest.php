@@ -12,13 +12,13 @@ it('renders the public marketing shell with Medca chrome', function () {
         ->assertSee('medca-public-surface', false);
 });
 
-it('shows log in on the public header for guests when login route exists', function () {
+it('shows staff login on the public footer for guests when login route exists', function () {
     if (! Route::has('login')) {
         $this->markTestSkipped('Login route is not registered.');
     }
 
     $this->get('/')->assertSuccessful()
-        ->assertSee('Log in', false);
+        ->assertSee('Staff login', false);
 });
 
 it('shows workspace entry points for signed-in staff on the home page', function () {
@@ -35,6 +35,6 @@ it('shows workspace entry points for signed-in staff on the home page', function
     ]);
 
     $this->actingAs($admin)->get('/')->assertSuccessful()
-        ->assertSee('Workspace', false)
+        ->assertSee('Open dashboard', false)
         ->assertSee('SEO readiness hub', false);
 });

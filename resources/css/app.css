@@ -5,13 +5,31 @@
 @tailwind utilities;
 
 /**
+ * Public marketing root (layouts.app) — scroll / tap behaviour aligned with medca-healthcare welcome shell.
+ */
+html.medca-public-root {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+}
+
+html.medca-public-root * {
+    -webkit-tap-highlight-color: transparent;
+}
+
+@layer base {
+    body.medca-public-surface img {
+        -webkit-user-drag: none;
+    }
+}
+
+/**
  * Public marketing pages (layouts.app only). Scoped so authenticated mom shell tokens stay unchanged.
  */
 body.medca-public-surface {
     --text-primary: #0f172a;
     --text-secondary: #475569;
     --text-muted: #64748b;
-    --accent-gold: #0046ad;
+    --accent-gold: #0055ff;
     --accent-gold-soft: rgba(0, 70, 173, 0.08);
     --accent-gold-border: rgba(0, 70, 173, 0.22);
     --border-panel-soft: rgba(15, 23, 42, 0.12);
@@ -43,6 +61,11 @@ body.medca-public-surface .mom-card-interactive:hover {
     box-shadow: var(--shadow-hover);
 }
 
+/** Eyebrow labels: clinical accent reads cleaner on white than pure brand blue at 11px. */
+body.medca-public-surface .mom-micro {
+    @apply text-clinical-700;
+}
+
 @layer components {
     .mom-title-page {
         @apply text-[28px] font-semibold leading-[1.2] text-[var(--text-primary)];
@@ -70,5 +93,14 @@ body.medca-public-surface .mom-card-interactive:hover {
 
     .mom-sidebar-label {
         @apply text-sm font-medium text-[var(--text-secondary)];
+    }
+
+    /** Medca public UI primitives (medca-healthcare resources/css/app.css) */
+    .btn-premium {
+        @apply inline-flex items-center justify-center rounded-lg bg-brand-blue px-6 py-3 font-semibold text-white shadow-lg shadow-brand-blue/20 transition-all duration-300 hover:bg-brand-blue-dark active:scale-[0.98];
+    }
+
+    .service-card {
+        @apply rounded-2xl border border-slate-100 bg-white p-8 transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl;
     }
 }
