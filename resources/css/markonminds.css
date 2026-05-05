@@ -290,14 +290,7 @@ body.mom-body::after {
 
 /* Matte noise texture — asset-driven (spec) */
 .mom-noise {
-    position: fixed;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    opacity: 0.012;
-    mix-blend-mode: soft-light;
-    background-image: url('/images/noise.png');
-    background-repeat: repeat;
+    display: none;
 }
 
 /* ---- Scrollbars (sidebar nav + generic) ---- */
