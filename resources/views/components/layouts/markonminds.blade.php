@@ -85,7 +85,10 @@
             <div class="mom-content-pane mom-main-matte-brown-fg flex min-w-0 flex-1 flex-col lg:ml-0">
                 {{-- Topbar --}}
                 <header
-                    class="mom-topbar-scrim sticky top-0 z-30 flex h-[72px] items-center gap-6 border-b border-[var(--border-panel-soft)] px-8 shadow-mom-surface backdrop-blur-xl backdrop-saturate-150"
+                    @class([
+                        'mom-topbar-scrim sticky top-0 z-30 flex h-[72px] items-center gap-6 px-8 backdrop-blur-xl backdrop-saturate-150',
+                        'border-b border-[var(--border-panel-soft)] shadow-mom-surface' => ! request()->routeIs('user-management.*'),
+                    ])
                 >
                     <button
                         type="button"
