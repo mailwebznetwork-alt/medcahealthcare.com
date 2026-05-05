@@ -1,4 +1,4 @@
-﻿<x-app-layout
+<x-app-layout
     :page-title="__('User Management')"
     :welcome-line="__('Directory, access, and operational identity in one place.')"
 >

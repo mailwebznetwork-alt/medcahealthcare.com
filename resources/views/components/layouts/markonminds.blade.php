@@ -1,4 +1,4 @@
-﻿@props([
+@props([
     'pageTitle' => null,
     'welcomeLine' => null,
 ])
