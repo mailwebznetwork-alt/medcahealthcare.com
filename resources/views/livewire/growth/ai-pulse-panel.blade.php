@@ -1,0 +1,101 @@
+<div class="space-y-6">
+    @if ($flash)
+        <div
+            class="rounded-mom-chrome border px-4 py-3 text-sm {{ $flashType === 'success' ? 'border-[rgba(197,160,89,0.25)] bg-[rgba(197,160,89,0.06)] text-[var(--text-primary)]' : 'border-[var(--danger)]/30 bg-[rgba(226,92,92,0.08)] text-[var(--danger)]' }}"
+            role="status"
+        >
+            {{ $flash }}
+        </div>
+    @endif
+
+    @if (! empty($snapshot['scan_in_progress']))
+        <div class="rounded-mom-chrome border border-[rgba(197,160,89,0.2)] bg-[rgba(197,160,89,0.04)] px-4 py-3 text-sm text-[var(--text-secondary)]">
+            {{ __('Scan in progress — queue worker will refresh the snapshot. Use “Refresh snapshot” shortly.') }}
+        </div>
+    @endif
+
+    <div class="flex flex-wrap items-center justify-between gap-4 rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[rgba(28,22,18,0.45)] p-4">
+        <p class="mom-micro text-[var(--text-secondary)]">
+            {{ __('Last scan:') }} <span class="text-[var(--text-primary)]">{{ $snapshot['scanned_at'] ?? '—' }}</span>
+        </p>
+        <div class="flex flex-wrap gap-2">
+            <button type="button" wire:click="refreshSnapshot" class="mom-cta-ghost !px-3 !py-2 !text-[11px]">{{ __('Refresh snapshot') }}</button>
+            <button type="button" wire:click="runDeepScan" class="mom-cta-primary !px-3 !py-2 !text-[11px]">{{ __('Run deep scan') }}</button>
+        </div>
+    </div>
+
+    <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <article class="mom-card px-5 py-4">
+            <p class="mom-micro">{{ __('Speed (baseline)') }}</p>
+            <p class="mom-metric mt-2">{{ (int) ($snapshot['scores']['speed'] ?? 0) }}<span class="text-lg text-[var(--text-muted)]">/100</span></p>
+            <p class="mom-subtext mt-1">{{ __('Set AI_PULSE_SPEED_BASELINE or wire PageSpeed later.') }}</p>
+        </article>
+        <article class="mom-card px-5 py-4">
+            <p class="mom-micro">{{ __('On-page SEO score') }}</p>
+            <p class="mom-metric mt-2">{{ (int) ($snapshot['scores']['rankmath'] ?? 0) }}<span class="text-lg text-[var(--text-muted)]">/100</span></p>
+            <p class="mom-subtext mt-1">{{ __('Meta, headings — averaged across pages & blogs.') }}</p>
+        </article>
+        <article class="mom-card px-5 py-4">
+            <p class="mom-micro">{{ __('Brand authority') }}</p>
+            <p class="mom-metric mt-2">{{ (int) ($snapshot['scores']['brand_authority'] ?? 0) }}<span class="text-lg text-[var(--text-muted)]">/100</span></p>
+            <p class="mom-subtext mt-1">{{ __('Heuristic + optional Gemini (GEMINI_API_KEY).') }}</p>
+        </article>
+    </section>
+
+    <section class="mom-card p-5">
+        <h3 class="mom-section-title">{{ __('Content totals') }}</h3>
+        <p class="mom-body-text mt-2 text-[var(--text-secondary)]">
+            {{ __('Pages: :p · Blogs: :b · Blocks: :k', ['p' => (int) data_get($snapshot, 'totals.pages', 0), 'b' => (int) data_get($snapshot, 'totals.blogs', 0), 'k' => (int) data_get($snapshot, 'totals.blocks', 0)]) }}
+        </p>
+    </section>
+
+    <section class="mom-card p-5">
+        <h3 class="mom-section-title">{{ __('Recommendations') }}</h3>
+        <ul class="mom-body-text mt-4 list-disc space-y-2 pl-5 text-[var(--text-secondary)]">
+            @foreach (($snapshot['recommendations'] ?? []) as $note)
+                <li>{{ $note }}</li>
+            @endforeach
+        </ul>
+    </section>
+
+    <section class="mom-card overflow-hidden p-0">
+        <h3 class="border-b border-[var(--border-panel-soft)] px-4 py-3 mom-section-title">{{ __('Broken / risky links') }}</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-left text-[13px]">
+                <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                    <tr>
+                        <th class="px-4 py-3 font-medium">{{ __('Scope') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ __('Title') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ __('URL') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ __('Reason') }}</th>
+                        <th class="px-4 py-3 font-medium"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                    @forelse (($snapshot['broken_links'] ?? []) as $row)
+                        <tr>
+                            <td class="px-4 py-3 uppercase text-mom-gold">{{ $row['scope'] }}</td>
+                            <td class="px-4 py-3 text-[var(--text-primary)]">{{ $row['title'] }}</td>
+                            <td class="max-w-[12rem] truncate px-4 py-3 font-mono text-xs text-[var(--danger)]" title="{{ $row['url'] }}">{{ $row['url'] === '' ? '[empty]' : $row['url'] }}</td>
+                            <td class="px-4 py-3 text-xs">{{ $row['reason'] }}</td>
+                            <td class="px-4 py-3">
+                                <button
+                                    type="button"
+                                    wire:click="fixLink(@js($row['scope']), @js($row['id']), @js($row['url']))"
+                                    wire:confirm="{{ __('Replace this URL with a suggested internal path?') }}"
+                                    class="mom-cta-ghost !px-2 !py-1 !text-[10px]"
+                                >
+                                    {{ __('Fix with AI') }}
+                                </button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-4 py-8 text-center text-[var(--text-muted)]">{{ __('No issues found in scanned HTML.') }}</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

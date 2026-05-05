@@ -130,7 +130,7 @@ final class ModuleAccess
             ],
             self::GROWTH_CENTER => [
                 'label' => 'Growth Center',
-                'description' => 'Competitor intelligence, SEO, coverage, GA4 reports, and growth metrics.',
+                'description' => 'Competitor intelligence, SEO, coverage, GA4, AI Pulse scans, and growth metrics.',
             ],
             self::USER_MANAGEMENT => [
                 'label' => 'User Management',
