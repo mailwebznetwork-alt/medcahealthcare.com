@@ -175,6 +175,58 @@ class CompetitorPageController extends Controller
             ->with('status', __('Keyword saved successfully.'));
     }
 
+    public function storeKeywordsBulk(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'competitor_id' => ['required', 'integer', 'exists:competitors,id'],
+            'bulk_keywords' => ['required', 'string', 'max:20000'],
+        ]);
+
+        $rows = preg_split('/\r\n|\r|\n/', $validated['bulk_keywords']) ?: [];
+        $processed = 0;
+
+        foreach ($rows as $row) {
+            $line = trim($row);
+            if ($line === '') {
+                continue;
+            }
+
+            $parts = array_map('trim', explode('|', $line));
+            $keyword = $parts[0] ?? '';
+            if ($keyword === '') {
+                continue;
+            }
+
+            $intentType = strtolower($parts[1] ?? 'service');
+            if (! in_array($intentType, ['brand', 'service', 'local'], true)) {
+                $intentType = 'service';
+            }
+
+            $searchVolume = isset($parts[2]) && is_numeric($parts[2]) ? (int) $parts[2] : null;
+            $difficulty = isset($parts[3]) && is_numeric($parts[3]) ? (int) $parts[3] : null;
+            if ($difficulty !== null) {
+                $difficulty = min(100, max(0, $difficulty));
+            }
+
+            CompetitorKeyword::query()->updateOrCreate(
+                [
+                    'competitor_id' => (int) $validated['competitor_id'],
+                    'keyword' => $keyword,
+                ],
+                [
+                    'intent_type' => $intentType,
+                    'search_volume' => $searchVolume,
+                    'difficulty' => $difficulty,
+                ]
+            );
+            $processed++;
+        }
+
+        return redirect()
+            ->route('growth-center.competitors.index')
+            ->with('status', __('Bulk keywords saved. :count keyword(s) processed.', ['count' => $processed]));
+    }
+
     public function storeTracking(Request $request): RedirectResponse
     {
         $validated = $request->validate([

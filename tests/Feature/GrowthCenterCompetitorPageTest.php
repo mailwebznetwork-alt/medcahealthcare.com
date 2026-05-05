@@ -177,3 +177,41 @@ it('stores keyword tracking and lead attribution from forms', function () {
     expect(CompetitorTracking::query()->where('competitor_keyword_id', $keyword->id)->exists())->toBeTrue();
     expect(CompetitorLead::query()->where('competitor_keyword_id', $keyword->id)->where('status', 'converted')->exists())->toBeTrue();
 });
+
+it('bulk stores multiple keywords in single submit', function () {
+    if (! Schema::hasTable('competitors') || ! Schema::hasTable('competitor_keywords')) {
+        $this->markTestSkipped('Competitor module tables are not migrated.');
+    }
+
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'role' => 'manager',
+        'module_access' => ['growth_center' => true],
+    ]);
+
+    $competitor = Competitor::query()->create([
+        'name' => 'Bulk Keyword Competitor',
+        'website' => 'https://bulk-keyword.example.com',
+        'is_active' => true,
+        'is_intercept_target' => false,
+    ]);
+
+    $this->actingAs($user)
+        ->post(route('growth-center.competitors.keywords.bulk-store'), [
+            'competitor_id' => $competitor->id,
+            'bulk_keywords' => "portea arekere|brand|5400|61\nhome blood test arekere|service|1900|34",
+        ])
+        ->assertRedirect(route('growth-center.competitors.index'));
+
+    $this->assertDatabaseHas('competitor_keywords', [
+        'competitor_id' => $competitor->id,
+        'keyword' => 'portea arekere',
+        'intent_type' => 'brand',
+    ]);
+
+    $this->assertDatabaseHas('competitor_keywords', [
+        'competitor_id' => $competitor->id,
+        'keyword' => 'home blood test arekere',
+        'intent_type' => 'service',
+    ]);
+});

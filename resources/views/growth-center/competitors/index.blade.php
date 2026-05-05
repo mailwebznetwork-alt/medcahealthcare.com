@@ -5,6 +5,11 @@
     @if (session('status'))
         <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ session('status') }}</p>
     @endif
+    @if ($errors->any())
+        <div class="mom-card mb-6 border border-[var(--danger)]/30 p-4">
+            <p class="mom-body-text text-[var(--danger)]">{{ __('Please fix the highlighted input issues and try again.') }}</p>
+        </div>
+    @endif
 
     <section class="mom-card p-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
@@ -106,6 +111,29 @@
                 </div>
                 <button type="submit" class="mom-cta-primary !px-3 !py-2 !text-[11px]">{{ __('Save Keyword') }}</button>
             </form>
+
+            <div class="mt-6 border-t border-[rgba(255,255,255,0.06)] pt-4">
+                <p class="mom-micro">{{ __('Bulk Keywords') }}</p>
+                <p class="mom-subtext mt-2">{{ __('One line: keyword|intent(brand/service/local)|search_volume|difficulty') }}</p>
+                <form method="post" action="{{ route('growth-center.competitors.keywords.bulk-store') }}" class="mt-3 space-y-3">
+                    @csrf
+                    <label class="block">
+                        <span class="mom-micro mb-1 block">{{ __('Competitor') }}</span>
+                        <select name="competitor_id" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]" required>
+                            @foreach ($allCompetitors as $competitor)
+                                <option value="{{ $competitor->id }}">{{ $competitor->name }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <textarea
+                        name="bulk_keywords"
+                        rows="6"
+                        class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]"
+                        placeholder="portea arekere|brand|5400|61&#10;home blood test arekere|service|1900|34&#10;diagnostic center hulimavu|local|1300|28"
+                    >{{ old('bulk_keywords') }}</textarea>
+                    <button type="submit" class="mom-cta-primary !px-3 !py-2 !text-[11px]">{{ __('Bulk Save Keywords') }}</button>
+                </form>
+            </div>
         </article>
 
         <article class="mom-card p-6">
@@ -188,16 +216,24 @@
         <h3 class="mom-section-title">{{ __('Compare Competitors') }}</h3>
         <form method="post" action="{{ route('growth-center.competitors.compare') }}" class="mt-4 space-y-3">
             @csrf
-            <label class="block">
-                <span class="mom-micro mb-1 block">{{ __('Select 2 to 10 competitors') }}</span>
-                <select name="competitor_ids[]" multiple size="6" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]">
-                    @foreach ($competitors as $competitor)
-                        <option value="{{ $competitor->id }}" @selected(in_array($competitor->id, $selectedCompetitorIds ?? [], true))>
-                            {{ $competitor->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </label>
+            <p class="mom-micro">{{ __('Select 2 to 10 competitors') }}</p>
+            <div class="max-h-48 space-y-2 overflow-y-auto rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] p-3">
+                @foreach ($allCompetitors as $competitor)
+                    <label class="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            name="competitor_ids[]"
+                            value="{{ $competitor->id }}"
+                            class="rounded border-[rgba(255,255,255,0.12)] bg-transparent text-[var(--success)]"
+                            @checked(in_array($competitor->id, $selectedCompetitorIds ?? [], true))
+                        >
+                        <span class="mom-body-text text-[var(--text-primary)]">{{ $competitor->name }}</span>
+                    </label>
+                @endforeach
+            </div>
+            @error('competitor_ids')
+                <p class="mom-subtext text-[var(--danger)]">{{ $message }}</p>
+            @enderror
             <button type="submit" class="mom-cta-primary !px-3 !py-2 !text-[11px]">{{ __('Run Comparison') }}</button>
         </form>
     </section>

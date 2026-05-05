@@ -145,6 +145,7 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:growth_c
     Route::post('/growth-center/competitors/bulk', [CompetitorPageController::class, 'bulkStore'])->name('growth-center.competitors.bulk-store');
     Route::post('/growth-center/competitors/compare', [CompetitorPageController::class, 'compare'])->name('growth-center.competitors.compare');
     Route::post('/growth-center/competitors/keywords', [CompetitorPageController::class, 'storeKeyword'])->name('growth-center.competitors.keywords.store');
+    Route::post('/growth-center/competitors/keywords/bulk', [CompetitorPageController::class, 'storeKeywordsBulk'])->name('growth-center.competitors.keywords.bulk-store');
     Route::post('/growth-center/competitors/tracking', [CompetitorPageController::class, 'storeTracking'])->name('growth-center.competitors.tracking.store');
     Route::post('/growth-center/competitors/leads', [CompetitorPageController::class, 'storeLead'])->name('growth-center.competitors.leads.store');
     Route::delete('/growth-center/competitors/{competitor}', [CompetitorPageController::class, 'destroy'])->name('growth-center.competitors.destroy');
