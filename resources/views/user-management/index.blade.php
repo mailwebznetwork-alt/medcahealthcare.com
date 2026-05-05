@@ -2,17 +2,19 @@
     :page-title="__('User Management')"
     :welcome-line="__('Directory, access, and operational identity in one place.')"
 >
-    @if (session('status') === 'user-created')
-        <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('User created.') }}</p>
-    @elseif (session('status') === 'user-updated')
-        <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('User updated.') }}</p>
-    @elseif (session('status') === 'user-deleted')
-        <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('User removed.') }}</p>
-    @elseif (session('status') === 'user-activated')
-        <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('User activated.') }}</p>
-    @elseif (session('status') === 'user-deactivated')
-        <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('User deactivated.') }}</p>
-    @endif
+    <div class="-mt-5">
+        @if (session('status') === 'user-created')
+            <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('User created.') }}</p>
+        @elseif (session('status') === 'user-updated')
+            <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('User updated.') }}</p>
+        @elseif (session('status') === 'user-deleted')
+            <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('User removed.') }}</p>
+        @elseif (session('status') === 'user-activated')
+            <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('User activated.') }}</p>
+        @elseif (session('status') === 'user-deactivated')
+            <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('User deactivated.') }}</p>
+        @endif
+    </div>
 
     <div class="flex flex-wrap items-end justify-between gap-4">
         <form method="get" action="{{ route('user-management.index') }}" class="flex flex-1 flex-wrap items-end gap-3">
