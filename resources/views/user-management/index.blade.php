@@ -2,7 +2,7 @@
     :page-title="__('User Management')"
     :welcome-line="__('Directory, access, and operational identity in one place.')"
 >
-    <div class="-mt-8">
+    <div>
         @if (session('status') === 'user-created')
             <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ __('User created.') }}</p>
         @elseif (session('status') === 'user-updated')

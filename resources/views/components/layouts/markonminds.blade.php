@@ -190,7 +190,13 @@
                     </div>
                 </header>
 
-                <main class="mom-backend-main flex-1 px-8 py-8">
+                <main
+                    @class([
+                        'mom-backend-main flex-1 px-8 pb-8',
+                        'pt-0' => request()->routeIs('user-management.*'),
+                        'pt-8' => ! request()->routeIs('user-management.*'),
+                    ])
+                >
                     {{ $slot }}
                 </main>
             </div>
