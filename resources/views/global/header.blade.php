@@ -1,4 +1,6 @@
 @php
+    use App\ModuleAccess;
+
     $nav = [
         ['label' => __('Home'), 'href' => url('/'), 'active' => request()->path() === '/' || request()->path() === ''],
         ['label' => __('About Us'), 'href' => url('/#about'), 'active' => false],
@@ -49,6 +51,28 @@
         </nav>
 
         <div class="flex items-center space-x-4">
+            @auth
+                @if (auth()->user()->hasModuleAccess(ModuleAccess::DASHBOARD))
+                    <a
+                        href="{{ route('dashboard') }}"
+                        class="{{ $navLinkBase }} {{ $navLinkIdle }} hidden sm:inline-block"
+                    >
+                        {{ __('Workspace') }}
+                    </a>
+                @endif
+                @if (auth()->user()->hasModuleAccess(ModuleAccess::GROWTH_CENTER) && Route::has('growth-center.readiness'))
+                    <a
+                        href="{{ route('growth-center.readiness') }}"
+                        class="{{ $navLinkBase }} {{ $navLinkIdle }} hidden md:inline-block"
+                    >
+                        {{ __('SEO readiness') }}
+                    </a>
+                @endif
+            @elseif (Route::has('login'))
+                <a href="{{ route('login') }}" class="{{ $navLinkBase }} {{ $navLinkIdle }} hidden sm:inline-block">
+                    {{ __('Log in') }}
+                </a>
+            @endauth
             <a
                 href="{{ url('/#contact') }}"
                 class="hidden rounded bg-[#83b735] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:brightness-105 sm:inline-block"
@@ -90,6 +114,34 @@
                 {{ $item['label'] }}
             </a>
         @endforeach
+        @auth
+            @if (auth()->user()->hasModuleAccess(ModuleAccess::DASHBOARD))
+                <a
+                    href="{{ route('dashboard') }}"
+                    class="block font-bold uppercase tracking-wide text-slate-800"
+                    @click="mobileMenuOpen = false"
+                >
+                    {{ __('Workspace') }}
+                </a>
+            @endif
+            @if (auth()->user()->hasModuleAccess(ModuleAccess::GROWTH_CENTER) && Route::has('growth-center.readiness'))
+                <a
+                    href="{{ route('growth-center.readiness') }}"
+                    class="block font-bold uppercase tracking-wide text-slate-800"
+                    @click="mobileMenuOpen = false"
+                >
+                    {{ __('SEO readiness') }}
+                </a>
+            @endif
+        @elseif (Route::has('login'))
+            <a
+                href="{{ route('login') }}"
+                class="block font-bold uppercase tracking-wide text-slate-800"
+                @click="mobileMenuOpen = false"
+            >
+                {{ __('Log in') }}
+            </a>
+        @endauth
         <a
             href="{{ url('/#contact') }}"
             class="mt-3 block rounded bg-[#83b735] px-4 py-2 text-center text-xs font-bold text-white shadow-sm"
