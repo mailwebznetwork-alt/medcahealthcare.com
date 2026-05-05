@@ -17,6 +17,7 @@ use App\Models\SeoTechnical;
 use App\Services\CompetitorComparisonService;
 use App\Services\Growth\GeoService;
 use App\Services\Growth\WarRoomService;
+use App\Support\GrowthReadinessReport;
 use App\Support\WarRoomRollup;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -73,7 +74,7 @@ class CompetitorPageController extends Controller
         }
 
         $activeTab = (string) $request->query('tab', 'competitors');
-        $allowedTabs = ['war-room', 'seo', 'ga4', 'ai-pulse', 'competitors'];
+        $allowedTabs = ['readiness', 'war-room', 'seo', 'ga4', 'ai-pulse', 'competitors'];
         if (! in_array($activeTab, $allowedTabs, true)) {
             $activeTab = 'competitors';
         }
@@ -118,6 +119,7 @@ class CompetitorPageController extends Controller
 
         return view('growth-center.competitors.index', [
             'competitors' => $competitors,
+            'growthReadinessReport' => GrowthReadinessReport::cached(),
             'warRoomRollup' => WarRoomRollup::cached(),
             'allCompetitors' => Competitor::query()->orderBy('name')->get(['id', 'name']),
             'allKeywords' => CompetitorKeyword::query()

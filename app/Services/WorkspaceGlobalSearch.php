@@ -250,6 +250,7 @@ final class WorkspaceGlobalSearch
         $push(str_contains($n, 'media') || str_contains($n, 'library'), __('Media library'), __('Assets'), 'site-architect.media.index');
         $push(str_contains($n, 'marketing'), __('Marketing'), __('Tracking and campaigns'), 'modules.marketing');
         $push(str_contains($n, 'growth') || str_contains($n, 'competitor'), __('Growth Center'), __('SEO and intelligence'), 'modules.growth-center');
+        $push(str_contains($n, 'readiness') || str_contains($n, 'health hub') || (str_contains($n, 'seo') && str_contains($n, 'health')), __('Growth readiness'), __('Scores and checklist'), 'growth-center.readiness');
         $push(str_contains($n, 'seo') && str_contains($n, 'entity'), __('SEO entity'), __('Structured data'), 'growth-center.seo.entity');
         $push(str_contains($n, 'technical') && str_contains($n, 'seo'), __('SEO technical'), __('Meta and indexing'), 'growth-center.seo.technical');
         $push(str_contains($n, 'aeo') || str_contains($n, 'llm'), __('AEO / discovery'), __('AI and answer engines'), 'growth-center.aeo.index');

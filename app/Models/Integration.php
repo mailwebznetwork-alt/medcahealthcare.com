@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\GrowthReadinessReport;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -25,6 +26,17 @@ class Integration extends Model
             'is_enabled' => 'boolean',
             'last_used_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (): void {
+            GrowthReadinessReport::forget();
+        });
+
+        static::deleted(function (): void {
+            GrowthReadinessReport::forget();
+        });
     }
 
     public function scopeActive(Builder $query): void

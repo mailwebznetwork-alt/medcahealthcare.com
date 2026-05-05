@@ -19,6 +19,7 @@
 
     <section class="mom-card mb-6 p-4">
         <div class="flex flex-wrap gap-2">
+            <a href="{{ route('growth-center.competitors.index', ['tab' => 'readiness']) }}" class="mom-cta-ghost !px-3 !py-2 !text-[11px] {{ ($activeTab ?? 'competitors') === 'readiness' ? 'border-[var(--success)] text-[var(--success)]' : '' }}">{{ __('READINESS') }}</a>
             <a href="{{ route('growth-center.competitors.index', ['tab' => 'war-room']) }}" class="mom-cta-ghost !px-3 !py-2 !text-[11px] {{ ($activeTab ?? 'competitors') === 'war-room' ? 'border-[var(--success)] text-[var(--success)]' : '' }}">{{ __('WAR ROOM') }}</a>
             <a href="{{ route('growth-center.competitors.index', ['tab' => 'seo']) }}" class="mom-cta-ghost !px-3 !py-2 !text-[11px] {{ ($activeTab ?? 'competitors') === 'seo' ? 'border-[var(--success)] text-[var(--success)]' : '' }}">{{ __('SEO') }}</a>
             <a href="{{ route('growth-center.competitors.index', ['tab' => 'ga4']) }}" class="mom-cta-ghost !px-3 !py-2 !text-[11px] {{ ($activeTab ?? 'competitors') === 'ga4' ? 'border-[var(--success)] text-[var(--success)]' : '' }}">{{ __('GA4') }}</a>
@@ -27,7 +28,9 @@
         </div>
     </section>
 
-    @if (($activeTab ?? 'competitors') === 'war-room')
+    @if (($activeTab ?? 'competitors') === 'readiness')
+        @include('growth-center.competitors.partials.readiness')
+    @elseif (($activeTab ?? 'competitors') === 'war-room')
         @include('growth-center.competitors.partials.war-room')
     @elseif (($activeTab ?? 'competitors') === 'seo')
         @include('growth-center.competitors.partials.seo')

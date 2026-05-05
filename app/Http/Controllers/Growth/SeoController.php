@@ -8,6 +8,7 @@ use App\Http\Requests\Growth\StoreSeoTechnicalRequest;
 use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
 use App\Services\Growth\SeoService;
+use App\Support\GrowthReadinessReport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -31,6 +32,7 @@ class SeoController extends Controller
     public function storeEntity(StoreSeoEntityRequest $request): RedirectResponse
     {
         $this->seoService->saveEntity($request->validated());
+        GrowthReadinessReport::forget();
 
         return redirect()->route('growth-center.competitors.index', ['tab' => 'seo'])
             ->with('status', __('SEO entity settings saved.'));
@@ -50,6 +52,7 @@ class SeoController extends Controller
     public function storeTechnical(StoreSeoTechnicalRequest $request): RedirectResponse
     {
         $this->seoService->saveTechnical($request->validated());
+        GrowthReadinessReport::forget();
 
         return redirect()->route('growth-center.competitors.index', ['tab' => 'seo'])
             ->with('status', __('SEO technical settings saved.'));

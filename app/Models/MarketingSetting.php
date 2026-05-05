@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\GrowthReadinessReport;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -39,10 +40,12 @@ class MarketingSetting extends Model
     {
         static::saved(function (): void {
             self::forgetCache();
+            GrowthReadinessReport::forget();
         });
 
         static::deleted(function (): void {
             self::forgetCache();
+            GrowthReadinessReport::forget();
         });
     }
 }

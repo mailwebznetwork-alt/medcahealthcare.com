@@ -8,6 +8,7 @@ use App\Http\Requests\Growth\StorePincodeRequest;
 use App\Models\GeoLocation;
 use App\Models\GrowthPincode;
 use App\Services\Growth\GeoService;
+use App\Support\GrowthReadinessReport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -28,6 +29,7 @@ class GeoController extends Controller
     public function storeLocation(StoreGeoRequest $request): RedirectResponse
     {
         $this->geoService->saveLocation($request->validated());
+        GrowthReadinessReport::forget();
 
         return redirect()->route('growth-center.competitors.index', ['tab' => 'seo'])
             ->with('status', __('Geo location saved.'));
@@ -45,6 +47,7 @@ class GeoController extends Controller
     public function storePincode(StorePincodeRequest $request): RedirectResponse
     {
         $this->geoService->addPincode($request->validated());
+        GrowthReadinessReport::forget();
 
         return redirect()->route('growth-center.competitors.index', ['tab' => 'seo'])
             ->with('status', __('Pincode added.'));
@@ -53,6 +56,7 @@ class GeoController extends Controller
     public function updatePincode(StorePincodeRequest $request, int $id): RedirectResponse
     {
         $this->geoService->updatePincode($id, $request->validated());
+        GrowthReadinessReport::forget();
 
         return redirect()->route('growth-center.competitors.index', ['tab' => 'seo'])
             ->with('status', __('Pincode updated.'));
