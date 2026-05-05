@@ -4,58 +4,55 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\Integration;
+use App\Models\IntegrationAccount;
 use App\Services\ActivityLogService;
-use App\Services\Integrations\BingWebmasterService;
-use App\Services\Integrations\ClarityService;
-use App\Services\Integrations\CrmService;
-use App\Services\Integrations\GeminiService;
+use App\Services\Integrations\CredentialVault;
 use App\Services\Integrations\GoogleBusinessProfileService;
-use App\Services\Integrations\GoogleService;
-use App\Services\Integrations\JustDialService;
-use App\Services\Integrations\MetaService;
-use App\Services\Integrations\OpenAIService;
-use App\Services\Integrations\SocialService;
-use App\Services\Integrations\StorageService;
-use App\Services\Integrations\TwilioService;
-use App\Services\Integrations\WebhookService;
-use App\Services\Integrations\WhatsAppService;
+use App\Services\Integrations\IntegrationRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use ReflectionNamedType;
+use ReflectionUnionType;
+use Throwable;
 
 class IntegrationController extends Controller
 {
     public function __construct(
         private readonly ActivityLogService $activityLogService,
-        private readonly GoogleService $googleService,
         private readonly GoogleBusinessProfileService $googleBusinessProfileService,
-        private readonly ClarityService $clarityService,
-        private readonly BingWebmasterService $bingWebmasterService,
-        private readonly JustDialService $justDialService,
-        private readonly GeminiService $geminiService,
-        private readonly MetaService $metaService,
-        private readonly CrmService $crmService,
-        private readonly WhatsAppService $whatsAppService,
-        private readonly TwilioService $twilioService,
-        private readonly OpenAIService $openAIService,
-        private readonly SocialService $socialService,
-        private readonly WebhookService $webhookService,
-        private readonly StorageService $storageService
+        private readonly IntegrationRegistry $registry,
+        private readonly CredentialVault $credentialVault
     ) {}
 
     public function index(): JsonResponse
     {
-        $this->syncDefaults();
-
-        $data = Integration::query()
+        $existing = Integration::query()
             ->orderBy('name')
+            ->with('accounts')
             ->get()
+            ->filter(fn (Integration $integration): bool => is_array($this->registry->get($integration->name)))
             ->map(fn (Integration $integration): array => $this->toResponse($integration))
             ->values()
             ->all();
 
-        return $this->ok('Integrations fetched successfully.', $data);
+        $addedNames = collect($existing)->pluck('name')->all();
+        $available = collect($this->registry->all())
+            ->filter(fn (array $definition, string $name): bool => ! in_array($name, $addedNames, true))
+            ->map(fn (array $definition, string $name): array => [
+                'name' => $name,
+                'label' => (string) ($definition['label'] ?? $name),
+                'type' => (string) ($definition['type'] ?? 'misc'),
+            ])
+            ->values()
+            ->all();
+
+        return $this->ok('Integrations fetched successfully.', [
+            'existing' => $existing,
+            'available' => $available,
+        ]);
     }
 
     public function syncGoogleReviews(Request $request)
@@ -83,12 +80,43 @@ class IntegrationController extends Controller
 
     public function show(string $name): JsonResponse
     {
-        $integration = $this->findByName($name);
+        $integration = $this->findByName($name, withAccounts: true);
         if (! $integration instanceof Integration) {
             return $this->error('Integration not found.', 404);
         }
 
         return $this->ok('Integration fetched successfully.', $this->toResponse($integration));
+    }
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => ['required', 'string', 'max:120'],
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->route('settings.index')->withErrors($validator);
+        }
+
+        $name = (string) $validator->validated()['name'];
+        $definition = $this->registry->get($name);
+        if (! is_array($definition)) {
+            return redirect()->route('settings.index')->withErrors(['integration' => __('Selected integration is invalid.')]);
+        }
+
+        $alreadyExists = Integration::query()->where('name', $name)->exists();
+        if ($alreadyExists) {
+            return redirect()->route('settings.index')->withErrors(['integration' => __('Integration already added.')]);
+        }
+
+        Integration::query()->create([
+            'name' => $name,
+            'type' => (string) $definition['type'],
+            'credentials' => [],
+            'is_enabled' => false,
+        ]);
+
+        return redirect()->route('settings.index')->with('status', __('Integration ":name" added.', ['name' => $name]));
     }
 
     public function update(Request $request, string $name)
@@ -98,10 +126,15 @@ class IntegrationController extends Controller
             return $this->error('Integration not found.', 404);
         }
 
+        $definition = $this->registry->get($name);
+        if (! is_array($definition)) {
+            return $this->error('Unsupported integration.', 422);
+        }
+
         $validator = Validator::make($request->all(), [
             'is_enabled' => ['sometimes', 'boolean'],
             'credentials' => ['required', 'array'],
-            ...$this->rulesFor($name),
+            ...$this->rulesFor($definition),
         ]);
 
         if ($validator->fails()) {
@@ -121,12 +154,12 @@ class IntegrationController extends Controller
 
         try {
             $validated = $validator->validated();
-            $existingCredentials = $integration->credentials;
+            $existingCredentials = $this->credentialVault->decrypt($integration->credentials);
             $incomingCredentials = $validated['credentials'];
             $resolvedCredentials = $this->resolveCredentialsForUpdate($integration->name, $existingCredentials, $incomingCredentials);
 
             $integration->forceFill([
-                'credentials' => $resolvedCredentials,
+                'credentials' => $this->credentialVault->encrypt($resolvedCredentials),
                 'is_enabled' => (bool) ($validated['is_enabled'] ?? $integration->is_enabled),
             ])->save();
 
@@ -143,7 +176,7 @@ class IntegrationController extends Controller
             }
 
             return $this->ok('Integration updated successfully.', $this->toResponse($integration->fresh()));
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             Log::error('Integration update failed.', ['name' => $name, 'error' => $exception->getMessage()]);
             $this->activityLogService->log('integration_update_failed', 'integrations', sprintf('Integration "%s" update failed.', $name));
 
@@ -186,7 +219,7 @@ class IntegrationController extends Controller
                 'name' => $integration->name,
                 'is_enabled' => $integration->is_enabled,
             ]);
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             Log::error('Integration toggle failed.', ['name' => $name, 'error' => $exception->getMessage()]);
             $this->activityLogService->log('integration_toggle_failed', 'integrations', sprintf('Integration "%s" toggle failed.', $name));
 
@@ -202,29 +235,12 @@ class IntegrationController extends Controller
 
     public function testConnection(Request $request, string $name)
     {
-        $integration = $this->findByName($name);
+        $integration = $this->findByName($name, withAccounts: true);
         if (! $integration instanceof Integration) {
             return $this->error('Integration not found.', 404);
         }
 
-        $result = match ($name) {
-            'google_services' => $this->googleService->testConnection(),
-            'google_business_profile' => $this->googleBusinessProfileService->testConnection(),
-            'microsoft_clarity' => $this->clarityService->testConnection(),
-            'bing_webmaster' => $this->bingWebmasterService->testConnection(),
-            'just_dial' => $this->justDialService->testConnection(),
-            'gemini' => $this->geminiService->testConnection(),
-            'meta_ads' => $this->metaService->testConnection(),
-            'meta_capi' => $this->metaService->testConversionsApi(),
-            'whatsapp_business_1', 'whatsapp_business_2', 'whatsapp_business_3' => $this->whatsAppService->testConnection($name),
-            'twilio' => $this->twilioService->testConnection(),
-            'chatgpt' => $this->openAIService->testConnection(),
-            'youtube', 'linkedin', 'facebook', 'instagram' => $this->socialService->testConnection($name),
-            'crm_hubspot', 'crm_salesforce', 'crm_zoho', 'crm_custom_1', 'crm_custom_2', 'crm_custom_3' => $this->crmService->testConnection($name),
-            'webhook' => $this->webhookService->testConnection(),
-            'aws_s3', 'cloudflare' => $this->storageService->testConnection(),
-            default => ['success' => false, 'message' => 'Unsupported integration.', 'data' => []],
-        };
+        $result = $this->runTest($integration);
 
         $this->activityLogService->log(
             $result['success'] ? 'integration_test_success' : 'integration_test_failure',
@@ -250,163 +266,66 @@ class IntegrationController extends Controller
         return response()->json($result, $result['success'] ? 200 : 422);
     }
 
-    private function syncDefaults(): void
+    public function destroy(string $name)
     {
-        foreach ($this->definitions() as $name => $type) {
-            Integration::query()->firstOrCreate(
-                ['name' => $name],
-                ['type' => $type, 'credentials' => [], 'is_enabled' => false]
-            );
+        $integration = $this->findByName($name);
+        if (! $integration instanceof Integration) {
+            return redirect()->route('settings.index')->withErrors(['integration' => __('Integration not found.')]);
         }
+
+        $integration->delete();
+
+        return redirect()->route('settings.index')->with('status', __('Integration ":name" deleted.', ['name' => $name]));
     }
 
-    private function findByName(string $name): ?Integration
+    public function storeAccount(Request $request, string $name)
     {
-        if (! array_key_exists($name, $this->definitions())) {
+        $integration = $this->findByName($name, withAccounts: true);
+        $definition = $this->registry->get($name);
+
+        if (! $integration instanceof Integration || ! is_array($definition) || empty($definition['multi_account'])) {
+            return redirect()->route('settings.index')->withErrors(['integration' => __('Unsupported account integration.')]);
+        }
+
+        if ($integration->accounts->count() >= 5) {
+            return redirect()->route('settings.index')->withErrors(['integration' => __('Maximum 5 WhatsApp numbers are allowed.')]);
+        }
+
+        $accountFields = (array) ($definition['account_fields'] ?? []);
+        $validator = Validator::make($request->all(), [
+            'label' => ['required', 'string', 'max:120'],
+            'credentials' => ['required', 'array'],
+            ...$this->normalizeRules('credentials', $accountFields),
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->route('settings.index')->withErrors($validator)->withInput();
+        }
+
+        $validated = $validator->validated();
+        $credentials = (array) $validated['credentials'];
+        $integration->accounts()->create([
+            'label' => (string) $validated['label'],
+            'account_identifier' => Arr::get($credentials, 'phone_number_id'),
+            'credentials' => $this->credentialVault->encrypt($credentials),
+            'is_enabled' => true,
+        ]);
+
+        return redirect()->route('settings.index')->with('status', __('WhatsApp account added.'));
+    }
+
+    private function findByName(string $name, bool $withAccounts = false): ?Integration
+    {
+        if (! is_array($this->registry->get($name))) {
             return null;
         }
 
-        return Integration::query()->firstOrCreate(
-            ['name' => $name],
-            ['type' => $this->definitions()[$name], 'credentials' => [], 'is_enabled' => false]
-        );
-    }
+        $query = Integration::query()->where('name', $name);
+        if ($withAccounts) {
+            $query->with('accounts');
+        }
 
-    private function rulesFor(string $name): array
-    {
-        $base = [
-            'credentials' => ['required', 'array'],
-        ];
-
-        $map = [
-            'google_services' => [
-                'credentials.measurement_id' => ['required', 'string', 'max:120'],
-                'credentials.property_id' => ['nullable', 'string', 'max:120'],
-                'credentials.google_ads_aw_id' => ['nullable', 'string', 'max:120'],
-                'credentials.container_id' => ['required', 'string', 'max:120'],
-                'credentials.verification_code' => ['required', 'string', 'max:255'],
-                'credentials.location_id' => ['required', 'string', 'max:120'],
-                'credentials.api_key' => ['required', 'string', 'max:255'],
-            ],
-            'google_business_profile' => [
-                'credentials.account_id' => ['required', 'string', 'max:120'],
-                'credentials.location_id' => ['required', 'string', 'max:120'],
-                'credentials.oauth_refresh_token' => ['required', 'string', 'max:2048'],
-            ],
-            'microsoft_clarity' => [
-                'credentials.project_id' => ['required', 'string', 'max:120'],
-            ],
-            'gemini' => [
-                'credentials.api_key' => ['required', 'string', 'max:255'],
-                'credentials.model' => ['required', 'string', 'max:120'],
-                'credentials.temperature' => ['required', 'numeric', 'min:0', 'max:2'],
-            ],
-            'meta_ads' => [
-                'credentials.pixel_id' => ['required', 'string', 'max:120'],
-                'credentials.access_token' => ['required', 'string', 'max:255'],
-            ],
-            'meta_capi' => [
-                'credentials.capi_pixel_id' => ['required', 'string', 'max:120'],
-                'credentials.capi_access_token' => ['nullable', 'string', 'max:255'],
-                'credentials.test_event_code' => ['nullable', 'string', 'max:120'],
-            ],
-            'whatsapp_business_1' => [
-                'credentials.phone_number_id' => ['required', 'string', 'max:120'],
-                'credentials.access_token' => ['required', 'string', 'max:255'],
-                'credentials.webhook_verify_token' => ['required', 'string', 'max:255'],
-            ],
-            'whatsapp_business_2' => [
-                'credentials.phone_number_id' => ['required', 'string', 'max:120'],
-                'credentials.access_token' => ['required', 'string', 'max:255'],
-                'credentials.webhook_verify_token' => ['required', 'string', 'max:255'],
-            ],
-            'whatsapp_business_3' => [
-                'credentials.phone_number_id' => ['required', 'string', 'max:120'],
-                'credentials.access_token' => ['required', 'string', 'max:255'],
-                'credentials.webhook_verify_token' => ['required', 'string', 'max:255'],
-            ],
-            'twilio' => [
-                'credentials.sid' => ['required', 'string', 'max:120'],
-                'credentials.auth_token' => ['required', 'string', 'max:255'],
-                'credentials.from_number' => ['required', 'string', 'max:40'],
-            ],
-            'chatgpt' => [
-                'credentials.api_key' => ['required', 'string', 'max:255'],
-                'credentials.model' => ['required', 'string', 'max:120'],
-                'credentials.temperature' => ['required', 'numeric', 'min:0', 'max:2'],
-            ],
-            'youtube' => [
-                'credentials.api_key' => ['required', 'string', 'max:255'],
-                'credentials.channel_id' => ['required', 'string', 'max:120'],
-            ],
-            'linkedin' => [
-                'credentials.client_id' => ['required', 'string', 'max:255'],
-                'credentials.client_secret' => ['required', 'string', 'max:255'],
-                'credentials.access_token' => ['nullable', 'string', 'max:255'],
-            ],
-            'facebook' => [
-                'credentials.page_id' => ['required', 'string', 'max:120'],
-                'credentials.access_token' => ['required', 'string', 'max:255'],
-            ],
-            'instagram' => [
-                'credentials.instagram_account_id' => ['required', 'string', 'max:120'],
-                'credentials.access_token' => ['required', 'string', 'max:255'],
-            ],
-            'crm_hubspot' => [
-                'credentials.access_token' => ['required', 'string', 'max:255'],
-                'credentials.portal_id' => ['nullable', 'string', 'max:120'],
-            ],
-            'crm_salesforce' => [
-                'credentials.instance_url' => ['required', 'url', 'max:2048'],
-                'credentials.access_token' => ['required', 'string', 'max:255'],
-                'credentials.client_id' => ['nullable', 'string', 'max:255'],
-                'credentials.client_secret' => ['nullable', 'string', 'max:255'],
-            ],
-            'crm_zoho' => [
-                'credentials.access_token' => ['required', 'string', 'max:255'],
-                'credentials.org_id' => ['nullable', 'string', 'max:120'],
-            ],
-            'crm_custom_1' => [
-                'credentials.crm_name' => ['required', 'string', 'max:120'],
-                'credentials.base_url' => ['required', 'url', 'max:2048'],
-                'credentials.access_token' => ['required', 'string', 'max:255'],
-            ],
-            'crm_custom_2' => [
-                'credentials.crm_name' => ['required', 'string', 'max:120'],
-                'credentials.base_url' => ['required', 'url', 'max:2048'],
-                'credentials.access_token' => ['required', 'string', 'max:255'],
-            ],
-            'crm_custom_3' => [
-                'credentials.crm_name' => ['required', 'string', 'max:120'],
-                'credentials.base_url' => ['required', 'url', 'max:2048'],
-                'credentials.access_token' => ['required', 'string', 'max:255'],
-            ],
-            'bing_webmaster' => [
-                'credentials.site_url' => ['required', 'url', 'max:2048'],
-                'credentials.api_key' => ['required', 'string', 'max:255'],
-            ],
-            'just_dial' => [
-                'credentials.api_key' => ['required', 'string', 'max:255'],
-                'credentials.profile_id' => ['required', 'string', 'max:120'],
-                'credentials.endpoint_url' => ['nullable', 'url', 'max:2048'],
-            ],
-            'webhook' => [
-                'credentials.endpoint_url' => ['required', 'url', 'max:2048'],
-                'credentials.secret' => ['required', 'string', 'max:255'],
-            ],
-            'aws_s3' => [
-                'credentials.key' => ['required', 'string', 'max:255'],
-                'credentials.secret' => ['required', 'string', 'max:255'],
-                'credentials.region' => ['required', 'string', 'max:120'],
-                'credentials.bucket' => ['required', 'string', 'max:255'],
-            ],
-            'cloudflare' => [
-                'credentials.api_token' => ['required', 'string', 'max:255'],
-                'credentials.zone_id' => ['required', 'string', 'max:255'],
-            ],
-        ];
-
-        return array_merge($base, $map[$name] ?? []);
+        return $query->first();
     }
 
     private function toResponse(Integration $integration): array
@@ -417,80 +336,48 @@ class IntegrationController extends Controller
             'type' => $integration->type,
             'is_enabled' => $integration->is_enabled,
             'last_used_at' => $integration->last_used_at?->toIso8601String(),
-            'credentials' => $this->maskCredentials($integration->credentials),
+            'credentials' => $this->credentialVault->mask(
+                $this->credentialVault->decrypt($integration->credentials)
+            ),
+            'accounts' => $integration->accounts->map(function (IntegrationAccount $account): array {
+                return [
+                    'id' => $account->id,
+                    'label' => $account->label,
+                    'account_identifier' => $account->account_identifier,
+                    'is_enabled' => $account->is_enabled,
+                    'last_used_at' => $account->last_used_at?->toIso8601String(),
+                    'credentials' => $this->credentialVault->mask(
+                        $this->credentialVault->decrypt($account->credentials)
+                    ),
+                ];
+            })->values()->all(),
             'updated_at' => $integration->updated_at?->toIso8601String(),
         ];
     }
 
-    private function maskCredentials(array $credentials): array
+    /**
+     * @param  array<string, mixed>  $definition
+     * @return array<string, array<int, mixed>>
+     */
+    private function rulesFor(array $definition): array
     {
-        $masked = [];
-        $sensitiveKeys = [
-            'api_key',
-            'access_token',
-            'auth_token',
-            'secret',
-            'webhook_verify_token',
-            'sid',
-            'key',
-            'verification_code',
-            'client_secret',
-        ];
+        $fields = (array) ($definition['fields'] ?? []);
 
-        foreach ($credentials as $key => $value) {
-            if (is_array($value)) {
-                $masked[$key] = $this->maskCredentials($value);
-
-                continue;
-            }
-
-            if ($value === null || $value === '') {
-                $masked[$key] = null;
-
-                continue;
-            }
-
-            $stringValue = (string) $value;
-            if (in_array((string) $key, $sensitiveKeys, true)) {
-                $masked[$key] = str_repeat('*', max(0, mb_strlen($stringValue) - 4)).mb_substr($stringValue, -4);
-            } else {
-                $masked[$key] = $stringValue;
-            }
-        }
-
-        return $masked;
+        return $this->normalizeRules('credentials', $fields);
     }
 
-    private function definitions(): array
+    /**
+     * @param  array<string, array<int, mixed>>  $fields
+     * @return array<string, array<int, mixed>>
+     */
+    private function normalizeRules(string $prefix, array $fields): array
     {
-        return [
-            'google_services' => 'google',
-            'google_business_profile' => 'google',
-            'microsoft_clarity' => 'analytics',
-            'gemini' => 'ai',
-            'meta_ads' => 'meta',
-            'meta_capi' => 'meta',
-            'whatsapp_business_1' => 'whatsapp',
-            'whatsapp_business_2' => 'whatsapp',
-            'whatsapp_business_3' => 'whatsapp',
-            'twilio' => 'communication',
-            'chatgpt' => 'ai',
-            'youtube' => 'social',
-            'linkedin' => 'social',
-            'facebook' => 'social',
-            'instagram' => 'social',
-            'crm_hubspot' => 'crm',
-            'crm_salesforce' => 'crm',
-            'crm_zoho' => 'crm',
-            'crm_custom_1' => 'crm',
-            'crm_custom_2' => 'crm',
-            'crm_custom_3' => 'crm',
-            'bing_webmaster' => 'seo',
-            'just_dial' => 'listing',
-            'webhook' => 'automation',
-            'aws_s3' => 'storage',
-            'cloudflare' => 'storage',
-        ];
+        $rules = [];
+        foreach ($fields as $field => $ruleSet) {
+            $rules["{$prefix}.{$field}"] = $ruleSet;
+        }
+
+        return $rules;
     }
 
     private function resolveCredentialsForUpdate(string $integrationName, array $existing, array $incoming): array
@@ -506,7 +393,7 @@ class IntegrationController extends Controller
             'client_secret',
         ];
 
-        if (! in_array($integrationName, ['meta_capi', 'google_business_profile', 'meta_ads', 'whatsapp_business_1', 'whatsapp_business_2', 'whatsapp_business_3', 'crm_hubspot', 'crm_salesforce', 'crm_zoho', 'crm_custom_1', 'crm_custom_2', 'crm_custom_3', 'bing_webmaster', 'just_dial', 'youtube', 'linkedin', 'facebook', 'instagram', 'google_services', 'gemini', 'chatgpt', 'webhook', 'aws_s3', 'cloudflare', 'twilio'], true)) {
+        if (! is_array($this->registry->get($integrationName))) {
             return $incoming;
         }
 
@@ -521,6 +408,69 @@ class IntegrationController extends Controller
         }
 
         return $incoming;
+    }
+
+    private function runTest(Integration $integration): array
+    {
+        $definition = $this->registry->get($integration->name);
+        if (! is_array($definition)) {
+            return ['success' => false, 'message' => 'Unsupported integration.', 'data' => []];
+        }
+
+        $serviceClass = (string) ($definition['service'] ?? '');
+        if ($serviceClass === '' || ! class_exists($serviceClass)) {
+            return ['success' => false, 'message' => 'Integration service is not available.', 'data' => []];
+        }
+
+        try {
+            $service = app($serviceClass);
+            $decryptedIntegration = clone $integration;
+            $decryptedIntegration->credentials = $this->credentialVault->decrypt($integration->credentials);
+
+            $account = $integration->accounts->first();
+            if ($account instanceof IntegrationAccount) {
+                $decryptedAccount = clone $account;
+                $decryptedAccount->credentials = $this->credentialVault->decrypt($account->credentials);
+                if (method_exists($service, 'testConnectionWithAccount')) {
+                    return $service->testConnectionWithAccount($decryptedIntegration, $decryptedAccount);
+                }
+            }
+
+            if (method_exists($service, 'testConnection')) {
+                $method = new \ReflectionMethod($service, 'testConnection');
+                $params = $method->getParameters();
+                if (count($params) === 0) {
+                    return $service->testConnection();
+                }
+
+                if (count($params) >= 1) {
+                    $firstType = $params[0]->getType();
+                    if ($firstType instanceof ReflectionNamedType && $firstType->getName() === Integration::class) {
+                        return $service->testConnection($decryptedIntegration);
+                    }
+
+                    if ($firstType instanceof ReflectionNamedType && $firstType->getName() === 'string') {
+                        return $service->testConnection($decryptedIntegration->name);
+                    }
+
+                    if ($firstType instanceof ReflectionUnionType) {
+                        foreach ($firstType->getTypes() as $type) {
+                            if ($type->getName() === Integration::class) {
+                                return $service->testConnection($decryptedIntegration);
+                            }
+                        }
+                    }
+                }
+
+                return $service->testConnection($decryptedIntegration);
+            }
+
+            return ['success' => false, 'message' => 'Integration test method is missing.', 'data' => []];
+        } catch (Throwable $exception) {
+            Log::error('Integration test failed.', ['name' => $integration->name, 'error' => $exception->getMessage()]);
+
+            return ['success' => false, 'message' => 'Integration test failed.', 'data' => []];
+        }
     }
 
     private function ok(string $message, array $data): JsonResponse

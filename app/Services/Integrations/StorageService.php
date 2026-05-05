@@ -11,35 +11,28 @@ class StorageService
 {
     public function __construct(private readonly ActivityLogService $activityLogService) {}
 
-    public function testConnection(): array
+    public function testConnection(Integration $integration): array
     {
         try {
-            $aws = Integration::query()->where('name', 'aws_s3')->first();
-            $cloudflare = Integration::query()->where('name', 'cloudflare')->first();
-
-            $awsOk = true;
-            $cloudflareOk = true;
-
-            if ($aws instanceof Integration && $aws->is_enabled) {
-                $awsOk = $this->validateAwsCredentials($aws);
+            if (! $integration->is_enabled) {
+                return ['success' => false, 'message' => 'Integration disabled.', 'data' => []];
             }
 
-            if ($cloudflare instanceof Integration && $cloudflare->is_enabled) {
-                $cloudflareOk = $this->validateCloudflareCredentials($cloudflare);
-            }
+            $isValid = match ($integration->name) {
+                'aws_s3' => $this->validateAwsCredentials($integration),
+                'cloudflare' => $this->validateCloudflareCredentials($integration),
+                'google_drive' => $this->validateGoogleDriveCredentials($integration),
+                'onedrive' => $this->validateOneDriveCredentials($integration),
+                default => false,
+            };
 
-            if (! $awsOk || ! $cloudflareOk) {
+            if (! $isValid) {
                 $this->activityLogService->log('integration_test_failure', 'integrations', 'Storage integration test failed.');
 
                 return ['success' => false, 'message' => 'Storage integration test failed.', 'data' => []];
             }
 
-            if ($aws instanceof Integration) {
-                $aws->forceFill(['last_used_at' => now()])->save();
-            }
-            if ($cloudflare instanceof Integration) {
-                $cloudflare->forceFill(['last_used_at' => now()])->save();
-            }
+            $integration->forceFill(['last_used_at' => now()])->save();
 
             $this->activityLogService->log('integration_test_success', 'integrations', 'Storage integration test passed.');
 
@@ -77,5 +70,20 @@ class StorageService
             ->get("https://api.cloudflare.com/client/v4/zones/{$zoneId}");
 
         return $response->successful();
+    }
+
+    private function validateGoogleDriveCredentials(Integration $integration): bool
+    {
+        return (string) $integration->getCredential('client_id') !== ''
+            && (string) $integration->getCredential('client_secret') !== ''
+            && (string) $integration->getCredential('refresh_token') !== '';
+    }
+
+    private function validateOneDriveCredentials(Integration $integration): bool
+    {
+        return (string) $integration->getCredential('client_id') !== ''
+            && (string) $integration->getCredential('client_secret') !== ''
+            && (string) $integration->getCredential('refresh_token') !== ''
+            && (string) $integration->getCredential('tenant_id') !== '';
     }
 }

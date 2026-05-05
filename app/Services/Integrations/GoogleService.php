@@ -10,17 +10,20 @@ class GoogleService
 {
     public function __construct(private readonly ActivityLogService $activityLogService) {}
 
-    public function testConnection(): array
+    public function testConnection(Integration $integration): array
     {
         try {
-            $integration = Integration::query()->where('name', 'google_services')->first();
-
-            if (! $integration instanceof Integration || ! $integration->is_enabled) {
+            if (! $integration->is_enabled) {
                 return ['success' => false, 'message' => 'Integration disabled.', 'data' => []];
             }
 
             $credentials = $integration->credentials;
-            $required = ['measurement_id', 'container_id', 'verification_code', 'location_id', 'api_key'];
+            $requiredByIntegration = [
+                'google_analytics' => ['measurement_id', 'api_key'],
+                'google_ads' => ['google_ads_aw_id', 'api_key'],
+                'google_tag_manager' => ['container_id', 'verification_code'],
+            ];
+            $required = $requiredByIntegration[$integration->name] ?? [];
 
             foreach ($required as $field) {
                 if (! is_array($credentials) || ! filled($credentials[$field] ?? null)) {

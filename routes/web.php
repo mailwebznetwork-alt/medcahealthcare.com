@@ -182,10 +182,13 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings
 
 Route::middleware(['auth', 'admin', 'throttle:60,1'])->prefix('/admin/settings/integrations')->name('admin.settings.integrations.')->group(function () {
     Route::get('/', [IntegrationController::class, 'index'])->name('index');
+    Route::post('/', [IntegrationController::class, 'store'])->name('store');
     Route::get('/{name}', [IntegrationController::class, 'show'])->name('show');
     Route::post('/{name}', [IntegrationController::class, 'update'])->name('update');
+    Route::post('/{name}/accounts', [IntegrationController::class, 'storeAccount'])->name('accounts.store');
     Route::patch('/{name}/toggle', [IntegrationController::class, 'toggle'])->name('toggle');
     Route::post('/{name}/test', [IntegrationController::class, 'testConnection'])->name('test');
+    Route::delete('/{name}', [IntegrationController::class, 'destroy'])->name('destroy');
     Route::post('/google-business-profile/reviews/sync', [IntegrationController::class, 'syncGoogleReviews'])->name('google-business-profile.sync-reviews');
 });
 

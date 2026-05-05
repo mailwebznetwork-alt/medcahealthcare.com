@@ -11,28 +11,41 @@ class MetaService
 {
     public function __construct(private readonly ActivityLogService $activityLogService) {}
 
-    public function testConnection(): array
+    public function testConnection(Integration $integration): array
     {
         try {
-            $integration = Integration::query()->where('name', 'meta_ads')->first();
-
-            if (! $integration instanceof Integration || ! $integration->is_enabled) {
+            if (! $integration->is_enabled) {
                 return ['success' => false, 'message' => 'Integration disabled.', 'data' => []];
             }
 
-            $pixelId = (string) $integration->getCredential('pixel_id');
-            $accessToken = (string) $integration->getCredential('access_token');
+            $pixelField = $integration->name === 'meta_capi' ? 'capi_pixel_id' : 'pixel_id';
+            $tokenField = $integration->name === 'meta_capi' ? 'capi_access_token' : 'access_token';
+            $pixelId = (string) $integration->getCredential($pixelField);
+            $accessToken = (string) $integration->getCredential($tokenField);
 
             if ($pixelId === '' || $accessToken === '') {
                 return ['success' => false, 'message' => 'Missing required credentials.', 'data' => []];
             }
 
-            $response = Http::timeout(8)
-                ->connectTimeout(5)
-                ->get("https://graph.facebook.com/v20.0/{$pixelId}", [
-                    'access_token' => $accessToken,
-                    'fields' => 'id,name',
-                ]);
+            $url = $integration->name === 'meta_capi'
+                ? "https://graph.facebook.com/v20.0/{$pixelId}/events"
+                : "https://graph.facebook.com/v20.0/{$pixelId}";
+
+            $payload = $integration->name === 'meta_capi'
+                ? ['data' => [['event_name' => 'Lead', 'event_time' => time(), 'action_source' => 'website']]]
+                : ['fields' => 'id,name'];
+
+            if ($integration->name === 'meta_capi') {
+                $testEventCode = (string) ($integration->getCredential('test_event_code') ?? '');
+                if ($testEventCode !== '') {
+                    $payload['test_event_code'] = $testEventCode;
+                }
+            }
+
+            $http = Http::timeout(8)->connectTimeout(5);
+            $response = $integration->name === 'meta_capi'
+                ? $http->post($url, $payload + ['access_token' => $accessToken])
+                : $http->get($url, $payload + ['access_token' => $accessToken]);
 
             if (! $response->successful()) {
                 $this->activityLogService->log('integration_test_failure', 'integrations', 'Meta integration test failed.');
@@ -49,60 +62,6 @@ class MetaService
             $this->activityLogService->log('integration_test_failure', 'integrations', 'Meta integration test failed.');
 
             return ['success' => false, 'message' => 'Meta integration test failed.', 'data' => []];
-        }
-    }
-
-    public function testConversionsApi(): array
-    {
-        try {
-            $integration = Integration::query()->where('name', 'meta_capi')->first();
-
-            if (! $integration instanceof Integration || ! $integration->is_enabled) {
-                return ['success' => false, 'message' => 'Integration disabled.', 'data' => []];
-            }
-
-            $pixelId = (string) $integration->getCredential('capi_pixel_id');
-            $accessToken = (string) $integration->getCredential('capi_access_token');
-            $testEventCode = (string) ($integration->getCredential('test_event_code') ?? '');
-
-            if ($pixelId === '' || $accessToken === '') {
-                return ['success' => false, 'message' => 'Missing required credentials.', 'data' => []];
-            }
-
-            $payload = [
-                'data' => [
-                    [
-                        'event_name' => 'Lead',
-                        'event_time' => time(),
-                        'action_source' => 'website',
-                    ],
-                ],
-            ];
-            if ($testEventCode !== '') {
-                $payload['test_event_code'] = $testEventCode;
-            }
-
-            $response = Http::timeout(10)
-                ->connectTimeout(5)
-                ->post("https://graph.facebook.com/v20.0/{$pixelId}/events", $payload + [
-                    'access_token' => $accessToken,
-                ]);
-
-            if (! $response->successful()) {
-                $this->activityLogService->log('integration_test_failure', 'integrations', 'Meta CAPI test failed.');
-
-                return ['success' => false, 'message' => 'Meta CAPI connection failed.', 'data' => ['status' => $response->status()]];
-            }
-
-            $integration->forceFill(['last_used_at' => now()])->save();
-            $this->activityLogService->log('integration_test_success', 'integrations', 'Meta CAPI test passed.');
-
-            return ['success' => true, 'message' => 'Meta CAPI connection successful.', 'data' => ['status' => $response->status()]];
-        } catch (\Throwable $exception) {
-            Log::error('Meta CAPI test failed.', ['error' => $exception->getMessage()]);
-            $this->activityLogService->log('integration_test_failure', 'integrations', 'Meta CAPI test failed.');
-
-            return ['success' => false, 'message' => 'Meta CAPI test failed.', 'data' => []];
         }
     }
 }

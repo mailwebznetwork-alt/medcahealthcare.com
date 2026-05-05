@@ -10,14 +10,15 @@ use Illuminate\Support\Facades\Log;
 
 class GoogleBusinessProfileService
 {
-    public function __construct(private readonly ActivityLogService $activityLogService) {}
+    public function __construct(
+        private readonly ActivityLogService $activityLogService,
+        private readonly CredentialVault $credentialVault
+    ) {}
 
-    public function testConnection(): array
+    public function testConnection(Integration $integration): array
     {
         try {
-            $integration = Integration::query()->where('name', 'google_business_profile')->first();
-
-            if (! $integration instanceof Integration || ! $integration->is_enabled) {
+            if (! $integration->is_enabled) {
                 return ['success' => false, 'message' => 'Integration disabled.', 'data' => []];
             }
 
@@ -26,8 +27,9 @@ class GoogleBusinessProfileService
                 return ['success' => false, 'message' => 'Unable to get GBP access token.', 'data' => []];
             }
 
-            $accountId = (string) $integration->getCredential('account_id');
-            $locationId = (string) $integration->getCredential('location_id');
+            $credentials = $this->credentialVault->decrypt($integration->credentials);
+            $accountId = (string) ($credentials['account_id'] ?? '');
+            $locationId = (string) ($credentials['location_id'] ?? '');
             if ($accountId === '' || $locationId === '') {
                 return ['success' => false, 'message' => 'Missing required credentials.', 'data' => []];
             }
@@ -69,8 +71,9 @@ class GoogleBusinessProfileService
                 return ['success' => false, 'message' => 'Unable to get GBP access token.', 'count' => 0];
             }
 
-            $accountId = (string) $integration->getCredential('account_id');
-            $locationId = (string) $integration->getCredential('location_id');
+            $credentials = $this->credentialVault->decrypt($integration->credentials);
+            $accountId = (string) ($credentials['account_id'] ?? '');
+            $locationId = (string) ($credentials['location_id'] ?? '');
             if ($accountId === '' || $locationId === '') {
                 return ['success' => false, 'message' => 'Missing account/location IDs.', 'count' => 0];
             }
@@ -136,7 +139,8 @@ class GoogleBusinessProfileService
     {
         $clientId = (string) env('MEDCA_GMB_CLIENT_ID');
         $clientSecret = (string) env('MEDCA_GMB_CLIENT_SECRET');
-        $refreshToken = (string) $integration->getCredential('oauth_refresh_token');
+        $credentials = $this->credentialVault->decrypt($integration->credentials);
+        $refreshToken = (string) ($credentials['oauth_refresh_token'] ?? '');
 
         if ($clientId === '' || $clientSecret === '' || $refreshToken === '') {
             return null;

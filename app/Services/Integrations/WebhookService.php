@@ -11,12 +11,10 @@ class WebhookService
 {
     public function __construct(private readonly ActivityLogService $activityLogService) {}
 
-    public function testConnection(): array
+    public function testConnection(Integration $integration): array
     {
         try {
-            $integration = Integration::query()->where('name', 'webhook')->first();
-
-            if (! $integration instanceof Integration || ! $integration->is_enabled) {
+            if (! $integration->is_enabled) {
                 return ['success' => false, 'message' => 'Integration disabled.', 'data' => []];
             }
 
