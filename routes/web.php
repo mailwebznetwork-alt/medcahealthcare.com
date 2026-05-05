@@ -176,6 +176,7 @@ Route::middleware(['auth', 'admin', 'throttle:60,1'])->prefix('/admin/settings/i
     Route::post('/{name}', [IntegrationController::class, 'update'])->name('update');
     Route::patch('/{name}/toggle', [IntegrationController::class, 'toggle'])->name('toggle');
     Route::post('/{name}/test', [IntegrationController::class, 'testConnection'])->name('test');
+    Route::post('/google-business-profile/reviews/sync', [IntegrationController::class, 'syncGoogleReviews'])->name('google-business-profile.sync-reviews');
 });
 
 Route::middleware(['auth', 'active', 'auto.logout'])->group(function () {

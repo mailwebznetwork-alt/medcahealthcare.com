@@ -10,10 +10,10 @@ class WhatsAppService
 {
     public function __construct(private readonly ActivityLogService $activityLogService) {}
 
-    public function testConnection(): array
+    public function testConnection(string $integrationName = 'whatsapp_business_1'): array
     {
         try {
-            $integration = Integration::query()->where('name', 'whatsapp_business')->first();
+            $integration = Integration::query()->where('name', $integrationName)->first();
 
             if (! $integration instanceof Integration || ! $integration->is_enabled) {
                 return ['success' => false, 'message' => 'Integration disabled.', 'data' => []];
@@ -30,7 +30,7 @@ class WhatsAppService
             $integration->forceFill(['last_used_at' => now()])->save();
             $this->activityLogService->log('integration_test_success', 'integrations', 'WhatsApp integration test passed.');
 
-            return ['success' => true, 'message' => 'WhatsApp webhook verification simulation passed.', 'data' => []];
+            return ['success' => true, 'message' => 'WhatsApp webhook verification simulation passed.', 'data' => ['integration' => $integrationName]];
         } catch (\Throwable $exception) {
             Log::error('WhatsApp integration test failed.', ['error' => $exception->getMessage()]);
             $this->activityLogService->log('integration_test_failure', 'integrations', 'WhatsApp integration test failed.');

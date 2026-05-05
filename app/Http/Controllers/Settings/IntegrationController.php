@@ -5,9 +5,16 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Models\Integration;
 use App\Services\ActivityLogService;
+use App\Services\Integrations\BingWebmasterService;
+use App\Services\Integrations\ClarityService;
+use App\Services\Integrations\CrmService;
+use App\Services\Integrations\GeminiService;
+use App\Services\Integrations\GoogleBusinessProfileService;
 use App\Services\Integrations\GoogleService;
+use App\Services\Integrations\JustDialService;
 use App\Services\Integrations\MetaService;
 use App\Services\Integrations\OpenAIService;
+use App\Services\Integrations\SocialService;
 use App\Services\Integrations\StorageService;
 use App\Services\Integrations\TwilioService;
 use App\Services\Integrations\WebhookService;
@@ -22,10 +29,17 @@ class IntegrationController extends Controller
     public function __construct(
         private readonly ActivityLogService $activityLogService,
         private readonly GoogleService $googleService,
+        private readonly GoogleBusinessProfileService $googleBusinessProfileService,
+        private readonly ClarityService $clarityService,
+        private readonly BingWebmasterService $bingWebmasterService,
+        private readonly JustDialService $justDialService,
+        private readonly GeminiService $geminiService,
         private readonly MetaService $metaService,
+        private readonly CrmService $crmService,
         private readonly WhatsAppService $whatsAppService,
         private readonly TwilioService $twilioService,
         private readonly OpenAIService $openAIService,
+        private readonly SocialService $socialService,
         private readonly WebhookService $webhookService,
         private readonly StorageService $storageService
     ) {}
@@ -42,6 +56,29 @@ class IntegrationController extends Controller
             ->all();
 
         return $this->ok('Integrations fetched successfully.', $data);
+    }
+
+    public function syncGoogleReviews(Request $request)
+    {
+        $result = $this->googleBusinessProfileService->syncReviews();
+
+        if (! $request->expectsJson()) {
+            if ($result['success']) {
+                return redirect()
+                    ->route('settings.index')
+                    ->with('status', __('Google reviews synced (:count).', ['count' => $result['count']]));
+            }
+
+            return redirect()
+                ->route('settings.index')
+                ->withErrors(['integration' => $result['message']]);
+        }
+
+        return response()->json([
+            'success' => $result['success'],
+            'message' => $result['message'],
+            'data' => ['count' => $result['count']],
+        ], $result['success'] ? 200 : 422);
     }
 
     public function show(string $name): JsonResponse
@@ -84,9 +121,12 @@ class IntegrationController extends Controller
 
         try {
             $validated = $validator->validated();
+            $existingCredentials = $integration->credentials;
+            $incomingCredentials = $validated['credentials'];
+            $resolvedCredentials = $this->resolveCredentialsForUpdate($integration->name, $existingCredentials, $incomingCredentials);
 
             $integration->forceFill([
-                'credentials' => $validated['credentials'],
+                'credentials' => $resolvedCredentials,
                 'is_enabled' => (bool) ($validated['is_enabled'] ?? $integration->is_enabled),
             ])->save();
 
@@ -169,10 +209,18 @@ class IntegrationController extends Controller
 
         $result = match ($name) {
             'google_services' => $this->googleService->testConnection(),
+            'google_business_profile' => $this->googleBusinessProfileService->testConnection(),
+            'microsoft_clarity' => $this->clarityService->testConnection(),
+            'bing_webmaster' => $this->bingWebmasterService->testConnection(),
+            'just_dial' => $this->justDialService->testConnection(),
+            'gemini' => $this->geminiService->testConnection(),
             'meta_ads' => $this->metaService->testConnection(),
-            'whatsapp_business' => $this->whatsAppService->testConnection(),
+            'meta_capi' => $this->metaService->testConversionsApi(),
+            'whatsapp_business_1', 'whatsapp_business_2', 'whatsapp_business_3' => $this->whatsAppService->testConnection($name),
             'twilio' => $this->twilioService->testConnection(),
-            'openai' => $this->openAIService->testConnection(),
+            'chatgpt' => $this->openAIService->testConnection(),
+            'youtube', 'linkedin', 'facebook', 'instagram' => $this->socialService->testConnection($name),
+            'crm_hubspot', 'crm_salesforce', 'crm_zoho', 'crm_custom_1', 'crm_custom_2', 'crm_custom_3' => $this->crmService->testConnection($name),
             'webhook' => $this->webhookService->testConnection(),
             'aws_s3', 'cloudflare' => $this->storageService->testConnection(),
             default => ['success' => false, 'message' => 'Unsupported integration.', 'data' => []],
@@ -240,11 +288,39 @@ class IntegrationController extends Controller
                 'credentials.location_id' => ['required', 'string', 'max:120'],
                 'credentials.api_key' => ['required', 'string', 'max:255'],
             ],
+            'google_business_profile' => [
+                'credentials.account_id' => ['required', 'string', 'max:120'],
+                'credentials.location_id' => ['required', 'string', 'max:120'],
+                'credentials.oauth_refresh_token' => ['required', 'string', 'max:2048'],
+            ],
+            'microsoft_clarity' => [
+                'credentials.project_id' => ['required', 'string', 'max:120'],
+            ],
+            'gemini' => [
+                'credentials.api_key' => ['required', 'string', 'max:255'],
+                'credentials.model' => ['required', 'string', 'max:120'],
+                'credentials.temperature' => ['required', 'numeric', 'min:0', 'max:2'],
+            ],
             'meta_ads' => [
                 'credentials.pixel_id' => ['required', 'string', 'max:120'],
                 'credentials.access_token' => ['required', 'string', 'max:255'],
             ],
-            'whatsapp_business' => [
+            'meta_capi' => [
+                'credentials.capi_pixel_id' => ['required', 'string', 'max:120'],
+                'credentials.capi_access_token' => ['nullable', 'string', 'max:255'],
+                'credentials.test_event_code' => ['nullable', 'string', 'max:120'],
+            ],
+            'whatsapp_business_1' => [
+                'credentials.phone_number_id' => ['required', 'string', 'max:120'],
+                'credentials.access_token' => ['required', 'string', 'max:255'],
+                'credentials.webhook_verify_token' => ['required', 'string', 'max:255'],
+            ],
+            'whatsapp_business_2' => [
+                'credentials.phone_number_id' => ['required', 'string', 'max:120'],
+                'credentials.access_token' => ['required', 'string', 'max:255'],
+                'credentials.webhook_verify_token' => ['required', 'string', 'max:255'],
+            ],
+            'whatsapp_business_3' => [
                 'credentials.phone_number_id' => ['required', 'string', 'max:120'],
                 'credentials.access_token' => ['required', 'string', 'max:255'],
                 'credentials.webhook_verify_token' => ['required', 'string', 'max:255'],
@@ -254,10 +330,65 @@ class IntegrationController extends Controller
                 'credentials.auth_token' => ['required', 'string', 'max:255'],
                 'credentials.from_number' => ['required', 'string', 'max:40'],
             ],
-            'openai' => [
+            'chatgpt' => [
                 'credentials.api_key' => ['required', 'string', 'max:255'],
                 'credentials.model' => ['required', 'string', 'max:120'],
                 'credentials.temperature' => ['required', 'numeric', 'min:0', 'max:2'],
+            ],
+            'youtube' => [
+                'credentials.api_key' => ['required', 'string', 'max:255'],
+                'credentials.channel_id' => ['required', 'string', 'max:120'],
+            ],
+            'linkedin' => [
+                'credentials.client_id' => ['required', 'string', 'max:255'],
+                'credentials.client_secret' => ['required', 'string', 'max:255'],
+                'credentials.access_token' => ['nullable', 'string', 'max:255'],
+            ],
+            'facebook' => [
+                'credentials.page_id' => ['required', 'string', 'max:120'],
+                'credentials.access_token' => ['required', 'string', 'max:255'],
+            ],
+            'instagram' => [
+                'credentials.instagram_account_id' => ['required', 'string', 'max:120'],
+                'credentials.access_token' => ['required', 'string', 'max:255'],
+            ],
+            'crm_hubspot' => [
+                'credentials.access_token' => ['required', 'string', 'max:255'],
+                'credentials.portal_id' => ['nullable', 'string', 'max:120'],
+            ],
+            'crm_salesforce' => [
+                'credentials.instance_url' => ['required', 'url', 'max:2048'],
+                'credentials.access_token' => ['required', 'string', 'max:255'],
+                'credentials.client_id' => ['nullable', 'string', 'max:255'],
+                'credentials.client_secret' => ['nullable', 'string', 'max:255'],
+            ],
+            'crm_zoho' => [
+                'credentials.access_token' => ['required', 'string', 'max:255'],
+                'credentials.org_id' => ['nullable', 'string', 'max:120'],
+            ],
+            'crm_custom_1' => [
+                'credentials.crm_name' => ['required', 'string', 'max:120'],
+                'credentials.base_url' => ['required', 'url', 'max:2048'],
+                'credentials.access_token' => ['required', 'string', 'max:255'],
+            ],
+            'crm_custom_2' => [
+                'credentials.crm_name' => ['required', 'string', 'max:120'],
+                'credentials.base_url' => ['required', 'url', 'max:2048'],
+                'credentials.access_token' => ['required', 'string', 'max:255'],
+            ],
+            'crm_custom_3' => [
+                'credentials.crm_name' => ['required', 'string', 'max:120'],
+                'credentials.base_url' => ['required', 'url', 'max:2048'],
+                'credentials.access_token' => ['required', 'string', 'max:255'],
+            ],
+            'bing_webmaster' => [
+                'credentials.site_url' => ['required', 'url', 'max:2048'],
+                'credentials.api_key' => ['required', 'string', 'max:255'],
+            ],
+            'just_dial' => [
+                'credentials.api_key' => ['required', 'string', 'max:255'],
+                'credentials.profile_id' => ['required', 'string', 'max:120'],
+                'credentials.endpoint_url' => ['nullable', 'url', 'max:2048'],
             ],
             'webhook' => [
                 'credentials.endpoint_url' => ['required', 'url', 'max:2048'],
@@ -303,6 +434,7 @@ class IntegrationController extends Controller
             'sid',
             'key',
             'verification_code',
+            'client_secret',
         ];
 
         foreach ($credentials as $key => $value) {
@@ -333,14 +465,62 @@ class IntegrationController extends Controller
     {
         return [
             'google_services' => 'google',
+            'google_business_profile' => 'google',
+            'microsoft_clarity' => 'analytics',
+            'gemini' => 'ai',
             'meta_ads' => 'meta',
-            'whatsapp_business' => 'whatsapp',
+            'meta_capi' => 'meta',
+            'whatsapp_business_1' => 'whatsapp',
+            'whatsapp_business_2' => 'whatsapp',
+            'whatsapp_business_3' => 'whatsapp',
             'twilio' => 'communication',
-            'openai' => 'ai',
+            'chatgpt' => 'ai',
+            'youtube' => 'social',
+            'linkedin' => 'social',
+            'facebook' => 'social',
+            'instagram' => 'social',
+            'crm_hubspot' => 'crm',
+            'crm_salesforce' => 'crm',
+            'crm_zoho' => 'crm',
+            'crm_custom_1' => 'crm',
+            'crm_custom_2' => 'crm',
+            'crm_custom_3' => 'crm',
+            'bing_webmaster' => 'seo',
+            'just_dial' => 'listing',
             'webhook' => 'automation',
             'aws_s3' => 'storage',
             'cloudflare' => 'storage',
         ];
+    }
+
+    private function resolveCredentialsForUpdate(string $integrationName, array $existing, array $incoming): array
+    {
+        $retainableKeys = [
+            'access_token',
+            'api_key',
+            'auth_token',
+            'secret',
+            'webhook_verify_token',
+            'oauth_refresh_token',
+            'capi_access_token',
+            'client_secret',
+        ];
+
+        if (! in_array($integrationName, ['meta_capi', 'google_business_profile', 'meta_ads', 'whatsapp_business_1', 'whatsapp_business_2', 'whatsapp_business_3', 'crm_hubspot', 'crm_salesforce', 'crm_zoho', 'crm_custom_1', 'crm_custom_2', 'crm_custom_3', 'bing_webmaster', 'just_dial', 'youtube', 'linkedin', 'facebook', 'instagram', 'google_services', 'gemini', 'chatgpt', 'webhook', 'aws_s3', 'cloudflare', 'twilio'], true)) {
+            return $incoming;
+        }
+
+        foreach ($retainableKeys as $key) {
+            $hasIncoming = array_key_exists($key, $incoming);
+            $incomingValue = $incoming[$key] ?? null;
+            $shouldRetain = ! $hasIncoming || $incomingValue === null || (is_string($incomingValue) && trim($incomingValue) === '');
+
+            if ($shouldRetain && isset($existing[$key]) && is_string($existing[$key]) && $existing[$key] !== '') {
+                $incoming[$key] = $existing[$key];
+            }
+        }
+
+        return $incoming;
     }
 
     private function ok(string $message, array $data): JsonResponse
