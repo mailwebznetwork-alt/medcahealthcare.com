@@ -276,18 +276,6 @@ body.mom-body {
     color: var(--text-primary);
 }
 
-body.mom-body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background:
-        radial-gradient(ellipse 78% 52% at 10% 0%, rgba(197, 160, 89, 0.07), transparent 56%),
-        radial-gradient(ellipse 70% 48% at 88% 18%, rgba(100, 72, 48, 0.12), transparent 54%),
-        radial-gradient(ellipse 95% 60% at 48% 35%, rgba(255, 236, 210, 0.035), transparent 58%);
-}
-
 body.mom-body::after {
     content: '';
     position: fixed;
