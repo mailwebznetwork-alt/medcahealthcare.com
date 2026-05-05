@@ -72,7 +72,7 @@ class CompetitorPageController extends Controller
         }
 
         $activeTab = (string) $request->query('tab', 'competitors');
-        $allowedTabs = ['war-room', 'seo', 'competitors'];
+        $allowedTabs = ['war-room', 'seo', 'ga4', 'competitors'];
         if (! in_array($activeTab, $allowedTabs, true)) {
             $activeTab = 'competitors';
         }

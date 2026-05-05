@@ -192,7 +192,6 @@ class Dashboard extends Component
             'snapshots' => $snapshots,
             'emailTrackers' => $emailTrackers,
             'whatsappClicks' => $whatsappClicks,
-            'ga4DashboardUrl' => config('marketing.ga4_dashboard_url'),
         ]);
     }
 

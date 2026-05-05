@@ -15,6 +15,7 @@
         <div class="flex flex-wrap gap-2">
             <a href="{{ route('growth-center.competitors.index', ['tab' => 'war-room']) }}" class="mom-cta-ghost !px-3 !py-2 !text-[11px] {{ ($activeTab ?? 'competitors') === 'war-room' ? 'border-[var(--success)] text-[var(--success)]' : '' }}">{{ __('WAR ROOM') }}</a>
             <a href="{{ route('growth-center.competitors.index', ['tab' => 'seo']) }}" class="mom-cta-ghost !px-3 !py-2 !text-[11px] {{ ($activeTab ?? 'competitors') === 'seo' ? 'border-[var(--success)] text-[var(--success)]' : '' }}">{{ __('SEO') }}</a>
+            <a href="{{ route('growth-center.competitors.index', ['tab' => 'ga4']) }}" class="mom-cta-ghost !px-3 !py-2 !text-[11px] {{ ($activeTab ?? 'competitors') === 'ga4' ? 'border-[var(--success)] text-[var(--success)]' : '' }}">{{ __('GA4') }}</a>
             <a href="{{ route('growth-center.competitors.index', ['tab' => 'competitors']) }}" class="mom-cta-ghost !px-3 !py-2 !text-[11px] {{ ($activeTab ?? 'competitors') === 'competitors' ? 'border-[var(--success)] text-[var(--success)]' : '' }}">{{ __('COMPETITORS') }}</a>
         </div>
     </section>
@@ -23,6 +24,8 @@
         @include('growth-center.competitors.partials.war-room')
     @elseif (($activeTab ?? 'competitors') === 'seo')
         @include('growth-center.competitors.partials.seo')
+    @elseif (($activeTab ?? 'competitors') === 'ga4')
+        @include('growth-center.competitors.partials.ga4')
     @else
 
     <section class="mom-card p-6">

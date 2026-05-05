@@ -30,7 +30,7 @@ class Ga4DataApiService
     {
         $propertyId = $this->resolveGa4PropertyId($settings);
         if ($propertyId === null || $propertyId === '') {
-            return $this->emptyBundle('Set GA4 Property ID in Settings → Integrations (Google Services) for API reports.');
+            return $this->emptyBundle('Set GA4 Property ID in Settings → Integrations (Google Services) for API reports. View reports under Growth Center → GA4.');
         }
 
         $cacheKey = 'marketing.ga4.bundle.'.sha1((string) $propertyId);
