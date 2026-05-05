@@ -2,6 +2,8 @@
 
 use App\Models\Competitor;
 use App\Models\CompetitorKeyword;
+use App\Models\CompetitorLead;
+use App\Models\CompetitorTracking;
 use App\Models\User;
 use Illuminate\Support\Facades\Schema;
 
@@ -118,4 +120,60 @@ it('removes competitor from growth center list', function () {
     $this->assertDatabaseMissing('competitors', [
         'id' => $competitor->id,
     ]);
+});
+
+it('stores keyword tracking and lead attribution from forms', function () {
+    if (! Schema::hasTable('competitors') || ! Schema::hasTable('competitor_keywords')) {
+        $this->markTestSkipped('Competitor module tables are not migrated.');
+    }
+
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'role' => 'manager',
+        'module_access' => ['growth_center' => true],
+    ]);
+
+    $competitor = Competitor::query()->create([
+        'name' => 'Signals Competitor',
+        'website' => 'https://signals.example.com',
+        'is_active' => true,
+        'is_intercept_target' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->post(route('growth-center.competitors.keywords.store'), [
+            'competitor_id' => $competitor->id,
+            'keyword' => 'diagnostic near arekere',
+            'intent_type' => 'local',
+            'search_volume' => 1200,
+            'difficulty' => 37,
+        ])
+        ->assertRedirect(route('growth-center.competitors.index'));
+
+    $keyword = CompetitorKeyword::query()
+        ->where('competitor_id', $competitor->id)
+        ->where('keyword', 'diagnostic near arekere')
+        ->firstOrFail();
+
+    $this->actingAs($user)
+        ->post(route('growth-center.competitors.tracking.store'), [
+            'competitor_keyword_id' => $keyword->id,
+            'clicks' => 45,
+            'impressions' => 950,
+            'position' => 3,
+            'recorded_date' => now()->toDateString(),
+        ])
+        ->assertRedirect(route('growth-center.competitors.index'));
+
+    $this->actingAs($user)
+        ->post(route('growth-center.competitors.leads.store'), [
+            'competitor_keyword_id' => $keyword->id,
+            'source' => 'google_ads',
+            'status' => 'converted',
+            'details' => 'phone lead from local campaign',
+        ])
+        ->assertRedirect(route('growth-center.competitors.index'));
+
+    expect(CompetitorTracking::query()->where('competitor_keyword_id', $keyword->id)->exists())->toBeTrue();
+    expect(CompetitorLead::query()->where('competitor_keyword_id', $keyword->id)->where('status', 'converted')->exists())->toBeTrue();
 });

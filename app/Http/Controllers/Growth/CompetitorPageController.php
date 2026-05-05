@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Growth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Competitor;
+use App\Models\CompetitorKeyword;
+use App\Models\CompetitorLead;
+use App\Models\CompetitorTracking;
 use App\Services\CompetitorComparisonService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -48,6 +51,12 @@ class CompetitorPageController extends Controller
 
         return view('growth-center.competitors.index', [
             'competitors' => $competitors,
+            'allCompetitors' => Competitor::query()->orderBy('name')->get(['id', 'name']),
+            'allKeywords' => CompetitorKeyword::query()
+                ->with('competitor:id,name')
+                ->orderByDesc('id')
+                ->limit(300)
+                ->get(['id', 'competitor_id', 'keyword']),
             'summary' => $summary,
             'comparison' => $comparison,
             'keywordOverlap' => $overlap,
@@ -137,5 +146,78 @@ class CompetitorPageController extends Controller
         return redirect()
             ->route('growth-center.competitors.index')
             ->with('status', __('Competitor removed successfully.'));
+    }
+
+    public function storeKeyword(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'competitor_id' => ['required', 'integer', 'exists:competitors,id'],
+            'keyword' => ['required', 'string', 'max:255'],
+            'intent_type' => ['required', 'in:brand,service,local'],
+            'search_volume' => ['nullable', 'integer', 'min:0'],
+            'difficulty' => ['nullable', 'integer', 'min:0', 'max:100'],
+        ]);
+
+        CompetitorKeyword::query()->updateOrCreate(
+            [
+                'competitor_id' => (int) $validated['competitor_id'],
+                'keyword' => Str::of($validated['keyword'])->trim()->toString(),
+            ],
+            [
+                'intent_type' => $validated['intent_type'],
+                'search_volume' => $validated['search_volume'] ?? null,
+                'difficulty' => $validated['difficulty'] ?? null,
+            ]
+        );
+
+        return redirect()
+            ->route('growth-center.competitors.index')
+            ->with('status', __('Keyword saved successfully.'));
+    }
+
+    public function storeTracking(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'competitor_keyword_id' => ['required', 'integer', 'exists:competitor_keywords,id'],
+            'clicks' => ['required', 'integer', 'min:0'],
+            'impressions' => ['required', 'integer', 'min:0'],
+            'position' => ['nullable', 'integer', 'min:1'],
+            'recorded_date' => ['required', 'date'],
+        ]);
+
+        CompetitorTracking::query()->create([
+            'competitor_keyword_id' => (int) $validated['competitor_keyword_id'],
+            'clicks' => (int) $validated['clicks'],
+            'impressions' => (int) $validated['impressions'],
+            'position' => $validated['position'] ?? null,
+            'recorded_date' => $validated['recorded_date'],
+        ]);
+
+        return redirect()
+            ->route('growth-center.competitors.index')
+            ->with('status', __('Tracking data added successfully.'));
+    }
+
+    public function storeLead(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'competitor_keyword_id' => ['nullable', 'integer', 'exists:competitor_keywords,id'],
+            'source' => ['required', 'in:google_ads,seo,meta,direct'],
+            'status' => ['required', 'in:new,contacted,converted,lost'],
+            'details' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        CompetitorLead::query()->create([
+            'competitor_keyword_id' => $validated['competitor_keyword_id'] ?? null,
+            'source' => $validated['source'],
+            'status' => $validated['status'],
+            'details' => isset($validated['details']) && trim($validated['details']) !== ''
+                ? json_encode(['note' => trim($validated['details'])], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                : null,
+        ]);
+
+        return redirect()
+            ->route('growth-center.competitors.index')
+            ->with('status', __('Lead attribution added successfully.'));
     }
 }

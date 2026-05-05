@@ -69,6 +69,121 @@
         </article>
     </section>
 
+    <section class="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <article class="mom-card p-6">
+            <h3 class="mom-section-title">{{ __('Add Keyword Intelligence') }}</h3>
+            <form method="post" action="{{ route('growth-center.competitors.keywords.store') }}" class="mt-4 space-y-3">
+                @csrf
+                <label class="block">
+                    <span class="mom-micro mb-1 block">{{ __('Competitor') }}</span>
+                    <select name="competitor_id" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]" required>
+                        @foreach ($allCompetitors as $competitor)
+                            <option value="{{ $competitor->id }}">{{ $competitor->name }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <label class="block">
+                    <span class="mom-micro mb-1 block">{{ __('Keyword') }}</span>
+                    <input type="text" name="keyword" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]" required>
+                </label>
+                <label class="block">
+                    <span class="mom-micro mb-1 block">{{ __('Intent Type') }}</span>
+                    <select name="intent_type" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]" required>
+                        <option value="brand">brand</option>
+                        <option value="service">service</option>
+                        <option value="local">local</option>
+                    </select>
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="block">
+                        <span class="mom-micro mb-1 block">{{ __('Search Volume') }}</span>
+                        <input type="number" min="0" name="search_volume" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]">
+                    </label>
+                    <label class="block">
+                        <span class="mom-micro mb-1 block">{{ __('Difficulty') }}</span>
+                        <input type="number" min="0" max="100" name="difficulty" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]">
+                    </label>
+                </div>
+                <button type="submit" class="mom-cta-primary !px-3 !py-2 !text-[11px]">{{ __('Save Keyword') }}</button>
+            </form>
+        </article>
+
+        <article class="mom-card p-6">
+            <h3 class="mom-section-title">{{ __('Add Tracking Data') }}</h3>
+            <form method="post" action="{{ route('growth-center.competitors.tracking.store') }}" class="mt-4 space-y-3">
+                @csrf
+                <label class="block">
+                    <span class="mom-micro mb-1 block">{{ __('Keyword') }}</span>
+                    <select name="competitor_keyword_id" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]" required>
+                        @foreach ($allKeywords as $keyword)
+                            <option value="{{ $keyword->id }}">{{ $keyword->competitor?->name ?? '—' }} - {{ $keyword->keyword }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="block">
+                        <span class="mom-micro mb-1 block">{{ __('Clicks') }}</span>
+                        <input type="number" min="0" name="clicks" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]" required>
+                    </label>
+                    <label class="block">
+                        <span class="mom-micro mb-1 block">{{ __('Impressions') }}</span>
+                        <input type="number" min="0" name="impressions" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]" required>
+                    </label>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="block">
+                        <span class="mom-micro mb-1 block">{{ __('Position') }}</span>
+                        <input type="number" min="1" name="position" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]">
+                    </label>
+                    <label class="block">
+                        <span class="mom-micro mb-1 block">{{ __('Recorded Date') }}</span>
+                        <input type="date" name="recorded_date" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]" required>
+                    </label>
+                </div>
+                <button type="submit" class="mom-cta-primary !px-3 !py-2 !text-[11px]">{{ __('Save Tracking') }}</button>
+            </form>
+        </article>
+
+        <article class="mom-card p-6">
+            <h3 class="mom-section-title">{{ __('Add Lead Attribution') }}</h3>
+            <form method="post" action="{{ route('growth-center.competitors.leads.store') }}" class="mt-4 space-y-3">
+                @csrf
+                <label class="block">
+                    <span class="mom-micro mb-1 block">{{ __('Keyword (optional)') }}</span>
+                    <select name="competitor_keyword_id" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]">
+                        <option value="">{{ __('General lead (no keyword)') }}</option>
+                        @foreach ($allKeywords as $keyword)
+                            <option value="{{ $keyword->id }}">{{ $keyword->competitor?->name ?? '—' }} - {{ $keyword->keyword }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <label class="block">
+                    <span class="mom-micro mb-1 block">{{ __('Source') }}</span>
+                    <select name="source" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]" required>
+                        <option value="google_ads">google_ads</option>
+                        <option value="seo">seo</option>
+                        <option value="meta">meta</option>
+                        <option value="direct">direct</option>
+                    </select>
+                </label>
+                <label class="block">
+                    <span class="mom-micro mb-1 block">{{ __('Status') }}</span>
+                    <select name="status" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]" required>
+                        <option value="new">new</option>
+                        <option value="contacted">contacted</option>
+                        <option value="converted">converted</option>
+                        <option value="lost">lost</option>
+                    </select>
+                </label>
+                <label class="block">
+                    <span class="mom-micro mb-1 block">{{ __('Details') }}</span>
+                    <textarea name="details" rows="3" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]"></textarea>
+                </label>
+                <button type="submit" class="mom-cta-primary !px-3 !py-2 !text-[11px]">{{ __('Save Lead') }}</button>
+            </form>
+        </article>
+    </section>
+
     <section class="mom-card mt-8 p-6">
         <h3 class="mom-section-title">{{ __('Compare Competitors') }}</h3>
         <form method="post" action="{{ route('growth-center.competitors.compare') }}" class="mt-4 space-y-3">
