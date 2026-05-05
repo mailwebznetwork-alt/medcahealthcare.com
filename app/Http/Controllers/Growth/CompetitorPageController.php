@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Growth;
 
 use App\Http\Controllers\Controller;
+use App\Models\BusinessProfile;
 use App\Models\Competitor;
 use App\Models\CompetitorKeyword;
 use App\Models\CompetitorLead;
@@ -100,6 +101,12 @@ class CompetitorPageController extends Controller
             $warRoomDashboard = $this->warRoomService->getDashboard();
         }
 
+        $businessProfile = null;
+        if (Schema::hasTable('business_profiles')) {
+            $businessProfile = BusinessProfile::query()->where('website', config('app.url'))->first()
+                ?? BusinessProfile::query()->latest('id')->first();
+        }
+
         return view('growth-center.competitors.index', [
             'competitors' => $competitors,
             'allCompetitors' => Competitor::query()->orderBy('name')->get(['id', 'name']),
@@ -113,6 +120,7 @@ class CompetitorPageController extends Controller
             'keywordOverlap' => $overlap,
             'selectedCompetitorIds' => $selectedIds,
             'activeTab' => $activeTab,
+            'businessProfile' => $businessProfile,
             'seoEntity' => $seoEntity,
             'seoTechnical' => $seoTechnical,
             'seoAiSignal' => $seoAiSignal,

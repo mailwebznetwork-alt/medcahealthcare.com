@@ -10,6 +10,12 @@ class BusinessProfile extends Model
         'name',
         'email',
         'phone',
+        'phone_e164',
+        'country_code',
+        'street_address',
+        'city',
+        'region',
+        'postal_code',
         'website',
         'address',
     ];

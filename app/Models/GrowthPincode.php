@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Schema;
 
 class GrowthPincode extends Model
 {
@@ -17,6 +18,23 @@ class GrowthPincode extends Model
         'landing_page',
         'priority',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (GrowthPincode $model): void {
+            if (! Schema::hasColumn($model->getTable(), 'code')) {
+                return;
+            }
+
+            if (filled($model->code)) {
+                return;
+            }
+
+            if (filled($model->pincode)) {
+                $model->code = $model->pincode;
+            }
+        });
+    }
 
     protected function casts(): array
     {

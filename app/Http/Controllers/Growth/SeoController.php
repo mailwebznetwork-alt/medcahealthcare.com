@@ -64,6 +64,10 @@ class SeoController extends Controller
 
     public function sitemapXml(): SymfonyResponse
     {
+        if (! $this->seoService->isSitemapPubliclyAvailable()) {
+            return response('', 404, ['Content-Type' => 'text/plain; charset=UTF-8']);
+        }
+
         return response($this->seoService->generateSitemap(), 200, [
             'Content-Type' => 'application/xml; charset=UTF-8',
         ]);

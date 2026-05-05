@@ -4,12 +4,15 @@ namespace App\Providers;
 
 use App\Models\Block;
 use App\Models\Blog;
+use App\Models\BusinessProfile;
 use App\Models\Lead;
 use App\Models\MarketingCampaign;
 use App\Models\MarketingSetting;
 use App\Models\Media;
 use App\Models\Page;
 use App\Models\PinCode;
+use App\Models\SeoEntity;
+use App\Models\SeoTechnical;
 use App\Models\Service;
 use App\Models\User;
 use App\Policies\BlockPolicy;
@@ -27,6 +30,7 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -86,6 +90,35 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('layouts.app', function ($view): void {
             $view->with('marketingSettings', MarketingSetting::current());
+
+            $globalSiteSeo = [
+                'entity' => null,
+                'technical' => null,
+                'business' => null,
+            ];
+
+            if (Schema::hasTable('business_profiles')) {
+                $businessProfile = BusinessProfile::query()->where('website', config('app.url'))->first()
+                    ?? BusinessProfile::query()->latest('id')->first();
+
+                $globalSiteSeo['business'] = $businessProfile;
+
+                if ($businessProfile instanceof BusinessProfile) {
+                    if (Schema::hasTable('seo_entities')) {
+                        $globalSiteSeo['entity'] = SeoEntity::query()
+                            ->where('business_profile_id', $businessProfile->id)
+                            ->first();
+                    }
+
+                    if (Schema::hasTable('seo_technical')) {
+                        $globalSiteSeo['technical'] = SeoTechnical::query()
+                            ->where('business_profile_id', $businessProfile->id)
+                            ->first();
+                    }
+                }
+            }
+
+            $view->with('globalSiteSeo', $globalSiteSeo);
         });
 
         Paginator::useTailwind();

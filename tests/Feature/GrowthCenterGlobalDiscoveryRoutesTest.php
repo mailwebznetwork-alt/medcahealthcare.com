@@ -15,7 +15,7 @@ it('serves global robots and llm endpoints', function () {
 
     $profile = BusinessProfile::query()->create([
         'name' => 'MarkOnMinds',
-        'website' => 'https://markonminds.test',
+        'website' => config('app.url'),
         'email' => 'hello@example.com',
     ]);
 
@@ -23,8 +23,9 @@ it('serves global robots and llm endpoints', function () {
         'business_profile_id' => $profile->id,
         'robots_txt' => "User-agent: *\nAllow: /\nSitemap: /sitemap.xml",
         'sitemap_enabled' => true,
-        'canonical_url' => 'https://markonminds.test',
+        'canonical_url' => config('app.url'),
         'indexable' => true,
+        'ai_discovery_enabled' => true,
     ]);
 
     $this->get('/robots.txt')
@@ -44,9 +45,18 @@ it('serves sitemap and discovery payload using page and geo data', function () {
 
     $profile = BusinessProfile::query()->create([
         'name' => 'MarkOnMinds',
-        'website' => 'https://markonminds.test',
+        'website' => config('app.url'),
         'email' => 'hello@example.com',
         'phone' => '9999999999',
+    ]);
+
+    SeoTechnical::query()->create([
+        'business_profile_id' => $profile->id,
+        'robots_txt' => "User-agent: *\nAllow: /",
+        'sitemap_enabled' => true,
+        'canonical_url' => config('app.url'),
+        'indexable' => true,
+        'ai_discovery_enabled' => true,
     ]);
 
     SeoEntity::query()->create([
@@ -87,4 +97,76 @@ it('serves sitemap and discovery payload using page and geo data', function () {
         ->assertJsonPath('services.0.slug', 'services/home-care')
         ->assertJsonPath('locations.0.pincode', '560076')
         ->assertJsonPath('business.organization_name', 'MarkOnMinds');
+});
+
+it('returns 404 for sitemap when sitemap is disabled', function () {
+    if (! Schema::hasTable('seo_technical') || ! Schema::hasTable('business_profiles')) {
+        $this->markTestSkipped('Growth Center global tables are not migrated.');
+    }
+
+    $profile = BusinessProfile::query()->create([
+        'name' => 'MarkOnMinds',
+        'website' => config('app.url'),
+        'email' => 'hello@example.com',
+    ]);
+
+    SeoTechnical::query()->create([
+        'business_profile_id' => $profile->id,
+        'robots_txt' => 'User-agent: *',
+        'sitemap_enabled' => false,
+        'canonical_url' => config('app.url'),
+        'indexable' => true,
+        'ai_discovery_enabled' => true,
+    ]);
+
+    $this->get('/sitemap.xml')->assertNotFound();
+});
+
+it('returns 404 for ai-discovery when discovery is disabled', function () {
+    if (! Schema::hasTable('seo_technical') || ! Schema::hasTable('business_profiles')) {
+        $this->markTestSkipped('Growth Center global tables are not migrated.');
+    }
+
+    $profile = BusinessProfile::query()->create([
+        'name' => 'MarkOnMinds',
+        'website' => config('app.url'),
+        'email' => 'hello@example.com',
+    ]);
+
+    SeoTechnical::query()->create([
+        'business_profile_id' => $profile->id,
+        'robots_txt' => 'User-agent: *',
+        'sitemap_enabled' => true,
+        'canonical_url' => config('app.url'),
+        'indexable' => true,
+        'ai_discovery_enabled' => false,
+    ]);
+
+    $this->getJson('/ai-discovery')->assertNotFound();
+});
+
+it('serves custom llm.txt when configured', function () {
+    if (! Schema::hasTable('seo_technical') || ! Schema::hasTable('business_profiles')) {
+        $this->markTestSkipped('Growth Center global tables are not migrated.');
+    }
+
+    $profile = BusinessProfile::query()->create([
+        'name' => 'MarkOnMinds',
+        'website' => config('app.url'),
+        'email' => 'hello@example.com',
+    ]);
+
+    SeoTechnical::query()->create([
+        'business_profile_id' => $profile->id,
+        'robots_txt' => 'User-agent: *',
+        'sitemap_enabled' => true,
+        'canonical_url' => config('app.url'),
+        'indexable' => true,
+        'llm_txt' => "Custom policy line one\nCustom policy line two",
+    ]);
+
+    $this->get('/llm.txt')
+        ->assertSuccessful()
+        ->assertSeeText('Custom policy line one')
+        ->assertDontSeeText('GPTBot');
 });

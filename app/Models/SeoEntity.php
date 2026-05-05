@@ -13,12 +13,15 @@ class SeoEntity extends Model
         'same_as',
         'meta_title',
         'meta_description',
+        'og_image_url',
+        'custom_json_ld',
     ];
 
     protected function casts(): array
     {
         return [
             'same_as' => 'array',
+            'custom_json_ld' => 'array',
         ];
     }
 }

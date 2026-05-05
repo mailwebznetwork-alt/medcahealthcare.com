@@ -8,6 +8,7 @@ use App\Models\PageElement;
 use App\Models\PageSeo;
 use App\Models\SeoAiSignal;
 use App\Models\SeoEntity;
+use App\Models\SeoTechnical;
 use Illuminate\Support\Facades\Schema;
 
 class AeoService
@@ -36,6 +37,19 @@ class AeoService
 
     public function generateLlmTxt(): string
     {
+        if (Schema::hasTable('seo_technical') && Schema::hasTable('business_profiles')) {
+            $profile = BusinessProfile::query()->where('website', config('app.url'))->first()
+                ?? BusinessProfile::query()->latest('id')->first();
+
+            if ($profile instanceof BusinessProfile) {
+                $technical = SeoTechnical::query()->where('business_profile_id', $profile->id)->first();
+                $custom = trim((string) ($technical?->llm_txt ?? ''));
+                if ($custom !== '') {
+                    return $custom;
+                }
+            }
+        }
+
         return implode("\n", [
             'User-agent: GPTBot',
             'Allow: /',
@@ -105,14 +119,22 @@ class AeoService
                 'same_as',
                 'meta_title',
                 'meta_description',
+                'og_image_url',
+                'custom_json_ld',
             ]),
-            'contact' => $contactProfile?->only([
-                'name',
-                'email',
-                'phone',
-                'website',
-                'address',
-            ]),
+            'contact' => $contactProfile === null ? null : array_filter([
+                'name' => $contactProfile->name,
+                'email' => $contactProfile->email,
+                'phone' => $contactProfile->phone,
+                'phone_e164' => $contactProfile->phone_e164,
+                'country_code' => $contactProfile->country_code,
+                'website' => $contactProfile->website,
+                'address' => $contactProfile->address,
+                'street_address' => $contactProfile->street_address,
+                'city' => $contactProfile->city,
+                'region' => $contactProfile->region,
+                'postal_code' => $contactProfile->postal_code,
+            ], fn (mixed $v): bool => $v !== null && $v !== ''),
         ];
     }
 

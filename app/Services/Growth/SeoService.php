@@ -29,6 +29,35 @@ class SeoService
     {
         $profile = $this->ensureBusinessProfile();
 
+        $profile->fill([
+            'name' => $data['organization_name'],
+            'phone_e164' => $data['phone_e164'] ?? null,
+            'country_code' => $data['country_code'] ?? null,
+            'street_address' => $data['street_address'] ?? null,
+            'city' => $data['city'] ?? null,
+            'region' => $data['region'] ?? null,
+            'postal_code' => $data['postal_code'] ?? null,
+        ]);
+
+        if (! empty($data['phone_e164'])) {
+            $profile->phone = $data['phone_e164'];
+        }
+
+        $addressLines = array_filter([
+            $data['street_address'] ?? null,
+            trim(implode(', ', array_filter([
+                $data['city'] ?? null,
+                $data['region'] ?? null,
+                $data['postal_code'] ?? null,
+            ]))),
+        ]);
+
+        if ($addressLines !== []) {
+            $profile->address = implode("\n", $addressLines);
+        }
+
+        $profile->save();
+
         return SeoEntity::query()->updateOrCreate(
             ['business_profile_id' => $profile->id],
             [
@@ -37,6 +66,8 @@ class SeoService
                 'same_as' => $data['same_as'] ?? [],
                 'meta_title' => $data['meta_title'] ?? null,
                 'meta_description' => $data['meta_description'] ?? null,
+                'og_image_url' => $data['og_image_url'] ?? null,
+                'custom_json_ld' => $data['custom_json_ld'] ?? null,
             ]
         );
     }
@@ -52,8 +83,33 @@ class SeoService
                 'sitemap_enabled' => (bool) ($data['sitemap_enabled'] ?? true),
                 'canonical_url' => $data['canonical_url'] ?? null,
                 'indexable' => (bool) ($data['indexable'] ?? true),
+                'llm_txt' => $data['llm_txt'] ?? null,
+                'ai_discovery_enabled' => (bool) ($data['ai_discovery_enabled'] ?? true),
+                'google_site_verification' => $data['google_site_verification'] ?? null,
             ]
         );
+    }
+
+    public function isSitemapPubliclyAvailable(): bool
+    {
+        if (! Schema::hasTable('seo_technical') || ! Schema::hasTable('business_profiles')) {
+            return true;
+        }
+
+        $profile = BusinessProfile::query()->where('website', config('app.url'))->first()
+            ?? BusinessProfile::query()->latest('id')->first();
+
+        if (! $profile instanceof BusinessProfile) {
+            return true;
+        }
+
+        $technical = SeoTechnical::query()->where('business_profile_id', $profile->id)->first();
+
+        if (! $technical instanceof SeoTechnical) {
+            return true;
+        }
+
+        return (bool) $technical->sitemap_enabled;
     }
 
     public function generateRobots(): string

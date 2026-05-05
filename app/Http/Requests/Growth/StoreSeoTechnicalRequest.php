@@ -26,6 +26,9 @@ class StoreSeoTechnicalRequest extends FormRequest
             'sitemap_enabled' => ['required', 'boolean'],
             'canonical_url' => ['nullable', 'url', 'max:2048'],
             'indexable' => ['required', 'boolean'],
+            'llm_txt' => ['nullable', 'string'],
+            'ai_discovery_enabled' => ['required', 'boolean'],
+            'google_site_verification' => ['nullable', 'string', 'max:255'],
         ];
     }
 }
