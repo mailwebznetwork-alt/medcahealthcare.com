@@ -28,13 +28,13 @@
     <body class="medca-public-surface flex min-h-screen flex-col bg-slate-50 font-medca-sans antialiased text-slate-800">
         @include('global.header')
 
-        <main id="main-content" class="relative z-0 mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-6 lg:px-8">
+        <main id="main-content" class="relative z-0 mx-auto w-full max-w-6xl flex-1 px-4 py-8 md:px-6 md:py-10 lg:px-8 lg:py-12">
             @isset($page)
-                <div class="w-full py-4 md:py-6">
+                <div class="w-full py-6 md:py-8">
                     {!! \App\Services\ContentParser::parse($page->content ?? '') !!}
                 </div>
             @elseif(isset($blog))
-                <article class="w-full py-4 md:py-6">
+                <article class="w-full py-6 md:py-8">
                     @if ($blog->featured_image)
                         <div class="mb-8 overflow-hidden rounded-lg border border-slate-200 shadow-sm">
                             <img

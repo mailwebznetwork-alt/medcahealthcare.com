@@ -9,7 +9,7 @@ it('renders the public marketing shell with Medca chrome', function () {
         ->assertSee(config('medca.tagline'), false)
         ->assertSee('medca-logo.png', false)
         ->assertSee('medca-public-surface', false)
-        ->assertSee('scroll-mt-28', false);
+        ->assertSee('scroll-mt-32', false);
 });
 
 it('documents approximate sticky marketing header height for anchor offset math', function () {

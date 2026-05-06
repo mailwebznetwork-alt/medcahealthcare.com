@@ -15,38 +15,47 @@
     $medcaGmbUrl = trim((string) config('medca.public_profile_url', ''));
     $medcaGmbValid = $medcaGmbUrl !== '' && filter_var($medcaGmbUrl, FILTER_VALIDATE_URL);
 
-    $navLinkBase = 'text-xs font-semibold uppercase tracking-wide transition md:text-sm focus-visible:outline-none';
+    $navLinkBase = 'inline-flex items-center py-2 text-xs font-medium uppercase tracking-[0.06em] transition-colors duration-200 md:text-sm focus-visible:outline-none';
     $navLinkDefault = 'text-[#0046ad] hover:text-[#001e5c] focus-visible:text-[#001e5c]';
     $navLinkActive = 'text-[#581c87] hover:text-[#3b0764] focus-visible:text-[#3b0764]';
-    $navDrawerTriggerClass = 'inline-flex items-center justify-center rounded-lg border border-clinical-200 bg-white p-2 text-[#0046ad] shadow-sm transition hover:border-clinical-300 hover:bg-clinical-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-clinical-500/40';
+    $navDrawerTriggerClass = 'inline-flex items-center justify-center rounded-lg border border-clinical-200 bg-white p-2 text-[#0046ad] shadow-sm transition-colors duration-200 hover:border-clinical-300 hover:bg-clinical-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-clinical-500/40';
 @endphp
 
-{{-- Sticky stack height is content-driven (no fixed header min-height). Strip: py-2; brand row: py-[15px] md:py-[18px]; logo h-7/md:h-8. Approximate total px: config('medca.marketing_sticky_header_approx_px'). --}}
-<header class="sticky top-0 z-40 w-full border-b border-slate-200 bg-white font-sans shadow-sm">
-    {{-- Medca-style ratings / claim strip (location links when GMB URL configured) --}}
-    <div class="w-full border-b border-[#001433] bg-[#001f5c] px-4 py-2 text-xs font-semibold text-white md:px-6 md:text-sm">
-        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
-            <p class="min-w-0 flex-1 text-balance text-left text-white md:flex-none">{{ config('medca.top_bar_claim') }}</p>
-            @if ($medcaGmbValid)
-                <a
-                    href="{{ $medcaGmbUrl }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="inline-flex shrink-0 items-center gap-1.5 text-[11px] font-semibold leading-tight text-white underline decoration-white/50 underline-offset-2 transition hover:decoration-white md:text-xs"
-                    aria-label="{{ __('Google Business Profile') }} — {{ config('medca.location_display') }}"
-                >
-                    <svg class="h-3.5 w-3.5 shrink-0 text-white md:h-4 md:w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                    </svg>
-                    <span class="whitespace-nowrap">{{ config('medca.location_display') }}</span>
-                </a>
-            @endif
+{{-- Sticky stack: slim topbar (~32–36px) + navbar row (~78–90px min). Approximate total px: config('medca.marketing_sticky_header_approx_px'). --}}
+<header class="sticky top-0 z-40 w-full font-sans">
+    <div class="w-full border-b border-[#001433] bg-[#001f5c]">
+        <div class="mx-auto flex h-9 min-h-[32px] items-center justify-between gap-3 px-4 md:px-6 lg:px-8">
+            <p class="min-w-0 flex-1 truncate text-left text-[11px] font-medium leading-none tracking-wide text-white md:text-xs">{{ config('medca.top_bar_claim') }}</p>
+            <div class="flex shrink-0 items-center justify-end">
+                @if ($medcaGmbValid)
+                    <a
+                        href="{{ $medcaGmbUrl }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex max-w-[min(52vw,14rem)] items-center gap-1.5 truncate text-[11px] font-medium leading-none text-white underline decoration-white/45 underline-offset-2 transition-colors duration-200 hover:text-white hover:decoration-white md:max-w-none md:text-xs"
+                        aria-label="{{ __('Google Business Profile') }} — {{ config('medca.location_display') }}"
+                    >
+                        <svg class="h-3.5 w-3.5 shrink-0 text-white md:h-4 md:w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                        </svg>
+                        <span class="min-w-0 truncate">{{ config('medca.location_display') }}</span>
+                    </a>
+                @else
+                    <span class="inline-flex max-w-[min(52vw,14rem)] items-center gap-1.5 text-[11px] font-medium leading-none tracking-wide text-white/95 md:max-w-none md:text-xs">
+                        <svg class="h-3.5 w-3.5 shrink-0 text-white md:h-4 md:w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                        </svg>
+                        <span class="min-w-0 truncate">{{ config('medca.location_display') }}</span>
+                    </span>
+                @endif
+            </div>
         </div>
     </div>
 
-    <div class="w-full bg-white px-4 py-[15px] md:px-6 md:py-[18px]">
-        <div class="mx-auto flex max-w-6xl items-center justify-between gap-3">
+    <div class="w-full border-b border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)]">
+        <div class="mx-auto flex min-h-[78px] max-w-6xl items-center justify-between gap-4 px-4 md:min-h-[84px] md:gap-6 md:px-6 lg:min-h-[86px] lg:gap-8 lg:px-8">
             {{-- Brand & Logo --}}
             <a href="{{ url('/') }}" class="inline-flex min-w-0 max-w-[min(100%,78vw)] items-center gap-2 text-sm md:max-w-none md:gap-2.5 md:text-base text-[#0046ad] focus:outline-none focus-visible:ring-2 focus-visible:ring-clinical-500/30" aria-label="{{ config('medca.brand_name') }} — {{ config('medca.tagline') }} — {{ __('Home') }}">
                 @if($logoSrc !== '')
@@ -64,18 +73,18 @@
                 @endif
 
                 <div class="flex min-w-0 flex-col justify-center border-l border-slate-200 pl-2 sm:pl-2.5">
-                    <span class="min-w-0 truncate text-[170%] font-semibold leading-tight tracking-tight text-[#0f172a]">{{ config('medca.brand_name', 'Medca Health Care') }}</span>
-                    <span class="mt-0.5 min-w-0 truncate text-[0.625rem] font-bold uppercase leading-none tracking-[0.18em] text-[#0046ad]/85 md:text-[0.6875rem]">{{ config('medca.tagline') }}</span>
+                    <span class="min-w-0 truncate text-[170%] font-bold leading-tight tracking-tight text-[#0f172a]">{{ config('medca.brand_name', 'Medca Health Care') }}</span>
+                    <span class="mt-0.5 min-w-0 truncate text-[0.625rem] font-medium uppercase leading-none tracking-[0.14em] text-[#0046ad]/85 md:text-[0.6875rem]">{{ config('medca.tagline') }}</span>
                 </div>
             </a>
 
             {{-- Desktop Navigation --}}
             <div class="hidden min-w-0 flex-1 items-center justify-end md:flex">
                 <nav class="flex min-w-0 flex-1 items-center justify-end" aria-label="{{ __('Primary') }}">
-                    <ul class="flex flex-wrap items-center justify-end divide-x divide-slate-200">
+                    <ul class="flex flex-wrap items-center justify-end gap-x-4 md:gap-x-6 lg:gap-x-8">
                         @foreach($navItems as $item)
                             @php($isNavCurrent = \App\Support\PublicNav::isCurrent($item['href']))
-                            <li class="px-2.5 first:pl-0 md:px-3">
+                            <li class="flex items-center">
                                 <a
                                     href="{{ $item['href'] }}"
                                     @if ($isNavCurrent) aria-current="page" @endif
@@ -89,7 +98,7 @@
                 </nav>
 
                 @if($isSuperAdmin && Route::has('admin.site-architect.live-edit.toggle'))
-                    <form method="POST" action="{{ route('admin.site-architect.live-edit.toggle') }}" class="ml-3 shrink-0">
+                    <form method="POST" action="{{ route('admin.site-architect.live-edit.toggle') }}" class="ml-4 shrink-0 md:ml-6">
                         @csrf
                         <button type="submit" class="rounded-xl border border-[#E2E8F0]/60 bg-[#0A1128] px-3 py-2 text-[11px] font-semibold uppercase tracking-widest text-[#E2E8F0] shadow-md">
                             {{ session('live_edit_enabled') ? 'Disable Live Edit' : 'Live Edit' }}
@@ -165,7 +174,7 @@
                                         href="{{ $item['href'] }}"
                                         x-on:click="open = false"
                                         @if ($drawerCurrent) aria-current="page" @endif
-                                        class="flex min-h-[60px] items-center border-b border-slate-100 px-1 text-sm font-semibold uppercase tracking-wide transition hover:bg-slate-50 focus-visible:outline-none {{ $drawerCurrent ? $navLinkActive : 'text-[#0046ad] hover:text-[#001e5c]' }}"
+                                        class="flex min-h-[60px] items-center border-b border-slate-100 px-1 text-sm font-medium uppercase tracking-[0.05em] transition-colors duration-200 hover:bg-slate-50 focus-visible:outline-none {{ $drawerCurrent ? $navLinkActive : 'text-[#0046ad] hover:text-[#001e5c]' }}"
                                     >
                                         {{ $item['label'] }}
                                     </a>
@@ -208,7 +217,7 @@
                                 <div class="grid grid-cols-2 gap-2">
                                     <a
                                         href="tel:+918884999002"
-                                        class="flex min-h-[52px] items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-clinical-800 shadow-sm transition hover:bg-slate-50"
+                                        class="flex min-h-[52px] items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-clinical-800 shadow-sm transition-colors duration-200 hover:bg-slate-50"
                                     >
                                         Call Now
                                     </a>
@@ -216,7 +225,7 @@
                                         href="https://wa.me/918884999002"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        class="flex min-h-[52px] items-center justify-center rounded-xl border border-emerald-700/40 bg-emerald-700 px-3 text-sm font-bold text-white transition hover:bg-emerald-800"
+                                        class="flex min-h-[52px] items-center justify-center rounded-xl border border-emerald-700/40 bg-emerald-700 px-3 text-sm font-bold text-white transition-colors duration-200 hover:bg-emerald-800"
                                     >
                                         WhatsApp
                                     </a>

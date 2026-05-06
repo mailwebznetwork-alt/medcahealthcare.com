@@ -9,7 +9,8 @@
  */
 html.medca-public-root {
     scroll-behavior: smooth;
-    scroll-padding-top: 5rem;
+    /* Sticky topbar (~36px) + navbar (~78–90px); keeps in-page anchors below the header */
+    scroll-padding-top: 8rem;
 }
 
 html.medca-public-root * {
@@ -26,6 +27,9 @@ html.medca-public-root * {
  * Public marketing pages (layouts.app only). Scoped so authenticated mom shell tokens stay unchanged.
  */
 body.medca-public-surface {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     --text-primary: #0f172a;
     --text-secondary: #475569;
     --text-muted: #64748b;
