@@ -9,7 +9,7 @@ class MomBackupDatabaseCommand extends Command
 {
     protected $signature = 'mom:backup-database';
 
-    protected $description = 'Copy SQLite DB to storage/app/backups (PDF Settings — Backup & Restore baseline).';
+    protected $description = 'Copy SQLite DB to storage/app/backups (Settings → Backup baseline).';
 
     public function handle(): int
     {

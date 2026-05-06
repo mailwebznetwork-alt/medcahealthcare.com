@@ -5,7 +5,7 @@ namespace App\Services\Webhooks;
 use Symfony\Component\HttpFoundation\IpUtils;
 
 /**
- * Optional destination IP allowlist for outbound HTTPS targets (PDF §6.6).
+ * Optional destination IP allowlist for outbound HTTPS targets.
  */
 class WebhookDestinationGuard
 {

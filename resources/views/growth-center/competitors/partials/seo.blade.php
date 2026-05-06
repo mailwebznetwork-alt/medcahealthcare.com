@@ -178,56 +178,56 @@
         </article>
     </div>
 
-    {{-- PDF §8 — SEO/AEO/GEO/LLM എഞ്ചിൻ: പൂർണ്ണ മാപ്പ് (മലയാളം) --}}
+    {{-- Growth Center SEO tab: scope reference --}}
     <article class="mom-card mt-8 border border-[rgba(197,160,89,0.12)] p-5">
-        <h3 class="mom-section-title">{{ __('PDF ഭാഗം 8 — SEO / AEO / GEO / LLM എഞ്ചിൻ (പൂർണ്ണ മാപ്പ്)') }}</h3>
+        <h3 class="mom-section-title">{{ __('SEO, GEO, AEO & LLM — scope map') }}</h3>
         <p class="mom-body-text mt-3 text-[var(--text-secondary)]">
-            {{ __('ഗ്ലോബൽ SEO, ടെക്‌നിക്കൽ ഫയലുകൾ, ജിയോ കവർേജ്, AEO സിഗ്നലുകൾ, LLM നയങ്ങൾ എന്നിവയുടെ പ്രധാന നിയന്ത്രണങ്ങൾ ഒരേ Growth Center ടാബിൽ ലഭ്യമാണ്: «SEO» (URL: ') }}
-            <a href="{{ route('growth-center.competitors.index', ['tab' => 'seo']) }}" class="text-[var(--success)] underline">{{ url('/growth-center/competitors') }}?tab=seo</a>{{ __('). പഴയ ലിങ്കുകൾ ') }}<code class="rounded bg-[rgba(0,0,0,0.25)] px-1 py-0.5 text-xs">?tab=geo</code>{{ __(' അല്ലെങ്കിൽ ') }}<code class="rounded bg-[rgba(0,0,0,0.25)] px-1 py-0.5 text-xs">?tab=aeo</code>{{ __(' ആണെങ്കിൽ സിസ്റ്റം സ്വയം «SEO» ടാബിലേക്ക് തിരിച്ചുവിടും.') }}
+            {{ __('Global SEO, technical files, geo coverage, AEO signals, and LLM policies are controlled from this Growth Center «SEO» tab. Entry URL:') }}
+            <a href="{{ route('growth-center.competitors.index', ['tab' => 'seo']) }}" class="text-mom-gold underline">{{ url('/growth-center/competitors') }}?tab=seo</a>{{ __('. Legacy query links ') }}<code class="rounded bg-[rgba(0,0,0,0.25)] px-1 py-0.5 text-xs">?tab=geo</code>{{ __(' or ') }}<code class="rounded bg-[rgba(0,0,0,0.25)] px-1 py-0.5 text-xs">?tab=aeo</code>{{ __(' redirect to this SEO tab.') }}
         </p>
 
         <div class="mt-6 space-y-5 text-[var(--text-secondary)]">
             <div>
-                <p class="mom-micro text-mom-gold">{{ __('① SEO (ഗ്ലോബൽ ഓൺ-സൈറ്റ്)') }}</p>
+                <p class="mom-micro text-mom-gold">{{ __('1) SEO — global on-site') }}</p>
                 <ul class="mom-body-text mt-2 list-inside list-disc space-y-1 pl-1">
-                    <li>{{ __('ഓർഗനൈസേഷൻ, NAP, sameAs, FAQ JSON-LD, കസ്റ്റം സ്കീമ — ഈ പേജിലെ «ഗ്ലോബൽ എൻ്റിറ്റി» ഫോം.') }}</li>
-                    <li>{{ __('robots, സൈറ്റ്മാപ് ടോഗിൾ, ഇൻഡക്സിങ്, canonical, Google വെരിഫിക്കേഷൻ — «ഗ്ലോബൽ ടെക്‌നിക്കൽ» ഫോം.') }}</li>
-                    <li>{{ __('പബ്ലിക് സൈറ്റ്മാപ് ഇൻഡക്സ്, ബ്ലോഗ്/സർവീസ്/ചിത്ര സൈറ്റ്മാപ്പുകൾ — മുകളിലെ പബ്ലിക് ലിങ്കുകൾ വഴി പരിശോധിക്കാം.') }}</li>
+                    <li>{{ __('Organization, NAP, sameAs, FAQ JSON-LD, custom schema — use the «Global entity» form on this page.') }}</li>
+                    <li>{{ __('robots.txt, sitemap toggles, indexing, canonical, Google verification — «Global technical» form.') }}</li>
+                    <li>{{ __('Public sitemap index and segment sitemaps (pages, blogs, services, images) — verify via the public links above.') }}</li>
                 </ul>
             </div>
             <div>
-                <p class="mom-micro text-mom-gold">{{ __('② GEO (സ്ഥാനം, പിൻകോഡ്, ലാൻഡിങ്)') }}</p>
+                <p class="mom-micro text-mom-gold">{{ __('2) GEO — location, PIN, landing') }}</p>
                 <ul class="mom-body-text mt-2 list-inside list-disc space-y-1 pl-1">
-                    <li>{{ __('ലാറ്റിറ്റ്യൂഡ്/ലോങ്ങിറ്റ്യൂഡ്, ആരം കി.മീ., പിൻകോഡ് പട്ടിക, ലാൻഡിങ് പാത്ത് — ഈ ടാബിനുള്ളിൽ താഴെയുള്ള «ലൊക്കേഷൻ ആൻഡ് കവർേജ്» ബ്ലോക്ക്.') }}</li>
+                    <li>{{ __('Latitude/longitude, radius km, PIN list, landing paths — «Location & coverage» block below on this tab.') }}</li>
                 </ul>
             </div>
             <div>
-                <p class="mom-micro text-mom-gold">{{ __('③ AEO (AI ആൻസർ എഞ്ചിനുകളിലെ ദൃശ്യപ്രാപ്തി)') }}</p>
+                <p class="mom-micro text-mom-gold">{{ __('3) AEO — answer-engine visibility') }}</p>
                 <ul class="mom-body-text mt-2 list-inside list-disc space-y-1 pl-1">
-                    <li>{{ __('LLM വിസിബിലിറ്റി / എൻ്റിറ്റി കൺസിസ്റ്റൻസി സ്കോറുകൾ — «AEO — AI വിസിബിലിറ്റി സിഗ്നലുകൾ» ബ്ലോക്ക്.') }}</li>
-                    <li>{{ __('യഥാർത്ഥ ബോട്ട് നയം: ') }}<code class="text-xs">/llm.txt</code>{{ __(' ടെക്‌നിക്കൽ സെറ്റിങ്സിൽ എഡിറ്റുചെയ്യുക; ') }}<code class="text-xs">/ai-discovery</code>{{ __(' ടോഗിൾ അവിടെത്തന്നെ.') }}</li>
+                    <li>{{ __('LLM visibility / entity consistency scores — «AEO — AI visibility signals» block.') }}</li>
+                    <li>{{ __('Bot policy: edit ') }}<code class="text-xs">/llm.txt</code>{{ __(' under Technical settings; toggle ') }}<code class="text-xs">/ai-discovery</code>{{ __(' there.') }}</li>
                 </ul>
             </div>
             <div>
-                <p class="mom-micro text-mom-gold">{{ __('④ LLM / AI ഡിസ്കവർബിലിറ്റി') }}</p>
+                <p class="mom-micro text-mom-gold">{{ __('4) LLM / AI discoverability') }}</p>
                 <ul class="mom-body-text mt-2 list-inside list-disc space-y-1 pl-1">
-                    <li>{{ __('പബ്ലിക് ') }}<code class="text-xs">llm.txt</code>{{ __(', ') }}<code class="text-xs">ai-discovery</code>{{ __(' JSON — മുകളിലെ എൻഡ്‌പോയിന്റ് ലിസ്റ്റ് + ടെക്‌നിക്കൽ ടോഗിളുകൾ.') }}</li>
-                    <li>{{ __('സൈറ്റ് ആർക്കിടെക്ചർ ലെ വേഗം, ലിങ്കുകൾ, AEO സംക്ഷിപ്തം — വേറൊരു ടാബ്: ') }}
-                        <a href="{{ route('growth-center.competitors.index', ['tab' => 'ai-pulse']) }}" class="text-[var(--success)] underline">{{ __('AI Pulse') }}</a>
-                        {{ __(' (PDF §19.6 ബ്രീഫ്).') }}</li>
+                    <li>{{ __('Public ') }}<code class="text-xs">llm.txt</code>{{ __(', ') }}<code class="text-xs">ai-discovery</code>{{ __(' JSON — endpoint list above plus technical toggles.') }}</li>
+                    <li>{{ __('Architecture narrative (velocity, links, AEO summary) — ') }}
+                        <a href="{{ route('growth-center.competitors.index', ['tab' => 'ai-pulse']) }}" class="text-mom-gold underline">{{ __('AI Pulse') }}</a>
+                        {{ __(' tab.') }}</li>
                 </ul>
             </div>
             <div>
-                <p class="mom-micro text-mom-gold">{{ __('⑤ ഇവിടെ ഉൾപ്പെടാത്തത് (വേറെ മൊഡ്യൂളുകൾ)') }}</p>
+                <p class="mom-micro text-mom-gold">{{ __('5) Outside this tab (other modules)') }}</p>
                 <ul class="mom-body-text mt-2 list-inside list-disc space-y-1 pl-1">
-                    <li>{{ __('വെബ് അനലിറ്റിക്സ് / അക്വിസിഷൻ ഡാഷ്ബോർഡ് — ') }}
-                        <a href="{{ route('growth-center.competitors.index', ['tab' => 'ga4']) }}" class="text-[var(--success)] underline">{{ __('GA4 ടാബ്') }}</a>{{ __('.') }}</li>
-                    <li>{{ __('ഓരോ പേജ്/ബ്ലോഗിന്റെ മെറ്റാ, OG, സ്കീമ — ') }}<a href="{{ route('site-architect.pages.index') }}" class="text-[var(--success)] underline">{{ __('Site Architect → Pages / Blogs') }}</a>{{ __('.') }}</li>
-                    <li>{{ __('ഓപ്പറേഷൻസ് സേവനങ്ങൾ / ജോബ് പോർട്ടൽ തുടങ്ങിയ മറ്റു SEO — അനുയോജ്യമായ ഹബുകളിൽ.') }}</li>
+                    <li>{{ __('Web analytics / acquisition — ') }}
+                        <a href="{{ route('growth-center.competitors.index', ['tab' => 'ga4']) }}" class="text-mom-gold underline">{{ __('GA4 tab') }}</a>{{ __('.') }}</li>
+                    <li>{{ __('Per-page/blog meta, OG, schema — ') }}<a href="{{ route('site-architect.pages.index') }}" class="text-mom-gold underline">{{ __('Site Architect → Pages / Blogs') }}</a>{{ __('.') }}</li>
+                    <li>{{ __('Operations services, job portal, and other hubs — use the relevant workspace.') }}</li>
                 </ul>
             </div>
             <div class="rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.35)] p-4">
-                <p class="mom-micro text-[var(--text-muted)]">{{ __('സേവ് API പാതകൾ (പരിശോധന)') }}</p>
+                <p class="mom-micro text-[var(--text-muted)]">{{ __('Save API paths (verification)') }}</p>
                 <ul class="mom-body-text mt-2 space-y-1 font-mono text-[11px] text-[var(--text-secondary)]">
                     <li>POST {{ url('/growth-center/seo/entity') }}</li>
                     <li>POST {{ url('/growth-center/seo/technical') }}</li>

@@ -3,7 +3,7 @@
 use App\Services\Growth\AiPulseService;
 use Illuminate\Support\Facades\Cache;
 
-it('includes pdf_pulse pillars when rebuilding the ai pulse snapshot', function () {
+it('includes pulse narrative pillars when rebuilding the ai pulse snapshot', function () {
     Cache::forget('markonminds:ai_pulse:snapshot:v1');
 
     $service = app(AiPulseService::class);
@@ -12,11 +12,11 @@ it('includes pdf_pulse pillars when rebuilding the ai pulse snapshot', function 
     $snap = Cache::get('markonminds:ai_pulse:snapshot:v1');
 
     expect($snap)->toBeArray()
-        ->and($snap)->toHaveKey('pdf_pulse')
+        ->and($snap)->toHaveKey('pulse_narrative')
         ->and($snap)->toHaveKey('speed_detail')
         ->and($snap['speed_detail'])->toHaveKeys(['source', 'score_0_100'])
         ->and($snap['scores'])->toHaveKeys(['speed', 'rankmath', 'aio', 'brand_authority'])
-        ->and($snap['pdf_pulse'])->toHaveKeys([
+        ->and($snap['pulse_narrative'])->toHaveKeys([
             'business_health',
             'predictive_insights',
             'conversion_insights',

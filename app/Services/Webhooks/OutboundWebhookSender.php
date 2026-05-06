@@ -19,7 +19,7 @@ class OutboundWebhookSender
     ) {}
 
     /**
-     * Deliver webhook with retries and per-attempt logs (PDF §6.4–6.5).
+     * Deliver webhook with retries and per-attempt logs.
      *
      * @param  array<string, mixed>  $payload
      */

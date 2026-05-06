@@ -224,7 +224,7 @@ class AiPulseService
             'recommendations' => $recommendations,
         ];
 
-        $payload['pdf_pulse'] = $this->buildPdfPulseInsights($payload);
+        $payload['pulse_narrative'] = $this->buildPulseNarrativeInsights($payload);
 
         return $payload;
     }
@@ -416,7 +416,7 @@ class AiPulseService
     }
 
     /**
-     * PDF §19.6 — narrative pillars: business health, predictive, conversion, visibility (GEO/AEO).
+     * Narrative pillars: business health, predictive, conversion, visibility (GEO/AEO).
      *
      * @param  array<string, mixed>  $snapshot
      * @return array{
@@ -428,7 +428,7 @@ class AiPulseService
      *     lead_counts_30d: array<string, int>
      * }
      */
-    private function buildPdfPulseInsights(array $snapshot): array
+    private function buildPulseNarrativeInsights(array $snapshot): array
     {
         $leadCounts = $this->leadSourceCountsLastDays(30);
         $apiKey = config('gemini.api_key');
@@ -443,13 +443,13 @@ class AiPulseService
         ];
 
         if (is_string($apiKey) && $apiKey !== '') {
-            $parsed = $this->geminiPdfPulseJson($apiKey, $snapshot, $leadCounts);
+            $parsed = $this->geminiPulseNarrativeJson($apiKey, $snapshot, $leadCounts);
             if ($parsed !== null) {
                 return array_merge($base, $parsed, ['source' => 'gemini', 'lead_counts_30d' => $leadCounts]);
             }
         }
 
-        return array_merge($base, $this->heuristicPdfPulse($snapshot, $leadCounts));
+        return array_merge($base, $this->heuristicPulseNarrative($snapshot, $leadCounts));
     }
 
     /**
@@ -482,7 +482,7 @@ class AiPulseService
      * @param  array<string, int>  $leadCounts
      * @return array{business_health: string, predictive_insights: string, conversion_insights: string, visibility_geo_aeo: string}|null
      */
-    private function geminiPdfPulseJson(string $apiKey, array $snapshot, array $leadCounts): ?array
+    private function geminiPulseNarrativeJson(string $apiKey, array $snapshot, array $leadCounts): ?array
     {
         $seoMean = (int) data_get($snapshot, 'scores.rankmath', 0);
         $authority = (int) data_get($snapshot, 'scores.brand_authority', 0);
@@ -499,7 +499,7 @@ class AiPulseService
         ], JSON_UNESCAPED_UNICODE) ?: '{}';
 
         $prompt = <<<TXT
-You are MarkOnMinds / Medca Growth OS — AI Pulse (PDF Marketing §19.6).
+You are MarkOnMinds / Medca Growth OS — AI Pulse narrative brief.
 
 Return ONLY valid JSON with keys:
 "business_health","predictive_insights","conversion_insights","visibility_geo_aeo"
@@ -560,7 +560,7 @@ TXT;
      * @param  array<string, int>  $leadCounts
      * @return array{business_health: string, predictive_insights: string, conversion_insights: string, visibility_geo_aeo: string}
      */
-    private function heuristicPdfPulse(array $snapshot, array $leadCounts): array
+    private function heuristicPulseNarrative(array $snapshot, array $leadCounts): array
     {
         $totalLeads = array_sum($leadCounts);
         $seoMean = (int) data_get($snapshot, 'scores.rankmath', 0);
@@ -608,7 +608,7 @@ TXT;
             'free_tier_sources' => [],
             'broken_links' => [],
             'recommendations' => [__('AI Pulse scan is running in the background. Refresh shortly.')],
-            'pdf_pulse' => [
+            'pulse_narrative' => [
                 'business_health' => '',
                 'predictive_insights' => '',
                 'conversion_insights' => '',

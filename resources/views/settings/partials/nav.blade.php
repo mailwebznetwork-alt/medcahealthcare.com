@@ -1,16 +1,41 @@
 @php
     $active = $activeSection ?? 'integrations';
     $isSuperAdmin = auth()->check() && strtolower((string) auth()->user()?->role) === 'super_admin';
-    $tabBase = 'rounded-mom-chrome px-3 py-2 transition duration-320 ease-premium';
-    $tabInactive = 'text-[var(--text-secondary)] hover:text-[var(--accent-gold)]';
-    $tabActive = 'border border-[rgba(197,160,89,0.35)] bg-[rgba(197,160,89,0.08)] text-mom-gold';
 @endphp
 
-<nav class="mom-card mb-8 flex flex-wrap gap-2 p-3 text-[13px]" aria-label="{{ __('Settings sections') }}">
-    <a href="{{ route('settings.integrations') }}" class="{{ $tabBase }} {{ $active === 'integrations' ? $tabActive : $tabInactive }}">{{ __('Integrations') }}</a>
-    <a href="{{ route('settings.webhooks') }}" class="{{ $tabBase }} {{ $active === 'webhooks' ? $tabActive : $tabInactive }}">{{ __('Webhooks') }}</a>
+<nav class="flex flex-wrap gap-0" aria-label="{{ __('Settings sections') }}">
+    <a
+        href="{{ route('settings.integrations') }}"
+        @class([
+            'inline-flex items-center border-b px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
+            'border-mom-gold text-mom-gold' => $active === 'integrations',
+            'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => $active !== 'integrations',
+        ])
+    >{{ __('Integrations') }}</a>
+    <a
+        href="{{ route('settings.webhooks') }}"
+        @class([
+            'inline-flex items-center border-b px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
+            'border-mom-gold text-mom-gold' => $active === 'webhooks',
+            'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => $active !== 'webhooks',
+        ])
+    >{{ __('Webhooks') }}</a>
     @if ($isSuperAdmin)
-        <a href="{{ route('settings.backup') }}" class="{{ $tabBase }} {{ $active === 'backup' ? $tabActive : $tabInactive }}">{{ __('Backup') }}</a>
-        <a href="{{ route('settings.maintenance') }}" class="{{ $tabBase }} {{ $active === 'maintenance' ? $tabActive : $tabInactive }}">{{ __('Maintenance') }}</a>
+        <a
+            href="{{ route('settings.backup') }}"
+            @class([
+                'inline-flex items-center border-b px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
+                'border-mom-gold text-mom-gold' => $active === 'backup',
+                'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => $active !== 'backup',
+            ])
+        >{{ __('Backup') }}</a>
+        <a
+            href="{{ route('settings.maintenance') }}"
+            @class([
+                'inline-flex items-center border-b px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
+                'border-mom-gold text-mom-gold' => $active === 'maintenance',
+                'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => $active !== 'maintenance',
+            ])
+        >{{ __('Maintenance') }}</a>
     @endif
 </nav>

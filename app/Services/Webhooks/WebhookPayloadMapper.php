@@ -3,7 +3,7 @@
 namespace App\Services\Webhooks;
 
 /**
- * Conditional / structural payload mapping (PDF §6.3).
+ * Conditional / structural payload mapping for outbound webhooks.
  *
  * Rules shape (JSON column mapping_rules):
  * {

@@ -21,7 +21,7 @@ it('redirects legacy aeo tab to seo tab', function () {
         ->assertRedirect(route('growth-center.competitors.index', ['tab' => 'seo']));
 });
 
-it('renders pdf section eight engine map on seo tab', function () {
+it('renders seo scope reference map on seo tab', function () {
     if (! Schema::hasTable('competitors')) {
         $this->markTestSkipped('Competitors table is not migrated.');
     }
@@ -35,7 +35,7 @@ it('renders pdf section eight engine map on seo tab', function () {
     $this->actingAs($user)
         ->get(route('growth-center.competitors.index', ['tab' => 'seo']))
         ->assertOk()
-        ->assertSee('PDF ഭാഗം 8', false)
+        ->assertSee('scope map', false)
         ->assertSee('/growth-center/seo/entity', false);
 });
 
@@ -76,7 +76,7 @@ it('saves global seo entity with gmb fields and faqs', function () {
             'google_business_profile_url' => $gmbUrl,
             'has_map_url' => 'https://maps.google.com/?q=Test',
             'entity_faqs_json' => json_encode([
-                ['question' => 'എന്താണ് സേവന സമയം?', 'answer' => 'പ്രഭാതം 9 മുതൽ വൈകുന്നേരം 6 വരെ.'],
+                ['question' => 'What are your hours?', 'answer' => '9:00 AM to 6:00 PM, Monday to Saturday.'],
             ], JSON_THROW_ON_ERROR),
         ])
         ->assertRedirect(route('growth-center.competitors.index', ['tab' => 'seo']));

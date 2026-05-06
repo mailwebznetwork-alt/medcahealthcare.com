@@ -14,7 +14,7 @@ use JsonException;
 use Throwable;
 
 /**
- * Outbound HTTP notifications — Webhook Manager (PDF §4–6) plus legacy Integration entry "webhook".
+ * Outbound HTTP notifications — Webhook Manager plus legacy Integration entry "webhook".
  */
 class OutboundWebhookDispatcher
 {

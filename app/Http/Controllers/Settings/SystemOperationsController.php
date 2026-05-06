@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Artisan;
 class SystemOperationsController extends Controller
 {
     /**
-     * PDF Settings — Backup & Restore (SQLite snapshot via artisan).
+     * Database backup (SQLite snapshot via artisan).
      */
     public function backup(Request $request): RedirectResponse
     {
@@ -30,7 +30,7 @@ class SystemOperationsController extends Controller
     }
 
     /**
-     * PDF Settings — Maintenance Mode (Laravel down / up).
+     * Maintenance mode (Laravel down / up).
      */
     public function maintenance(Request $request): RedirectResponse
     {

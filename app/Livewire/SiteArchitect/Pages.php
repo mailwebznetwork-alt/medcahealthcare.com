@@ -819,7 +819,7 @@ class Pages extends Component
     }
 
     /**
-     * Rank Math–style on-page checklist (PDF §8–11 lightweight signals).
+     * Rank Math–style on-page checklist (lightweight signals).
      *
      * @return array{score: int, checks: list<string>, warnings: list<string>}
      */

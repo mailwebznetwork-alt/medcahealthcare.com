@@ -96,11 +96,11 @@
         </ul>
     </section>
 
-    @php($pulse = $snapshot['pdf_pulse'] ?? [])
+    @php($pulse = $snapshot['pulse_narrative'] ?? [])
     <section class="mom-card p-5">
         <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
-                <h3 class="mom-section-title">{{ __('AI Pulse brief (PDF §19.6)') }}</h3>
+                <h3 class="mom-section-title">{{ __('AI Pulse brief') }}</h3>
                 <p class="mom-micro mt-1 text-[var(--text-muted)]">{{ __('Business health · Predictive · Conversion · GEO/AEO visibility') }}</p>
             </div>
             @if (! empty($pulse['source']))

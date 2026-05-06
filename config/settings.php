@@ -4,7 +4,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Webhook Manager — outbound events (PDF §4–6 alignment)
+    | Webhook Manager — outbound events
     |--------------------------------------------------------------------------
     | Configure receivers under Settings → Webhooks (multiple endpoints + logs).
     | Legacy: Settings → Integrations entry “Webhook” is used when no endpoint
@@ -30,7 +30,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Super-admin operations token — Backup & Maintenance POST forms (PDF Settings)
+    | Super-admin operations token — Backup & Maintenance POST forms
     |--------------------------------------------------------------------------
     */
     'operations_token' => env('SETTINGS_OPERATIONS_TOKEN'),
@@ -52,7 +52,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Webhook dispatch mode — queue jobs vs synchronous HTTP (PDF §6.4)
+    | Webhook dispatch mode — queue jobs vs synchronous HTTP
     |--------------------------------------------------------------------------
     */
     'webhooks' => [
