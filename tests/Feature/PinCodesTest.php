@@ -22,6 +22,7 @@ it('forbids pin codes directory when the user lacks operations access', function
 it('allows operations users to open pin codes overview', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
+        'role' => 'manager',
         'module_access' => collect(ModuleAccess::keys())
             ->mapWithKeys(fn (string $k) => [$k => $k === ModuleAccess::OPERATIONS])
             ->all(),
@@ -36,6 +37,7 @@ it('allows operations users to open pin codes overview', function () {
 it('creates a pin code from the form', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
+        'role' => 'manager',
         'module_access' => collect(ModuleAccess::keys())
             ->mapWithKeys(fn (string $k) => [$k => $k === ModuleAccess::OPERATIONS])
             ->all(),
@@ -69,6 +71,7 @@ it('imports CSV after preview and confirm', function () {
 
     $user = User::factory()->create([
         'email_verified_at' => now(),
+        'role' => 'manager',
         'module_access' => collect(ModuleAccess::keys())
             ->mapWithKeys(fn (string $k) => [$k => $k === ModuleAccess::OPERATIONS])
             ->all(),
@@ -96,6 +99,7 @@ it('imports CSV after preview and confirm', function () {
 it('rejects CSV preview when required columns are missing', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
+        'role' => 'manager',
         'module_access' => collect(ModuleAccess::keys())
             ->mapWithKeys(fn (string $k) => [$k => $k === ModuleAccess::OPERATIONS])
             ->all(),

@@ -7,8 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Careers\StoreJobApplicationRequest;
 use App\Models\Application;
 use App\Models\Vacancy;
+use App\Services\Integrations\OutboundWebhookDispatcher;
 use App\Support\JobPostingSchema;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class CareersController extends Controller
@@ -36,7 +38,7 @@ class CareersController extends Controller
         $whatsappClick = (bool) ($data['whatsapp_click'] ?? false);
         unset($data['whatsapp_click']);
 
-        Application::query()->create([
+        $application = Application::query()->create([
             'vacancy_id' => $vacancy->id,
             'full_name' => $data['full_name'],
             'email' => $data['email'],
@@ -47,6 +49,13 @@ class CareersController extends Controller
             'source' => $whatsappClick ? 'whatsapp' : ($data['source'] ?? 'web'),
             'whatsapp_clicked_at' => $whatsappClick ? now() : null,
             'pipeline_status' => ApplicationPipelineStatus::Applied,
+        ]);
+
+        app(OutboundWebhookDispatcher::class)->dispatch('job.application.submitted', [
+            'application_id' => $application->id,
+            'vacancy_id' => $vacancy->id,
+            'vacancy_slug' => $vacancy->slug,
+            'email_domain' => Str::after((string) $application->email, '@'),
         ]);
 
         return redirect()

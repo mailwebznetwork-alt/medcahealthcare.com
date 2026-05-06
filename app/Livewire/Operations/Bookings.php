@@ -8,6 +8,7 @@ use App\Models\Lead;
 use App\Models\LeadNote;
 use App\Models\PinCode;
 use App\Models\User;
+use App\Services\Integrations\OutboundWebhookDispatcher;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -143,11 +144,15 @@ class Bookings extends Component
 
         if ($this->editingId === null) {
             $this->authorize('create', Lead::class);
-            Lead::query()->create($payload);
+            $lead = Lead::query()->create($payload);
+            $this->maybeDispatchServiceBooked(null, $lead);
         } else {
             $lead = Lead::query()->findOrFail($this->editingId);
+            $previousStatus = $lead->status;
             $this->authorize('update', $lead);
             $lead->update($payload);
+            $lead->refresh();
+            $this->maybeDispatchServiceBooked($previousStatus, $lead);
         }
 
         $this->showLeadModal = false;
@@ -167,7 +172,28 @@ class Bookings extends Component
     {
         $lead = Lead::query()->findOrFail($leadId);
         $this->authorize('update', $lead);
+        $previousStatus = $lead->status;
         $lead->update(['status' => LeadStatus::from($status)]);
+        $lead->refresh();
+        $this->maybeDispatchServiceBooked($previousStatus, $lead);
+    }
+
+    private function maybeDispatchServiceBooked(?LeadStatus $previous, Lead $lead): void
+    {
+        if ($lead->status !== LeadStatus::Converted) {
+            return;
+        }
+
+        if ($previous !== null && $previous === LeadStatus::Converted) {
+            return;
+        }
+
+        app(OutboundWebhookDispatcher::class)->dispatch('service.booked', [
+            'lead_id' => $lead->id,
+            'uuid' => $lead->uuid,
+            'service' => $lead->service,
+            'status' => $lead->status->value,
+        ]);
     }
 
     public function updateAssigned(int $leadId, mixed $userId): void

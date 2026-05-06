@@ -33,9 +33,17 @@ class WebhookManager extends Component
 
     public string $payload_template = '';
 
+    public string $mapping_rules_json = '{}';
+
+    public string $allowed_cidrs_text = '';
+
+    public bool $verify_ssl = true;
+
     public string $custom_headers_json = '{}';
 
     public bool $enforce_https = true;
+
+    public ?int $inspectDeliveryId = null;
 
     public int $max_retries = 3;
 
@@ -77,6 +85,10 @@ class WebhookManager extends Component
         $this->payload_template = (string) ($hook->payload_template ?? '');
         $this->custom_headers_json = json_encode($hook->custom_headers ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         $this->enforce_https = $hook->enforce_https;
+        $this->verify_ssl = (bool) ($hook->verify_ssl ?? true);
+        $this->mapping_rules_json = json_encode($hook->mapping_rules ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $cidrs = $hook->allowed_destination_cidrs ?? [];
+        $this->allowed_cidrs_text = is_array($cidrs) ? implode("\n", array_map('strval', $cidrs)) : '';
         $this->max_retries = (int) $hook->max_retries;
         $this->timeout_seconds = (int) $hook->timeout_seconds;
         $this->sort_order = (int) $hook->sort_order;
@@ -92,6 +104,10 @@ class WebhookManager extends Component
 
     public function save(): void
     {
+        if (trim($this->mapping_rules_json) === '') {
+            $this->mapping_rules_json = '{}';
+        }
+
         $catalog = $this->catalogEventKeys();
 
         $rules = [
@@ -100,6 +116,9 @@ class WebhookManager extends Component
             'http_method' => ['required', Rule::in(['POST', 'GET', 'PUT', 'PATCH'])],
             'is_enabled' => ['boolean'],
             'payload_template' => ['nullable', 'string', 'max:65535'],
+            'mapping_rules_json' => ['nullable', 'json'],
+            'allowed_cidrs_text' => ['nullable', 'string', 'max:4000'],
+            'verify_ssl' => ['boolean'],
             'custom_headers_json' => ['required', 'json'],
             'enforce_https' => ['boolean'],
             'max_retries' => ['required', 'integer', 'min:1', 'max:10'],
@@ -134,12 +153,27 @@ class WebhookManager extends Component
             }
         }
 
+        $mappingDecoded = json_decode($validated['mapping_rules_json'] ?? '{}', true);
+        if (! is_array($mappingDecoded)) {
+            $this->addError('mapping_rules_json', __('Mapping rules must be a JSON object.'));
+
+            return;
+        }
+
+        $mappingStored = $mappingDecoded === [] ? null : $mappingDecoded;
+
+        $cidrLines = preg_split('/\r\n|\r|\n/', (string) ($validated['allowed_cidrs_text'] ?? '')) ?: [];
+        $cidrList = array_values(array_filter(array_map('trim', $cidrLines), fn (string $s): bool => $s !== ''));
+
         $payload = [
             'name' => $validated['name'],
             'target_url' => $validated['target_url'],
             'http_method' => strtoupper($validated['http_method']),
             'is_enabled' => $validated['is_enabled'],
             'payload_template' => $validated['payload_template'] !== '' ? $validated['payload_template'] : null,
+            'mapping_rules' => $mappingStored,
+            'allowed_destination_cidrs' => $cidrList === [] ? null : $cidrList,
+            'verify_ssl' => $validated['verify_ssl'],
             'custom_headers' => $headersDecoded,
             'enforce_https' => $validated['enforce_https'],
             'max_retries' => $validated['max_retries'],
@@ -218,8 +252,12 @@ class WebhookManager extends Component
         $this->auth_bearer_input = '';
         $this->is_enabled = true;
         $this->payload_template = '';
+        $this->mapping_rules_json = '{}';
+        $this->allowed_cidrs_text = '';
+        $this->verify_ssl = true;
         $this->custom_headers_json = '{}';
         $this->enforce_https = true;
+        $this->inspectDeliveryId = null;
         $this->max_retries = 3;
         $this->timeout_seconds = 15;
         $this->sort_order = 0;
@@ -247,6 +285,14 @@ class WebhookManager extends Component
             'hooks' => $hooks,
             'deliveries' => $deliveries,
             'catalogEvents' => config('settings.webhook_events', []),
+            'inspectedDelivery' => $this->inspectDeliveryId !== null
+                ? WebhookDelivery::query()->with('outboundWebhook')->find($this->inspectDeliveryId)
+                : null,
         ]);
+    }
+
+    public function inspectDelivery(?int $id): void
+    {
+        $this->inspectDeliveryId = $id;
     }
 }

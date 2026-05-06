@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\ModuleAccess;
+use App\Services\Integrations\OutboundWebhookDispatcher;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,6 +50,11 @@ class RegisteredUserController extends Controller
         ]);
 
         event(new Registered($user));
+
+        app(OutboundWebhookDispatcher::class)->dispatch('user.registered', [
+            'user_id' => $user->id,
+            'registration' => 'self_service',
+        ]);
 
         Auth::login($user);
 

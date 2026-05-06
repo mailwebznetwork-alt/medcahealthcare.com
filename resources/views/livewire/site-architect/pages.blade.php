@@ -277,6 +277,28 @@
             </section>
 
             <section class="mom-card p-6">
+                <h3 class="mom-section-title mb-4">{{ __('On-page SEO checklist') }}</h3>
+                <p class="mom-subtext mb-4">{{ __('Meta length, canonical, OG social layer, and keyword alignment — heuristic signals similar to Rank Math-style guidance.') }}</p>
+                @if ($onPageSeo)
+                    <p class="text-lg font-semibold text-[var(--text-primary)]">{{ $onPageSeo['score'] }}/100</p>
+                    @if (count($onPageSeo['checks']) > 0)
+                        <ul class="mom-subtext mt-2 list-inside list-disc text-[var(--text-secondary)]">
+                            @foreach ($onPageSeo['checks'] as $item)
+                                <li>{{ $item }}</li>
+                            @endforeach
+                        </ul>
+                    @endif
+                    @if (count($onPageSeo['warnings']) > 0)
+                        <ul class="mom-subtext mt-2 list-inside list-disc text-[var(--warning)]">
+                            @foreach ($onPageSeo['warnings'] as $warn)
+                                <li>{{ $warn }}</li>
+                            @endforeach
+                        </ul>
+                    @endif
+                @endif
+            </section>
+
+            <section class="mom-card p-6">
                 <h3 class="mom-section-title mb-4">{{ __('AEO+ / LLM readiness') }}</h3>
                 <div class="space-y-4">
                     <div>

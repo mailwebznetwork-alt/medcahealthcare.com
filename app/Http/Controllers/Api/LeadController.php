@@ -94,6 +94,17 @@ class LeadController extends Controller
             'service' => $lead->service,
         ]);
 
+        $submissionContext = isset($data['submission_context']) ? trim((string) $data['submission_context']) : '';
+        if ($submissionContext === 'contact_form') {
+            app(OutboundWebhookDispatcher::class)->dispatch('contact.form.submitted', [
+                'lead_id' => $lead->id,
+                'uuid' => $lead->uuid,
+                'source' => $lead->source instanceof \BackedEnum ? $lead->source->value : (string) $lead->source,
+                'service' => $lead->service,
+                'submission_context' => $submissionContext,
+            ]);
+        }
+
         return response()->json([
             'message' => 'Lead created.',
             'duplicate' => false,

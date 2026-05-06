@@ -94,6 +94,20 @@
                     @error('payload_template') <span class="text-[12px] text-[var(--danger)]">{{ $message }}</span> @enderror
                 </label>
                 <label class="block">
+                    <span class="mom-micro mb-1 block">{{ __('Conditional mapping rules (JSON)') }} — {{ __('optional; default/include_only/exclude/rename per event') }}</span>
+                    <textarea wire:model.blur="mapping_rules_json" rows="5" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 font-mono text-[12px] text-[var(--text-primary)]"></textarea>
+                    @error('mapping_rules_json') <span class="text-[12px] text-[var(--danger)]">{{ $message }}</span> @enderror
+                </label>
+                <label class="block">
+                    <span class="mom-micro mb-1 block">{{ __('Destination IP allowlist (CIDR per line)') }} — {{ __('optional; TLS host resolved IPs must match') }}</span>
+                    <textarea wire:model.blur="allowed_cidrs_text" rows="3" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 font-mono text-[12px] text-[var(--text-primary)]" placeholder="203.0.113.0/24"></textarea>
+                    @error('allowed_cidrs_text') <span class="text-[12px] text-[var(--danger)]">{{ $message }}</span> @enderror
+                </label>
+                <label class="inline-flex cursor-pointer items-center gap-2 text-[13px] text-[var(--text-secondary)]">
+                    <input type="checkbox" wire:model.live="verify_ssl" class="rounded border border-[rgba(255,255,255,0.2)]">
+                    {{ __('Verify TLS certificates when connecting') }}
+                </label>
+                <label class="block">
                     <span class="mom-micro mb-1 block">{{ __('Custom headers (JSON object)') }}</span>
                     <textarea wire:model.blur="custom_headers_json" rows="4" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 font-mono text-[12px] text-[var(--text-primary)]"></textarea>
                     @error('custom_headers_json') <span class="text-[12px] text-[var(--danger)]">{{ $message }}</span> @enderror
@@ -223,7 +237,10 @@
                                     <span class="block text-[11px] text-[var(--text-muted)]">{{ \Illuminate\Support\Str::limit($delivery->error_message, 120) }}</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3">{{ $delivery->duration_ms ?? '—' }}</td>
+                            <td class="px-4 py-3">
+                                {{ $delivery->duration_ms ?? '—' }}
+                                <button type="button" wire:click="inspectDelivery({{ $delivery->id }})" class="mom-cta-ghost ml-2 !px-2 !py-1 !text-[10px]">{{ __('Inspect') }}</button>
+                            </td>
                         </tr>
                     @empty
                         <tr>
@@ -236,5 +253,17 @@
         <div class="mt-4">
             {{ $deliveries->links() }}
         </div>
+        @if ($inspectedDelivery)
+            <div class="mom-card mt-6 border border-[rgba(197,160,89,0.25)] p-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h4 class="mom-micro">{{ __('Delivery detail (debug)') }}</h4>
+                    <button type="button" wire:click="$set('inspectDeliveryId', null)" class="mom-cta-ghost !px-3 !py-2 !text-[11px]">{{ __('Close') }}</button>
+                </div>
+                <p class="mom-subtext mt-2">{{ __('Request payload') }}</p>
+                <pre class="mt-1 max-h-48 overflow-auto whitespace-pre-wrap rounded-mom-chrome bg-[rgba(10,15,28,0.85)] p-3 font-mono text-[11px] text-[var(--text-secondary)]">{{ $inspectedDelivery->request_payload ?? '—' }}</pre>
+                <p class="mom-subtext mt-4">{{ __('Response payload') }}</p>
+                <pre class="mt-1 max-h-48 overflow-auto whitespace-pre-wrap rounded-mom-chrome bg-[rgba(10,15,28,0.85)] p-3 font-mono text-[11px] text-[var(--text-secondary)]">{{ $inspectedDelivery->response_payload ?? $inspectedDelivery->response_body ?? '—' }}</pre>
+            </div>
+        @endif
     </section>
 </div>

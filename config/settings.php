@@ -50,4 +50,20 @@ return [
     */
     'schedule_database_backup' => filter_var(env('SETTINGS_SCHEDULE_DATABASE_BACKUP', false), FILTER_VALIDATE_BOOLEAN),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Webhook dispatch mode — queue jobs vs synchronous HTTP (PDF §6.4)
+    |--------------------------------------------------------------------------
+    */
+    'webhooks' => [
+        'async_dispatch' => filter_var(env('SETTINGS_WEBHOOKS_ASYNC', true), FILTER_VALIDATE_BOOLEAN),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Bearer token for POST /api/payments/notify (external payment bridges)
+    |--------------------------------------------------------------------------
+    */
+    'payment_ingest_bearer' => env('SETTINGS_PAYMENT_INGEST_BEARER'),
+
 ];

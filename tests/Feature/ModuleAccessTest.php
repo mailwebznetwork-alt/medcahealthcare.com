@@ -40,6 +40,7 @@ it('does not render sidebar links for modules the user cannot access', function 
 it('allows an administrator to update another user module access', function () {
     $admin = User::factory()->create([
         'email_verified_at' => now(),
+        'role' => 'admin',
         'module_access' => array_merge(moduleAccessAll(true), []),
     ]);
 

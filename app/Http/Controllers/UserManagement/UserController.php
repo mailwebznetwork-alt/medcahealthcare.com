@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UserManagement\StoreUserRequest;
 use App\Http\Requests\UserManagement\UpdateUserRequest;
 use App\Models\User;
+use App\ModuleAccess;
 use App\Services\ActivityLogService;
+use App\Services\Integrations\OutboundWebhookDispatcher;
 use App\Support\RootAccount;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
@@ -114,6 +116,13 @@ class UserController extends Controller
         }
 
         $user->save();
+
+        app(OutboundWebhookDispatcher::class)->dispatch('user.registered', [
+            'user_id' => $user->id,
+            'registration' => 'admin_created',
+            'role' => $user->role instanceof \BackedEnum ? $user->role->value : (string) ($user->role ?? ''),
+        ]);
+
         $this->activityLogService->log(
             'user_create',
             'user_management',
@@ -132,11 +141,25 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
+        $this->authorize('update', $user);
+
         $user->fill([
             'name' => $request->validated('name'),
             'email' => $request->validated('email'),
             'role' => $request->validated('role'),
+            'phone' => $request->validated('phone'),
+            'role_label' => $request->validated('role_label'),
         ]);
+
+        if ($request->filled('password')) {
+            $user->password = Hash::make((string) $request->validated('password'));
+        }
+
+        if (! $user->isRootSuperAdmin()) {
+            /** @var array<string, mixed> $modulePayload */
+            $modulePayload = $request->input('module_access', []);
+            $user->module_access = $this->normalizedModuleAccessFromInput($modulePayload);
+        }
 
         if ($request->boolean('remove_profile_image') && $user->profile_image_path) {
             Storage::disk('public')->delete($user->profile_image_path);
@@ -191,6 +214,23 @@ class UserController extends Controller
         );
 
         return redirect()->route('user-management.index')->with('status', 'user-updated');
+    }
+
+    /**
+     * Build a full module_access map from checkbox POST input (unchecked keys omitted).
+     *
+     * @param  array<string, mixed>  $incoming
+     * @return array<string, bool>
+     */
+    private function normalizedModuleAccessFromInput(array $incoming): array
+    {
+        $merged = [];
+
+        foreach (ModuleAccess::keys() as $key) {
+            $merged[$key] = isset($incoming[$key]) && filter_var($incoming[$key], FILTER_VALIDATE_BOOLEAN);
+        }
+
+        return $merged;
     }
 
     public function destroy(User $user): RedirectResponse

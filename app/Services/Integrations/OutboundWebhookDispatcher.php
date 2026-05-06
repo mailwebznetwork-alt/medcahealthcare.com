@@ -2,9 +2,11 @@
 
 namespace App\Services\Integrations;
 
+use App\Jobs\SendOutboundWebhookJob;
 use App\Models\Integration;
 use App\Models\OutboundWebhook;
 use App\Services\Webhooks\OutboundWebhookSender;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -34,7 +36,11 @@ class OutboundWebhookDispatcher
                 ->filter(fn (OutboundWebhook $webhook): bool => in_array($eventKey, $webhook->events ?? [], true));
 
             foreach ($hooks as $webhook) {
-                $this->webhookSender->send($webhook, $eventKey, $payload);
+                if (Config::boolean('settings.webhooks.async_dispatch', true)) {
+                    SendOutboundWebhookJob::dispatch($webhook->id, $eventKey, $payload);
+                } else {
+                    $this->webhookSender->send($webhook, $eventKey, $payload);
+                }
             }
 
             if ($hooks->isNotEmpty()) {

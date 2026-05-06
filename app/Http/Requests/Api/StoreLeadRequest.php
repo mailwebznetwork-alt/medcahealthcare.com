@@ -27,6 +27,7 @@ class StoreLeadRequest extends FormRequest
             'utm_source' => ['nullable', 'string', 'max:255'],
             'utm_campaign' => ['nullable', 'string', 'max:255'],
             'pin_code_id' => ['nullable', 'integer', 'exists:pin_codes,id'],
+            'submission_context' => ['nullable', 'string', 'max:64'],
         ];
     }
 }

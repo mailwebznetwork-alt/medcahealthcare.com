@@ -12,10 +12,14 @@ use Throwable;
 
 class OutboundWebhookSender
 {
-    public function __construct(private readonly WebhookPayloadBuilder $payloadBuilder) {}
+    public function __construct(
+        private readonly WebhookPayloadBuilder $payloadBuilder,
+        private readonly WebhookPayloadMapper $payloadMapper,
+        private readonly WebhookDestinationGuard $destinationGuard
+    ) {}
 
     /**
-     * Deliver webhook with retries and per-attempt logs (PDF §6.4, §6.5).
+     * Deliver webhook with retries and per-attempt logs (PDF §6.4–6.5).
      *
      * @param  array<string, mixed>  $payload
      */
@@ -25,9 +29,40 @@ class OutboundWebhookSender
             return;
         }
 
+        $payload = $this->payloadMapper->apply($payload, $webhook->mapping_rules, $eventKey);
+
         $url = $webhook->target_url;
         if ($webhook->enforce_https && ! Str::startsWith(strtolower($url), 'https://')) {
-            $this->logFailure($webhook, $eventKey, 1, null, null, false, 'HTTPS is required for this endpoint.', 0);
+            $this->writeDeliveryLog(
+                $webhook,
+                $eventKey,
+                1,
+                null,
+                null,
+                null,
+                null,
+                false,
+                'HTTPS is required for this endpoint.',
+                0
+            );
+
+            return;
+        }
+
+        $cidrs = $webhook->allowed_destination_cidrs ?? [];
+        if (is_array($cidrs) && $cidrs !== [] && ! $this->destinationGuard->isHostAllowed($url, array_values(array_filter(array_map('strval', $cidrs))))) {
+            $this->writeDeliveryLog(
+                $webhook,
+                $eventKey,
+                1,
+                null,
+                null,
+                null,
+                null,
+                false,
+                'Destination host IP is not in the configured allowlist.',
+                0
+            );
 
             return;
         }
@@ -35,8 +70,7 @@ class OutboundWebhookSender
         $method = strtoupper($webhook->http_method);
         $max = max(1, min(10, (int) $webhook->max_retries));
         $timeout = max(1, min(120, (int) $webhook->timeout_seconds));
-
-        $lastError = 'Delivery failed.';
+        $verifySsl = (bool) $webhook->verify_ssl;
 
         for ($attempt = 1; $attempt <= $max; $attempt++) {
             $encodedBody = null;
@@ -44,10 +78,19 @@ class OutboundWebhookSender
 
             try {
                 if ($method === 'GET') {
-                    $response = $this->sendGet($webhook, $eventKey, $payload, $timeout);
+                    $response = $this->sendGet($webhook, $eventKey, $payload, $timeout, $verifySsl);
+                    $requestFull = json_encode([
+                        'method' => 'GET',
+                        'url' => $url,
+                        'event' => $eventKey,
+                        'sent_at' => now()->toIso8601String(),
+                    ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+                    $responseFull = $response->body();
                 } else {
                     $encodedBody = $this->payloadBuilder->bodyJson($webhook, $eventKey, $payload);
-                    $response = $this->sendWithBody($webhook, $eventKey, $encodedBody, $method, $timeout);
+                    $response = $this->sendWithBody($webhook, $eventKey, $encodedBody, $method, $timeout, $verifySsl);
+                    $requestFull = $encodedBody;
+                    $responseFull = $response->body();
                 }
 
                 $durationMs = (int) round((microtime(true) - $started) * 1000);
@@ -56,32 +99,64 @@ class OutboundWebhookSender
                     : Str::limit($method.' '.($encodedBody ?? ''), 4000);
 
                 if ($response->successful()) {
-                    $this->logSuccess($webhook, $eventKey, $attempt, $summary, $response, $durationMs);
+                    $this->writeDeliveryLog(
+                        $webhook,
+                        $eventKey,
+                        $attempt,
+                        $summary,
+                        $requestFull,
+                        $response->status(),
+                        $responseFull,
+                        true,
+                        null,
+                        $durationMs
+                    );
 
                     return;
                 }
 
-                $lastError = 'HTTP '.$response->status();
-                $this->logFailure(
+                $this->writeDeliveryLog(
                     $webhook,
                     $eventKey,
                     $attempt,
                     $summary,
-                    $response,
+                    $requestFull,
+                    $response->status(),
+                    $responseFull,
                     false,
-                    $lastError,
+                    'HTTP '.$response->status(),
                     $durationMs
                 );
             } catch (JsonException $e) {
                 $durationMs = (int) round((microtime(true) - $started) * 1000);
-                $lastError = 'Invalid payload template: '.$e->getMessage();
-                $this->logFailure($webhook, $eventKey, $attempt, null, null, false, $lastError, $durationMs);
+                $this->writeDeliveryLog(
+                    $webhook,
+                    $eventKey,
+                    $attempt,
+                    null,
+                    $encodedBody,
+                    null,
+                    null,
+                    false,
+                    'Invalid payload template: '.$e->getMessage(),
+                    $durationMs
+                );
 
                 return;
             } catch (Throwable $e) {
                 $durationMs = (int) round((microtime(true) - $started) * 1000);
-                $lastError = $e->getMessage();
-                $this->logFailure($webhook, $eventKey, $attempt, null, null, false, $lastError, $durationMs);
+                $this->writeDeliveryLog(
+                    $webhook,
+                    $eventKey,
+                    $attempt,
+                    null,
+                    $encodedBody ?? null,
+                    null,
+                    null,
+                    false,
+                    $e->getMessage(),
+                    $durationMs
+                );
             }
 
             if ($attempt < $max) {
@@ -93,8 +168,13 @@ class OutboundWebhookSender
     /**
      * @param  array<string, mixed>  $payload
      */
-    private function sendGet(OutboundWebhook $webhook, string $eventKey, array $payload, int $timeout): Response
-    {
+    private function sendGet(
+        OutboundWebhook $webhook,
+        string $eventKey,
+        array $payload,
+        int $timeout,
+        bool $verifySsl
+    ): Response {
         $query = [
             'event' => $eventKey,
             'sent_at' => now()->toIso8601String(),
@@ -107,6 +187,7 @@ class OutboundWebhookSender
         }
 
         $pending = Http::timeout($timeout)
+            ->withOptions(['verify' => $verifySsl])
             ->withHeaders($this->baseHeaders($webhook, $eventKey, null));
 
         return $pending->get($webhook->target_url, $query);
@@ -117,11 +198,14 @@ class OutboundWebhookSender
         string $eventKey,
         string $body,
         string $method,
-        int $timeout
+        int $timeout,
+        bool $verifySsl
     ): Response {
         $headers = $this->baseHeaders($webhook, $eventKey, $body);
 
-        $pending = Http::timeout($timeout)->withHeaders($headers);
+        $pending = Http::timeout($timeout)
+            ->withOptions(['verify' => $verifySsl])
+            ->withHeaders($headers);
 
         return match ($method) {
             'POST' => $pending->withBody($body, 'application/json')->post($webhook->target_url),
@@ -146,6 +230,7 @@ class OutboundWebhookSender
 
         if ($jsonBody !== null) {
             $headers['Content-Type'] = 'application/json';
+            $headers['X-Webhook-Body-Sha256'] = hash('sha256', $jsonBody);
             $secret = $webhook->secret;
             if (is_string($secret) && $secret !== '') {
                 $headers['X-Webhook-Signature'] = hash_hmac('sha256', $jsonBody, $secret);
@@ -160,56 +245,32 @@ class OutboundWebhookSender
         return $headers;
     }
 
-    private function logSuccess(
+    private function writeDeliveryLog(
         OutboundWebhook $webhook,
         string $eventKey,
         int $attempt,
         ?string $summary,
-        Response $response,
+        ?string $requestFull,
+        ?int $responseStatus,
+        ?string $responseFull,
+        bool $success,
+        ?string $errorMessage,
         int $durationMs
     ): void {
+        $respShort = $responseFull !== null ? Str::limit($responseFull, 8000) : null;
+
         WebhookDelivery::query()->create([
             'outbound_webhook_id' => $webhook->id,
             'event_key' => $eventKey,
             'attempt_number' => $attempt,
             'request_summary' => $summary,
-            'response_status' => $response->status(),
-            'response_body' => $this->truncate($response->body(), 8000),
-            'success' => true,
-            'error_message' => null,
+            'request_payload' => $requestFull,
+            'response_status' => $responseStatus,
+            'response_body' => $respShort,
+            'response_payload' => $responseFull,
+            'success' => $success,
+            'error_message' => $errorMessage !== null ? Str::limit($errorMessage, 2000) : null,
             'duration_ms' => $durationMs,
         ]);
-    }
-
-    private function logFailure(
-        OutboundWebhook $webhook,
-        string $eventKey,
-        int $attempt,
-        ?string $summary,
-        ?Response $response,
-        bool $httpOk,
-        string $message,
-        int $durationMs
-    ): void {
-        WebhookDelivery::query()->create([
-            'outbound_webhook_id' => $webhook->id,
-            'event_key' => $eventKey,
-            'attempt_number' => $attempt,
-            'request_summary' => $summary,
-            'response_status' => $response?->status(),
-            'response_body' => $response ? $this->truncate($response->body(), 8000) : null,
-            'success' => $httpOk,
-            'error_message' => Str::limit($message, 2000),
-            'duration_ms' => $durationMs,
-        ]);
-    }
-
-    private function truncate(string $value, int $max): string
-    {
-        if (strlen($value) <= $max) {
-            return $value;
-        }
-
-        return substr($value, 0, $max).'…';
     }
 }

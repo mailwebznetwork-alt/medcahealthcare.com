@@ -10,6 +10,7 @@ use App\ModuleAccess;
 it('redirects operations entry to the job portal overview', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
+        'role' => 'manager',
         'module_access' => collect(ModuleAccess::keys())
             ->mapWithKeys(fn (string $k) => [$k => $k === ModuleAccess::OPERATIONS])
             ->all(),
@@ -23,6 +24,7 @@ it('redirects operations entry to the job portal overview', function () {
 it('allows operations users to open the job portal overview', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
+        'role' => 'manager',
         'module_access' => collect(ModuleAccess::keys())
             ->mapWithKeys(fn (string $k) => [$k => $k === ModuleAccess::OPERATIONS])
             ->all(),

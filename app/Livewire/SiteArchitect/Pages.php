@@ -144,6 +144,7 @@ class Pages extends Component
             'revisions' => $revisions,
             'readabilityHint' => $this->mode === 'form' ? $this->computeReadabilityHint() : null,
             'llmReadiness' => $this->mode === 'form' ? $this->computeLlmReadiness() : null,
+            'onPageSeo' => $this->mode === 'form' ? $this->computeOnPageSeoChecklist() : null,
         ]);
     }
 
@@ -815,6 +816,69 @@ class Pages extends Component
         }
 
         return ['score' => min(100, $score), 'checks' => $checks];
+    }
+
+    /**
+     * Rank Math–style on-page checklist (PDF §8–11 lightweight signals).
+     *
+     * @return array{score: int, checks: list<string>, warnings: list<string>}
+     */
+    protected function computeOnPageSeoChecklist(): array
+    {
+        $checks = [];
+        $warnings = [];
+        $score = 0;
+
+        $mtLen = strlen(trim($this->meta_title));
+        if ($mtLen >= 15 && $mtLen <= 70) {
+            $score += 14;
+            $checks[] = __('Meta title length looks suitable for SERPs.');
+        } elseif ($this->meta_title !== '') {
+            $warnings[] = __('Tune meta title length (roughly 30–60 characters).');
+        }
+
+        $mdLen = strlen(trim($this->meta_description));
+        if ($mdLen >= 70 && $mdLen <= 320) {
+            $score += 14;
+            $checks[] = __('Meta description length is in a typical range.');
+        } elseif ($this->meta_description !== '') {
+            $warnings[] = __('Meta description may be too short or long for snippets.');
+        }
+
+        if ($this->canonical_url !== '') {
+            $score += 8;
+            $checks[] = __('Canonical URL set.');
+        }
+
+        if ($this->og_image !== '') {
+            $score += 8;
+            $checks[] = __('Open Graph image URL present.');
+            if ($this->og_image_alt === '') {
+                $warnings[] = __('Add OG image alt text for accessibility / social previews.');
+            } else {
+                $score += 6;
+                $checks[] = __('OG image alt text present.');
+            }
+        }
+
+        $kw = strtolower(trim($this->keywords));
+        $h1 = strtolower(trim($this->h1));
+        $primaryKw = $kw !== '' ? strtolower(trim(explode(',', $kw)[0])) : '';
+        if ($primaryKw !== '' && $h1 !== '' && str_contains($h1, $primaryKw)) {
+            $score += 12;
+            $checks[] = __('Primary keyword appears reflected in H1.');
+        }
+
+        if ($this->robots_meta !== '') {
+            $score += 6;
+            $checks[] = __('Robots meta expressed.');
+        }
+
+        return [
+            'score' => min(100, $score),
+            'checks' => $checks,
+            'warnings' => $warnings,
+        ];
     }
 
     public static function defaultKeywordHints(PinCode $pc): array
