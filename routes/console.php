@@ -9,3 +9,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('app:sync-google-business-reviews')->everyFourHours();
+
+if (config('settings.schedule_database_backup')) {
+    Schedule::command('mom:backup-database')->dailyAt('02:15');
+}

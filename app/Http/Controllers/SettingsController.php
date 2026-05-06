@@ -7,6 +7,7 @@ use App\Models\Integration;
 use App\Services\Integrations\CredentialVault;
 use App\Services\Integrations\IntegrationRegistry;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
@@ -67,6 +68,14 @@ class SettingsController extends Controller
             $googleBusinessReviews = GoogleBusinessReview::query()->latest('review_time')->limit(20)->get();
         }
 
+        $backupFiles = [];
+        $backupDir = storage_path('app/backups');
+        if (is_dir($backupDir)) {
+            $paths = glob($backupDir.'/*') ?: [];
+            rsort($paths, SORT_STRING);
+            $backupFiles = array_slice($paths, 0, 12);
+        }
+
         return view('settings.integrations', [
             'integrations' => $integrations,
             'matrixSummary' => $matrixSummary,
@@ -75,6 +84,11 @@ class SettingsController extends Controller
             'hasIntegrationAccountsTable' => Schema::hasTable('integration_accounts'),
             'credentialVault' => $this->credentialVault,
             'googleBusinessReviews' => $googleBusinessReviews,
+            'webhookEvents' => config('settings.webhook_events', []),
+            'maintenanceActive' => File::exists(storage_path('framework/maintenance.php')),
+            'backupFiles' => $backupFiles,
+            'operationsConfigured' => is_string(config('settings.operations_token')) && config('settings.operations_token') !== '',
+            'maintenanceSecretConfigured' => is_string(config('settings.maintenance_bypass_secret')) && config('settings.maintenance_bypass_secret') !== '',
         ]);
     }
 }

@@ -6,6 +6,7 @@ use App\Models\Page;
 use App\Models\SiteNavigationItem;
 use App\Services\ActivityLogService;
 use App\Services\Growth\AiPulseService;
+use App\Services\Integrations\OutboundWebhookDispatcher;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Carbon;
@@ -285,6 +286,11 @@ class NavigationSystem extends Component
         }
 
         app(AiPulseService::class)->triggerAuditAfterPublish();
+
+        app(OutboundWebhookDispatcher::class)->dispatch('navigation.updated', [
+            'header_page_ids' => $this->headerIds,
+            'footer_page_ids' => $this->footerIds,
+        ]);
     }
 
     protected function normalizedCustomLabel(int $pageId): ?string

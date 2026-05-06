@@ -9,6 +9,7 @@ use App\Models\PinCode;
 use App\Models\SiteSlugRedirect;
 use App\Services\ActivityLogService;
 use App\Services\Growth\AiPulseService;
+use App\Services\Integrations\OutboundWebhookDispatcher;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\DB;
@@ -493,6 +494,14 @@ class Pages extends Component
                 'Page ID '.$savedPageId
             );
             app(AiPulseService::class)->triggerAuditAfterPublish();
+
+            if ($data['is_active'] ?? false) {
+                app(OutboundWebhookDispatcher::class)->dispatch('page.published', [
+                    'page_id' => $savedPageId,
+                    'slug' => $data['slug'],
+                    'title' => $data['title'],
+                ]);
+            }
         }
 
         session()->flash('status', __('Page saved.'));
@@ -567,6 +576,15 @@ class Pages extends Component
         $page = Page::query()->findOrFail($id);
         $this->authorize('update', $page);
         $page->update(['is_active' => ! $page->is_active]);
+        $page->refresh();
+
+        if ($page->is_active) {
+            app(OutboundWebhookDispatcher::class)->dispatch('page.published', [
+                'page_id' => $page->id,
+                'slug' => $page->slug,
+                'title' => $page->title,
+            ]);
+        }
     }
 
     /**

@@ -9,6 +9,20 @@
         <p class="mom-body-text mb-6 text-[var(--danger)]" role="alert">{{ $errors->first('integration') }}</p>
     @endif
 
+    @php
+        $isSuperAdmin = auth()->check() && strtolower((string) auth()->user()?->role) === 'super_admin';
+    @endphp
+
+    <nav class="mom-card mb-8 flex flex-wrap gap-x-6 gap-y-2 p-4 text-[13px] text-[var(--text-secondary)]" aria-label="{{ __('Settings sections') }}">
+        <a href="#integrations" class="hover:text-[var(--accent-gold)]">{{ __('Integrations') }}</a>
+        <a href="#webhooks" class="hover:text-[var(--accent-gold)]">{{ __('Webhooks') }}</a>
+        @if ($isSuperAdmin)
+            <a href="#backup" class="hover:text-[var(--accent-gold)]">{{ __('Backup') }}</a>
+            <a href="#maintenance" class="hover:text-[var(--accent-gold)]">{{ __('Maintenance') }}</a>
+        @endif
+    </nav>
+
+    <div id="integrations" class="space-y-8">
     <section class="mom-card p-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -205,4 +219,97 @@
             </table>
         </div>
     </section>
+    </div>
+
+    <section id="webhooks" class="mom-card mt-8 p-6">
+        <h2 class="mom-section-title">{{ __('Outbound webhook events') }}</h2>
+        <p class="mom-body-text mt-2 text-[var(--text-secondary)]">{{ __('Configure the Webhook integration with endpoint URL and secret; when enabled, these events POST JSON to your receiver.') }}</p>
+        <div class="mt-4 overflow-x-auto">
+            <table class="w-full min-w-[44rem] text-left text-[13px]">
+                <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                    <tr>
+                        <th class="px-4 py-3 font-medium">{{ __('Event key') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ __('When it fires') }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                    @foreach ($webhookEvents as $row)
+                        <tr>
+                            <td class="px-4 py-3 font-mono text-[12px]">{{ $row['key'] }}</td>
+                            <td class="px-4 py-3">{{ $row['description'] }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    @if ($isSuperAdmin)
+        <section id="backup" class="mom-card mt-8 p-6">
+            <h2 class="mom-section-title">{{ __('Database backup') }}</h2>
+            <p class="mom-body-text mt-2 text-[var(--text-secondary)]">{{ __('Creates a timestamped copy of the SQLite database under storage/app/backups. Other database drivers require a manual dump.') }}</p>
+            <form method="post" action="{{ route('settings.system.backup') }}" class="mt-4 flex flex-wrap items-center gap-3">
+                @csrf
+                <button type="submit" class="mom-cta-primary !px-3 !py-2 !text-[11px]">{{ __('Run backup now') }}</button>
+            </form>
+            @if ($backupFiles !== [])
+                <div class="mt-6">
+                    <h3 class="mom-micro mb-2">{{ __('Recent backup files') }}</h3>
+                    <ul class="space-y-1 text-[13px] text-[var(--text-secondary)]">
+                        @foreach ($backupFiles as $path)
+                            <li class="font-mono text-[12px]">{{ basename($path) }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+        </section>
+
+        <section id="maintenance" class="mom-card mt-8 p-6">
+            <h2 class="mom-section-title">{{ __('Maintenance mode') }}</h2>
+            <p class="mom-body-text mt-2 text-[var(--text-secondary)]">
+                {{ __('Uses Laravel maintenance mode. Set SETTINGS_OPERATIONS_TOKEN and SETTINGS_MAINTENANCE_BYPASS_SECRET in .env before enabling.') }}
+            </p>
+            @if ($maintenanceActive)
+                <p class="mom-body-text mt-3 text-[var(--warning)]" role="status">{{ __('Maintenance mode is currently active.') }}</p>
+            @endif
+            @if (! $operationsConfigured)
+                <p class="mom-body-text mt-3 text-[var(--danger)]">{{ __('SETTINGS_OPERATIONS_TOKEN is not set — maintenance forms are disabled.') }}</p>
+            @endif
+            @if (! $maintenanceSecretConfigured)
+                <p class="mom-body-text mt-2 text-[var(--danger)]">{{ __('SETTINGS_MAINTENANCE_BYPASS_SECRET must be set before you can enable maintenance from this screen.') }}</p>
+            @endif
+
+            <form method="post" action="{{ route('settings.system.maintenance') }}" class="mt-6 space-y-3">
+                @csrf
+                <input type="hidden" name="maintenance_action" value="down">
+                <label class="block max-w-md">
+                    <span class="mom-micro mb-1 block">{{ __('Operations token') }}</span>
+                    <input
+                        type="password"
+                        name="settings_operations_token"
+                        autocomplete="off"
+                        class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]"
+                        @disabled(! $operationsConfigured || ! $maintenanceSecretConfigured)
+                    >
+                </label>
+                <button type="submit" class="mom-cta-primary !px-3 !py-2 !text-[11px]" @disabled(! $operationsConfigured || ! $maintenanceSecretConfigured)>{{ __('Put site in maintenance') }}</button>
+            </form>
+
+            <form method="post" action="{{ route('settings.system.maintenance') }}" class="mt-8 space-y-3 border-t border-[var(--border-panel-soft)] pt-6">
+                @csrf
+                <input type="hidden" name="maintenance_action" value="up">
+                <label class="block max-w-md">
+                    <span class="mom-micro mb-1 block">{{ __('Operations token') }}</span>
+                    <input
+                        type="password"
+                        name="settings_operations_token"
+                        autocomplete="off"
+                        class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]"
+                        @disabled(! $operationsConfigured)
+                    >
+                </label>
+                <button type="submit" class="mom-cta-ghost !px-3 !py-2 !text-[11px]" @disabled(! $operationsConfigured)>{{ __('Bring site live') }}</button>
+            </form>
+        </section>
+    @endif
 </x-app-layout>

@@ -5,6 +5,7 @@ namespace App\Livewire\SiteArchitect;
 use App\Models\Block;
 use App\Models\Blog;
 use App\Models\Page;
+use App\Services\Integrations\OutboundWebhookDispatcher;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\DB;
@@ -248,10 +249,13 @@ class Blogs extends Component
             'is_published' => $this->is_published,
         ];
 
-        DB::transaction(function () use ($data, $featuredPath): void {
+        $savedBlogId = null;
+
+        DB::transaction(function () use ($data, $featuredPath, &$savedBlogId): void {
             if ($this->editingId === null) {
                 $this->authorize('create', Blog::class);
-                Blog::query()->create($data);
+                $blog = Blog::query()->create($data);
+                $savedBlogId = $blog->id;
             } else {
                 $blog = Blog::query()->findOrFail($this->editingId);
                 $this->authorize('update', $blog);
@@ -265,8 +269,21 @@ class Blogs extends Component
                     Storage::disk('public')->delete($old);
                 }
                 $blog->update($data);
+                $savedBlogId = $blog->id;
             }
         });
+
+        if ($savedBlogId !== null) {
+            $blog = Blog::query()->find($savedBlogId);
+            if ($blog !== null && $blog->is_published) {
+                app(OutboundWebhookDispatcher::class)->dispatch('blog.published', [
+                    'blog_id' => $blog->id,
+                    'slug' => $blog->slug,
+                    'title' => $blog->title,
+                    'published_at' => $blog->published_at?->toIso8601String(),
+                ]);
+            }
+        }
 
         $this->featured_image_upload = null;
 
@@ -329,6 +346,16 @@ class Blogs extends Component
         $blog = Blog::query()->findOrFail($id);
         $this->authorize('update', $blog);
         $blog->update(['is_published' => ! $blog->is_published]);
+        $blog->refresh();
+
+        if ($blog->is_published) {
+            app(OutboundWebhookDispatcher::class)->dispatch('blog.published', [
+                'blog_id' => $blog->id,
+                'slug' => $blog->slug,
+                'title' => $blog->title,
+                'published_at' => $blog->published_at?->toIso8601String(),
+            ]);
+        }
     }
 
     public function addBlock(): void

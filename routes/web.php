@@ -18,6 +18,7 @@ use App\Http\Controllers\Operations\PinCodes\PinCodeImportController;
 use App\Http\Controllers\Operations\Services\ServiceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Settings\IntegrationController;
+use App\Http\Controllers\Settings\SystemOperationsController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserManagement\UserController;
 use App\Http\Controllers\WorkspaceSearchController;
@@ -247,6 +248,11 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:security
 
 Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings', 'role:admin,super_admin'])->group(function () {
     Route::get('/settings', SettingsController::class)->name('settings.index');
+});
+
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings', 'role:super_admin'])->prefix('settings/system')->name('settings.system.')->group(function () {
+    Route::post('backup', [SystemOperationsController::class, 'backup'])->name('backup');
+    Route::post('maintenance', [SystemOperationsController::class, 'maintenance'])->name('maintenance');
 });
 
 Route::middleware(['auth', 'admin', 'throttle:60,1'])->prefix('/admin/settings/integrations')->name('admin.settings.integrations.')->group(function () {

@@ -6,6 +6,7 @@ use App\Enums\LeadStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreLeadRequest;
 use App\Models\Lead;
+use App\Services\Integrations\OutboundWebhookDispatcher;
 use App\Services\LeadSourceResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
@@ -85,6 +86,13 @@ class LeadController extends Controller
             'status' => LeadStatus::New,
         ]);
         $lead->save();
+
+        app(OutboundWebhookDispatcher::class)->dispatch('lead.created', [
+            'lead_id' => $lead->id,
+            'uuid' => $lead->uuid,
+            'source' => $lead->source instanceof \BackedEnum ? $lead->source->value : (string) $lead->source,
+            'service' => $lead->service,
+        ]);
 
         return response()->json([
             'message' => 'Lead created.',

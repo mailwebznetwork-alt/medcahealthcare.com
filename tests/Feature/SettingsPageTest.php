@@ -27,5 +27,6 @@ it('renders settings integrations page with integration cards', function () {
         ->get(route('settings.index'))
         ->assertOk()
         ->assertSee('Integrations')
+        ->assertSee('Outbound webhook events')
         ->assertSee('openai', false);
 });
