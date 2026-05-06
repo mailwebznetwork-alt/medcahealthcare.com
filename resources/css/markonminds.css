@@ -22,6 +22,14 @@
     --bg-topbar-scrim: rgba(18, 15, 13, 0.9);
 
     /**
+     * Scrollbars (viewport + in-app regions): track matches topbar scrim tone;
+     * thumb matches aurum accent used on sidebar strip.
+     */
+    --scrollbar-track-shell: var(--bg-topbar-scrim);
+    --scrollbar-thumb-shell: rgba(197, 160, 89, 0.42);
+    --scrollbar-thumb-shell-hover: rgba(197, 160, 89, 0.58);
+
+    /**
      * Cards — reference panel #1c1816 on shell #120f0d
      */
     --bg-card-matte: #1c1816;
@@ -89,6 +97,26 @@ body.mom-body {
     min-height: 100vh;
     position: relative;
     isolation: isolate;
+    scrollbar-color: var(--scrollbar-thumb-shell) var(--scrollbar-track-shell);
+    scrollbar-width: thin;
+}
+
+body.mom-body::-webkit-scrollbar {
+    width: 10px;
+}
+
+body.mom-body::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-shell);
+}
+
+body.mom-body::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-shell);
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--scrollbar-track-shell);
+}
+
+body.mom-body::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-shell-hover);
 }
 
 /**
@@ -295,13 +323,53 @@ body.mom-body::after {
 
 /* ---- Scrollbars (sidebar nav + generic) ---- */
 
+.custom-scrollbar {
+    scrollbar-color: var(--scrollbar-thumb-shell) var(--scrollbar-track-shell);
+    scrollbar-width: thin;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-shell);
+    border-radius: var(--radius-sm);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: var(--border-panel);
+    background: var(--scrollbar-thumb-shell);
     border-radius: var(--radius-sm);
+    border: 1px solid rgba(18, 15, 13, 0.35);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-shell-hover);
+}
+
+/** Alias — same chrome as `.custom-scrollbar` (Growth Center readiness, etc.) */
+.mom-scrollbar-main {
+    scrollbar-color: var(--scrollbar-thumb-shell) var(--scrollbar-track-shell);
+    scrollbar-width: thin;
+}
+
+.mom-scrollbar-main::-webkit-scrollbar {
+    width: 8px;
+}
+
+.mom-scrollbar-main::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-shell);
+    border-radius: var(--radius-sm);
+}
+
+.mom-scrollbar-main::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-shell);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(18, 15, 13, 0.35);
+}
+
+.mom-scrollbar-main::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-shell-hover);
 }
 
 /**
@@ -311,7 +379,7 @@ body.mom-body::after {
 .mom-sidebar-nav-scroll {
     scrollbar-gutter: stable;
     scrollbar-width: thin;
-    scrollbar-color: rgba(197, 160, 89, 0.42) rgba(12, 9, 6, 0.55);
+    scrollbar-color: var(--scrollbar-thumb-shell) var(--scrollbar-track-shell);
 }
 
 .mom-sidebar-nav-scroll::-webkit-scrollbar {
@@ -320,18 +388,18 @@ body.mom-body::after {
 
 .mom-sidebar-nav-scroll::-webkit-scrollbar-track {
     margin: 6px 0;
-    background: rgba(8, 6, 4, 0.45);
+    background: var(--scrollbar-track-shell);
     border-radius: 10px;
 }
 
 .mom-sidebar-nav-scroll::-webkit-scrollbar-thumb {
-    background: rgba(197, 160, 89, 0.42);
+    background: var(--scrollbar-thumb-shell);
     border-radius: 10px;
-    border: 2px solid rgba(12, 9, 6, 0.35);
+    border: 2px solid rgba(18, 15, 13, 0.35);
 }
 
 .mom-sidebar-nav-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(197, 160, 89, 0.58);
+    background: var(--scrollbar-thumb-shell-hover);
 }
 
 /* ---- Section separators (page blocks, stacked cards) ---- */
