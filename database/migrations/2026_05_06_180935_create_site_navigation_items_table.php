@@ -11,11 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('site_slug_redirects', function (Blueprint $table) {
+        Schema::create('site_navigation_items', function (Blueprint $table) {
             $table->id();
-            $table->string('from_slug')->unique();
-            $table->string('to_slug');
+            $table->string('zone', 16);
+            $table->foreignId('page_id')->constrained('pages')->cascadeOnDelete();
+            $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
+
+            $table->unique(['zone', 'page_id']);
+            $table->index(['zone', 'sort_order']);
         });
     }
 
@@ -24,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('site_slug_redirects');
+        Schema::dropIfExists('site_navigation_items');
     }
 };

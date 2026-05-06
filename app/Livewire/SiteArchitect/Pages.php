@@ -7,6 +7,8 @@ use App\Models\Page;
 use App\Models\PageRevision;
 use App\Models\PinCode;
 use App\Models\SiteSlugRedirect;
+use App\Services\ActivityLogService;
+use App\Services\Growth\AiPulseService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\DB;
@@ -395,6 +397,9 @@ class Pages extends Component
             $previousSlug = Page::query()->whereKey($this->editingId)->value('slug');
         }
 
+        $wasCreating = $this->editingId === null;
+        $savedPageId = null;
+
         $data = [
             'title' => $this->title,
             'slug' => $this->slug,
@@ -423,7 +428,7 @@ class Pages extends Component
             'is_active' => $this->is_active,
         ];
 
-        DB::transaction(function () use ($data, $previousSlug): void {
+        DB::transaction(function () use ($data, $previousSlug, &$savedPageId): void {
             if ($this->editingId === null) {
                 $this->authorize('create', Page::class);
                 $page = Page::query()->create($data);
@@ -435,6 +440,7 @@ class Pages extends Component
             }
 
             $page->refresh();
+            $savedPageId = $page->id;
 
             if ($previousSlug !== null && $previousSlug !== $page->slug) {
                 SiteSlugRedirect::query()->where('to_slug', $previousSlug)->update(['to_slug' => $page->slug]);
@@ -480,6 +486,15 @@ class Pages extends Component
             }
         });
 
+        if ($savedPageId !== null) {
+            app(ActivityLogService::class)->log(
+                $wasCreating ? 'page_create' : 'page_update',
+                'site_architect',
+                'Page ID '.$savedPageId
+            );
+            app(AiPulseService::class)->triggerAuditAfterPublish();
+        }
+
         session()->flash('status', __('Page saved.'));
         $this->mode = 'list';
         $this->editingId = null;
@@ -492,6 +507,12 @@ class Pages extends Component
         $page = Page::query()->findOrFail($id);
         $this->authorize('delete', $page);
         $page->delete();
+        app(ActivityLogService::class)->log(
+            'page_delete',
+            'site_architect',
+            'Page ID '.$id
+        );
+        app(AiPulseService::class)->triggerAuditAfterPublish();
         session()->flash('status', __('Page deleted.'));
         $this->resetPage();
     }
@@ -501,7 +522,8 @@ class Pages extends Component
         $original = Page::query()->with('pinCodes')->findOrFail($id);
         $this->authorize('create', Page::class);
 
-        DB::transaction(function () use ($original): void {
+        $newPageId = null;
+        DB::transaction(function () use ($original, &$newPageId): void {
             $new = $original->replicate();
             $new->uuid = (string) Str::uuid();
             $new->title = $original->title.' ('.__('Copy').')';
@@ -514,6 +536,7 @@ class Pages extends Component
             }
             $new->is_active = false;
             $new->save();
+            $newPageId = $new->id;
 
             $sync = [];
             foreach ($original->pinCodes as $pc) {
@@ -525,6 +548,15 @@ class Pages extends Component
             }
             $new->pinCodes()->sync($sync);
         });
+
+        if ($newPageId !== null) {
+            app(ActivityLogService::class)->log(
+                'page_duplicate',
+                'site_architect',
+                'New page ID '.$newPageId.' from source '.$id
+            );
+            app(AiPulseService::class)->triggerAuditAfterPublish();
+        }
 
         session()->flash('status', __('Page duplicated.'));
         $this->resetPage();
@@ -632,6 +664,14 @@ class Pages extends Component
     {
         unset($this->contentParts[$index]);
         $this->contentParts = array_values($this->contentParts);
+
+        if ($this->editingId !== null) {
+            app(ActivityLogService::class)->log(
+                'block_remove_from_page',
+                'site_architect',
+                'Page '.$this->editingId.' removed structure row index '.$index
+            );
+        }
     }
 
     public function movePartUp(int $index): void

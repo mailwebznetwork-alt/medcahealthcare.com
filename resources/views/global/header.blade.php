@@ -1,14 +1,15 @@
 @php
     $logoSrc = asset('images/medca-logo.png');
     $isSuperAdmin = auth()->check() && strtolower((string) auth()->user()?->role) === 'super_admin';
-    
-    $navItems = [
-        ['label' => 'Home', 'href' => url('/')],
-        ['label' => 'About Us', 'href' => url('/#about')],
-        ['label' => 'Services', 'href' => url('/#services')],
-        ['label' => 'Locations', 'href' => url('/#locations')],
-        ['label' => 'Careers', 'href' => route('careers.index')],
-        ['label' => 'Contact Us', 'href' => url('/#contact')],
+
+    /** @var array<int, array{label: string, href: string}>|null $publicNavHeader */
+    $navItems = $publicNavHeader ?? [
+        ['label' => __('Home'), 'href' => url('/')],
+        ['label' => __('About Us'), 'href' => url('/#about')],
+        ['label' => __('Services'), 'href' => url('/#services')],
+        ['label' => __('Locations'), 'href' => url('/#locations')],
+        ['label' => __('Careers'), 'href' => route('careers.index')],
+        ['label' => __('Contact Us'), 'href' => url('/#contact')],
     ];
 @endphp
 

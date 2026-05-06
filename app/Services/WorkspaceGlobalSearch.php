@@ -245,6 +245,7 @@ final class WorkspaceGlobalSearch
             'modules.site-architect'
         );
         $push(str_contains($n, 'page') && str_contains($n, 'list'), __('Pages workspace'), __('Site Architect pages'), 'site-architect.pages.index');
+        $push(str_contains($n, 'nav') || str_contains($n, 'menu'), __('Navigation menus'), __('Header and footer links'), 'site-architect.navigation.index');
         $push(str_contains($n, 'blog') && ! str_contains($n, 'post'), __('Blogs workspace'), __('Site Architect blogs'), 'site-architect.blogs.index');
         $push(str_contains($n, 'block') || str_contains($n, 'factory'), __('Block Factory'), __('Reusable blocks'), 'site-architect.block-factory.index');
         $push(str_contains($n, 'media') || str_contains($n, 'library'), __('Media library'), __('Assets'), 'site-architect.media.index');

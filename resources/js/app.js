@@ -1,4 +1,5 @@
 import './bootstrap';
+import './site-architect-navigation';
 
 import Alpine from 'alpinejs';
 import { bootIcons } from './shell';

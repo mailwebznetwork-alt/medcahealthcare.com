@@ -19,6 +19,7 @@
     },
     "dependencies": {
         "apexcharts": "^5.10.6",
-        "lucide": "^1.14.0"
+        "lucide": "^1.14.0",
+        "sortablejs": "^1.15.7"
     }
 }

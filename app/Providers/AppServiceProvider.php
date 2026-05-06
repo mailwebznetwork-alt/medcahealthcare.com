@@ -25,6 +25,7 @@ use App\Policies\PagePolicy;
 use App\Policies\PinCodePolicy;
 use App\Policies\ServicePolicy;
 use App\Policies\UserPolicy;
+use App\Services\SiteNavigationResolver;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Blade;
@@ -119,6 +120,9 @@ class AppServiceProvider extends ServiceProvider
             }
 
             $view->with('globalSiteSeo', $globalSiteSeo);
+
+            $view->with('publicNavHeader', app(SiteNavigationResolver::class)->headerLinks());
+            $view->with('publicNavFooter', app(SiteNavigationResolver::class)->footerLinks());
         });
 
         Paginator::useTailwind();

@@ -25,6 +25,7 @@ use App\Models\Blog;
 use App\Models\Lead;
 use App\Models\Page;
 use App\Models\SiteSlugRedirect;
+use App\Services\ActivityLogService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
@@ -94,8 +95,16 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:site_arc
         Route::get('/pages/{page}/preview', function (Page $page) {
             Gate::authorize('view', $page);
 
+            app(ActivityLogService::class)->log(
+                'page_preview',
+                'site_architect',
+                'Page ID '.$page->id.' slug '.$page->slug
+            );
+
             return view('layouts.app', ['page' => $page]);
         })->name('pages.preview');
+
+        Route::view('/navigation', 'site-architect.navigation-shell')->name('navigation.index');
 
         Route::view('/blogs', 'site-architect.blogs-shell')->name('blogs.index');
         Route::get('/blogs/{blog}/preview', function (Blog $blog) {
