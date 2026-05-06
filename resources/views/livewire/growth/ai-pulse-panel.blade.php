@@ -58,6 +58,45 @@
         </ul>
     </section>
 
+    @php($pulse = $snapshot['pdf_pulse'] ?? [])
+    <section class="mom-card p-5">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+                <h3 class="mom-section-title">{{ __('AI Pulse brief (PDF §19.6)') }}</h3>
+                <p class="mom-micro mt-1 text-[var(--text-muted)]">{{ __('Business health · Predictive · Conversion · GEO/AEO visibility') }}</p>
+            </div>
+            @if (! empty($pulse['source']))
+                <span class="rounded-mom-chrome border border-[var(--border-panel-soft)] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">{{ $pulse['source'] }}</span>
+            @endif
+        </div>
+        @if (! empty($pulse['lead_counts_30d']) && is_array($pulse['lead_counts_30d']))
+            <p class="mom-micro mt-3 text-[var(--text-secondary)]">
+                {{ __('Inquiries (30d) by source:') }}
+                @foreach ($pulse['lead_counts_30d'] as $src => $cnt)
+                    <span class="ml-1 font-mono text-[var(--text-primary)]">{{ $src }}={{ $cnt }}</span>@if (! $loop->last),@endif
+                @endforeach
+            </p>
+        @endif
+        <div class="mt-6 grid gap-6 lg:grid-cols-2">
+            <div class="rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] p-4">
+                <p class="mom-micro text-mom-gold">{{ __('1) Business health') }}</p>
+                <p class="mom-body-text mt-2 text-[var(--text-secondary)]">{{ data_get($pulse, 'business_health') ?: '—' }}</p>
+            </div>
+            <div class="rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] p-4">
+                <p class="mom-micro text-mom-gold">{{ __('2) Predictive') }}</p>
+                <p class="mom-body-text mt-2 text-[var(--text-secondary)]">{{ data_get($pulse, 'predictive_insights') ?: '—' }}</p>
+            </div>
+            <div class="rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] p-4">
+                <p class="mom-micro text-mom-gold">{{ __('3) Conversion / marketing') }}</p>
+                <p class="mom-body-text mt-2 text-[var(--text-secondary)]">{{ data_get($pulse, 'conversion_insights') ?: '—' }}</p>
+            </div>
+            <div class="rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] p-4">
+                <p class="mom-micro text-mom-gold">{{ __('4) Visibility — GEO / AEO') }}</p>
+                <p class="mom-body-text mt-2 text-[var(--text-secondary)]">{{ data_get($pulse, 'visibility_geo_aeo') ?: '—' }}</p>
+            </div>
+        </div>
+    </section>
+
     <section class="mom-card overflow-hidden p-0">
         <h3 class="border-b border-[var(--border-panel-soft)] px-4 py-3 mom-section-title">{{ __('Broken / risky links') }}</h3>
         <div class="overflow-x-auto">

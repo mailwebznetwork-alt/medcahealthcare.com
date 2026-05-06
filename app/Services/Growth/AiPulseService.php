@@ -5,11 +5,13 @@ namespace App\Services\Growth;
 use App\Jobs\RefreshAiPulseSnapshotJob;
 use App\Models\Block;
 use App\Models\Blog;
+use App\Models\Lead;
 use App\Models\Page;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 class AiPulseService
@@ -184,7 +186,7 @@ class AiPulseService
         $brandAuthority = $this->brandAuthority($rankMath, $aioMean, $speedMean, $brokenCount);
         $recommendations = $this->recommendations($broken, $rankMath, $speedMean, $brandAuthority);
 
-        return [
+        $payload = [
             'scanned_at' => now()->toDateTimeString(),
             'scan_in_progress' => false,
             'totals' => [
@@ -206,6 +208,10 @@ class AiPulseService
             'broken_links' => array_values($broken),
             'recommendations' => $recommendations,
         ];
+
+        $payload['pdf_pulse'] = $this->buildPdfPulseInsights($payload);
+
+        return $payload;
     }
 
     /**
@@ -243,8 +249,6 @@ class AiPulseService
         foreach (array_values(array_unique($m[1] ?? [])) as $href) {
             $href = trim((string) $href);
             if ($href === '' || $href === '#' || str_starts_with(strtolower($href), 'javascript:')) {
-                $out[] = ['scope' => $scope, 'id' => $id, 'title' => $title, 'url' => $href, 'reason' => 'empty_or_damaged'];
-
                 continue;
             }
             if (str_starts_with($href, '/')) {
@@ -390,6 +394,184 @@ class AiPulseService
     }
 
     /**
+     * PDF §19.6 — narrative pillars: business health, predictive, conversion, visibility (GEO/AEO).
+     *
+     * @param  array<string, mixed>  $snapshot
+     * @return array{
+     *     business_health: string,
+     *     predictive_insights: string,
+     *     conversion_insights: string,
+     *     visibility_geo_aeo: string,
+     *     source: string,
+     *     lead_counts_30d: array<string, int>
+     * }
+     */
+    private function buildPdfPulseInsights(array $snapshot): array
+    {
+        $leadCounts = $this->leadSourceCountsLastDays(30);
+        $apiKey = config('gemini.api_key');
+
+        $base = [
+            'business_health' => '',
+            'predictive_insights' => '',
+            'conversion_insights' => '',
+            'visibility_geo_aeo' => '',
+            'source' => 'heuristic',
+            'lead_counts_30d' => $leadCounts,
+        ];
+
+        if (is_string($apiKey) && $apiKey !== '') {
+            $parsed = $this->geminiPdfPulseJson($apiKey, $snapshot, $leadCounts);
+            if ($parsed !== null) {
+                return array_merge($base, $parsed, ['source' => 'gemini', 'lead_counts_30d' => $leadCounts]);
+            }
+        }
+
+        return array_merge($base, $this->heuristicPdfPulse($snapshot, $leadCounts));
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function leadSourceCountsLastDays(int $days): array
+    {
+        if (! Schema::hasTable('leads')) {
+            return [];
+        }
+
+        $rows = Lead::query()
+            ->where('created_at', '>=', now()->subDays($days))
+            ->selectRaw('source, COUNT(*) as c')
+            ->groupBy('source')
+            ->get();
+
+        $out = [];
+        foreach ($rows as $row) {
+            $k = (string) ($row->source ?? '');
+            if ($k !== '') {
+                $out[$k] = (int) $row->c;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param  array<string, int>  $leadCounts
+     * @return array{business_health: string, predictive_insights: string, conversion_insights: string, visibility_geo_aeo: string}|null
+     */
+    private function geminiPdfPulseJson(string $apiKey, array $snapshot, array $leadCounts): ?array
+    {
+        $seoMean = (int) data_get($snapshot, 'scores.rankmath', 0);
+        $authority = (int) data_get($snapshot, 'scores.brand_authority', 0);
+        $brokenN = count(data_get($snapshot, 'broken_links', []));
+
+        $ctx = json_encode([
+            'lead_counts_by_source_last_30d' => $leadCounts,
+            'on_page_seo_mean' => $seoMean,
+            'brand_authority' => $authority,
+            'broken_internal_links' => $brokenN,
+            'active_pages' => data_get($snapshot, 'totals.pages'),
+            'published_blogs' => data_get($snapshot, 'totals.blogs'),
+        ], JSON_UNESCAPED_UNICODE) ?: '{}';
+
+        $prompt = <<<TXT
+You are MarkOnMinds / Medca Growth OS — AI Pulse (PDF Marketing §19.6).
+
+Return ONLY valid JSON with keys:
+"business_health","predictive_insights","conversion_insights","visibility_geo_aeo"
+
+Rules:
+- Each value is ONE string of 2 to 4 sentences.
+- Audience: healthcare leadership in Bengaluru; practical, no hype.
+- Ground insights in this context JSON when possible:
+{$ctx}
+
+Do not use markdown code fences. JSON only.
+TXT;
+
+        $raw = trim($this->geminiGenerateText($apiKey, $prompt));
+        if ($raw === '') {
+            return null;
+        }
+
+        $decoded = $this->decodeJsonObjectFromGemini($raw);
+        if ($decoded === null) {
+            return null;
+        }
+
+        $keys = ['business_health', 'predictive_insights', 'conversion_insights', 'visibility_geo_aeo'];
+        $out = [];
+        foreach ($keys as $key) {
+            $v = $decoded[$key] ?? '';
+            $out[$key] = is_string($v) ? trim($v) : '';
+        }
+
+        if ($out['business_health'] === '' && $out['predictive_insights'] === '') {
+            return null;
+        }
+
+        return $out;
+    }
+
+    private function decodeJsonObjectFromGemini(string $raw): ?array
+    {
+        $trim = trim($raw);
+        if ($trim === '') {
+            return null;
+        }
+        if (str_starts_with($trim, '```')) {
+            $trim = preg_replace('/^```(?:json)?\s*/i', '', $trim) ?? $trim;
+            $trim = preg_replace('/\s*```\s*$/', '', $trim) ?? $trim;
+        }
+        try {
+            $data = json_decode($trim, true, 512, JSON_THROW_ON_ERROR);
+        } catch (Throwable) {
+            return null;
+        }
+
+        return is_array($data) ? $data : null;
+    }
+
+    /**
+     * @param  array<string, int>  $leadCounts
+     * @return array{business_health: string, predictive_insights: string, conversion_insights: string, visibility_geo_aeo: string}
+     */
+    private function heuristicPdfPulse(array $snapshot, array $leadCounts): array
+    {
+        $totalLeads = array_sum($leadCounts);
+        $seoMean = (int) data_get($snapshot, 'scores.rankmath', 0);
+        $authority = (int) data_get($snapshot, 'scores.brand_authority', 0);
+        $brokenN = count(data_get($snapshot, 'broken_links', []));
+
+        $business = $totalLeads === 0
+            ? __('No inquiries recorded in the last 30 days — tighten acquisition or verify lead capture endpoints.')
+            : __('Last 30 days: :count inquiries by channel — route follow-up in Operations → Bookings.', ['count' => $totalLeads]);
+
+        $predictive = __('If recent inquiry velocity stays flat, expect slower pipeline growth next month unless traffic or conversion experiments change.')
+
+            .' '
+            .__('Watch Organic vs paid sources in Integrations-backed analytics.');
+
+        $conversion = $totalLeads > 0
+            ? __('Compare channel counts against GA4 sessions and events in Growth Center → GA4 to spot gaps between visits and inquiries.')
+            : __('Once inquiries appear, compare source mix with GA4 acquisition to prioritize budget.');
+
+        $visibility = __('On-page SEO mean is :seo and AI readiness score is :auth.', ['seo' => $seoMean, 'auth' => $authority])
+            .' '
+            .($brokenN > 0
+                ? __('Fix :n broken internal links to protect crawl paths and AEO clarity.', ['n' => $brokenN])
+                : __('Internal links look consistent — extend GEO entity copy in Growth Center SEO tabs.'));
+
+        return [
+            'business_health' => $business,
+            'predictive_insights' => $predictive,
+            'conversion_insights' => $conversion,
+            'visibility_geo_aeo' => $visibility,
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function placeholderSnapshot(): array
@@ -402,6 +584,14 @@ class AiPulseService
             'free_tier_sources' => [],
             'broken_links' => [],
             'recommendations' => [__('AI Pulse scan is running in the background. Refresh shortly.')],
+            'pdf_pulse' => [
+                'business_health' => '',
+                'predictive_insights' => '',
+                'conversion_insights' => '',
+                'visibility_geo_aeo' => '',
+                'source' => 'placeholder',
+                'lead_counts_30d' => [],
+            ],
         ];
     }
 }

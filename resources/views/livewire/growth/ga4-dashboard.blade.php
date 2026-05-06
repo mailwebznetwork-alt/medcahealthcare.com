@@ -5,6 +5,38 @@
         </div>
     @endif
 
+    <p class="mom-body-text text-[var(--text-secondary)]">{{ __('Analytics monitoring layer (PDF §19.5) — GA4 Data API, rolling 28-day window. KPIs below mirror active users, sessions, conversions, and derived conversion rate.') }}</p>
+
+    @php($sum = $ga4Bundle['summary'] ?? [])
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <article class="mom-card px-5 py-4">
+            <p class="mom-micro">{{ __('Active users') }}</p>
+            <p class="mom-metric mt-2">{{ number_format((int) ($sum['users'] ?? 0)) }}</p>
+            <p class="mom-subtext mt-1">{{ __('28d') }}</p>
+        </article>
+        <article class="mom-card px-5 py-4">
+            <p class="mom-micro">{{ __('Sessions') }}</p>
+            <p class="mom-metric mt-2">{{ number_format((int) ($sum['sessions'] ?? 0)) }}</p>
+            <p class="mom-subtext mt-1">{{ __('28d') }}</p>
+        </article>
+        <article class="mom-card px-5 py-4">
+            <p class="mom-micro">{{ __('Conversions') }}</p>
+            <p class="mom-metric mt-2">{{ number_format((int) ($sum['conversions'] ?? 0)) }}</p>
+            <p class="mom-subtext mt-1">{{ __('Attributed events') }}</p>
+        </article>
+        <article class="mom-card px-5 py-4">
+            <p class="mom-micro">{{ __('Conversion rate') }}</p>
+            <p class="mom-metric mt-2">
+                @if (($sum['conversion_rate'] ?? null) !== null)
+                    {{ number_format((float) $sum['conversion_rate'], 2) }}%
+                @else
+                    —
+                @endif
+            </p>
+            <p class="mom-subtext mt-1">{{ __('Sessions-based') }}</p>
+        </article>
+    </div>
+
     <div class="flex flex-wrap items-center gap-4">
         <a href="{{ $ga4DashboardUrl }}" target="_blank" rel="noopener noreferrer" class="mom-subtext inline-flex items-center gap-1 text-mom-gold hover:underline">
             {{ __('Open GA4 dashboard') }}
