@@ -29,3 +29,22 @@ it('allows editors to open the navigation workspace', function () {
         ->get(route('site-architect.navigation.index'))
         ->assertSuccessful();
 });
+
+it('shows a custom navigation label on the public header when set', function () {
+    $page = Page::factory()->create([
+        'title' => 'Internal Workspace Title',
+        'slug' => 'custom-nav-label-slug',
+        'is_active' => true,
+    ]);
+
+    SiteNavigationItem::query()->create([
+        'zone' => SiteNavigationItem::ZONE_HEADER,
+        'page_id' => $page->id,
+        'sort_order' => 0,
+        'custom_label' => 'Public Menu Label',
+    ]);
+
+    $this->get('/')
+        ->assertSuccessful()
+        ->assertSee('Public Menu Label', false);
+});

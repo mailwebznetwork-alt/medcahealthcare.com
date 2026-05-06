@@ -48,6 +48,7 @@
                 @foreach($navItems as $item)
                     <a
                         href="{{ $item['href'] }}"
+                        @if (\App\Support\PublicNav::isCurrent($item['href'])) aria-current="page" @endif
                         class="group relative rounded-xl border border-transparent px-3 py-2 text-[11px] font-semibold uppercase tracking-widest text-slate-600 transition hover:border-surgical-silver/40 hover:bg-medical-navy hover:text-surgical-silver"
                     >
                         <span>{{ $item['label'] }}</span>
@@ -138,6 +139,7 @@
                                 <a
                                     href="{{ $item['href'] }}"
                                     x-on:click="open = false"
+                                    @if (\App\Support\PublicNav::isCurrent($item['href'])) aria-current="page" @endif
                                     class="flex min-h-[60px] items-center border-b border-slate-100 px-1 text-sm font-semibold uppercase tracking-wide text-slate-800 transition hover:bg-slate-50"
                                 >
                                     {{ $item['label'] }}

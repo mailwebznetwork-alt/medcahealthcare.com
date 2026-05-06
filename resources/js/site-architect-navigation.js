@@ -1,5 +1,3 @@
-import Sortable from 'sortablejs';
-
 function readZoneIds(zone) {
     const el = document.querySelector(`[data-nav-zone="${zone}"]`);
     if (!el) {
@@ -8,10 +6,10 @@ function readZoneIds(zone) {
 
     return [...el.querySelectorAll('[data-page-id]')]
         .map((n) => parseInt(n.dataset.pageId, 10))
-        .filter((id) => ! Number.isNaN(id));
+        .filter((id) => !Number.isNaN(id));
 }
 
-function bindNavigationSortables() {
+async function bindNavigationSortables() {
     const root = document.getElementById('site-navigation-root');
     if (!root) {
         return;
@@ -28,6 +26,8 @@ function bindNavigationSortables() {
         return;
     }
 
+    const { default: Sortable } = await import('sortablejs');
+
     document.querySelectorAll('[data-nav-zone]').forEach((zoneEl) => {
         if (zoneEl._sortableInstance) {
             zoneEl._sortableInstance.destroy();
@@ -38,11 +38,13 @@ function bindNavigationSortables() {
             group: 'site-navigation',
             animation: 150,
             draggable: '[data-page-id]',
+            filter: 'input,textarea,button,select,option',
+            preventOnFilter: false,
             onEnd: () => {
                 component.call(
                     'syncFromDrag',
                     readZoneIds('header'),
-                    readZoneIds('footer')
+                    readZoneIds('footer'),
                 );
             },
         });
@@ -51,10 +53,17 @@ function bindNavigationSortables() {
 
 document.addEventListener('livewire:init', () => {
     window.Livewire.hook('morph.updated', () => {
-        requestAnimationFrame(bindNavigationSortables);
+        if (!document.getElementById('site-navigation-root')) {
+            return;
+        }
+        requestAnimationFrame(() => {
+            bindNavigationSortables();
+        });
     });
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    requestAnimationFrame(bindNavigationSortables);
+    requestAnimationFrame(() => {
+        bindNavigationSortables();
+    });
 });

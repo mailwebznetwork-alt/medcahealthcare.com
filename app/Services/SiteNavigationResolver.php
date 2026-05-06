@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Page;
 use App\Models\SiteNavigationItem;
 use Illuminate\Support\Facades\Schema;
 
@@ -29,7 +30,7 @@ class SiteNavigationResolver
                 continue;
             }
             $links[] = [
-                'label' => $page->title,
+                'label' => $this->resolveNavLabel($row, $page),
                 'href' => route('pages.public', ['slug' => $page->slug]),
             ];
         }
@@ -63,12 +64,23 @@ class SiteNavigationResolver
                 continue;
             }
             $links[] = [
-                'label' => $page->title,
+                'label' => $this->resolveNavLabel($row, $page),
                 'href' => route('pages.public', ['slug' => $page->slug]),
             ];
         }
 
         return $links;
+    }
+
+    protected function resolveNavLabel(SiteNavigationItem $row, Page $page): string
+    {
+        $custom = $row->custom_label ?? null;
+
+        if ($custom !== null && trim((string) $custom) !== '') {
+            return trim((string) $custom);
+        }
+
+        return $page->title;
     }
 
     /**

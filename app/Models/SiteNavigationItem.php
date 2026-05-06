@@ -15,6 +15,7 @@ class SiteNavigationItem extends Model
         'zone',
         'page_id',
         'sort_order',
+        'custom_label',
     ];
 
     /**

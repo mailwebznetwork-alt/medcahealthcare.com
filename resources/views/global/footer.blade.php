@@ -7,7 +7,11 @@
     @if (count($footerNav) > 0)
         <nav class="mb-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-semibold uppercase tracking-widest text-slate-600" aria-label="{{ __('Footer links') }}">
             @foreach ($footerNav as $link)
-                <a href="{{ $link['href'] }}" class="rounded-lg px-2 py-1 transition hover:text-[#002366] hover:underline">{{ $link['label'] }}</a>
+                <a
+                    href="{{ $link['href'] }}"
+                    @if (\App\Support\PublicNav::isCurrent($link['href'])) aria-current="page" @endif
+                    class="rounded-lg px-2 py-1 transition hover:text-[#002366] hover:underline"
+                >{{ $link['label'] }}</a>
             @endforeach
         </nav>
     @endif
