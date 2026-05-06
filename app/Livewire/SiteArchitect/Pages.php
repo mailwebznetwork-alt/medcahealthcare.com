@@ -4,7 +4,10 @@ namespace App\Livewire\SiteArchitect;
 
 use App\Models\Block;
 use App\Models\Page;
+use App\Models\PageRevision;
 use App\Models\PinCode;
+use App\Models\SiteSlugRedirect;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -39,6 +42,22 @@ class Pages extends Component
     public string $meta_description = '';
 
     public string $keywords = '';
+
+    public string $canonical_url = '';
+
+    public string $robots_meta = '';
+
+    public string $og_image = '';
+
+    public string $og_image_alt = '';
+
+    public string $hreflang_json_input = '';
+
+    public string $entity_tags_input = '';
+
+    public bool $fact_check_verified = false;
+
+    public string $content_reviewed_label = '';
 
     public string $h1 = '';
 
@@ -95,10 +114,33 @@ class Pages extends Component
 
         $modules = collect(config('modules', []))->keys()->values()->all();
 
+        $otherPagesForLinks = collect();
+        $revisions = collect();
+        if ($this->mode === 'form') {
+            $otherPagesForLinks = Page::query()
+                ->when($this->editingId !== null, fn ($q) => $q->whereKeyNot($this->editingId))
+                ->orderBy('title')
+                ->limit(40)
+                ->get(['id', 'title', 'slug']);
+
+            if ($this->editingId !== null) {
+                $revisions = PageRevision::query()
+                    ->where('page_id', $this->editingId)
+                    ->latest('created_at')
+                    ->with('user:id,name')
+                    ->limit(15)
+                    ->get();
+            }
+        }
+
         return view('livewire.site-architect.pages', [
             'pages' => $pages,
             'pinCodes' => $pinCodes,
             'modules' => $modules,
+            'otherPagesForLinks' => $otherPagesForLinks,
+            'revisions' => $revisions,
+            'readabilityHint' => $this->mode === 'form' ? $this->computeReadabilityHint() : null,
+            'llmReadiness' => $this->mode === 'form' ? $this->computeLlmReadiness() : null,
         ]);
     }
 
@@ -126,6 +168,20 @@ class Pages extends Component
         $this->meta_title = (string) ($page->meta_title ?? '');
         $this->meta_description = (string) ($page->meta_description ?? '');
         $this->keywords = (string) ($page->keywords ?? '');
+        $this->canonical_url = (string) ($page->canonical_url ?? '');
+        $this->robots_meta = (string) ($page->robots_meta ?? '');
+        $this->og_image = (string) ($page->og_image ?? '');
+        $this->og_image_alt = (string) ($page->og_image_alt ?? '');
+        $this->hreflang_json_input = $page->hreflang_json !== null
+            ? json_encode($page->hreflang_json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            : '';
+        $this->entity_tags_input = is_array($page->entity_tags) && $page->entity_tags !== []
+            ? implode(', ', $page->entity_tags)
+            : '';
+        $this->fact_check_verified = (bool) $page->fact_check_verified;
+        $this->content_reviewed_label = $page->content_reviewed_at !== null
+            ? $page->content_reviewed_at->timezone(config('app.timezone'))->format('Y-m-d H:i')
+            : '';
         $this->h1 = (string) ($page->h1 ?? '');
         $this->h2 = (string) ($page->h2 ?? '');
         $this->h3 = (string) ($page->h3 ?? '');
@@ -170,6 +226,97 @@ class Pages extends Component
         }
     }
 
+    public function markContentReviewed(): void
+    {
+        if ($this->editingId === null) {
+            return;
+        }
+
+        $page = Page::query()->findOrFail($this->editingId);
+        $this->authorize('update', $page);
+        $page->update(['content_reviewed_at' => now()]);
+        $fresh = $page->fresh();
+        $this->content_reviewed_label = $fresh?->content_reviewed_at !== null
+            ? $fresh->content_reviewed_at->timezone(config('app.timezone'))->format('Y-m-d H:i')
+            : '';
+        session()->flash('status', __('Content review timestamp updated.'));
+    }
+
+    public function restoreRevision(int $revisionId): void
+    {
+        if ($this->editingId === null) {
+            return;
+        }
+
+        $page = Page::query()->findOrFail($this->editingId);
+        $this->authorize('update', $page);
+
+        $revision = PageRevision::query()
+            ->where('page_id', $this->editingId)
+            ->findOrFail($revisionId);
+
+        $snap = $revision->snapshot;
+        if (! is_array($snap)) {
+            return;
+        }
+
+        $this->title = (string) ($snap['title'] ?? '');
+        $this->slug = (string) ($snap['slug'] ?? '');
+        $this->is_active = (bool) ($snap['is_active'] ?? false);
+        $this->meta_title = (string) ($snap['meta_title'] ?? '');
+        $this->meta_description = (string) ($snap['meta_description'] ?? '');
+        $this->keywords = (string) ($snap['keywords'] ?? '');
+        $this->canonical_url = (string) ($snap['canonical_url'] ?? '');
+        $this->robots_meta = (string) ($snap['robots_meta'] ?? '');
+        $this->og_image = (string) ($snap['og_image'] ?? '');
+        $this->og_image_alt = (string) ($snap['og_image_alt'] ?? '');
+        $href = $snap['hreflang_json'] ?? null;
+        $this->hreflang_json_input = is_array($href)
+            ? json_encode($href, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            : '';
+        $tags = $snap['entity_tags'] ?? null;
+        $this->entity_tags_input = is_array($tags)
+            ? implode(', ', array_map('strval', $tags))
+            : '';
+        $this->fact_check_verified = (bool) ($snap['fact_check_verified'] ?? false);
+        $this->content_reviewed_label = isset($snap['content_reviewed_at']) && is_string($snap['content_reviewed_at'])
+            ? CarbonImmutable::parse($snap['content_reviewed_at'])->timezone(config('app.timezone'))->format('Y-m-d H:i')
+            : '';
+        $this->h1 = (string) ($snap['h1'] ?? '');
+        $this->h2 = (string) ($snap['h2'] ?? '');
+        $this->h3 = (string) ($snap['h3'] ?? '');
+        $this->h4 = (string) ($snap['h4'] ?? '');
+        $this->h5 = (string) ($snap['h5'] ?? '');
+        $this->h6 = (string) ($snap['h6'] ?? '');
+        $this->aeo_question = (string) ($snap['aeo_question'] ?? '');
+        $this->aeo_answer = (string) ($snap['aeo_answer'] ?? '');
+        $schema = $snap['schema_json'] ?? null;
+        $this->schema_json_input = is_array($schema)
+            ? json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            : '';
+        $this->gtm_code = (string) ($snap['gtm_code'] ?? '');
+        $this->pixel_code = (string) ($snap['pixel_code'] ?? '');
+        $this->contentParts = Page::parseContentTokens($snap['content'] ?? null);
+
+        $this->selectedPinIds = [];
+        $this->pinPivot = [];
+        foreach ($snap['pin_codes'] ?? [] as $row) {
+            if (! is_array($row) || empty($row['id'])) {
+                continue;
+            }
+            $pid = (int) $row['id'];
+            $this->selectedPinIds[] = $pid;
+            $this->pinPivot[$pid] = [
+                'serviceability' => (bool) ($row['serviceability'] ?? true),
+                'delivery_charge' => isset($row['delivery_charge']) && $row['delivery_charge'] !== null ? (string) $row['delivery_charge'] : '',
+                'location_keywords' => (string) ($row['location_keywords'] ?? ''),
+            ];
+        }
+        $this->selectedPinIds = array_values(array_unique($this->selectedPinIds));
+
+        session()->flash('status', __('Revision loaded into the form — review and click Save page.'));
+    }
+
     public function savePage(): void
     {
         $schemaDecoded = null;
@@ -181,6 +328,32 @@ class Pages extends Component
                 return;
             }
             $schemaDecoded = $decoded;
+        }
+
+        $hreflangDecoded = null;
+        if (trim($this->hreflang_json_input) !== '') {
+            $hrefDecoded = json_decode($this->hreflang_json_input, true);
+            if (json_last_error() !== JSON_ERROR_NONE || ! is_array($hrefDecoded)) {
+                $this->addError('hreflang_json_input', __('Hreflang must be valid JSON object (locale → URL).'));
+
+                return;
+            }
+            foreach ($hrefDecoded as $locale => $url) {
+                if (! is_string($locale) || (! is_string($url) && ! is_scalar($url))) {
+                    $this->addError('hreflang_json_input', __('Each hreflang entry must map a locale string to a URL string.'));
+
+                    return;
+                }
+            }
+            $hreflangDecoded = array_map(fn ($u) => is_string($u) ? $u : (string) $u, $hrefDecoded);
+        }
+
+        $entityTagsDecoded = null;
+        if (trim($this->entity_tags_input) !== '') {
+            $entityTagsDecoded = array_values(array_filter(array_map('trim', preg_split('/[,|\n]+/', $this->entity_tags_input) ?: [])));
+            if ($entityTagsDecoded === []) {
+                $entityTagsDecoded = null;
+            }
         }
 
         $rules = [
@@ -196,6 +369,11 @@ class Pages extends Component
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string'],
             'keywords' => ['nullable', 'string'],
+            'canonical_url' => ['nullable', 'string', 'max:2048'],
+            'robots_meta' => ['nullable', 'string', 'max:255'],
+            'og_image' => ['nullable', 'string', 'max:2048'],
+            'og_image_alt' => ['nullable', 'string', 'max:255'],
+            'fact_check_verified' => ['boolean'],
             'h1' => ['nullable', 'string', 'max:255'],
             'h2' => ['nullable', 'string', 'max:255'],
             'h3' => ['nullable', 'string', 'max:255'],
@@ -212,6 +390,11 @@ class Pages extends Component
 
         $content = Page::buildContentFromParts($this->contentParts);
 
+        $previousSlug = null;
+        if ($this->editingId !== null) {
+            $previousSlug = Page::query()->whereKey($this->editingId)->value('slug');
+        }
+
         $data = [
             'title' => $this->title,
             'slug' => $this->slug,
@@ -219,6 +402,13 @@ class Pages extends Component
             'meta_title' => $this->meta_title ?: null,
             'meta_description' => $this->meta_description ?: null,
             'keywords' => $this->keywords ?: null,
+            'canonical_url' => $this->canonical_url ?: null,
+            'robots_meta' => $this->robots_meta !== '' ? $this->robots_meta : null,
+            'og_image' => $this->og_image ?: null,
+            'og_image_alt' => $this->og_image_alt ?: null,
+            'hreflang_json' => $hreflangDecoded,
+            'entity_tags' => $entityTagsDecoded,
+            'fact_check_verified' => $this->fact_check_verified,
             'h1' => $this->h1 ?: null,
             'h2' => $this->h2 ?: null,
             'h3' => $this->h3 ?: null,
@@ -233,7 +423,7 @@ class Pages extends Component
             'is_active' => $this->is_active,
         ];
 
-        DB::transaction(function () use ($data): void {
+        DB::transaction(function () use ($data, $previousSlug): void {
             if ($this->editingId === null) {
                 $this->authorize('create', Page::class);
                 $page = Page::query()->create($data);
@@ -245,6 +435,15 @@ class Pages extends Component
             }
 
             $page->refresh();
+
+            if ($previousSlug !== null && $previousSlug !== $page->slug) {
+                SiteSlugRedirect::query()->where('to_slug', $previousSlug)->update(['to_slug' => $page->slug]);
+                SiteSlugRedirect::query()->updateOrCreate(
+                    ['from_slug' => $previousSlug],
+                    ['to_slug' => $page->slug]
+                );
+            }
+
             $sync = [];
             foreach ($this->selectedPinIds as $pid) {
                 $pid = (int) $pid;
@@ -259,6 +458,26 @@ class Pages extends Component
                 ];
             }
             $page->pinCodes()->sync($sync);
+
+            $page->refresh();
+            $page->load('pinCodes');
+
+            PageRevision::query()->create([
+                'page_id' => $page->id,
+                'user_id' => auth()->id(),
+                'snapshot' => $page->toRevisionSnapshot(),
+            ]);
+
+            while (PageRevision::query()->where('page_id', $page->id)->count() > 40) {
+                $oldest = PageRevision::query()
+                    ->where('page_id', $page->id)
+                    ->oldest('id')
+                    ->first();
+                if ($oldest === null) {
+                    break;
+                }
+                $oldest->delete();
+            }
         });
 
         session()->flash('status', __('Page saved.'));
@@ -463,6 +682,83 @@ class Pages extends Component
         }
     }
 
+    /**
+     * @return array{score: int, avg_words_per_sentence: float|null, note: string}
+     */
+    protected function computeReadabilityHint(): array
+    {
+        $text = collect([
+            $this->title,
+            $this->meta_description,
+            $this->h1,
+            $this->aeo_answer,
+            $this->keywords,
+        ])->filter()->implode(' ');
+
+        $plain = trim(preg_replace('/\s+/', ' ', strip_tags($text)) ?? '');
+        if ($plain === '') {
+            return ['score' => 0, 'avg_words_per_sentence' => null, 'note' => __('Add title, meta description, or H1 to score readability.')];
+        }
+
+        $words = str_word_count($plain);
+        $sentenceCount = max(1, preg_match_all('/[.!?]+/', $plain) ?: 1);
+        $avg = $words / $sentenceCount;
+        $score = (int) max(0, min(100, 100 - min(55, (int) (abs($avg - 17) * 2.2))));
+
+        return [
+            'score' => $score,
+            'avg_words_per_sentence' => round($avg, 1),
+            'note' => __('Shorter sentences (roughly 12–20 words) usually read better on the web.'),
+        ];
+    }
+
+    /**
+     * @return array{score: int, checks: list<string>}
+     */
+    protected function computeLlmReadiness(): array
+    {
+        $checks = [];
+        $score = 0;
+        if ($this->meta_title !== '') {
+            $score += 12;
+            $checks[] = __('Meta title present');
+        }
+        if ($this->meta_description !== '') {
+            $score += 12;
+            $checks[] = __('Meta description present');
+        }
+        if ($this->keywords !== '') {
+            $score += 8;
+            $checks[] = __('Focus keywords captured');
+        }
+        if ($this->aeo_question !== '' && $this->aeo_answer !== '') {
+            $score += 18;
+            $checks[] = __('AEO question & answer pair complete');
+        }
+        if (trim($this->schema_json_input) !== '') {
+            $score += 15;
+            $checks[] = __('Structured data JSON present');
+        }
+        if (trim(preg_replace('/[\s,|]+/u', '', $this->entity_tags_input) ?? '') !== '') {
+            $score += 10;
+            $checks[] = __('Entity tags defined');
+        }
+        if ($this->fact_check_verified) {
+            $score += 10;
+            $checks[] = __('Fact-check marked as verified');
+        }
+        if ($this->h1 !== '') {
+            $score += 8;
+            $checks[] = __('H1 present');
+        }
+        if ($this->contentParts !== []) {
+            $score += 7;
+            $checks[] = __('Page structure has blocks or modules');
+        }
+
+        return ['score' => min(100, $score), 'checks' => $checks];
+    }
+
     public static function defaultKeywordHints(PinCode $pc): array
     {
         return [
@@ -479,6 +775,14 @@ class Pages extends Component
         $this->meta_title = '';
         $this->meta_description = '';
         $this->keywords = '';
+        $this->canonical_url = '';
+        $this->robots_meta = '';
+        $this->og_image = '';
+        $this->og_image_alt = '';
+        $this->hreflang_json_input = '';
+        $this->entity_tags_input = '';
+        $this->fact_check_verified = false;
+        $this->content_reviewed_label = '';
         $this->h1 = '';
         $this->h2 = '';
         $this->h3 = '';

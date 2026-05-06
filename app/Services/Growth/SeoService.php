@@ -4,6 +4,7 @@ namespace App\Services\Growth;
 
 use App\Models\BusinessProfile;
 use App\Models\GrowthPincode;
+use App\Models\Page;
 use App\Models\PageSeo;
 use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
@@ -149,6 +150,7 @@ class SeoService
     {
         $urls = collect(['/', '/about', '/contact'])
             ->merge($this->pageLevelUrls())
+            ->merge($this->cmsPageUrls())
             ->merge($this->geoLevelUrls())
             ->filter(fn (?string $path): bool => is_string($path) && $path !== '')
             ->map(fn (string $path): string => str_starts_with($path, '/') ? $path : '/'.$path)
@@ -181,6 +183,21 @@ class SeoService
         return PageSeo::query()
             ->whereNotNull('page_slug')
             ->pluck('page_slug');
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    protected function cmsPageUrls(): Collection
+    {
+        if (! Schema::hasTable('pages')) {
+            return collect();
+        }
+
+        return Page::query()
+            ->where('is_active', true)
+            ->pluck('slug')
+            ->map(fn (string $slug): string => '/p/'.$slug);
     }
 
     /**

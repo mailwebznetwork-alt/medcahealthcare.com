@@ -53,7 +53,7 @@
                                 @if ($page->is_active)
                                     <span class="text-[var(--text-muted)]">·</span>
                                     <a
-                                        href="{{ route('pages.public', $page) }}"
+                                        href="{{ route('pages.public', ['slug' => $page->slug]) }}"
                                         target="_blank"
                                         rel="noopener"
                                         class="text-mom-gold hover:underline"
@@ -177,6 +177,50 @@
             </section>
 
             <section class="mom-card p-6">
+                <h3 class="mom-section-title mb-4">{{ __('Technical & canonical') }}</h3>
+                <p class="mom-subtext mb-4 max-w-2xl">{{ __('Override crawl directives for this URL only. Leave robots blank to inherit Growth Center global settings.') }}</p>
+                <div class="grid gap-4 md:grid-cols-2">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Canonical URL') }}</label>
+                        <input type="text" wire:model="canonical_url" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" placeholder="https://example.com/p/your-page" />
+                        @error('canonical_url') <p class="mt-1 text-xs text-[var(--danger)]">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Robots meta') }}</label>
+                        <select wire:model="robots_meta" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)]">
+                            <option value="">{{ __('Inherit global (Growth Center)') }}</option>
+                            <option value="index, follow">index, follow</option>
+                            <option value="noindex, nofollow">noindex, nofollow</option>
+                            <option value="noindex, follow">noindex, follow</option>
+                            <option value="index, nofollow">index, nofollow</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mom-card p-6">
+                <h3 class="mom-section-title mb-4">{{ __('Social & sharing (Open Graph)') }}</h3>
+                <p class="mom-subtext mb-4 max-w-2xl">{{ __('Optional image for this page in link previews. Use a full URL or a path under storage (e.g. after uploading in Media).') }}</p>
+                <div class="grid gap-4 md:grid-cols-2">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('OG / social image') }}</label>
+                        <input type="text" wire:model="og_image" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" placeholder="https://… or media/…" />
+                        @error('og_image') <p class="mt-1 text-xs text-[var(--danger)]">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('OG image alt text') }}</label>
+                        <input type="text" wire:model="og_image_alt" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" />
+                        @error('og_image_alt') <p class="mt-1 text-xs text-[var(--danger)]">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+            </section>
+
+            <section class="mom-card p-6">
+                <h3 class="mom-section-title mb-4">{{ __('Images & alt text') }}</h3>
+                <p class="mom-subtext max-w-2xl">{{ __('Set alt text on <img> tags inside block HTML, and use the OG image alt field above for the share card. The Media library can store assets; reference them in blocks with proper alt attributes for SEO and accessibility.') }}</p>
+            </section>
+
+            <section class="mom-card p-6">
                 <h3 class="mom-section-title mb-4">{{ __('AEO') }}</h3>
                 <div class="space-y-4">
                     <div>
@@ -187,6 +231,78 @@
                         <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Answer snippet') }}</label>
                         <textarea wire:model="aeo_answer" rows="4" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm"></textarea>
                     </div>
+                </div>
+            </section>
+
+            <section class="mom-card p-6">
+                <h3 class="mom-section-title mb-4">{{ __('Performance & language') }}</h3>
+                <div class="grid gap-6 md:grid-cols-2">
+                    <div class="md:col-span-2 rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] p-4">
+                        <p class="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Readability (draft signal)') }}</p>
+                        @if ($readabilityHint)
+                            <p class="mt-2 text-sm text-[var(--text-primary)]">{{ __('Score') }}: {{ $readabilityHint['score'] }}/100 @if ($readabilityHint['avg_words_per_sentence'] !== null) · {{ __('Avg words / sentence') }}: {{ $readabilityHint['avg_words_per_sentence'] }} @endif</p>
+                            <p class="mom-subtext mt-1">{{ $readabilityHint['note'] }}</p>
+                        @endif
+                    </div>
+                    <div class="md:col-span-2">
+                        <p class="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Internal linking ideas') }}</p>
+                        <p class="mom-subtext mt-1 mb-2">{{ __('Copy paths into blocks as internal links to strengthen topical clusters.') }}</p>
+                        <ul class="mom-subtext max-h-36 list-inside list-disc overflow-y-auto custom-scrollbar rounded-mom-chrome border border-[var(--border-panel-soft)] p-3">
+                            @forelse ($otherPagesForLinks as $op)
+                                <li wire:key="link-hint-{{ $op->id }}">
+                                    <span class="text-[var(--text-primary)]">{{ $op->title }}</span>
+                                    — <code class="font-mono text-xs">{{ '/p/'.$op->slug }}</code>
+                                </li>
+                            @empty
+                                <li>{{ __('No other pages yet — create another page to see suggestions.') }}</li>
+                            @endforelse
+                        </ul>
+                    </div>
+                    <div class="md:col-span-2 flex flex-wrap items-center gap-3">
+                        <div>
+                            <p class="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Content freshness') }}</p>
+                            <p class="mom-subtext mt-1">{{ __('Last marked reviewed') }}: {{ $content_reviewed_label !== '' ? $content_reviewed_label : __('—') }}</p>
+                        </div>
+                        @if ($editingId)
+                            <button type="button" wire:click="markContentReviewed" class="rounded-mom-chrome border border-[var(--border-panel-soft)] px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-hover)]">{{ __('Mark reviewed now') }}</button>
+                        @endif
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Hreflang JSON') }}</label>
+                        <p class="mom-subtext mb-2">{{ __('Locale keys map to absolute URLs (e.g. "en": "https://…", "hi": "https://…").') }}</p>
+                        <textarea wire:model="hreflang_json_input" rows="5" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 font-mono text-xs"></textarea>
+                        @error('hreflang_json_input') <p class="mt-1 text-xs text-[var(--danger)]">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+            </section>
+
+            <section class="mom-card p-6">
+                <h3 class="mom-section-title mb-4">{{ __('AEO+ / LLM readiness') }}</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Entity tags') }}</label>
+                        <p class="mom-subtext mb-2">{{ __('Comma-separated entities this page should reinforce for AI systems.') }}</p>
+                        <textarea wire:model="entity_tags_input" rows="2" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" placeholder="{{ __('e.g. Home nursing, Bangalore, Post-operative care') }}"></textarea>
+                    </div>
+                    <label class="flex cursor-pointer items-center gap-3 text-sm text-[var(--text-secondary)]">
+                        <input type="checkbox" wire:model.live="fact_check_verified" class="rounded border-[rgba(255,255,255,0.15)]" />
+                        {{ __('Fact-check verified (editor attestation)') }}
+                    </label>
+                    @if ($llmReadiness)
+                        <div class="rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] p-4">
+                            <p class="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('LLM readiness (heuristic)') }}</p>
+                            <p class="mt-2 text-lg font-semibold text-[var(--text-primary)]">{{ $llmReadiness['score'] }}/100</p>
+                            @if (count($llmReadiness['checks']) > 0)
+                                <ul class="mom-subtext mt-2 list-inside list-disc">
+                                    @foreach ($llmReadiness['checks'] as $check)
+                                        <li>{{ $check }}</li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="mom-subtext mt-2">{{ __('Fill SEO, AEO, and schema fields to raise this score.') }}</p>
+                            @endif
+                        </div>
+                    @endif
                 </div>
             </section>
 
@@ -236,8 +352,31 @@
                 @endforeach
             </section>
 
+            @if ($editingId)
+                <section class="mom-card p-6">
+                    <h3 class="mom-section-title mb-4">{{ __('Revision history') }}</h3>
+                    <p class="mom-subtext mb-4">{{ __('Snapshots are stored when you save (latest 40 kept). Restore loads values into this form — save to publish.') }}</p>
+                    <div class="custom-scrollbar max-h-72 space-y-2 overflow-y-auto rounded-mom-chrome border border-[var(--border-panel-soft)] p-3">
+                        @forelse ($revisions as $rev)
+                            <div wire:key="rev-{{ $rev->id }}" class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-panel-soft)] py-2 text-sm last:border-0">
+                                <span class="text-[var(--text-secondary)]">
+                                    {{ $rev->created_at?->timezone(config('app.timezone'))->format('Y-m-d H:i') }}
+                                    @if ($rev->user)
+                                        · {{ $rev->user->name }}
+                                    @endif
+                                </span>
+                                <button type="button" wire:click="restoreRevision({{ $rev->id }})" class="text-mom-gold hover:underline">{{ __('Restore into form') }}</button>
+                            </div>
+                        @empty
+                            <p class="mom-subtext">{{ __('No snapshots yet — save the page once to create the first revision.') }}</p>
+                        @endforelse
+                    </div>
+                </section>
+            @endif
+
             <section class="mom-card p-6">
                 <h3 class="mom-section-title mb-4">{{ __('Schema & tracking') }}</h3>
+                <p class="mom-subtext mb-4">{{ __('JSON-LD below is emitted on the public page in addition to global organization schema.') }}</p>
                 <div class="space-y-4">
                     <div>
                         <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Schema JSON') }}</label>

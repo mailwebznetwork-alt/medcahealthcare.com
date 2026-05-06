@@ -29,6 +29,10 @@
         $ogImage = \Illuminate\Support\Str::startsWith($blog->featured_image, ['http://', 'https://'])
             ? $blog->featured_image
             : asset('storage/'.$blog->featured_image);
+    } elseif (isset($page) && filled($page->og_image)) {
+        $ogImage = \Illuminate\Support\Str::startsWith($page->og_image, ['http://', 'https://'])
+            ? $page->og_image
+            : asset('storage/'.$page->og_image);
     } elseif ($gEntity !== null && filled($gEntity->og_image_url)) {
         $ogImage = $gEntity->og_image_url;
     } elseif ($gEntity !== null && filled($gEntity->logo)) {
@@ -36,13 +40,18 @@
     }
 
     $robotsContent = 'index, follow';
-    if ($gTechnical !== null && ! $gTechnical->indexable) {
+    if (isset($page) && filled($page->robots_meta)) {
+        $robotsContent = $page->robots_meta;
+    } elseif ($gTechnical !== null && ! $gTechnical->indexable) {
         $robotsContent = 'noindex, nofollow';
     }
 
-    $canonicalHref = ($gTechnical !== null && filled($gTechnical->canonical_url))
-        ? $gTechnical->canonical_url
-        : url()->current();
+    $canonicalHref = url()->current();
+    if (isset($page) && filled($page->canonical_url)) {
+        $canonicalHref = $page->canonical_url;
+    } elseif ($gTechnical !== null && filled($gTechnical->canonical_url)) {
+        $canonicalHref = $gTechnical->canonical_url;
+    }
 @endphp
 
 @if (filled($metaDescription))
@@ -57,6 +66,14 @@
 
 <link rel="canonical" href="{{ $canonicalHref }}">
 
+@if (isset($page) && is_array($page->hreflang_json) && count($page->hreflang_json) > 0)
+    @foreach ($page->hreflang_json as $locale => $hrefLangUrl)
+        @if (filled($hrefLangUrl))
+            <link rel="alternate" hreflang="{{ $locale }}" href="{{ $hrefLangUrl }}">
+        @endif
+    @endforeach
+@endif
+
 <meta property="og:type" content="{{ isset($blog) ? 'article' : 'website' }}">
 <meta property="og:title" content="{{ strip_tags((string) $ogTitle) }}">
 @if (filled($ogDescription))
@@ -66,6 +83,9 @@
 <meta property="og:site_name" content="{{ config('app.name') }}">
 @if (filled($ogImage))
     <meta property="og:image" content="{{ $ogImage }}">
+@endif
+@if (isset($page) && filled($page->og_image_alt))
+    <meta property="og:image:alt" content="{{ \Illuminate\Support\Str::limit(strip_tags((string) $page->og_image_alt), 420, '') }}">
 @endif
 
 <meta name="twitter:card" content="summary_large_image">

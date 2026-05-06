@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class Page extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'uuid',
         'title',
@@ -16,6 +20,14 @@ class Page extends Model
         'meta_title',
         'meta_description',
         'keywords',
+        'canonical_url',
+        'robots_meta',
+        'og_image',
+        'og_image_alt',
+        'hreflang_json',
+        'entity_tags',
+        'fact_check_verified',
+        'content_reviewed_at',
         'h1',
         'h2',
         'h3',
@@ -37,7 +49,11 @@ class Page extends Model
     {
         return [
             'schema_json' => 'array',
+            'hreflang_json' => 'array',
+            'entity_tags' => 'array',
+            'fact_check_verified' => 'boolean',
             'is_active' => 'boolean',
+            'content_reviewed_at' => 'datetime',
         ];
     }
 
@@ -89,6 +105,57 @@ class Page extends Model
     }
 
     /**
+     * Snapshot for revision restore (structured fields + PIN pivot).
+     *
+     * @return array<string, mixed>
+     */
+    public function toRevisionSnapshot(): array
+    {
+        $this->loadMissing('pinCodes');
+
+        $attributes = $this->only([
+            'uuid',
+            'title',
+            'slug',
+            'content',
+            'meta_title',
+            'meta_description',
+            'keywords',
+            'canonical_url',
+            'robots_meta',
+            'og_image',
+            'og_image_alt',
+            'hreflang_json',
+            'entity_tags',
+            'fact_check_verified',
+            'content_reviewed_at',
+            'h1',
+            'h2',
+            'h3',
+            'h4',
+            'h5',
+            'h6',
+            'aeo_question',
+            'aeo_answer',
+            'schema_json',
+            'gtm_code',
+            'pixel_code',
+            'is_active',
+        ]);
+
+        $attributes['content_reviewed_at'] = $this->content_reviewed_at?->toAtomString();
+
+        $attributes['pin_codes'] = $this->pinCodes->map(fn ($pc) => [
+            'id' => $pc->id,
+            'serviceability' => (bool) $pc->pivot->serviceability,
+            'delivery_charge' => $pc->pivot->delivery_charge,
+            'location_keywords' => $pc->pivot->location_keywords,
+        ])->values()->all();
+
+        return $attributes;
+    }
+
+    /**
      * @return BelongsToMany<PinCode, $this>
      */
     public function pinCodes(): BelongsToMany
@@ -96,6 +163,14 @@ class Page extends Model
         return $this->belongsToMany(PinCode::class, 'page_pin_codes')
             ->withPivot(['serviceability', 'delivery_charge', 'location_keywords'])
             ->withTimestamps();
+    }
+
+    /**
+     * @return HasMany<PageRevision, $this>
+     */
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(PageRevision::class);
     }
 
     public function getRouteKeyName(): string

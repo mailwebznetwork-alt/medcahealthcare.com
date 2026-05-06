@@ -24,6 +24,7 @@ use App\Http\Controllers\WorkspaceSearchController;
 use App\Models\Blog;
 use App\Models\Lead;
 use App\Models\Page;
+use App\Models\SiteSlugRedirect;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
@@ -46,11 +47,29 @@ Route::post('/careers/{slug}/apply', [CareersController::class, 'storeApplicatio
     ->middleware('throttle:10,1')
     ->name('careers.apply');
 
-Route::get('/p/{page:slug}', function (Page $page) {
-    abort_unless($page->is_active, 404);
+Route::get('/p/{slug}', function (string $slug) {
+    $page = Page::query()->where('slug', $slug)->first();
 
-    return view('layouts.app', ['page' => $page]);
-})->name('pages.public');
+    if ($page !== null && $page->is_active) {
+        return view('layouts.app', ['page' => $page]);
+    }
+
+    $target = $slug;
+    $guard = 0;
+    while ($guard++ < 12) {
+        $row = SiteSlugRedirect::query()->where('from_slug', $target)->first();
+        if ($row === null) {
+            break;
+        }
+        $target = $row->to_slug;
+    }
+
+    if ($target !== $slug) {
+        return redirect('/p/'.$target, 301);
+    }
+
+    abort(404);
+})->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')->name('pages.public');
 
 Route::get('/blog/{blog:slug}', function (Blog $blog) {
     abort_unless($blog->is_published, 404);
