@@ -61,6 +61,9 @@ class Dashboard extends Component
     /** @var array<string, mixed> */
     public array $ga4Bundle = [];
 
+    /** @see Ga4DataApiService::RANGE_PRESETS */
+    public string $ga4RangePreset = '28d';
+
     /** @var array<string, mixed> */
     public array $googleAds = [];
 
@@ -76,6 +79,10 @@ class Dashboard extends Component
     {
         $this->authorize('view', MarketingSetting::current());
 
+        $this->ga4RangePreset = in_array($this->ga4RangePreset, Ga4DataApiService::RANGE_PRESETS, true)
+            ? $this->ga4RangePreset
+            : '28d';
+
         $this->loadReports();
     }
 
@@ -84,6 +91,12 @@ class Dashboard extends Component
         Ga4DataApiService::forgetCache(MarketingSetting::current());
         $this->loadReports();
         $this->flash = __('Reports refreshed.');
+    }
+
+    public function updatedGa4RangePreset(string $value): void
+    {
+        $this->ga4RangePreset = in_array($value, Ga4DataApiService::RANGE_PRESETS, true) ? $value : '28d';
+        $this->loadReports();
     }
 
     public function saveCampaign(): void
@@ -198,7 +211,7 @@ class Dashboard extends Component
     protected function loadReports(): void
     {
         $settings = MarketingSetting::current();
-        $this->ga4Bundle = app(Ga4DataApiService::class)->fetchReportBundle($settings);
+        $this->ga4Bundle = app(Ga4DataApiService::class)->fetchReportBundle($settings, $this->ga4RangePreset);
         $this->googleAds = app(GoogleAdsReportService::class)->fetchSummary();
         $this->metaAds = app(MetaAdsReportService::class)->fetchSummary();
 
@@ -216,6 +229,6 @@ class Dashboard extends Component
             $snapshotRows
         );
 
-        $this->geminiNarrative = $insightService->geminiNarrative($this->insights);
+        $this->geminiNarrative = $insightService->geminiNarrative($this->insights, $this->ga4Bundle);
     }
 }

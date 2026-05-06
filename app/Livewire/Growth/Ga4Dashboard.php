@@ -14,12 +14,24 @@ class Ga4Dashboard extends Component
 
     public ?string $flash = null;
 
+    /** 7d · 28d · 90d — matches Ga4DataApiService::RANGE_PRESETS */
+    public string $rangePreset = '28d';
+
     /** @var array<string, mixed> */
     public array $ga4Bundle = [];
 
     public function mount(): void
     {
         $this->authorize('view', MarketingSetting::current());
+        $this->rangePreset = in_array($this->rangePreset, Ga4DataApiService::RANGE_PRESETS, true)
+            ? $this->rangePreset
+            : '28d';
+        $this->loadReports();
+    }
+
+    public function updatedRangePreset(string $value): void
+    {
+        $this->rangePreset = in_array($value, Ga4DataApiService::RANGE_PRESETS, true) ? $value : '28d';
         $this->loadReports();
     }
 
@@ -39,6 +51,9 @@ class Ga4Dashboard extends Component
 
     protected function loadReports(): void
     {
-        $this->ga4Bundle = app(Ga4DataApiService::class)->fetchReportBundle(MarketingSetting::current());
+        $this->ga4Bundle = app(Ga4DataApiService::class)->fetchReportBundle(
+            MarketingSetting::current(),
+            $this->rangePreset
+        );
     }
 }

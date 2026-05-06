@@ -35,17 +35,60 @@
         @php
             $sum = $ga4Bundle['summary'] ?? [];
             $ga4Err = $ga4Bundle['error'] ?? null;
+            $ga4Meta = $ga4Bundle['meta'] ?? [];
         @endphp
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <p class="mom-micro text-[var(--text-muted)]">
+                @if (! empty($ga4Meta['date_range_label']))
+                    {{ __('GA4 window: :w', ['w' => $ga4Meta['date_range_label']]) }}
+                @endif
+            </p>
+            <label class="flex flex-col gap-1">
+                <span class="mom-micro">{{ __('GA4 window') }}</span>
+                <select
+                    wire:model.live="ga4RangePreset"
+                    class="rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]"
+                >
+                    <option value="7d">{{ __('Last 7 days') }}</option>
+                    <option value="28d">{{ __('Last 28 days') }}</option>
+                    <option value="90d">{{ __('Last 90 days') }}</option>
+                </select>
+            </label>
+        </div>
+
         <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <article class="mom-card px-5 py-4">
-                <p class="mom-micro">{{ __('Users (28d)') }}</p>
+                <p class="mom-micro">{{ __('Active users') }}</p>
                 <p class="mom-metric mt-2">{{ number_format((int) ($sum['users'] ?? 0)) }}</p>
-                <p class="mom-subtext mt-1">{{ __('GA4 active users') }}</p>
+                <p class="mom-subtext mt-1">{{ __('GA4') }}</p>
+            </article>
+            <article class="mom-card px-5 py-4">
+                <p class="mom-micro">{{ __('New users') }}</p>
+                <p class="mom-metric mt-2">{{ number_format((int) ($sum['new_users'] ?? 0)) }}</p>
+                <p class="mom-subtext mt-1">{{ __('Acquisition') }}</p>
             </article>
             <article class="mom-card px-5 py-4">
                 <p class="mom-micro">{{ __('Sessions') }}</p>
                 <p class="mom-metric mt-2">{{ number_format((int) ($sum['sessions'] ?? 0)) }}</p>
                 <p class="mom-subtext mt-1">{{ __('Traffic depth') }}</p>
+            </article>
+            <article class="mom-card px-5 py-4">
+                <p class="mom-micro">{{ __('Engaged sessions') }}</p>
+                <p class="mom-metric mt-2">{{ number_format((int) ($sum['engaged_sessions'] ?? 0)) }}</p>
+                <p class="mom-subtext mt-1">{{ __('GA4 engagedSessions') }}</p>
+            </article>
+        </section>
+
+        <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <article class="mom-card px-5 py-4">
+                <p class="mom-micro">{{ __('Engagement rate') }}</p>
+                <p class="mom-metric mt-2">{{ isset($sum['engagement_rate']) ? number_format((float) $sum['engagement_rate'], 2).'%' : '—' }}</p>
+                <p class="mom-subtext mt-1">{{ __('Engaged sessions ratio') }}</p>
+            </article>
+            <article class="mom-card px-5 py-4">
+                <p class="mom-micro">{{ __('Avg. session') }}</p>
+                <p class="mom-metric mt-2">{{ isset($sum['avg_session_duration_sec']) ? number_format((float) $sum['avg_session_duration_sec'], 1).'s' : '—' }}</p>
+                <p class="mom-subtext mt-1">{{ __('Site mean') }}</p>
             </article>
             <article class="mom-card px-5 py-4">
                 <p class="mom-micro">{{ __('Conversions') }}</p>

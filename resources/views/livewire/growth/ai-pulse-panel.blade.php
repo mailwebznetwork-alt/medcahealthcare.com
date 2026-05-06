@@ -26,9 +26,16 @@
 
     <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
         <article class="mom-card px-5 py-4">
-            <p class="mom-micro">{{ __('Speed (baseline)') }}</p>
+            <p class="mom-micro">{{ __('Speed') }}</p>
             <p class="mom-metric mt-2">{{ (int) ($snapshot['scores']['speed'] ?? 0) }}<span class="text-lg text-[var(--text-muted)]">/100</span></p>
-            <p class="mom-subtext mt-1">{{ __('Set AI_PULSE_SPEED_BASELINE or wire PageSpeed later.') }}</p>
+            @php($sd = $snapshot['speed_detail'] ?? [])
+            <p class="mom-subtext mt-1">
+                @if (($sd['source'] ?? '') === 'pagespeed_insights')
+                    {{ __('Live mobile PageSpeed Insights (GOOGLE_PAGESPEED_API_KEY).') }}
+                @else
+                    {{ __('Baseline AI_PULSE_SPEED_BASELINE — add GOOGLE_PAGESPEED_API_KEY + AI_PULSE_PAGESPEED_URL for Lighthouse.') }}
+                @endif
+            </p>
         </article>
         <article class="mom-card px-5 py-4">
             <p class="mom-micro">{{ __('On-page SEO score') }}</p>

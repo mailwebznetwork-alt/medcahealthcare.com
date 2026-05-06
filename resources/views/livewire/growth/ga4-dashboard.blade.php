@@ -5,19 +5,73 @@
         </div>
     @endif
 
-    <p class="mom-body-text text-[var(--text-secondary)]">{{ __('Analytics monitoring layer (PDF §19.5) — GA4 Data API, rolling 28-day window. KPIs below mirror active users, sessions, conversions, and derived conversion rate.') }}</p>
+    <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+            <p class="mom-body-text text-[var(--text-secondary)]">{{ __('Analytics monitoring layer — GA4 Data API with selectable windows (7 / 28 / 90 days). KPIs include engagement and acquisition depth.') }}</p>
+            @php($meta = $ga4Bundle['meta'] ?? [])
+            @if (! empty($meta['date_range_label']))
+                <p class="mom-micro mt-2 text-[var(--text-muted)]">{{ $meta['date_range_label'] }}</p>
+            @endif
+        </div>
+        <label class="flex flex-col gap-1">
+            <span class="mom-micro">{{ __('Report window') }}</span>
+            <select
+                wire:model.live="rangePreset"
+                class="rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]"
+            >
+                <option value="7d">{{ __('Last 7 days') }}</option>
+                <option value="28d">{{ __('Last 28 days') }}</option>
+                <option value="90d">{{ __('Last 90 days') }}</option>
+            </select>
+        </label>
+    </div>
 
     @php($sum = $ga4Bundle['summary'] ?? [])
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <article class="mom-card px-5 py-4">
             <p class="mom-micro">{{ __('Active users') }}</p>
             <p class="mom-metric mt-2">{{ number_format((int) ($sum['users'] ?? 0)) }}</p>
-            <p class="mom-subtext mt-1">{{ __('28d') }}</p>
+            <p class="mom-subtext mt-1">{{ data_get($meta, 'date_range_label', __('Window')) }}</p>
+        </article>
+        <article class="mom-card px-5 py-4">
+            <p class="mom-micro">{{ __('New users') }}</p>
+            <p class="mom-metric mt-2">{{ number_format((int) ($sum['new_users'] ?? 0)) }}</p>
+            <p class="mom-subtext mt-1">{{ __('Acquisition') }}</p>
         </article>
         <article class="mom-card px-5 py-4">
             <p class="mom-micro">{{ __('Sessions') }}</p>
             <p class="mom-metric mt-2">{{ number_format((int) ($sum['sessions'] ?? 0)) }}</p>
-            <p class="mom-subtext mt-1">{{ __('28d') }}</p>
+            <p class="mom-subtext mt-1">{{ __('Traffic depth') }}</p>
+        </article>
+        <article class="mom-card px-5 py-4">
+            <p class="mom-micro">{{ __('Engaged sessions') }}</p>
+            <p class="mom-metric mt-2">{{ number_format((int) ($sum['engaged_sessions'] ?? 0)) }}</p>
+            <p class="mom-subtext mt-1">{{ __('GA4 engagedSessions') }}</p>
+        </article>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <article class="mom-card px-5 py-4">
+            <p class="mom-micro">{{ __('Engagement rate') }}</p>
+            <p class="mom-metric mt-2">
+                @if (($sum['engagement_rate'] ?? null) !== null)
+                    {{ number_format((float) $sum['engagement_rate'], 2) }}%
+                @else
+                    —
+                @endif
+            </p>
+            <p class="mom-subtext mt-1">{{ __('Share of engaged sessions') }}</p>
+        </article>
+        <article class="mom-card px-5 py-4">
+            <p class="mom-micro">{{ __('Avg. session duration') }}</p>
+            <p class="mom-metric mt-2">
+                @if (($sum['avg_session_duration_sec'] ?? null) !== null)
+                    {{ number_format((float) $sum['avg_session_duration_sec'], 1) }}s
+                @else
+                    —
+                @endif
+            </p>
+            <p class="mom-subtext mt-1">{{ __('Site-wide mean') }}</p>
         </article>
         <article class="mom-card px-5 py-4">
             <p class="mom-micro">{{ __('Conversions') }}</p>
@@ -33,7 +87,7 @@
                     —
                 @endif
             </p>
-            <p class="mom-subtext mt-1">{{ __('Sessions-based') }}</p>
+            <p class="mom-subtext mt-1">{{ __('Conversions / sessions') }}</p>
         </article>
     </div>
 
@@ -56,7 +110,26 @@
     @if ($ga4Bundle['error'] ?? null)
         <p class="text-sm text-[var(--danger)]">{{ $ga4Bundle['error'] }}</p>
     @endif
+
     <div class="grid gap-6 lg:grid-cols-2">
+        <div class="mom-card overflow-hidden p-0">
+            <h3 class="border-b border-[var(--border-panel-soft)] px-4 py-3 text-sm font-semibold">{{ __('Channel grouping') }}</h3>
+            <table class="min-w-full text-sm">
+                <thead class="bg-[rgba(255,255,255,0.02)] text-left mom-micro">
+                    <tr><th class="px-4 py-2">{{ __('Channel') }}</th><th class="px-4 py-2">{{ __('Sessions') }}</th></tr>
+                </thead>
+                <tbody>
+                    @forelse ($ga4Bundle['channels'] ?? [] as $row)
+                        <tr class="border-t border-[var(--border-panel-soft)]">
+                            <td class="px-4 py-2">{{ $row['channel'] }}</td>
+                            <td class="px-4 py-2">{{ number_format((int) $row['sessions']) }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="2" class="px-4 py-6 text-[var(--text-muted)]">{{ __('No API rows yet.') }}</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
         <div class="mom-card overflow-hidden p-0">
             <h3 class="border-b border-[var(--border-panel-soft)] px-4 py-3 text-sm font-semibold">{{ __('Traffic sources') }}</h3>
             <table class="min-w-full text-sm">
@@ -75,6 +148,48 @@
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+        <div class="mom-card overflow-hidden p-0">
+            <h3 class="border-b border-[var(--border-panel-soft)] px-4 py-3 text-sm font-semibold">{{ __('Devices') }}</h3>
+            <table class="min-w-full text-sm">
+                <thead class="bg-[rgba(255,255,255,0.02)] text-left mom-micro">
+                    <tr><th class="px-4 py-2">{{ __('Category') }}</th><th class="px-4 py-2">{{ __('Sessions') }}</th></tr>
+                </thead>
+                <tbody>
+                    @forelse ($ga4Bundle['devices'] ?? [] as $row)
+                        <tr class="border-t border-[var(--border-panel-soft)]">
+                            <td class="px-4 py-2">{{ $row['device'] }}</td>
+                            <td class="px-4 py-2">{{ number_format((int) $row['sessions']) }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="2" class="px-4 py-6 text-[var(--text-muted)]">{{ __('No API rows yet.') }}</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        <div class="mom-card overflow-hidden p-0">
+            <h3 class="border-b border-[var(--border-panel-soft)] px-4 py-3 text-sm font-semibold">{{ __('Countries (active users)') }}</h3>
+            <table class="min-w-full text-sm">
+                <thead class="bg-[rgba(255,255,255,0.02)] text-left mom-micro">
+                    <tr><th class="px-4 py-2">{{ __('Country') }}</th><th class="px-4 py-2">{{ __('Users') }}</th></tr>
+                </thead>
+                <tbody>
+                    @forelse ($ga4Bundle['countries'] ?? [] as $row)
+                        <tr class="border-t border-[var(--border-panel-soft)]">
+                            <td class="px-4 py-2">{{ $row['country'] }}</td>
+                            <td class="px-4 py-2">{{ number_format((int) $row['users']) }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="2" class="px-4 py-6 text-[var(--text-muted)]">{{ __('No API rows yet.') }}</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-2">
         <div class="mom-card overflow-hidden p-0">
             <h3 class="border-b border-[var(--border-panel-soft)] px-4 py-3 text-sm font-semibold">{{ __('Top pages') }}</h3>
             <table class="min-w-full text-sm">
@@ -93,24 +208,25 @@
                 </tbody>
             </table>
         </div>
+        <div class="mom-card overflow-hidden p-0">
+            <h3 class="border-b border-[var(--border-panel-soft)] px-4 py-3 text-sm font-semibold">{{ __('Events') }}</h3>
+            <table class="min-w-full text-sm">
+                <thead class="bg-[rgba(255,255,255,0.02)] text-left mom-micro">
+                    <tr><th class="px-4 py-2">{{ __('Event') }}</th><th class="px-4 py-2">{{ __('Count') }}</th></tr>
+                </thead>
+                <tbody>
+                    @forelse ($ga4Bundle['events'] ?? [] as $row)
+                        <tr class="border-t border-[var(--border-panel-soft)]">
+                            <td class="px-4 py-2">{{ $row['name'] }}</td>
+                            <td class="px-4 py-2">{{ number_format((int) $row['count']) }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="2" class="px-4 py-6 text-[var(--text-muted)]">{{ __('No API rows yet.') }}</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div class="mom-card overflow-hidden p-0">
-        <h3 class="border-b border-[var(--border-panel-soft)] px-4 py-3 text-sm font-semibold">{{ __('Events') }}</h3>
-        <table class="min-w-full text-sm">
-            <thead class="bg-[rgba(255,255,255,0.02)] text-left mom-micro">
-                <tr><th class="px-4 py-2">{{ __('Event') }}</th><th class="px-4 py-2">{{ __('Count') }}</th></tr>
-            </thead>
-            <tbody>
-                @forelse ($ga4Bundle['events'] ?? [] as $row)
-                    <tr class="border-t border-[var(--border-panel-soft)]">
-                        <td class="px-4 py-2">{{ $row['name'] }}</td>
-                        <td class="px-4 py-2">{{ number_format((int) $row['count']) }}</td>
-                    </tr>
-                @empty
-                    <tr><td colspan="2" class="px-4 py-6 text-[var(--text-muted)]">{{ __('No API rows yet.') }}</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-    <p class="mom-micro text-[var(--text-muted)]">{{ __('Measurement ID and Property ID: Settings → Integrations (Google) or Marketing settings.') }}</p>
+
+    <p class="mom-micro text-[var(--text-muted)]">{{ __('Measurement ID and Property ID: Settings → Integrations (Google) or Marketing settings. Service account JSON: MARKETING_GA4_CREDENTIALS_PATH or GOOGLE_APPLICATION_CREDENTIALS.') }}</p>
 </div>

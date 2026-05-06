@@ -25,6 +25,8 @@ class MarketingInsightsService
         $insights = [];
         $warnCost = (float) config('marketing.insights.cost_per_lead_warn', 500);
         $waRatio = (float) config('marketing.insights.whatsapp_click_ratio_high', 0.15);
+        $channelWarn = (float) config('marketing.insights.channel_share_warn', 0.62);
+        $engagementWarn = (float) config('marketing.insights.engagement_rate_warn_pct', 42);
 
         $sources = $ga4Bundle['sources'] ?? [];
         if ($sources !== []) {
@@ -32,9 +34,53 @@ class MarketingInsightsService
             $best = $sources[0];
             $insights[] = [
                 'type' => 'best_source',
-                'message' => __('Best traffic source (28d): :source with :sessions sessions.', [
+                'message' => __('Best traffic source (:period): :source with :sessions sessions.', [
+                    'period' => trim((string) ($ga4Bundle['meta']['date_range_label'] ?? '')) !== ''
+                        ? trim((string) ($ga4Bundle['meta']['date_range_label'] ?? ''))
+                        : __('Rolling window'),
                     'source' => $best['source'] ?: '(direct)',
                     'sessions' => number_format((int) ($best['sessions'] ?? 0)),
+                ]),
+            ];
+        }
+
+        $channels = $ga4Bundle['channels'] ?? [];
+        if ($channels !== []) {
+            $totalCh = (int) array_sum(array_column($channels, 'sessions'));
+            $topCh = $channels[0];
+            if ($totalCh > 0 && (($topCh['sessions'] ?? 0) / $totalCh) >= $channelWarn) {
+                $insights[] = [
+                    'type' => 'channel_concentration',
+                    'message' => __('Channel mix is concentrated: “:channel” drives about :pct% of sessions — diversify paid/organic tests.', [
+                        'channel' => $topCh['channel'] ?? '?',
+                        'pct' => number_format((($topCh['sessions'] ?? 0) / $totalCh) * 100, 0),
+                    ]),
+                ];
+            }
+        }
+
+        $summary = $ga4Bundle['summary'] ?? [];
+        $engPct = isset($summary['engagement_rate']) ? (float) $summary['engagement_rate'] : null;
+        if ($engPct !== null && $engPct > 0 && $engPct < $engagementWarn) {
+            $insights[] = [
+                'type' => 'engagement_soft',
+                'message' => __('Engagement rate is :pct% (:period) — tighten landing-page relevance and above-the-fold CTAs.', [
+                    'pct' => number_format($engPct, 1),
+                    'period' => trim((string) ($ga4Bundle['meta']['date_range_label'] ?? '')) !== ''
+                        ? trim((string) ($ga4Bundle['meta']['date_range_label'] ?? ''))
+                        : __('Rolling window'),
+                ]),
+            ];
+        }
+
+        $users = max(1, (int) ($summary['users'] ?? 1));
+        $newUsers = (int) ($summary['new_users'] ?? 0);
+        $newRatio = $newUsers / $users;
+        if ($newRatio >= 0.72 && (int) ($summary['sessions'] ?? 0) > 100) {
+            $insights[] = [
+                'type' => 'new_user_mix',
+                'message' => __('High share of new users (:pct%) — ensure remarketing tags and nurture journeys capture returning intent.', [
+                    'pct' => number_format($newRatio * 100, 0),
                 ]),
             ];
         }
@@ -90,15 +136,24 @@ class MarketingInsightsService
      *
      * @param  list<array{type: string, message: string}>  $insights
      */
-    public function geminiNarrative(array $insights): ?string
+    public function geminiNarrative(array $insights, ?array $ga4Bundle = null): ?string
     {
         $key = config('gemini.api_key');
-        if (! is_string($key) || $key === '' || $insights === []) {
+        if (! is_string($key) || $key === '') {
             return null;
         }
 
-        $lines = array_map(fn ($i) => $i['message'] ?? '', $insights);
-        $prompt = "Summarize these marketing signals in 2 short bullet points for a healthcare operator in India:\n- "
+        $lines = array_values(array_filter(array_map(fn ($i) => $i['message'] ?? '', $insights), fn ($l) => $l !== ''));
+
+        if ($lines === [] && $ga4Bundle !== null && (int) ($ga4Bundle['summary']['sessions'] ?? 0) > 0) {
+            $lines = $this->linesFromGa4Bundle($ga4Bundle);
+        }
+
+        if ($lines === []) {
+            return null;
+        }
+
+        $prompt = "Summarize these marketing signals in 3 short bullet points for a healthcare operator in India (Medca-style trust, clarity, no hype):\n- "
             .implode("\n- ", $lines);
 
         $cacheKey = 'marketing.gemini.'.sha1($prompt);
@@ -112,6 +167,48 @@ class MarketingInsightsService
                 return null;
             }
         });
+    }
+
+    /**
+     * @param  array<string, mixed>  $ga4Bundle
+     * @return list<string>
+     */
+    private function linesFromGa4Bundle(array $ga4Bundle): array
+    {
+        $s = $ga4Bundle['summary'] ?? [];
+        $meta = $ga4Bundle['meta'] ?? [];
+        $period = trim((string) ($meta['date_range_label'] ?? ''));
+
+        $lines = [];
+        $lines[] = __('GA4 (:period): :sessions sessions, :users users, :conv conversions; engagement :eng% · avg session :dur s.', [
+            'period' => $period !== '' ? $period : __('selected window'),
+            'sessions' => number_format((int) ($s['sessions'] ?? 0)),
+            'users' => number_format((int) ($s['users'] ?? 0)),
+            'conv' => number_format((int) ($s['conversions'] ?? 0)),
+            'eng' => isset($s['engagement_rate']) ? number_format((float) $s['engagement_rate'], 1) : '—',
+            'dur' => isset($s['avg_session_duration_sec']) ? number_format((float) $s['avg_session_duration_sec'], 1) : '—',
+        ]);
+
+        $channels = $ga4Bundle['channels'] ?? [];
+        if ($channels !== []) {
+            $top = $channels[0];
+            $lines[] = __('Top channel (:period): :ch (:sess sessions).', [
+                'period' => $period !== '' ? $period : __('window'),
+                'ch' => $top['channel'] ?? '?',
+                'sess' => number_format((int) ($top['sessions'] ?? 0)),
+            ]);
+        }
+
+        $countries = $ga4Bundle['countries'] ?? [];
+        if ($countries !== []) {
+            $topC = $countries[0];
+            $lines[] = __('Top country: :co (:u active users).', [
+                'co' => $topC['country'] ?? '?',
+                'u' => number_format((int) ($topC['users'] ?? 0)),
+            ]);
+        }
+
+        return $lines;
     }
 
     private function geminiRequest(string $key, string $prompt): ?string

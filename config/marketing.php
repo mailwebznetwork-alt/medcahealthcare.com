@@ -45,5 +45,9 @@ return [
     'insights' => [
         'cost_per_lead_warn' => (float) env('MARKETING_INSIGHT_COST_PER_LEAD_WARN', 500),
         'whatsapp_click_ratio_high' => (float) env('MARKETING_WHATSAPP_CLICK_RATIO_HIGH', 0.15),
+        /** Dominant channel share (e.g. Organic Search ≥ 62%) — diversification hint */
+        'channel_share_warn' => (float) env('MARKETING_INSIGHT_CHANNEL_SHARE_WARN', 0.62),
+        /** Engagement rate % below this triggers an on-page relevance hint */
+        'engagement_rate_warn_pct' => (float) env('MARKETING_INSIGHT_ENGAGEMENT_WARN_PCT', 42),
     ],
 ];

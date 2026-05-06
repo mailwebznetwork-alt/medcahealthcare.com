@@ -13,6 +13,8 @@ it('includes pdf_pulse pillars when rebuilding the ai pulse snapshot', function 
 
     expect($snap)->toBeArray()
         ->and($snap)->toHaveKey('pdf_pulse')
+        ->and($snap)->toHaveKey('speed_detail')
+        ->and($snap['speed_detail'])->toHaveKeys(['source', 'score_0_100'])
         ->and($snap['pdf_pulse'])->toHaveKeys([
             'business_health',
             'predictive_insights',

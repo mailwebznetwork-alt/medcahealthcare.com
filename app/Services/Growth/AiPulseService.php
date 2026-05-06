@@ -181,10 +181,13 @@ class AiPulseService
         $rankMath = $seoScores === [] ? 0 : (int) round(array_sum($seoScores) / count($seoScores));
         $aioMean = $aioScores === [] ? 0 : (int) round(array_sum($aioScores) / count($aioScores));
 
-        $speedMean = (int) config('growth.ai_pulse_speed_baseline', 72);
+        $pageSpeedScore = app(PageSpeedInsightsService::class)->fetchPerformanceScore();
+        $speedMean = $pageSpeedScore ?? (int) config('growth.ai_pulse_speed_baseline', 72);
+        $speedSource = $pageSpeedScore !== null ? 'pagespeed_insights' : 'baseline';
+
         $brokenCount = count($broken);
         $brandAuthority = $this->brandAuthority($rankMath, $aioMean, $speedMean, $brokenCount);
-        $recommendations = $this->recommendations($broken, $rankMath, $speedMean, $brandAuthority);
+        $recommendations = $this->recommendations($broken, $rankMath, $speedMean, $brandAuthority, $speedSource);
 
         $payload = [
             'scanned_at' => now()->toDateTimeString(),
@@ -199,10 +202,17 @@ class AiPulseService
                 'rankmath' => $rankMath,
                 'brand_authority' => $brandAuthority,
             ],
+            'speed_detail' => [
+                'source' => $speedSource,
+                'score_0_100' => $speedMean,
+            ],
             'free_tier_sources' => [
                 'gemini' => [
                     'model' => 'gemini-2.0-flash',
                     'source' => config('gemini.api_key') ? 'configured' : 'not_configured',
+                ],
+                'pagespeed' => [
+                    'source' => $speedSource === 'pagespeed_insights' ? 'live' : 'not_configured',
                 ],
             ],
             'broken_links' => array_values($broken),
@@ -327,14 +337,18 @@ class AiPulseService
      * @param  list<array{scope: string, id: int, title: string, url: string, reason: string}>  $broken
      * @return list<string>
      */
-    private function recommendations(array $broken, int $rankMath, int $speed, int $authority): array
+    private function recommendations(array $broken, int $rankMath, int $speed, int $authority, string $speedSource = 'baseline'): array
     {
         $out = [];
         if ($broken !== []) {
             $out[] = __('Resolve broken or suspicious internal links — use Fix with AI or edit the source.');
         }
         if ($speed < 70) {
-            $out[] = __('Review Core Web Vitals and heavy assets; baseline speed score is heuristic until PageSpeed is wired.');
+            if ($speedSource === 'pagespeed_insights') {
+                $out[] = __('Mobile PageSpeed score is :n — prioritize LCP element, cut render-blocking JS, and compress large hero images.', ['n' => (string) $speed]);
+            } else {
+                $out[] = __('Review Core Web Vitals and heavy assets; set GOOGLE_PAGESPEED_API_KEY for live Lighthouse scores or adjust AI_PULSE_SPEED_BASELINE.');
+            }
         }
         if ($rankMath < 70) {
             $out[] = __('Improve meta titles, descriptions, and H1 coverage across pages and blogs.');
@@ -581,6 +595,7 @@ TXT;
             'scan_in_progress' => true,
             'totals' => ['pages' => 0, 'blogs' => 0, 'blocks' => 0],
             'scores' => ['speed' => 0, 'rankmath' => 0, 'brand_authority' => 0],
+            'speed_detail' => ['source' => 'placeholder', 'score_0_100' => 0],
             'free_tier_sources' => [],
             'broken_links' => [],
             'recommendations' => [__('AI Pulse scan is running in the background. Refresh shortly.')],
