@@ -21,6 +21,24 @@ it('redirects legacy aeo tab to seo tab', function () {
         ->assertRedirect(route('growth-center.competitors.index', ['tab' => 'seo']));
 });
 
+it('renders pdf section eight engine map on seo tab', function () {
+    if (! Schema::hasTable('competitors')) {
+        $this->markTestSkipped('Competitors table is not migrated.');
+    }
+
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'role' => 'manager',
+        'module_access' => ['growth_center' => true],
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('growth-center.competitors.index', ['tab' => 'seo']))
+        ->assertOk()
+        ->assertSee('PDF ഭാഗം 8', false)
+        ->assertSee('/growth-center/seo/entity', false);
+});
+
 it('redirects legacy geo tab to seo tab', function () {
     if (! Schema::hasTable('competitors')) {
         $this->markTestSkipped('Competitors table is not migrated.');
