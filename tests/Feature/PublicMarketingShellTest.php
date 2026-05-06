@@ -6,7 +6,7 @@ use App\ModuleAccess;
 it('renders the public marketing shell with Medca chrome', function () {
     $this->get('/')->assertSuccessful()
         ->assertSee(config('medca.brand_name'), false)
-        ->assertSee('Strategic Commander', false)
+        ->assertSee(config('medca.tagline'), false)
         ->assertSee('medca-logo.png', false)
         ->assertSee('medca-public-surface', false);
 });

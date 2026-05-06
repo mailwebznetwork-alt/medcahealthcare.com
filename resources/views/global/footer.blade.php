@@ -10,7 +10,7 @@
                 <a
                     href="{{ $link['href'] }}"
                     @if (\App\Support\PublicNav::isCurrent($link['href'])) aria-current="page" @endif
-                    class="rounded-lg px-2 py-1 transition hover:text-[#002366] hover:underline"
+                    class="rounded-lg px-2 py-1 transition hover:text-[#0046ad] hover:underline"
                 >{{ $link['label'] }}</a>
             @endforeach
         </nav>
@@ -18,7 +18,7 @@
     <p class="text-xs leading-relaxed text-slate-600">
         <a
             href="tel:{{ preg_replace('/\s+/', '', config('medca.phone_tel')) }}"
-            class="font-semibold text-[#002366] underline-offset-2 hover:text-[#6f42c1] hover:underline"
+            class="font-semibold text-[#0046ad] underline-offset-2 hover:text-[#001e5c] hover:underline"
             onclick="if(typeof gtag==='function'){gtag('event','call_click');}"
         >
             {{ __('Call') }} {{ config('medca.phone_display') }}

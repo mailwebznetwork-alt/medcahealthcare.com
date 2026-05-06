@@ -16,4 +16,7 @@ return [
 
     'phone_tel' => env('MEDCA_PHONE_TEL', '+918000000000'),
 
+    /** Optional Google Business Profile URL for the header location pill (Medca marketing shell). */
+    'public_profile_url' => env('MEDCA_PUBLIC_PROFILE_URL', ''),
+
 ];
