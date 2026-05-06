@@ -11,9 +11,4 @@
         <span class="text-slate-400"> · </span>
         <span>{{ __('© Medca Healthcare Pvt Ltd. Powered by MarkOnMinds.') }}</span>
     </p>
-    @if (Route::has('login'))
-        <p class="mt-3 text-[11px] text-slate-400">
-            <a href="{{ route('login') }}" class="hover:text-[#6f42c1] hover:underline">{{ __('Staff login') }}</a>
-        </p>
-    @endif
 </footer>
