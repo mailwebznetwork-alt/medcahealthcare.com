@@ -54,7 +54,7 @@
         </div>
     </div>
 
-    <div class="w-full border-b border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)]">
+    <div class="w-full border-b border-slate-200 bg-white shadow-sm">
         <div class="mx-auto flex min-h-[78px] max-w-6xl items-center justify-between gap-4 px-4 md:min-h-[84px] md:gap-6 md:px-6 lg:min-h-[86px] lg:gap-8 lg:px-8">
             {{-- Brand & Logo --}}
             <a href="{{ url('/') }}" class="inline-flex min-w-0 max-w-[min(100%,78vw)] items-center gap-2 text-sm md:max-w-none md:gap-2.5 md:text-base text-[#0046ad] focus:outline-none focus-visible:ring-2 focus-visible:ring-clinical-500/30" aria-label="{{ config('medca.brand_name') }} — {{ config('medca.tagline') }} — {{ __('Home') }}">
@@ -73,8 +73,8 @@
                 @endif
 
                 <div class="flex min-w-0 flex-col justify-center border-l border-slate-200 pl-2 sm:pl-2.5">
-                    <span class="min-w-0 truncate text-[170%] font-bold leading-tight tracking-tight text-slate-800">{{ config('medca.brand_name', 'Medca Health Care') }}</span>
-                    <span class="mt-0.5 min-w-0 truncate text-[0.625rem] font-medium uppercase leading-none tracking-[0.14em] text-[#0046ad]/85 md:text-[0.6875rem]">{{ config('medca.tagline') }}</span>
+                    <span class="min-w-0 truncate text-[170%] font-semibold leading-tight tracking-tight text-slate-900">{{ config('medca.brand_name', 'Medca Health Care') }}</span>
+                    <span class="mt-0.5 min-w-0 truncate text-[0.625rem] font-bold uppercase leading-none tracking-[0.18em] text-[#0046ad] md:text-[0.6875rem]">{{ config('medca.tagline') }}</span>
                 </div>
             </a>
 

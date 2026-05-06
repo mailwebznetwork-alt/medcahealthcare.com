@@ -10,7 +10,7 @@
                 <a
                     href="{{ $link['href'] }}"
                     @if (\App\Support\PublicNav::isCurrent($link['href'])) aria-current="page" @endif
-                    class="rounded-lg px-2 py-1.5 transition-colors duration-200 hover:text-clinical-700 hover:underline"
+                    class="rounded-lg px-2 py-1.5 transition-colors duration-200 hover:text-[#0046ad] hover:underline"
                 >{{ $link['label'] }}</a>
             @endforeach
         </nav>
@@ -18,12 +18,12 @@
     <p class="mx-auto max-w-4xl text-sm font-normal leading-relaxed tracking-[0.02em]">
         <a
             href="tel:{{ preg_replace('/\s+/', '', config('medca.phone_tel')) }}"
-            class="font-medium text-clinical-700 underline-offset-2 transition-colors duration-200 hover:underline"
+            class="font-semibold text-[#0046ad] underline-offset-2 transition-colors duration-200 hover:text-[#001e5c] hover:underline"
             onclick="if(typeof gtag==='function'){gtag('event','call_click');}"
         >
             {{ __('Call') }} {{ config('medca.phone_display') }}
         </a>
         <span class="text-slate-400"> · </span>
-        <span class="text-slate-800">{{ __('© Medca Healthcare Pvt Ltd. Powered by MarkOnMinds.') }}</span>
+        <span class="text-center font-medium leading-snug text-slate-800">{{ __('© Medca Healthcare Pvt Ltd. Powered by MarkOnMinds.') }}</span>
     </p>
 </footer>
