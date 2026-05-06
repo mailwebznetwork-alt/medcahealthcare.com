@@ -89,8 +89,17 @@ it('serves sitemap and discovery payload using page and geo data', function () {
 
     $this->get('/sitemap.xml')
         ->assertSuccessful()
-        ->assertSee(url('/services/home-care'))
-        ->assertSee(url('/locations/560076'));
+        ->assertSee(url('/sitemap-pages.xml'))
+        ->assertSee(url('/sitemap-services.xml'));
+
+    $this->get('/sitemap-pages.xml')
+        ->assertSuccessful()
+        ->assertSee(url('/locations/560076'))
+        ->assertDontSee(url('/services/home-care'));
+
+    $this->get('/sitemap-services.xml')
+        ->assertSuccessful()
+        ->assertSee(url('/services/home-care'));
 
     $this->getJson('/ai-discovery')
         ->assertSuccessful()
@@ -120,6 +129,8 @@ it('returns 404 for sitemap when sitemap is disabled', function () {
     ]);
 
     $this->get('/sitemap.xml')->assertNotFound();
+
+    $this->get('/sitemap-pages.xml')->assertNotFound();
 });
 
 it('returns 404 for ai-discovery when discovery is disabled', function () {

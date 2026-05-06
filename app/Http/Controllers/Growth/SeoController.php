@@ -71,7 +71,30 @@ class SeoController extends Controller
             return response('', 404, ['Content-Type' => 'text/plain; charset=UTF-8']);
         }
 
-        return response($this->seoService->generateSitemap(), 200, [
+        return response($this->seoService->generateSitemapIndex(), 200, [
+            'Content-Type' => 'application/xml; charset=UTF-8',
+        ]);
+    }
+
+    public function sitemapSegmentXml(string $segment): SymfonyResponse
+    {
+        if (! $this->seoService->isSitemapPubliclyAvailable()) {
+            return response('', 404, ['Content-Type' => 'text/plain; charset=UTF-8']);
+        }
+
+        $xml = match ($segment) {
+            'pages' => $this->seoService->generatePagesSitemapXml(),
+            'blogs' => $this->seoService->generateBlogsSitemapXml(),
+            'services' => $this->seoService->generateServicesSitemapXml(),
+            'images' => $this->seoService->generateImagesSitemapXml(),
+            default => null,
+        };
+
+        if ($xml === null) {
+            return response('', 404, ['Content-Type' => 'text/plain; charset=UTF-8']);
+        }
+
+        return response($xml, 200, [
             'Content-Type' => 'application/xml; charset=UTF-8',
         ]);
     }

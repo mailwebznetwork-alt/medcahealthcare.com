@@ -2,6 +2,7 @@
 
 namespace App\Services\Growth;
 
+use App\Models\Blog;
 use App\Models\BusinessProfile;
 use App\Models\GrowthPincode;
 use App\Models\Page;
@@ -10,6 +11,8 @@ use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class SeoService
 {
@@ -146,12 +149,124 @@ class SeoService
         ]);
     }
 
-    public function generateSitemap(): string
+    /**
+     * Sitemap index pointing at segment urlsets (blogs, services, images, core pages).
+     */
+    public function generateSitemapIndex(): string
     {
-        $urls = collect(['/', '/about', '/contact'])
-            ->merge($this->pageLevelUrls())
-            ->merge($this->cmsPageUrls())
-            ->merge($this->geoLevelUrls())
+        $segments = ['pages', 'blogs', 'services', 'images'];
+
+        $entries = collect($segments)->map(function (string $segment): string {
+            $loc = e(url('/sitemap-'.$segment.'.xml'));
+
+            return "    <sitemap>\n        <loc>{$loc}</loc>\n    </sitemap>";
+        })->implode("\n");
+
+        return implode("\n", [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+            $entries,
+            '</sitemapindex>',
+        ]);
+    }
+
+    /**
+     * Core public URLs: home, static hints, Growth page SEO (non-service slugs), CMS pages, geo landing pages.
+     */
+    public function generatePagesSitemapXml(): string
+    {
+        return $this->buildStandardUrlsetXml($this->collectPagesSegmentPaths());
+    }
+
+    /**
+     * Published blog posts (same visibility rules as the public blog route).
+     */
+    public function generateBlogsSitemapXml(): string
+    {
+        if (! Schema::hasTable('blogs')) {
+            return $this->buildStandardUrlsetXml(collect());
+        }
+
+        $paths = Blog::query()
+            ->where('is_published', true)
+            ->where(function ($query): void {
+                $query->whereNull('published_at')
+                    ->orWhere('published_at', '<=', now());
+            })
+            ->pluck('slug')
+            ->map(fn (string $slug): string => '/blog/'.$slug);
+
+        return $this->buildStandardUrlsetXml($paths);
+    }
+
+    /**
+     * Service-oriented URLs from Growth Center page slugs under the services/ path prefix.
+     */
+    public function generateServicesSitemapXml(): string
+    {
+        return $this->buildStandardUrlsetXml($this->collectServiceSegmentPaths());
+    }
+
+    /**
+     * Image extension for pages and blogs that expose publicly reachable artwork (OG / featured).
+     */
+    public function generateImagesSitemapXml(): string
+    {
+        $blocks = [];
+
+        if (Schema::hasTable('blogs')) {
+            Blog::query()
+                ->where('is_published', true)
+                ->where(function ($query): void {
+                    $query->whereNull('published_at')
+                        ->orWhere('published_at', '<=', now());
+                })
+                ->select(['slug', 'featured_image', 'title'])
+                ->each(function (Blog $blog) use (&$blocks): void {
+                    $imageUrl = $this->absolutePublicImageUrl($blog->featured_image);
+                    if ($imageUrl === null) {
+                        return;
+                    }
+                    $pageLoc = e(url('/blog/'.$blog->slug));
+                    $imageLoc = e($imageUrl);
+                    $title = e((string) ($blog->title ?? ''));
+                    $blocks[] = "    <url>\n        <loc>{$pageLoc}</loc>\n        <image:image>\n            <image:loc>{$imageLoc}</image:loc>\n            <image:title>{$title}</image:title>\n        </image:image>\n    </url>";
+                });
+        }
+
+        if (Schema::hasTable('pages')) {
+            Page::query()
+                ->where('is_active', true)
+                ->select(['slug', 'og_image', 'og_image_alt', 'title'])
+                ->each(function (Page $page) use (&$blocks): void {
+                    $imageUrl = $this->absolutePublicImageUrl($page->og_image);
+                    if ($imageUrl === null) {
+                        return;
+                    }
+                    $pageLoc = e(url('/p/'.$page->slug));
+                    $imageLoc = e($imageUrl);
+                    $title = e((string) ($page->og_image_alt ?: $page->title ?? ''));
+                    $blocks[] = "    <url>\n        <loc>{$pageLoc}</loc>\n        <image:image>\n            <image:loc>{$imageLoc}</image:loc>\n            <image:title>{$title}</image:title>\n        </image:image>\n    </url>";
+                });
+        }
+
+        $body = $blocks === [] ? '' : implode("\n", $blocks);
+
+        return implode("\n", [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+            '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">',
+            $body,
+            '</urlset>',
+        ]);
+    }
+
+    /**
+     * @param  Collection<int, string>  $paths
+     */
+    protected function buildStandardUrlsetXml(Collection $paths): string
+    {
+        $urls = $paths
             ->filter(fn (?string $path): bool => is_string($path) && $path !== '')
             ->map(fn (string $path): string => str_starts_with($path, '/') ? $path : '/'.$path)
             ->unique()
@@ -174,7 +289,18 @@ class SeoService
     /**
      * @return Collection<int, string>
      */
-    protected function pageLevelUrls(): Collection
+    protected function collectPagesSegmentPaths(): Collection
+    {
+        return collect(['/', '/about', '/contact'])
+            ->merge($this->pageLevelUrlsExcludingServicesPrefix())
+            ->merge($this->cmsPageUrls())
+            ->merge($this->geoLevelUrls());
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    protected function collectServiceSegmentPaths(): Collection
     {
         if (! Schema::hasTable('page_seo')) {
             return collect();
@@ -182,7 +308,40 @@ class SeoService
 
         return PageSeo::query()
             ->whereNotNull('page_slug')
+            ->where('page_slug', 'like', 'services/%')
             ->pluck('page_slug');
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    protected function pageLevelUrlsExcludingServicesPrefix(): Collection
+    {
+        if (! Schema::hasTable('page_seo')) {
+            return collect();
+        }
+
+        return PageSeo::query()
+            ->whereNotNull('page_slug')
+            ->where('page_slug', 'not like', 'services/%')
+            ->pluck('page_slug');
+    }
+
+    protected function absolutePublicImageUrl(?string $value): ?string
+    {
+        if ($value === null || trim($value) === '') {
+            return null;
+        }
+
+        $trim = trim($value);
+
+        if (Str::startsWith($trim, ['http://', 'https://'])) {
+            return $trim;
+        }
+
+        $relative = ltrim($trim, '/');
+
+        return url(Storage::disk('public')->url($relative));
     }
 
     /**

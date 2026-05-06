@@ -6,7 +6,11 @@
         <p class="mom-micro">{{ __('Public endpoints') }}</p>
         <ul class="mom-body-text mt-2 list-inside list-disc space-y-1 text-[var(--text-secondary)]">
             <li><a href="{{ url('/robots.txt') }}" target="_blank" rel="noopener noreferrer" class="text-[var(--success)] underline">{{ url('/robots.txt') }}</a></li>
-            <li><a href="{{ url('/sitemap.xml') }}" target="_blank" rel="noopener noreferrer" class="text-[var(--success)] underline">{{ url('/sitemap.xml') }}</a> — {{ __('404 when sitemap is disabled') }}</li>
+            <li><a href="{{ url('/sitemap.xml') }}" target="_blank" rel="noopener noreferrer" class="text-[var(--success)] underline">{{ url('/sitemap.xml') }}</a> — {{ __('sitemap index; 404 when sitemap is disabled') }}</li>
+            <li><a href="{{ url('/sitemap-pages.xml') }}" target="_blank" rel="noopener noreferrer" class="text-[var(--success)] underline">{{ url('/sitemap-pages.xml') }}</a></li>
+            <li><a href="{{ url('/sitemap-blogs.xml') }}" target="_blank" rel="noopener noreferrer" class="text-[var(--success)] underline">{{ url('/sitemap-blogs.xml') }}</a></li>
+            <li><a href="{{ url('/sitemap-services.xml') }}" target="_blank" rel="noopener noreferrer" class="text-[var(--success)] underline">{{ url('/sitemap-services.xml') }}</a></li>
+            <li><a href="{{ url('/sitemap-images.xml') }}" target="_blank" rel="noopener noreferrer" class="text-[var(--success)] underline">{{ url('/sitemap-images.xml') }}</a></li>
             <li><a href="{{ url('/llm.txt') }}" target="_blank" rel="noopener noreferrer" class="text-[var(--success)] underline">{{ url('/llm.txt') }}</a></li>
             <li><a href="{{ url('/ai-discovery') }}" target="_blank" rel="noopener noreferrer" class="text-[var(--success)] underline">{{ url('/ai-discovery') }}</a> — {{ __('404 when AI discovery is disabled') }}</li>
         </ul>

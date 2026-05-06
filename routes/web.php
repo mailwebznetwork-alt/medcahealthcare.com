@@ -32,6 +32,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/robots.txt', [SeoController::class, 'robotsTxt'])->name('public.robots');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemapXml'])->name('public.sitemap');
+Route::get('/sitemap-{segment}.xml', [SeoController::class, 'sitemapSegmentXml'])
+    ->where('segment', 'pages|blogs|services|images')
+    ->name('public.sitemap.segment');
 Route::get('/llm.txt', [AeoController::class, 'llmTxt'])->name('public.llm');
 Route::get('/ai-discovery', [AeoController::class, 'discovery'])->name('public.ai-discovery');
 

@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\Blog;
 use App\Models\Page;
 use App\Models\SiteSlugRedirect;
+use Illuminate\Support\Str;
 
 it('renders page canonical, robots, og, and json-ld on public routes', function () {
     Page::factory()->create([
@@ -43,7 +45,7 @@ it('301 redirects an old slug when a site slug redirect exists', function () {
         ->assertRedirect(route('pages.public', ['slug' => 'new-slug']));
 });
 
-it('lists active CMS pages in the generated sitemap', function () {
+it('lists active CMS pages in the pages segment sitemap', function () {
     Page::factory()->create([
         'slug' => 'sitemap-cms-page',
         'is_active' => true,
@@ -51,5 +53,31 @@ it('lists active CMS pages in the generated sitemap', function () {
 
     $this->get('/sitemap.xml')
         ->assertSuccessful()
+        ->assertSee(url('/sitemap-pages.xml'));
+
+    $this->get('/sitemap-pages.xml')
+        ->assertSuccessful()
         ->assertSee(url('/p/sitemap-cms-page'));
+});
+
+it('exposes a sitemap index and image entries for published blogs with artwork', function () {
+    Blog::query()->create([
+        'uuid' => (string) Str::uuid(),
+        'title' => 'Indexed post',
+        'slug' => 'indexed-post',
+        'featured_image' => 'https://example.test/assets/hero.jpg',
+        'is_published' => true,
+        'published_at' => now()->subDay(),
+    ]);
+
+    $this->get('/sitemap.xml')->assertSuccessful()->assertSee(url('/sitemap-images.xml'));
+
+    $this->get('/sitemap-blogs.xml')
+        ->assertSuccessful()
+        ->assertSee(url('/blog/indexed-post'));
+
+    $this->get('/sitemap-images.xml')
+        ->assertSuccessful()
+        ->assertSee(url('/blog/indexed-post'))
+        ->assertSee('https://example.test/assets/hero.jpg');
 });
