@@ -10,7 +10,7 @@
         $sum = $ga4Bundle['summary'] ?? [];
         $kpiDeepLink = auth()->user()?->hasModuleAccess(\App\ModuleAccess::MARKETING)
             ? route('modules.marketing')
-            : route('settings.index');
+            : route('settings.integrations');
     @endphp
 
     <div class="flex flex-wrap items-end justify-between gap-4">

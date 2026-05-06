@@ -25,7 +25,7 @@
     </div>
 
     <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <a href="{{ route('settings.index') }}" class="mom-card block px-5 py-4 no-underline">
+        <a href="{{ route('settings.integrations') }}" class="mom-card block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('Speed') }}</p>
             <p class="mom-metric mt-2">{{ (int) ($snapshot['scores']['speed'] ?? 0) }}<span class="text-lg text-[var(--text-muted)]">/100</span></p>
             @php($sd = $snapshot['speed_detail'] ?? [])
@@ -56,7 +56,7 @@
 
     @php($sources = $snapshot['free_tier_sources'] ?? [])
     @if ($sources !== [])
-        <a href="{{ Route::has('admin.settings.integrations.index') ? route('admin.settings.integrations.index') : route('settings.index') }}" class="mom-card block p-5 no-underline">
+        <a href="{{ Route::has('admin.settings.integrations.index') ? route('admin.settings.integrations.index') : route('settings.integrations') }}" class="mom-card block p-5 no-underline">
             <h3 class="mom-section-title">{{ __('Integrations') }}</h3>
             <ul class="mom-body-text mt-3 list-disc space-y-1 pl-5 text-[var(--text-secondary)]">
                 @if (! empty($sources['gemini']))

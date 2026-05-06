@@ -34,7 +34,7 @@ class IntegrationController extends Controller
     public function index(Request $request): JsonResponse|View
     {
         if (! $request->expectsJson()) {
-            return app(SettingsController::class)();
+            return app(SettingsController::class)->integrations();
         }
 
         $existing = Integration::query()
@@ -72,12 +72,12 @@ class IntegrationController extends Controller
         if (! $request->expectsJson()) {
             if ($result['success']) {
                 return redirect()
-                    ->route('settings.index')
+                    ->route('settings.integrations')
                     ->with('status', __('Google reviews synced (:count).', ['count' => $result['count']]));
             }
 
             return redirect()
-                ->route('settings.index')
+                ->route('settings.integrations')
                 ->withErrors(['integration' => $result['message']]);
         }
 
@@ -105,13 +105,13 @@ class IntegrationController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return redirect()->route('settings.index')->withErrors($validator);
+            return redirect()->route('settings.integrations')->withErrors($validator);
         }
 
         $name = (string) $validator->validated()['name'];
         $definition = $this->registry->get($name);
         if (! is_array($definition)) {
-            return redirect()->route('settings.index')->withErrors(['integration' => __('Selected integration is invalid.')]);
+            return redirect()->route('settings.integrations')->withErrors(['integration' => __('Selected integration is invalid.')]);
         }
 
         $integration = Integration::query()->firstOrCreate(
@@ -127,7 +127,7 @@ class IntegrationController extends Controller
             ? __('Integration ":name" added.', ['name' => $name])
             : __('Integration ":name" already exists.', ['name' => $name]);
 
-        return redirect()->route('settings.index')->with('status', $status);
+        return redirect()->route('settings.integrations')->with('status', $status);
     }
 
     public function update(Request $request, string $name)
@@ -151,7 +151,7 @@ class IntegrationController extends Controller
         if ($validator->fails()) {
             if (! $request->expectsJson()) {
                 return redirect()
-                    ->route('settings.index')
+                    ->route('settings.integrations')
                     ->withErrors($validator)
                     ->withInput();
             }
@@ -189,7 +189,7 @@ class IntegrationController extends Controller
 
             if (! $request->expectsJson()) {
                 return redirect()
-                    ->route('settings.index')
+                    ->route('settings.integrations')
                     ->with('status', __('Integration ":name" updated successfully.', ['name' => $integration->name]));
             }
 
@@ -200,7 +200,7 @@ class IntegrationController extends Controller
 
             if (! $request->expectsJson()) {
                 return redirect()
-                    ->route('settings.index')
+                    ->route('settings.integrations')
                     ->withErrors(['integration' => __('Integration update failed.')]);
             }
 
@@ -236,7 +236,7 @@ class IntegrationController extends Controller
 
             if (! $request->expectsJson()) {
                 return redirect()
-                    ->route('settings.index')
+                    ->route('settings.integrations')
                     ->with('status', __('Integration ":name" has been :state.', [
                         'name' => $integration->name,
                         'state' => $integration->is_enabled ? __('enabled') : __('disabled'),
@@ -253,7 +253,7 @@ class IntegrationController extends Controller
 
             if (! $request->expectsJson()) {
                 return redirect()
-                    ->route('settings.index')
+                    ->route('settings.integrations')
                     ->withErrors(['integration' => __('Integration toggle failed.')]);
             }
 
@@ -279,12 +279,12 @@ class IntegrationController extends Controller
         if (! $request->expectsJson()) {
             if ($result['success']) {
                 return redirect()
-                    ->route('settings.index')
+                    ->route('settings.integrations')
                     ->with('status', __('Integration ":name" test passed.', ['name' => $name]));
             }
 
             return redirect()
-                ->route('settings.index')
+                ->route('settings.integrations')
                 ->withErrors(['integration' => __('Integration ":name" test failed: :message', [
                     'name' => $name,
                     'message' => $result['message'],
@@ -298,29 +298,29 @@ class IntegrationController extends Controller
     {
         $integration = $this->findByName($name);
         if (! $integration instanceof Integration) {
-            return redirect()->route('settings.index')->withErrors(['integration' => __('Integration not found.')]);
+            return redirect()->route('settings.integrations')->withErrors(['integration' => __('Integration not found.')]);
         }
 
         $integration->delete();
 
-        return redirect()->route('settings.index')->with('status', __('Integration ":name" deleted.', ['name' => $name]));
+        return redirect()->route('settings.integrations')->with('status', __('Integration ":name" deleted.', ['name' => $name]));
     }
 
     public function storeAccount(Request $request, string $name)
     {
         if (! $this->hasAccountsTable()) {
-            return redirect()->route('settings.index')->withErrors(['integration' => __('Integration accounts table is not migrated yet.')]);
+            return redirect()->route('settings.integrations')->withErrors(['integration' => __('Integration accounts table is not migrated yet.')]);
         }
 
         $integration = $this->findByName($name, withAccounts: true);
         $definition = $this->registry->get($name);
 
         if (! $integration instanceof Integration || ! is_array($definition) || empty($definition['multi_account'])) {
-            return redirect()->route('settings.index')->withErrors(['integration' => __('Unsupported account integration.')]);
+            return redirect()->route('settings.integrations')->withErrors(['integration' => __('Unsupported account integration.')]);
         }
 
         if ($integration->accounts->count() >= 5) {
-            return redirect()->route('settings.index')->withErrors(['integration' => __('Maximum 5 WhatsApp numbers are allowed.')]);
+            return redirect()->route('settings.integrations')->withErrors(['integration' => __('Maximum 5 WhatsApp numbers are allowed.')]);
         }
 
         $accountFields = (array) ($definition['account_fields'] ?? []);
@@ -331,7 +331,7 @@ class IntegrationController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return redirect()->route('settings.index')->withErrors($validator)->withInput();
+            return redirect()->route('settings.integrations')->withErrors($validator)->withInput();
         }
 
         $validated = $validator->validated();
@@ -343,7 +343,7 @@ class IntegrationController extends Controller
             'is_enabled' => true,
         ]);
 
-        return redirect()->route('settings.index')->with('status', __('WhatsApp account added.'));
+        return redirect()->route('settings.integrations')->with('status', __('WhatsApp account added.'));
     }
 
     private function findByName(string $name, bool $withAccounts = false): ?Integration

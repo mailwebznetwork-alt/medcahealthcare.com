@@ -20,12 +20,12 @@ class SystemOperationsController extends Controller
 
         if ($exit !== 0) {
             return redirect()
-                ->route('settings.index')
+                ->route('settings.backup')
                 ->withErrors(['integration' => __('Backup could not complete — check console output (non-SQLite drivers need manual dumps).')]);
         }
 
         return redirect()
-            ->route('settings.index')
+            ->route('settings.backup')
             ->with('status', __('Database backup file created under storage/app/backups.'));
     }
 
@@ -50,21 +50,21 @@ class SystemOperationsController extends Controller
             $secret = config('settings.maintenance_bypass_secret');
             if (! is_string($secret) || trim($secret) === '') {
                 return redirect()
-                    ->route('settings.index')
+                    ->route('settings.maintenance')
                     ->withErrors(['integration' => __('Set SETTINGS_MAINTENANCE_BYPASS_SECRET in .env before enabling maintenance (used for /{secret} bypass URL).')]);
             }
 
             Artisan::call('down', ['--secret' => $secret]);
 
             return redirect()
-                ->route('settings.index')
+                ->route('settings.maintenance')
                 ->with('status', __('Maintenance mode enabled. Bypass visitors using your Laravel secret URL pattern.'));
         }
 
         Artisan::call('up');
 
         return redirect()
-            ->route('settings.index')
+            ->route('settings.maintenance')
             ->with('status', __('Maintenance mode disabled.'));
     }
 

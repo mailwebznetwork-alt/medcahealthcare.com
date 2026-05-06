@@ -6,6 +6,7 @@ use App\Models\GoogleBusinessReview;
 use App\Models\Integration;
 use App\Services\Integrations\CredentialVault;
 use App\Services\Integrations\IntegrationRegistry;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -18,7 +19,39 @@ class SettingsController extends Controller
         private readonly CredentialVault $credentialVault
     ) {}
 
-    public function __invoke(): View
+    public function index(): RedirectResponse
+    {
+        return redirect()->route('settings.integrations');
+    }
+
+    public function integrations(): View
+    {
+        return view('settings.integrations', $this->settingsPayload());
+    }
+
+    public function webhooks(): View
+    {
+        return view('settings.webhooks', $this->settingsPayload());
+    }
+
+    public function backup(): View
+    {
+        $this->authorizeSuperAdmin();
+
+        return view('settings.backup', $this->settingsPayload());
+    }
+
+    public function maintenance(): View
+    {
+        $this->authorizeSuperAdmin();
+
+        return view('settings.maintenance', $this->settingsPayload());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function settingsPayload(): array
     {
         /** @var Collection<int, Integration> $integrations */
         $integrations = collect();
@@ -76,7 +109,7 @@ class SettingsController extends Controller
             $backupFiles = array_slice($paths, 0, 12);
         }
 
-        return view('settings.integrations', [
+        return [
             'integrations' => $integrations,
             'matrixSummary' => $matrixSummary,
             'definitions' => $definitions,
@@ -89,6 +122,14 @@ class SettingsController extends Controller
             'backupFiles' => $backupFiles,
             'operationsConfigured' => is_string(config('settings.operations_token')) && config('settings.operations_token') !== '',
             'maintenanceSecretConfigured' => is_string(config('settings.maintenance_bypass_secret')) && config('settings.maintenance_bypass_secret') !== '',
-        ]);
+        ];
+    }
+
+    private function authorizeSuperAdmin(): void
+    {
+        $user = auth()->user();
+        if ($user === null || strtolower((string) $user->role) !== 'super_admin') {
+            abort(403);
+        }
     }
 }

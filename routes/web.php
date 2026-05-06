@@ -250,7 +250,14 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:security
 });
 
 Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings', 'role:admin,super_admin'])->group(function () {
-    Route::get('/settings', SettingsController::class)->name('settings.index');
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::get('/settings/integrations', [SettingsController::class, 'integrations'])->name('settings.integrations');
+    Route::get('/settings/webhooks', [SettingsController::class, 'webhooks'])->name('settings.webhooks');
+});
+
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings', 'role:super_admin'])->group(function () {
+    Route::get('/settings/backup', [SettingsController::class, 'backup'])->name('settings.backup');
+    Route::get('/settings/maintenance', [SettingsController::class, 'maintenance'])->name('settings.maintenance');
 });
 
 Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings', 'role:super_admin'])->prefix('settings/system')->name('settings.system.')->group(function () {

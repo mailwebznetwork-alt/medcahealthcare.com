@@ -101,7 +101,7 @@ final class ModuleAccess
             self::SETTINGS => [
                 'label' => 'Settings',
                 'icon' => 'settings',
-                'route' => 'settings.index',
+                'route' => 'settings.integrations',
             ],
         ];
     }

@@ -259,7 +259,7 @@ final class WorkspaceGlobalSearch
         $push(str_contains($n, 'war') || str_contains($n, 'intercept'), __('War room'), __('Intercepts'), 'growth-center.war-room.dashboard');
         $push(str_contains($n, 'user') || str_contains($n, 'people') || str_contains($n, 'team'), __('User management'), __('Directory'), 'user-management.index');
         $push(str_contains($n, 'security'), __('Security'), __('Posture'), 'modules.security');
-        $push(str_contains($n, 'setting'), __('Settings'), __('Workspace configuration'), 'settings.index');
+        $push(str_contains($n, 'setting'), __('Settings'), __('Workspace configuration'), 'settings.integrations');
         $push(str_contains($n, 'service') && ! str_contains($n, 'serviceable'), __('Services'), __('Operations · services'), 'operations.services.index');
         $push(str_contains($n, 'pin') || str_contains($n, 'postal') || str_contains($n, 'coverage'), __('PIN codes'), __('Coverage matrix'), 'operations.pin-codes.overview');
         $push(str_contains($n, 'job') || str_contains($n, 'vacancy') || str_contains($n, 'career') || str_contains($n, 'hiring'), __('Job portal'), __('Vacancies'), 'operations.job-portal.overview');

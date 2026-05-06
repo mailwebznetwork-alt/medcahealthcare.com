@@ -280,7 +280,7 @@
                             @endif
                             @if ($w['settings'])
                                 <a
-                                    href="{{ route('settings.index') }}"
+                                    href="{{ route('settings.integrations') }}"
                                     class="mom-card-interactive flex flex-col items-start gap-2 rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-3 text-left shadow-none transition-all duration-320 ease-premium hover:border-[rgba(197,160,89,0.16)]"
                                 >
                                     <span class="flex h-9 w-9 items-center justify-center rounded-mom-chrome border border-[rgba(197,160,89,0.22)] bg-[rgba(197,160,89,0.08)] text-mom-gold">
