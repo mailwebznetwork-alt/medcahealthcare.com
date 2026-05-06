@@ -81,10 +81,10 @@
             {{-- Desktop Navigation --}}
             <div class="hidden min-w-0 flex-1 items-center justify-end md:flex">
                 <nav class="flex min-w-0 flex-1 items-center justify-end" aria-label="{{ __('Primary') }}">
-                    <ul class="flex flex-wrap items-center justify-end gap-x-4 md:gap-x-6 lg:gap-x-8">
+                    <ul class="flex flex-wrap items-center justify-end divide-x divide-slate-200">
                         @foreach($navItems as $item)
                             @php($isNavCurrent = \App\Support\PublicNav::isCurrent($item['href']))
-                            <li class="flex items-center">
+                            <li class="flex items-center px-3 first:pl-0 md:px-4 lg:px-5">
                                 <a
                                     href="{{ $item['href'] }}"
                                     @if ($isNavCurrent) aria-current="page" @endif
