@@ -84,7 +84,10 @@
                     <ul class="flex flex-wrap items-center justify-end">
                         @foreach($navItems as $item)
                             @php($isNavCurrent = \App\Support\PublicNav::isCurrent($item['href']))
-                            <li class="flex items-center border-l border-solid border-slate-300 first:border-l-0 px-3 md:px-4 lg:px-5">
+                            <li @class([
+                                'flex items-center px-3 md:px-4 lg:px-5',
+                                'border-l border-solid border-slate-300' => ! $loop->first,
+                            ])>
                                 <a
                                     href="{{ $item['href'] }}"
                                     @if ($isNavCurrent) aria-current="page" @endif
