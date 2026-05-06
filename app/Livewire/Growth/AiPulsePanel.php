@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Growth;
 
-use App\Jobs\RefreshAiPulseSnapshotJob;
 use App\ModuleAccess;
 use App\Services\Growth\AiPulseService;
 use Illuminate\Contracts\View\View;
@@ -27,16 +26,15 @@ class AiPulsePanel extends Component
     public function runDeepScan(AiPulseService $pulse): void
     {
         abort_unless(Auth::user()?->hasModuleAccess(ModuleAccess::GROWTH_CENTER) ?? false, 403);
-        RefreshAiPulseSnapshotJob::dispatch(true);
-        $this->snapshot = $pulse->cachedSnapshotOrDispatch(false);
-        $this->flash = __('Deep scan queued. Refresh this tab in a few seconds.');
+        $this->snapshot = $pulse->rebuildAndRead(true);
+        $this->flash = __('Deep scan complete.');
         $this->flashType = 'success';
     }
 
     public function refreshSnapshot(AiPulseService $pulse): void
     {
         abort_unless(Auth::user()?->hasModuleAccess(ModuleAccess::GROWTH_CENTER) ?? false, 403);
-        $this->snapshot = $pulse->cachedSnapshotOrDispatch(false);
+        $this->snapshot = $pulse->rebuildAndRead(false);
         $this->flash = __('Snapshot refreshed.');
         $this->flashType = 'success';
     }

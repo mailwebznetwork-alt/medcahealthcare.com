@@ -38,6 +38,8 @@ class AiPulseService
     }
 
     /**
+     * Cached snapshot, or a synchronous rebuild when missing so AI Pulse works without a queue worker.
+     *
      * @return array<string, mixed>
      */
     public function cachedSnapshotOrDispatch(bool $force = false): array
@@ -55,9 +57,8 @@ class AiPulseService
             }
         } catch (Throwable) {
         }
-        RefreshAiPulseSnapshotJob::dispatch($force);
 
-        return $this->placeholderSnapshot();
+        return $this->rebuildAndRead($force);
     }
 
     public function rebuildSnapshotCache(bool $force = false): void
@@ -75,13 +76,16 @@ class AiPulseService
     }
 
     /**
-     * Rebuild cache synchronously and return the new snapshot (e.g. after Fix with AI).
+     * Rebuild cache synchronously and return the new snapshot (e.g. after Fix with AI, Refresh snapshot, or cold cache).
      *
      * @return array<string, mixed>
      */
-    public function rebuildAndRead(): array
+    public function rebuildAndRead(bool $force = false): array
     {
-        $this->rebuildSnapshotCache(false);
+        if ($force) {
+            PageSpeedInsightsService::forgetScoreCache();
+        }
+        $this->rebuildSnapshotCache($force);
         try {
             $cached = Cache::get(self::CACHE_KEY);
             if (is_array($cached) && $cached !== []) {
@@ -200,6 +204,7 @@ class AiPulseService
             'scores' => [
                 'speed' => $speedMean,
                 'rankmath' => $rankMath,
+                'aio' => $aioMean,
                 'brand_authority' => $brandAuthority,
             ],
             'speed_detail' => [
@@ -233,7 +238,10 @@ class AiPulseService
     {
         $paths = [
             '/' => true,
+            '/about' => true,
+            '/contact' => true,
             '/blog' => true,
+            '/careers' => true,
         ];
         foreach ($pages as $page) {
             $paths['/p/'.ltrim((string) $page->slug, '/')] = true;
@@ -483,6 +491,7 @@ class AiPulseService
         $ctx = json_encode([
             'lead_counts_by_source_last_30d' => $leadCounts,
             'on_page_seo_mean' => $seoMean,
+            'aeo_structured_data_mean' => (int) data_get($snapshot, 'scores.aio', 0),
             'brand_authority' => $authority,
             'broken_internal_links' => $brokenN,
             'active_pages' => data_get($snapshot, 'totals.pages'),
@@ -594,7 +603,7 @@ TXT;
             'scanned_at' => __('Scan in progress'),
             'scan_in_progress' => true,
             'totals' => ['pages' => 0, 'blogs' => 0, 'blocks' => 0],
-            'scores' => ['speed' => 0, 'rankmath' => 0, 'brand_authority' => 0],
+            'scores' => ['speed' => 0, 'rankmath' => 0, 'aio' => 0, 'brand_authority' => 0],
             'speed_detail' => ['source' => 'placeholder', 'score_0_100' => 0],
             'free_tier_sources' => [],
             'broken_links' => [],

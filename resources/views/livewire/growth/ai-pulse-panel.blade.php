@@ -10,7 +10,7 @@
 
     @if (! empty($snapshot['scan_in_progress']))
         <div class="rounded-mom-chrome border border-[rgba(197,160,89,0.2)] bg-[rgba(197,160,89,0.04)] px-4 py-3 text-sm text-[var(--text-secondary)]">
-            {{ __('Scan in progress — queue worker will refresh the snapshot. Use “Refresh snapshot” shortly.') }}
+            {{ __('Snapshot loading — click “Refresh snapshot” if this stays stuck.') }}
         </div>
     @endif
 
@@ -24,7 +24,7 @@
         </div>
     </div>
 
-    <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <article class="mom-card px-5 py-4">
             <p class="mom-micro">{{ __('Speed') }}</p>
             <p class="mom-metric mt-2">{{ (int) ($snapshot['scores']['speed'] ?? 0) }}<span class="text-lg text-[var(--text-muted)]">/100</span></p>
@@ -43,11 +43,31 @@
             <p class="mom-subtext mt-1">{{ __('Meta, headings — averaged across pages & blogs.') }}</p>
         </article>
         <article class="mom-card px-5 py-4">
+            <p class="mom-micro">{{ __('AEO / structured data') }}</p>
+            <p class="mom-metric mt-2">{{ (int) ($snapshot['scores']['aio'] ?? 0) }}<span class="text-lg text-[var(--text-muted)]">/100</span></p>
+            <p class="mom-subtext mt-1">{{ __('FAQ schema, AEO Q&A — averaged across pages & blogs.') }}</p>
+        </article>
+        <article class="mom-card px-5 py-4">
             <p class="mom-micro">{{ __('Brand authority') }}</p>
             <p class="mom-metric mt-2">{{ (int) ($snapshot['scores']['brand_authority'] ?? 0) }}<span class="text-lg text-[var(--text-muted)]">/100</span></p>
             <p class="mom-subtext mt-1">{{ __('Heuristic + optional Gemini (GEMINI_API_KEY).') }}</p>
         </article>
     </section>
+
+    @php($sources = $snapshot['free_tier_sources'] ?? [])
+    @if ($sources !== [])
+        <section class="mom-card p-5">
+            <h3 class="mom-section-title">{{ __('Integrations') }}</h3>
+            <ul class="mom-body-text mt-3 list-disc space-y-1 pl-5 text-[var(--text-secondary)]">
+                @if (! empty($sources['gemini']))
+                    <li>{{ __('Gemini:') }} {{ data_get($sources, 'gemini.model') }} — {{ data_get($sources, 'gemini.source') }}</li>
+                @endif
+                @if (! empty($sources['pagespeed']))
+                    <li>{{ __('PageSpeed:') }} {{ data_get($sources, 'pagespeed.source') }}</li>
+                @endif
+            </ul>
+        </section>
+    @endif
 
     <section class="mom-card p-5">
         <h3 class="mom-section-title">{{ __('Content totals') }}</h3>
