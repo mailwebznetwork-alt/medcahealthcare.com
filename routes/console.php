@@ -19,7 +19,7 @@ if (config('growth.schedule_ai_pulse_daily')) {
     Schedule::call(function (): void {
         app(AiPulseService::class)->rebuildSnapshotCache(true);
     })
-        ->dailyAt('03:40')
+        ->dailyAt('03:33')
         ->name('ai-pulse-rebuild')
         ->withoutOverlapping();
 }
