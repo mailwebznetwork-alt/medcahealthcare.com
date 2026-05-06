@@ -8,7 +8,12 @@ it('renders the public marketing shell with Medca chrome', function () {
         ->assertSee(config('medca.brand_name'), false)
         ->assertSee(config('medca.tagline'), false)
         ->assertSee('medca-logo.png', false)
-        ->assertSee('medca-public-surface', false);
+        ->assertSee('medca-public-surface', false)
+        ->assertSee('scroll-mt-28', false);
+});
+
+it('documents approximate sticky marketing header height for anchor offset math', function () {
+    expect(config('medca.marketing_sticky_header_approx_px'))->toBeInt()->toBeGreaterThan(0);
 });
 
 it('shows compact centered footer line', function () {

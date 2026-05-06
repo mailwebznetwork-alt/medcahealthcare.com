@@ -21,6 +21,7 @@
     $navDrawerTriggerClass = 'inline-flex items-center justify-center rounded-lg border border-clinical-200 bg-white p-2 text-[#0046ad] shadow-sm transition hover:border-clinical-300 hover:bg-clinical-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-clinical-500/40';
 @endphp
 
+{{-- Sticky stack height is content-driven (no fixed header min-height). Strip: py-2; brand row: py-[15px] md:py-[18px]; logo h-7/md:h-8. Approximate total px: config('medca.marketing_sticky_header_approx_px'). --}}
 <header class="sticky top-0 z-40 w-full border-b border-slate-200 bg-white font-sans shadow-sm">
     {{-- Medca-style ratings / claim strip (location links when GMB URL configured) --}}
     <div class="w-full border-b border-[#001433] bg-[#001f5c] px-4 py-2 text-xs font-semibold text-white md:px-6 md:text-sm">

@@ -1,8 +1,23 @@
 <?php
 
+/**
+ * Medca branding and public marketing shell (guest-facing routes).
+ *
+ * Sticky header height is not set as a single min-height in CSS. It stacks the navy top strip and
+ * the white brand/nav row (see resources/views/global/header.blade.php). Total height follows
+ * padding (strip `py-2`, row `py-[15px]` / `md:py-[18px]`) and logo (`h-7` / `md:h-8`). Rough range
+ * ~96–128px depending on breakpoint and whether the location link wraps. Use
+ * `marketing_sticky_header_approx_px` as the documentation default for anchor scroll-margin math.
+ */
 return [
 
     'top_bar_claim' => '#1 Home Healthcare in Bengaluru',
+
+    /**
+     * Approximate total height (px) of the sticky public marketing header (strip + brand row).
+     * Documentation only unless you wire it (e.g. inline scroll-margin); CSS height remains content-driven.
+     */
+    'marketing_sticky_header_approx_px' => (int) env('MEDCA_MARKETING_HEADER_APPROX_PX', 112),
 
     'location_display' => env('MEDCA_LOCATION', 'Arekere Gate, Bengaluru'),
 
