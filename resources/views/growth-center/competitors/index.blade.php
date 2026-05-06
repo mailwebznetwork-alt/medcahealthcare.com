@@ -53,22 +53,22 @@
     </section>
 
     <section class="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-4">
-        <article class="mom-card p-5">
+        <a href="#competitors-roster" class="mom-card block p-5 no-underline">
             <p class="mom-micro">{{ __('Total Competitors') }}</p>
             <p class="mom-metric mt-2 leading-none">{{ number_format((int) ($summary['total_competitors'] ?? 0)) }}</p>
-        </article>
-        <article class="mom-card p-5">
+        </a>
+        <a href="#competitors-roster" class="mom-card block p-5 no-underline">
             <p class="mom-micro">{{ __('Active Competitors') }}</p>
             <p class="mom-metric mt-2 leading-none">{{ number_format((int) ($summary['active_competitors'] ?? 0)) }}</p>
-        </article>
-        <article class="mom-card p-5">
+        </a>
+        <a href="#competitors-roster" class="mom-card block p-5 no-underline">
             <p class="mom-micro">{{ __('Best Performer') }}</p>
             <p class="mom-body-text mt-2 text-[var(--text-primary)]">{{ data_get($summary, 'best_competitor.name', '—') }}</p>
-        </article>
-        <article class="mom-card p-5">
+        </a>
+        <a href="#competitors-roster" class="mom-card block p-5 no-underline">
             <p class="mom-micro">{{ __('Worst Performer') }}</p>
             <p class="mom-body-text mt-2 text-[var(--text-primary)]">{{ data_get($summary, 'worst_competitor.name', '—') }}</p>
-        </article>
+        </a>
     </section>
 
     <section class="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
@@ -104,7 +104,7 @@
     </section>
 
     <section class="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <article class="mom-card p-6">
+        <article id="growth-keyword-intelligence" class="mom-card p-6">
             <h3 class="mom-section-title">{{ __('Add Keyword Intelligence') }}</h3>
             <form method="post" action="{{ route('growth-center.competitors.keywords.store') }}" class="mt-4 space-y-3">
                 @csrf
@@ -165,7 +165,7 @@
             </div>
         </article>
 
-        <article class="mom-card p-6">
+        <article id="growth-tracking-forms" class="mom-card p-6">
             <h3 class="mom-section-title">{{ __('Add Tracking Data') }}</h3>
             <form method="post" action="{{ route('growth-center.competitors.tracking.store') }}" class="mt-4 space-y-3">
                 @csrf
@@ -201,7 +201,7 @@
             </form>
         </article>
 
-        <article class="mom-card p-6">
+        <article id="growth-lead-attribution" class="mom-card p-6">
             <h3 class="mom-section-title">{{ __('Add Lead Attribution') }}</h3>
             <form method="post" action="{{ route('growth-center.competitors.leads.store') }}" class="mt-4 space-y-3">
                 @csrf
@@ -321,7 +321,7 @@
         </section>
     @endif
 
-    <section class="mom-card mt-8 p-6">
+    <section id="competitors-roster" class="mom-card mt-8 scroll-mt-24 p-6">
         <div class="overflow-x-auto">
             <table class="w-full min-w-[44rem] text-left text-[13px]">
                 <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">

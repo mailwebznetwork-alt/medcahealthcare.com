@@ -25,7 +25,7 @@
     </div>
 
     <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <article class="mom-card px-5 py-4">
+        <a href="{{ route('settings.index') }}" class="mom-card block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('Speed') }}</p>
             <p class="mom-metric mt-2">{{ (int) ($snapshot['scores']['speed'] ?? 0) }}<span class="text-lg text-[var(--text-muted)]">/100</span></p>
             @php($sd = $snapshot['speed_detail'] ?? [])
@@ -36,27 +36,27 @@
                     {{ __('Baseline AI_PULSE_SPEED_BASELINE — add GOOGLE_PAGESPEED_API_KEY + AI_PULSE_PAGESPEED_URL for Lighthouse.') }}
                 @endif
             </p>
-        </article>
-        <article class="mom-card px-5 py-4">
+        </a>
+        <a href="{{ route('site-architect.pages.index') }}" class="mom-card block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('On-page SEO score') }}</p>
             <p class="mom-metric mt-2">{{ (int) ($snapshot['scores']['rankmath'] ?? 0) }}<span class="text-lg text-[var(--text-muted)]">/100</span></p>
             <p class="mom-subtext mt-1">{{ __('Meta, headings — averaged across pages & blogs.') }}</p>
-        </article>
-        <article class="mom-card px-5 py-4">
+        </a>
+        <a href="{{ route('growth-center.competitors.index', ['tab' => 'seo']) }}" class="mom-card block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('AEO / structured data') }}</p>
             <p class="mom-metric mt-2">{{ (int) ($snapshot['scores']['aio'] ?? 0) }}<span class="text-lg text-[var(--text-muted)]">/100</span></p>
             <p class="mom-subtext mt-1">{{ __('FAQ schema, AEO Q&A — averaged across pages & blogs.') }}</p>
-        </article>
-        <article class="mom-card px-5 py-4">
+        </a>
+        <a href="{{ route('growth-center.competitors.index', ['tab' => 'seo']) }}" class="mom-card block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('Brand authority') }}</p>
             <p class="mom-metric mt-2">{{ (int) ($snapshot['scores']['brand_authority'] ?? 0) }}<span class="text-lg text-[var(--text-muted)]">/100</span></p>
             <p class="mom-subtext mt-1">{{ __('Heuristic + optional Gemini (GEMINI_API_KEY).') }}</p>
-        </article>
+        </a>
     </section>
 
     @php($sources = $snapshot['free_tier_sources'] ?? [])
     @if ($sources !== [])
-        <section class="mom-card p-5">
+        <a href="{{ Route::has('admin.settings.integrations.index') ? route('admin.settings.integrations.index') : route('settings.index') }}" class="mom-card block p-5 no-underline">
             <h3 class="mom-section-title">{{ __('Integrations') }}</h3>
             <ul class="mom-body-text mt-3 list-disc space-y-1 pl-5 text-[var(--text-secondary)]">
                 @if (! empty($sources['gemini']))
@@ -66,14 +66,25 @@
                     <li>{{ __('PageSpeed:') }} {{ data_get($sources, 'pagespeed.source') }}</li>
                 @endif
             </ul>
-        </section>
+        </a>
     @endif
 
-    <section class="mom-card p-5">
-        <h3 class="mom-section-title">{{ __('Content totals') }}</h3>
-        <p class="mom-body-text mt-2 text-[var(--text-secondary)]">
-            {{ __('Pages: :p · Blogs: :b · Blocks: :k', ['p' => (int) data_get($snapshot, 'totals.pages', 0), 'b' => (int) data_get($snapshot, 'totals.blogs', 0), 'k' => (int) data_get($snapshot, 'totals.blocks', 0)]) }}
-        </p>
+    <section class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <a href="{{ route('site-architect.pages.index') }}" class="mom-card block p-5 no-underline">
+            <h3 class="mom-section-title">{{ __('Pages') }}</h3>
+            <p class="mom-metric mt-2">{{ (int) data_get($snapshot, 'totals.pages', 0) }}</p>
+            <p class="mom-subtext mt-1">{{ __('Site Architect') }}</p>
+        </a>
+        <a href="{{ route('site-architect.blogs.index') }}" class="mom-card block p-5 no-underline">
+            <h3 class="mom-section-title">{{ __('Blogs') }}</h3>
+            <p class="mom-metric mt-2">{{ (int) data_get($snapshot, 'totals.blogs', 0) }}</p>
+            <p class="mom-subtext mt-1">{{ __('Site Architect') }}</p>
+        </a>
+        <a href="{{ route('site-architect.block-factory.index') }}" class="mom-card block p-5 no-underline">
+            <h3 class="mom-section-title">{{ __('Blocks') }}</h3>
+            <p class="mom-metric mt-2">{{ (int) data_get($snapshot, 'totals.blocks', 0) }}</p>
+            <p class="mom-subtext mt-1">{{ __('Block factory') }}</p>
+        </a>
     </section>
 
     <section class="mom-card p-5">

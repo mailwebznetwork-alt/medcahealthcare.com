@@ -36,6 +36,7 @@
             $sum = $ga4Bundle['summary'] ?? [];
             $ga4Err = $ga4Bundle['error'] ?? null;
             $ga4Meta = $ga4Bundle['meta'] ?? [];
+            $hrefGrowthGa4 = route('growth-center.competitors.index', ['tab' => 'ga4']);
         @endphp
         <div class="flex flex-wrap items-end justify-between gap-4">
             <p class="mom-micro text-[var(--text-muted)]">
@@ -57,76 +58,76 @@
         </div>
 
         <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <article class="mom-card px-5 py-4">
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('Active users') }}</p>
                 <p class="mom-metric mt-2">{{ number_format((int) ($sum['users'] ?? 0)) }}</p>
                 <p class="mom-subtext mt-1">{{ __('GA4') }}</p>
-            </article>
-            <article class="mom-card px-5 py-4">
+            </a>
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('New users') }}</p>
                 <p class="mom-metric mt-2">{{ number_format((int) ($sum['new_users'] ?? 0)) }}</p>
                 <p class="mom-subtext mt-1">{{ __('Acquisition') }}</p>
-            </article>
-            <article class="mom-card px-5 py-4">
+            </a>
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('Sessions') }}</p>
                 <p class="mom-metric mt-2">{{ number_format((int) ($sum['sessions'] ?? 0)) }}</p>
                 <p class="mom-subtext mt-1">{{ __('Traffic depth') }}</p>
-            </article>
-            <article class="mom-card px-5 py-4">
+            </a>
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('Engaged sessions') }}</p>
                 <p class="mom-metric mt-2">{{ number_format((int) ($sum['engaged_sessions'] ?? 0)) }}</p>
                 <p class="mom-subtext mt-1">{{ __('GA4 engagedSessions') }}</p>
-            </article>
+            </a>
         </section>
 
         <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <article class="mom-card px-5 py-4">
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('Engagement rate') }}</p>
                 <p class="mom-metric mt-2">{{ isset($sum['engagement_rate']) ? number_format((float) $sum['engagement_rate'], 2).'%' : '—' }}</p>
                 <p class="mom-subtext mt-1">{{ __('Engaged sessions ratio') }}</p>
-            </article>
-            <article class="mom-card px-5 py-4">
+            </a>
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('Avg. session') }}</p>
                 <p class="mom-metric mt-2">{{ isset($sum['avg_session_duration_sec']) ? number_format((float) $sum['avg_session_duration_sec'], 1).'s' : '—' }}</p>
                 <p class="mom-subtext mt-1">{{ __('Site mean') }}</p>
-            </article>
-            <article class="mom-card px-5 py-4">
+            </a>
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('Conversions') }}</p>
                 <p class="mom-metric mt-2">{{ number_format((int) ($sum['conversions'] ?? 0)) }}</p>
                 <p class="mom-subtext mt-1">{{ __('Attributed in GA4') }}</p>
-            </article>
-            <article class="mom-card px-5 py-4">
+            </a>
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('Conversion rate') }}</p>
                 <p class="mom-metric mt-2">{{ isset($sum['conversion_rate']) ? number_format((float) $sum['conversion_rate'], 2).'%' : '—' }}</p>
                 <p class="mom-subtext mt-1">{{ __('Conversions / sessions') }}</p>
-            </article>
+            </a>
         </section>
 
         <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <article class="mom-card p-5">
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block p-5 no-underline">
                 <h3 class="mom-section-title text-base">{{ __('GA4') }}</h3>
                 <p class="mom-body-text mt-2 text-[var(--text-secondary)]">
                     {{ $ga4Err ? __('API: :msg', ['msg' => $ga4Err]) : __('Measurement + Data API reports linked.') }}
                 </p>
-            </article>
-            <article class="mom-card p-5">
+            </a>
+            <button type="button" wire:click="$set('tab', 'google-ads')" class="mom-card block w-full cursor-pointer p-5 text-left">
                 <h3 class="mom-section-title text-base">{{ __('Google Ads') }}</h3>
                 <p class="mom-body-text mt-2 text-[var(--text-secondary)]">
                     {{ ($googleAds['configured'] ?? false) ? __('Optional API seam configured — layer campaign spend here.') : __('Use GA4 for click/conversion signals until Ads API is wired.') }}
                 </p>
-            </article>
-            <article class="mom-card p-5">
+            </button>
+            <button type="button" wire:click="$set('tab', 'meta')" class="mom-card block w-full cursor-pointer p-5 text-left">
                 <h3 class="mom-section-title text-base">{{ __('Meta Ads') }}</h3>
                 <p class="mom-body-text mt-2 text-[var(--text-secondary)]">
                     {{ ($metaAds['configured'] ?? false) ? __('Marketing API reachable.') : __('Add token + ad account for reach/clicks/leads.') }}
                 </p>
-            </article>
-            <article class="mom-card p-5">
+            </button>
+            <button type="button" wire:click="$set('tab', 'communication')" class="mom-card block w-full cursor-pointer p-5 text-left">
                 <h3 class="mom-section-title text-base">{{ __('WhatsApp') }}</h3>
                 <p class="mom-micro mt-2">{{ __('Clicks (events)') }}</p>
                 <p class="mom-metric mt-1">{{ number_format($whatsappClicks) }}</p>
-            </article>
-            <article class="mom-card p-5">
+            </button>
+            <button type="button" wire:click="$set('tab', 'communication')" class="mom-card block w-full cursor-pointer p-5 text-left">
                 <h3 class="mom-section-title text-base">{{ __('GMB (manual)') }}</h3>
                 @php $gmb = $snapshots->firstWhere('channel', 'gmb'); @endphp
                 <p class="mom-body-text mt-2 text-[var(--text-secondary)]">
@@ -136,13 +137,13 @@
                         {{ __('Add a GMB snapshot under Communication.') }}
                     @endif
                 </p>
-            </article>
-            <article class="mom-card p-5">
+            </button>
+            <button type="button" wire:click="$set('tab', 'communication')" class="mom-card block w-full cursor-pointer p-5 text-left">
                 <h3 class="mom-section-title text-base">{{ __('Email / SMS') }}</h3>
                 <p class="mom-body-text mt-2 text-[var(--text-secondary)]">
                     {{ __('Manual snapshots + open pixels — see Communication tab.') }}
                 </p>
-            </article>
+            </button>
         </section>
 
     @endif

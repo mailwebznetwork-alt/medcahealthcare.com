@@ -1,5 +1,5 @@
 {{-- Location & coverage (embedded under Growth Center SEO tab) --}}
-<article class="mom-card p-5">
+<article id="growth-geo-coverage" class="mom-card p-5">
     <h3 class="mom-section-title">{{ __('LOCATION & COVERAGE') }}</h3>
     <p class="mom-subtext mt-2">{{ __('Set service radius with latitude and longitude (e.g. from Google Maps share, without embedding a map here).') }}</p>
     <div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">

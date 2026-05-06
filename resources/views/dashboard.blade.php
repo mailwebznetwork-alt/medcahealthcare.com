@@ -28,38 +28,38 @@
         @if ($w['dashboard'])
             <section class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
                 @if ($m['users_total'] !== null)
-                    <article class="mom-card mom-card-interactive px-5 py-4">
+                    <a href="{{ route('user-management.index') }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline">
                         <p class="mom-micro">{{ __('Team members') }}</p>
                         <p class="mom-metric mt-2 leading-none">{{ number_format((int) $m['users_total']) }}</p>
                         <p class="mom-subtext mt-2">{{ __('All accounts in the workspace directory.') }}</p>
-                    </article>
-                    <article class="mom-card mom-card-interactive px-5 py-4">
+                    </a>
+                    <a href="{{ route('user-management.index') }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline">
                         <p class="mom-micro">{{ __('Active accounts') }}</p>
                         <p class="mom-metric mt-2 leading-none">{{ number_format((int) $m['users_active']) }}</p>
                         <p class="mom-subtext mt-2">{{ __('Users with sign-in privileges.') }}</p>
-                    </article>
-                    <article class="mom-card mom-card-interactive px-5 py-4">
+                    </a>
+                    <a href="{{ route('user-management.index') }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline">
                         <p class="mom-micro">{{ __('Verified emails') }}</p>
                         <p class="mom-metric mt-2 leading-none">{{ number_format((int) $m['users_verified']) }}</p>
                         <p class="mom-subtext mt-2">{{ __('Addresses that completed verification.') }}</p>
-                    </article>
-                    <article class="mom-card mom-card-interactive px-5 py-4">
+                    </a>
+                    <a href="{{ route('user-management.index') }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline">
                         <p class="mom-micro">{{ __('Inactive accounts') }}</p>
                         <p class="mom-metric mt-2 leading-none">{{ number_format((int) $m['users_inactive']) }}</p>
                         <p class="mom-subtext mt-2">{{ __('Suspended or deactivated users.') }}</p>
-                    </article>
+                    </a>
                 @else
-                    <article class="mom-card mom-card-interactive px-5 py-4 sm:col-span-2">
+                    <a href="{{ route('profile.edit') }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline sm:col-span-2">
                         <p class="mom-micro">{{ __('Your session') }}</p>
                         <p class="mom-metric mt-2 leading-none">{{ auth()->user()->last_login_at?->timezone(config('app.timezone'))->format('M j, H:i') ?? __('First visit') }}</p>
                         <p class="mom-subtext mt-2">{{ __('Last recorded sign-in for this account.') }}</p>
-                    </article>
-                    <article class="mom-card mom-card-interactive px-5 py-4 sm:col-span-2">
+                    </a>
+                    <div class="mom-card mom-card-interactive px-5 py-4 sm:col-span-2">
                         <p class="mom-micro">{{ __('Workspace') }}</p>
                         <p class="mom-body-text mt-2 text-[var(--text-secondary)]">
                             {{ __('Module access is managed centrally in User Management. Request changes from an administrator if you need additional surfaces.') }}
                         </p>
-                    </article>
+                    </div>
                 @endif
             </section>
             @php $sep = true; @endphp
@@ -74,7 +74,7 @@
             @endphp
             <section class="grid grid-cols-1 gap-6 {{ $pair ? 'lg:grid-cols-12' : '' }}">
                 @if ($w['growth_center'])
-                    <div class="mom-card mom-apex p-6 {{ $pair ? 'lg:col-span-8' : '' }}">
+                    <a href="{{ route('growth-center.competitors.index', ['tab' => 'ga4']) }}" class="mom-card mom-apex block p-6 no-underline {{ $pair ? 'lg:col-span-8' : '' }}">
                         <div class="flex flex-wrap items-end justify-between gap-4">
                             <div>
                                 <p class="mom-micro">{{ __('Performance intelligence') }}</p>
@@ -87,7 +87,7 @@
                         <div class="mt-8 rounded-mom-chrome border border-dashed border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] px-6 py-12 text-center text-sm text-[var(--text-muted)]">
                             {{ __('Awaiting connected analytics pipeline.') }}
                         </div>
-                    </div>
+                    </a>
                 @endif
 
                 @if ($w['operations'])
@@ -99,22 +99,22 @@
                             </div>
                         </div>
                         @if ($m['vacancies_total'] !== null)
-                            <dl class="mt-6 space-y-4">
-                                <div class="mom-backend-hairline-b flex items-center justify-between gap-3 pb-4">
-                                    <dt class="mom-body-text text-[var(--text-secondary)]">{{ __('Vacancies') }}</dt>
-                                    <dd class="mom-metric text-xl">{{ number_format((int) $m['vacancies_total']) }}</dd>
-                                </div>
-                                <div class="mom-backend-hairline-b flex items-center justify-between gap-3 pb-4">
-                                    <dt class="mom-body-text text-[var(--text-secondary)]">{{ __('Published') }}</dt>
-                                    <dd class="mom-metric text-xl">{{ number_format((int) $m['vacancies_published']) }}</dd>
-                                </div>
+                            <div class="mt-6 space-y-4">
+                                <a href="{{ route('operations.job-portal.vacancies.index') }}" class="mom-backend-hairline-b flex items-center justify-between gap-3 pb-4 no-underline transition hover:opacity-90">
+                                    <span class="mom-body-text text-[var(--text-secondary)]">{{ __('Vacancies') }}</span>
+                                    <span class="mom-metric text-xl">{{ number_format((int) $m['vacancies_total']) }}</span>
+                                </a>
+                                <a href="{{ route('operations.job-portal.vacancies.index') }}" class="mom-backend-hairline-b flex items-center justify-between gap-3 pb-4 no-underline transition hover:opacity-90">
+                                    <span class="mom-body-text text-[var(--text-secondary)]">{{ __('Published') }}</span>
+                                    <span class="mom-metric text-xl">{{ number_format((int) $m['vacancies_published']) }}</span>
+                                </a>
                                 @if ($m['applications_recent'] !== null)
-                                    <div class="flex items-center justify-between gap-3">
-                                        <dt class="mom-body-text text-[var(--text-secondary)]">{{ __('Applications (7d)') }}</dt>
-                                        <dd class="mom-metric text-xl">{{ number_format((int) $m['applications_recent']) }}</dd>
-                                    </div>
+                                    <a href="{{ route('operations.job-portal.applications.index') }}" class="flex items-center justify-between gap-3 no-underline transition hover:opacity-90">
+                                        <span class="mom-body-text text-[var(--text-secondary)]">{{ __('Applications (7d)') }}</span>
+                                        <span class="mom-metric text-xl">{{ number_format((int) $m['applications_recent']) }}</span>
+                                    </a>
                                 @endif
-                            </dl>
+                            </div>
                             <a
                                 href="{{ route('modules.operations') }}"
                                 class="mom-subtext mt-6 inline-flex items-center gap-1 text-mom-gold hover:underline"
@@ -136,7 +136,7 @@
             @endif
             <section class="grid grid-cols-1 gap-6 {{ $midGrid }}">
                 @if ($w['site_architect'])
-                    <div class="mom-card mom-card-interactive p-6">
+                    <a href="{{ route('site-architect.pages.index') }}" class="mom-card mom-card-interactive block p-6 no-underline">
                         <div class="flex items-center justify-between gap-3">
                             <h2 class="mom-section-title">{{ __('Site architect') }}</h2>
                             <i data-lucide="layers" class="h-[18px] w-[18px] text-[var(--text-muted)]"></i>
@@ -144,14 +144,14 @@
                         <p class="mom-body-text mt-4 text-[var(--text-secondary)]">
                             {{ __('Structure, services, and composition tools open here when the experience blueprint is connected.') }}
                         </p>
-                        <a href="{{ route('site-architect.pages.index') }}" class="mom-subtext mt-6 inline-flex items-center gap-1 text-mom-gold hover:underline">
+                        <span class="mom-subtext mt-6 inline-flex items-center gap-1 text-mom-gold">
                             {{ __('Open workspace') }} <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
-                        </a>
-                    </div>
+                        </span>
+                    </a>
                 @endif
 
                 @if ($w['marketing'])
-                    <div class="mom-card mom-apex p-6">
+                    <a href="{{ route('modules.marketing') }}" class="mom-card mom-apex block p-6 no-underline">
                         <h2 class="mom-section-title">{{ __('Marketing') }}</h2>
                         <p class="mom-subtext mt-2">
                             {{ __('Attribution and campaign intelligence render after acquisition sources are linked.') }}
@@ -159,11 +159,11 @@
                         <div class="mt-8 rounded-mom-chrome border border-dashed border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] px-6 py-12 text-center text-sm text-[var(--text-muted)]">
                             {{ __('No campaign telemetry ingested yet.') }}
                         </div>
-                    </div>
+                    </a>
                 @endif
 
                 @if ($w['security'])
-                    <div class="mom-card p-6">
+                    <a href="{{ route('modules.security') }}" class="mom-card block p-6 no-underline">
                         <div class="flex items-center justify-between gap-3">
                             <h2 class="mom-section-title">{{ __('Security posture') }}</h2>
                             <i data-lucide="activity" class="h-[18px] w-[18px] text-[var(--text-muted)]"></i>
@@ -171,7 +171,7 @@
                         <p class="mom-body-text mt-4 text-[var(--text-secondary)]">
                             {{ __('Live node tables, latency envelopes, and alert routing will surface when monitoring integrations are configured.') }}
                         </p>
-                    </div>
+                    </a>
                 @endif
             </section>
             @php $sep = true; @endphp
@@ -227,7 +227,7 @@
                 @endif
 
                 @if ($w['growth_center'])
-                    <div class="mom-card p-6 sm:col-span-2 xl:col-span-1">
+                    <a href="{{ route('growth-center.competitors.index', ['tab' => 'competitors']) }}" class="mom-card block p-6 no-underline sm:col-span-2 xl:col-span-1">
                         <div class="flex items-center gap-2">
                             <i data-lucide="orbit" class="h-[18px] w-[18px] text-mom-gold"></i>
                             <h2 class="mom-section-title">{{ __('Experimentation') }}</h2>
@@ -238,16 +238,16 @@
                         <div class="mt-8 rounded-mom-chrome border border-dashed border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] px-6 py-10 text-center text-sm text-[var(--text-muted)]">
                             {{ __('No active experiments recorded.') }}
                         </div>
-                    </div>
+                    </a>
                 @endif
 
                 @if ($w['growth_center'])
-                    <div class="mom-card flex flex-col p-6 sm:col-span-2 xl:col-span-1">
+                    <a href="{{ route('growth-center.competitors.index', ['tab' => 'readiness']) }}" class="mom-card flex flex-col p-6 no-underline sm:col-span-2 xl:col-span-1">
                         <h2 class="mom-section-title">{{ __('North-star readiness') }}</h2>
                         <p class="mom-body-text mt-3 flex-1 text-[var(--text-secondary)]">
                             {{ __('KPI scorecards stay empty until leadership metrics are wired from your analytics warehouse.') }}
                         </p>
-                    </div>
+                    </a>
                 @endif
 
                 @if ($w['dashboard'])

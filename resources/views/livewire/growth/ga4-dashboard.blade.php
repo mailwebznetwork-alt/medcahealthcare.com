@@ -5,10 +5,17 @@
         </div>
     @endif
 
+    @php
+        $meta = $ga4Bundle['meta'] ?? [];
+        $sum = $ga4Bundle['summary'] ?? [];
+        $kpiDeepLink = auth()->user()?->hasModuleAccess(\App\ModuleAccess::MARKETING)
+            ? route('modules.marketing')
+            : route('settings.index');
+    @endphp
+
     <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
             <p class="mom-body-text text-[var(--text-secondary)]">{{ __('Analytics monitoring layer — GA4 Data API with selectable windows (7 / 28 / 90 days). KPIs include engagement and acquisition depth.') }}</p>
-            @php($meta = $ga4Bundle['meta'] ?? [])
             @if (! empty($meta['date_range_label']))
                 <p class="mom-micro mt-2 text-[var(--text-muted)]">{{ $meta['date_range_label'] }}</p>
             @endif
@@ -26,32 +33,31 @@
         </label>
     </div>
 
-    @php($sum = $ga4Bundle['summary'] ?? [])
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <article class="mom-card px-5 py-4">
+        <a href="{{ $kpiDeepLink }}" class="mom-card block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('Active users') }}</p>
             <p class="mom-metric mt-2">{{ number_format((int) ($sum['users'] ?? 0)) }}</p>
             <p class="mom-subtext mt-1">{{ data_get($meta, 'date_range_label', __('Window')) }}</p>
-        </article>
-        <article class="mom-card px-5 py-4">
+        </a>
+        <a href="{{ $kpiDeepLink }}" class="mom-card block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('New users') }}</p>
             <p class="mom-metric mt-2">{{ number_format((int) ($sum['new_users'] ?? 0)) }}</p>
             <p class="mom-subtext mt-1">{{ __('Acquisition') }}</p>
-        </article>
-        <article class="mom-card px-5 py-4">
+        </a>
+        <a href="{{ $kpiDeepLink }}" class="mom-card block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('Sessions') }}</p>
             <p class="mom-metric mt-2">{{ number_format((int) ($sum['sessions'] ?? 0)) }}</p>
             <p class="mom-subtext mt-1">{{ __('Traffic depth') }}</p>
-        </article>
-        <article class="mom-card px-5 py-4">
+        </a>
+        <a href="{{ $kpiDeepLink }}" class="mom-card block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('Engaged sessions') }}</p>
             <p class="mom-metric mt-2">{{ number_format((int) ($sum['engaged_sessions'] ?? 0)) }}</p>
             <p class="mom-subtext mt-1">{{ __('GA4 engagedSessions') }}</p>
-        </article>
+        </a>
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <article class="mom-card px-5 py-4">
+        <a href="{{ $kpiDeepLink }}" class="mom-card block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('Engagement rate') }}</p>
             <p class="mom-metric mt-2">
                 @if (($sum['engagement_rate'] ?? null) !== null)
@@ -61,8 +67,8 @@
                 @endif
             </p>
             <p class="mom-subtext mt-1">{{ __('Share of engaged sessions') }}</p>
-        </article>
-        <article class="mom-card px-5 py-4">
+        </a>
+        <a href="{{ $kpiDeepLink }}" class="mom-card block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('Avg. session duration') }}</p>
             <p class="mom-metric mt-2">
                 @if (($sum['avg_session_duration_sec'] ?? null) !== null)
@@ -72,13 +78,13 @@
                 @endif
             </p>
             <p class="mom-subtext mt-1">{{ __('Site-wide mean') }}</p>
-        </article>
-        <article class="mom-card px-5 py-4">
+        </a>
+        <a href="{{ $kpiDeepLink }}" class="mom-card block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('Conversions') }}</p>
             <p class="mom-metric mt-2">{{ number_format((int) ($sum['conversions'] ?? 0)) }}</p>
             <p class="mom-subtext mt-1">{{ __('Attributed events') }}</p>
-        </article>
-        <article class="mom-card px-5 py-4">
+        </a>
+        <a href="{{ $kpiDeepLink }}" class="mom-card block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('Conversion rate') }}</p>
             <p class="mom-metric mt-2">
                 @if (($sum['conversion_rate'] ?? null) !== null)
@@ -88,7 +94,7 @@
                 @endif
             </p>
             <p class="mom-subtext mt-1">{{ __('Conversions / sessions') }}</p>
-        </article>
+        </a>
     </div>
 
     <div class="flex flex-wrap items-center gap-4">
