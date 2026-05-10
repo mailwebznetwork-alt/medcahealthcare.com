@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Block extends Model
 {
+    /** @use HasFactory<\Database\Factories\BlockFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'uuid',
         'block_name',

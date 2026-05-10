@@ -39,8 +39,14 @@ Route::get('/llm.txt', [AeoController::class, 'llmTxt'])->name('public.llm');
 Route::get('/ai-discovery', [AeoController::class, 'discovery'])->name('public.ai-discovery');
 
 Route::get('/', function () {
+    $page = Page::query()->where('slug', 'home')->where('is_active', true)->first();
+
+    if ($page !== null) {
+        return view('layouts.app', ['page' => $page]);
+    }
+
     return view('home');
-});
+})->name('public.home');
 
 Route::get('/t/mail/{token}/open.gif', [MarketingEmailOpenController::class, 'pixel'])
     ->middleware('throttle:120,1')

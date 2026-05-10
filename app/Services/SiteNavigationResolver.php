@@ -31,7 +31,7 @@ class SiteNavigationResolver
             }
             $links[] = [
                 'label' => $this->resolveNavLabel($row, $page),
-                'href' => route('pages.public', ['slug' => $page->slug]),
+                'href' => $this->resolveHref($page),
             ];
         }
 
@@ -65,11 +65,23 @@ class SiteNavigationResolver
             }
             $links[] = [
                 'label' => $this->resolveNavLabel($row, $page),
-                'href' => route('pages.public', ['slug' => $page->slug]),
+                'href' => $this->resolveHref($page),
             ];
         }
 
         return $links;
+    }
+
+    /**
+     * Pages with the reserved slug 'home' resolve to '/' so the marketing root URL stays canonical.
+     */
+    protected function resolveHref(Page $page): string
+    {
+        if ($page->slug === 'home') {
+            return url('/');
+        }
+
+        return route('pages.public', ['slug' => $page->slug]);
     }
 
     protected function resolveNavLabel(SiteNavigationItem $row, Page $page): string
