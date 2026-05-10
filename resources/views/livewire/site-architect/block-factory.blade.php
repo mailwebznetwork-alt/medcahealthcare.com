@@ -107,13 +107,13 @@
                                 <select wire:model.live="service_choice" class="rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)]">
                                     <option value="">{{ __('— Choose a service —') }}</option>
                                     @foreach ($services as $svc)
-                                        <option value="{{ $svc->service_code }}">{{ $svc->title }} ({{ $svc->service_code }})</option>
+                                        <option value="{{ $svc->service_code }}">{{ $svc->title }} ({{ $svc->service_code }})@if ($svc->publish_status !== \App\Enums\PublishStatus::Published) — {{ __('Draft') }}@endif @if ($svc->visibility !== \App\Enums\ServiceVisibility::Public) — {{ __('Private') }}@endif</option>
                                     @endforeach
                                 </select>
                                 <button type="button" wire:click="appendServiceToken" wire:loading.attr="disabled" class="rounded-mom-chrome border border-[var(--border-panel-soft)] px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-50">{{ __('Add service line') }}</button>
                                 <a href="{{ route('operations.services.index') }}" class="text-xs text-[var(--text-muted)] underline underline-offset-2 hover:text-[var(--text-primary)]" target="_blank" rel="noopener">{{ __('Manage services →') }}</a>
                             </div>
-                            <p class="mom-subtext mt-2">{{ __('Each insert appends a service token to the Code textarea below in the form of double-braced service:code. The block layout (HTML/Blade) is yours — render the loaded $services collection or the per-code variable.') }}</p>
+                            <p class="mom-subtext mt-2">{{ __('Each insert appends a service token to the Code textarea below in the form of double-braced service:code. The block layout (HTML/Blade) is yours — render the loaded $services collection or the per-code variable. Draft or private services show here for editing; the public site only renders tokens for active, published, public services.') }}</p>
                             @error('service_choice') <span class="mt-2 block text-xs text-[var(--danger)]">{{ $message }}</span> @enderror
                         </div>
                         <div>

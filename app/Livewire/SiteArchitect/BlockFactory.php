@@ -2,8 +2,6 @@
 
 namespace App\Livewire\SiteArchitect;
 
-use App\Enums\PublishStatus;
-use App\Enums\ServiceVisibility;
 use App\Models\Block;
 use App\Models\Service;
 use Illuminate\Database\Eloquent\Collection;
@@ -73,7 +71,9 @@ class BlockFactory extends Component
     }
 
     /**
-     * Active, published, public services — surface for the "Insert service…" dropdown.
+     * Active services for the "Insert service…" dropdown (draft/private included).
+     *
+     * Live pages still bind tokens via {@see Service::findPublishedByCode}; drafts only appear after publish.
      *
      * @return Collection<int, Service>
      */
@@ -81,10 +81,8 @@ class BlockFactory extends Component
     {
         return Service::query()
             ->where('is_active', true)
-            ->where('publish_status', PublishStatus::Published)
-            ->where('visibility', ServiceVisibility::Public)
             ->orderBy('title')
-            ->get(['id', 'title', 'service_code']);
+            ->get(['id', 'title', 'service_code', 'publish_status', 'visibility']);
     }
 
     public function appendServiceToken(): void
@@ -99,12 +97,10 @@ class BlockFactory extends Component
         $exists = Service::query()
             ->where('service_code', $code)
             ->where('is_active', true)
-            ->where('publish_status', PublishStatus::Published)
-            ->where('visibility', ServiceVisibility::Public)
             ->exists();
 
         if (! $exists) {
-            $this->addError('service_choice', __('That service is no longer available.'));
+            $this->addError('service_choice', __('That service is inactive or missing.'));
 
             return;
         }

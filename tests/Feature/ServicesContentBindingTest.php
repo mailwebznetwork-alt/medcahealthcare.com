@@ -10,7 +10,6 @@ use App\Models\PinCode;
 use App\Models\Service;
 use App\Models\ServiceFaq;
 use App\Models\ServiceSchema;
-use App\Models\ServiceSeo;
 use App\Models\User;
 use App\Services\ContentParser;
 use App\Services\ServiceContextCollector;
@@ -157,10 +156,10 @@ it('emits Service Schema.org JSON-LD into the public page <head> when a block us
         'short_summary' => 'Phlebotomist visits your home.',
     ]);
 
-    ServiceSeo::factory()->create([
-        'service_id' => $service->id,
-        'meta_description' => 'Quick lab tests at home.',
-    ]);
+    $service->seo()->updateOrCreate(
+        ['service_id' => $service->id],
+        ['meta_description' => 'Quick lab tests at home.']
+    );
 
     $pin = PinCode::query()->create([
         'pincode' => '560076',
@@ -375,6 +374,55 @@ it('block factory inserts a {{service:CODE}} token via Add service line', functi
         ->call('appendServiceToken')
         ->assertSet('code', '{{service:insertable-svc}}')
         ->assertSet('service_choice', '');
+});
+
+it('block factory lists draft services in the insert dropdown', function () {
+    Service::factory()->draft()->create([
+        'service_code' => 'draft-insert-svc',
+        'title' => 'Draft Insert Label',
+        'is_active' => true,
+    ]);
+
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(BlockFactory::class)
+        ->call('startCreate')
+        ->assertSee('Draft Insert Label')
+        ->assertSee('draft-insert-svc');
+});
+
+it('block factory allows inserting a token for a draft service', function () {
+    Service::factory()->draft()->create([
+        'service_code' => 'draft-token-svc',
+        'title' => 'Draft Token',
+        'is_active' => true,
+    ]);
+
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(BlockFactory::class)
+        ->call('startCreate')
+        ->set('service_choice', 'draft-token-svc')
+        ->call('appendServiceToken')
+        ->assertSet('code', '{{service:draft-token-svc}}')
+        ->assertHasNoErrors();
+});
+
+it('block factory omits inactive services from the insert dropdown', function () {
+    Service::factory()->create([
+        'service_code' => 'inactive-svc',
+        'title' => 'Inactive Svc Unique Title XYZ',
+        'is_active' => false,
+    ]);
+
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(BlockFactory::class)
+        ->call('startCreate')
+        ->assertDontSee('Inactive Svc Unique Title XYZ');
 });
 
 it('pages block modal appends a {{service:CODE}} token to block_code', function () {

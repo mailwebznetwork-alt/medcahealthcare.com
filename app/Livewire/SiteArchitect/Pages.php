@@ -2,8 +2,6 @@
 
 namespace App\Livewire\SiteArchitect;
 
-use App\Enums\PublishStatus;
-use App\Enums\ServiceVisibility;
 use App\Models\Block;
 use App\Models\Page;
 use App\Models\PageRevision;
@@ -124,10 +122,8 @@ class Pages extends Component
         $servicesForInsert = $this->blockModalOpen
             ? Service::query()
                 ->where('is_active', true)
-                ->where('publish_status', PublishStatus::Published)
-                ->where('visibility', ServiceVisibility::Public)
                 ->orderBy('title')
-                ->get(['id', 'title', 'service_code'])
+                ->get(['id', 'title', 'service_code', 'publish_status', 'visibility'])
             : collect();
 
         $otherPagesForLinks = collect();
@@ -707,12 +703,10 @@ class Pages extends Component
         $exists = Service::query()
             ->where('service_code', $code)
             ->where('is_active', true)
-            ->where('publish_status', PublishStatus::Published)
-            ->where('visibility', ServiceVisibility::Public)
             ->exists();
 
         if (! $exists) {
-            $this->addError('service_choice', __('That service is no longer available.'));
+            $this->addError('service_choice', __('That service is inactive or missing.'));
 
             return;
         }
