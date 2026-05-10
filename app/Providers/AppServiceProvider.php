@@ -15,6 +15,9 @@ use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
 use App\Models\Service;
 use App\Models\User;
+use App\Observers\BlogObserver;
+use App\Observers\PageObserver;
+use App\Observers\ServiceObserver;
 use App\Policies\BlockPolicy;
 use App\Policies\BlogPolicy;
 use App\Policies\LeadPolicy;
@@ -94,6 +97,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(MarketingSetting::class, MarketingSettingPolicy::class);
         Gate::policy(MarketingCampaign::class, MarketingCampaignPolicy::class);
         Gate::policy(Lead::class, LeadPolicy::class);
+
+        Page::observe(PageObserver::class);
+        Blog::observe(BlogObserver::class);
+        Service::observe(ServiceObserver::class);
 
         View::composer('layouts.app', function ($view): void {
             $view->with('marketingSettings', MarketingSetting::current());

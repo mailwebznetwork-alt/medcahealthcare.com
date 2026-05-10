@@ -31,4 +31,18 @@ return [
     |--------------------------------------------------------------------------
     */
     'schedule_ai_pulse_daily' => filter_var(env('AI_PULSE_SCHEDULE_DAILY', true), FILTER_VALIDATE_BOOLEAN),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Auto-fill SEO / AEO when saving pages, blogs, and services
+    |--------------------------------------------------------------------------
+    | When enabled, empty fields get meta titles, descriptions, AEO Q&A,
+    | JSON-LD stubs, sync page_seo + page_elements, and refresh seo_ai_signals.
+    | Gemini is used only when gemini.api_key is set and content_seo_gemini is true.
+    */
+    'content_seo_auto_fill' => filter_var(env('GROWTH_CONTENT_SEO_AUTO_FILL', true), FILTER_VALIDATE_BOOLEAN),
+
+    'content_seo_fill_only_empty' => filter_var(env('GROWTH_CONTENT_SEO_FILL_ONLY_EMPTY', true), FILTER_VALIDATE_BOOLEAN),
+
+    'content_seo_gemini' => filter_var(env('GROWTH_CONTENT_SEO_GEMINI', true), FILTER_VALIDATE_BOOLEAN),
 ];

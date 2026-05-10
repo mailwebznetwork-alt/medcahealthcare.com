@@ -11,7 +11,6 @@ use App\Models\PinCode;
 use App\Models\Service;
 use App\Models\SiteSlugRedirect;
 use App\Services\ActivityLogService;
-use App\Services\Growth\AiPulseService;
 use App\Services\Integrations\OutboundWebhookDispatcher;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -509,7 +508,6 @@ class Pages extends Component
                 'site_architect',
                 'Page ID '.$savedPageId
             );
-            app(AiPulseService::class)->triggerAuditAfterPublish();
 
             if ($data['is_active'] ?? false) {
                 app(OutboundWebhookDispatcher::class)->dispatch('page.published', [
@@ -537,7 +535,6 @@ class Pages extends Component
             'site_architect',
             'Page ID '.$id
         );
-        app(AiPulseService::class)->triggerAuditAfterPublish();
         session()->flash('status', __('Page deleted.'));
         $this->resetPage();
     }
@@ -580,7 +577,6 @@ class Pages extends Component
                 'site_architect',
                 'New page ID '.$newPageId.' from source '.$id
             );
-            app(AiPulseService::class)->triggerAuditAfterPublish();
         }
 
         session()->flash('status', __('Page duplicated.'));
