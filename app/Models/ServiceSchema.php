@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Database\Factories\ServiceSchemaFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -13,6 +15,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class ServiceSchema extends Model
 {
+    /** @use HasFactory<ServiceSchemaFactory> */
+    use HasFactory;
+
     protected $table = 'service_schema';
 
     protected function casts(): array

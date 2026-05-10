@@ -2,7 +2,11 @@
 
 namespace App\Livewire\SiteArchitect;
 
+use App\Enums\PublishStatus;
+use App\Enums\ServiceVisibility;
 use App\Models\Block;
+use App\Models\Service;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +46,8 @@ class BlockFactory extends Component
 
     public ?int $previewBlockId = null;
 
+    public string $service_choice = '';
+
     public function mount(): void
     {
         if (request()->query('create') === '1') {
@@ -56,11 +62,58 @@ class BlockFactory extends Component
         $typesByGroup = config('block_factory.types_by_group', []);
         $allowedTypes = collect($typesByGroup)->flatten()->unique()->values()->all();
 
+        $services = $this->mode === 'form' ? $this->servicesForInsert() : collect();
+
         return view('livewire.site-architect.block-factory', [
             'blocks' => $blocks,
             'typesByGroup' => $typesByGroup,
             'allowedTypes' => $allowedTypes,
+            'services' => $services,
         ]);
+    }
+
+    /**
+     * Active, published, public services — surface for the "Insert service…" dropdown.
+     *
+     * @return Collection<int, Service>
+     */
+    protected function servicesForInsert()
+    {
+        return Service::query()
+            ->where('is_active', true)
+            ->where('publish_status', PublishStatus::Published)
+            ->where('visibility', ServiceVisibility::Public)
+            ->orderBy('title')
+            ->get(['id', 'title', 'service_code']);
+    }
+
+    public function appendServiceToken(): void
+    {
+        $code = trim($this->service_choice);
+        if ($code === '') {
+            $this->addError('service_choice', __('Choose a service to insert.'));
+
+            return;
+        }
+
+        $exists = Service::query()
+            ->where('service_code', $code)
+            ->where('is_active', true)
+            ->where('publish_status', PublishStatus::Published)
+            ->where('visibility', ServiceVisibility::Public)
+            ->exists();
+
+        if (! $exists) {
+            $this->addError('service_choice', __('That service is no longer available.'));
+
+            return;
+        }
+
+        $token = '{{service:'.$code.'}}';
+        $this->code = $this->code === ''
+            ? $token
+            : rtrim($this->code)."\n".$token;
+        $this->service_choice = '';
     }
 
     public function startCreate(): void
@@ -247,6 +300,7 @@ class BlockFactory extends Component
         $this->code = '';
         $this->schema_json_input = '';
         $this->is_active = true;
+        $this->service_choice = '';
         $this->resetValidation();
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Services\Growth;
 
+use App\Enums\PublishStatus;
+use App\Enums\ServiceVisibility;
 use App\Models\Blog;
 use App\Models\BusinessProfile;
 use App\Models\GrowthPincode;
@@ -9,6 +11,7 @@ use App\Models\Page;
 use App\Models\PageSeo;
 use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
+use App\Models\Service;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -302,14 +305,30 @@ class SeoService
      */
     protected function collectServiceSegmentPaths(): Collection
     {
-        if (! Schema::hasTable('page_seo')) {
-            return collect();
+        $growthPaths = collect();
+
+        if (Schema::hasTable('page_seo')) {
+            $growthPaths = PageSeo::query()
+                ->whereNotNull('page_slug')
+                ->where('page_slug', 'like', 'services/%')
+                ->pluck('page_slug');
         }
 
-        return PageSeo::query()
-            ->whereNotNull('page_slug')
-            ->where('page_slug', 'like', 'services/%')
-            ->pluck('page_slug');
+        $servicePaths = collect();
+
+        if (Schema::hasTable('services')) {
+            $servicePaths = Service::query()
+                ->where('is_active', true)
+                ->where('publish_status', PublishStatus::Published)
+                ->where('visibility', ServiceVisibility::Public)
+                ->pluck('service_code')
+                ->map(fn (string $code): string => '/services/'.$code);
+        }
+
+        return $growthPaths
+            ->merge($servicePaths)
+            ->unique()
+            ->values();
     }
 
     /**

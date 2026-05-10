@@ -7,6 +7,7 @@ use App\Enums\ServiceVisibility;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Operations\Services\StoreServiceRequest;
 use App\Http\Requests\Operations\Services\UpdateServiceRequest;
+use App\Models\Page;
 use App\Models\PinCode;
 use App\Models\Service;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -75,8 +76,9 @@ class ServiceController extends Controller
         ]);
 
         $pinCodes = $this->pinCodesForForm();
+        $detailPages = $this->detailPagesForForm();
 
-        return view('operations.services.create', compact('service', 'pinCodes'));
+        return view('operations.services.create', compact('service', 'pinCodes', 'detailPages'));
     }
 
     public function store(StoreServiceRequest $request): RedirectResponse
@@ -99,6 +101,7 @@ class ServiceController extends Controller
                 'publish_status' => $data['publish_status'],
                 'visibility' => $data['visibility'],
                 'sort_order' => $data['sort_order'] ?? 0,
+                'detail_page_id' => $this->normalizeDetailPageId($data['detail_page_id'] ?? null),
                 'gallery' => [],
             ]);
 
@@ -124,8 +127,9 @@ class ServiceController extends Controller
 
         $service->load(['seo', 'faqs', 'schema', 'pincodes']);
         $pinCodes = $this->pinCodesForForm();
+        $detailPages = $this->detailPagesForForm();
 
-        return view('operations.services.edit', compact('service', 'pinCodes'));
+        return view('operations.services.edit', compact('service', 'pinCodes', 'detailPages'));
     }
 
     public function update(UpdateServiceRequest $request, Service $service): RedirectResponse
@@ -147,6 +151,7 @@ class ServiceController extends Controller
                 'publish_status' => $data['publish_status'],
                 'visibility' => $data['visibility'],
                 'sort_order' => $data['sort_order'] ?? 0,
+                'detail_page_id' => $this->normalizeDetailPageId($data['detail_page_id'] ?? null),
             ]);
 
             if ($request->boolean('clear_featured_image')) {
@@ -254,6 +259,28 @@ class ServiceController extends Controller
             ->orderBy('city')
             ->orderBy('pincode')
             ->get(['id', 'pincode', 'area_name', 'city', 'locality']);
+    }
+
+    /**
+     * Active CMS pages eligible to act as a service detail layout.
+     *
+     * @return Collection<int, Page>
+     */
+    private function detailPagesForForm()
+    {
+        return Page::query()
+            ->where('is_active', true)
+            ->orderBy('title')
+            ->get(['id', 'title', 'slug']);
+    }
+
+    private function normalizeDetailPageId(mixed $value): ?int
+    {
+        if ($value === null || $value === '' || $value === '0' || $value === 0) {
+            return null;
+        }
+
+        return (int) $value;
     }
 
     /**

@@ -17,6 +17,7 @@ use App\Http\Controllers\Operations\PinCodes\PinCodeController;
 use App\Http\Controllers\Operations\PinCodes\PinCodeImportController;
 use App\Http\Controllers\Operations\Services\ServiceController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Public\ServicePublicController;
 use App\Http\Controllers\Settings\IntegrationController;
 use App\Http\Controllers\Settings\SystemOperationsController;
 use App\Http\Controllers\SettingsController;
@@ -51,6 +52,10 @@ Route::get('/', function () {
 Route::get('/t/mail/{token}/open.gif', [MarketingEmailOpenController::class, 'pixel'])
     ->middleware('throttle:120,1')
     ->name('marketing.email-open-pixel');
+
+Route::get('/services/{code}', [ServicePublicController::class, 'show'])
+    ->where('code', '[A-Za-z][A-Za-z0-9_-]*')
+    ->name('public.services.show');
 
 Route::get('/careers', [CareersController::class, 'index'])->name('careers.index');
 Route::get('/careers/{slug}', [CareersController::class, 'show'])->name('careers.show');

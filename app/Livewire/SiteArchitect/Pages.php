@@ -2,10 +2,13 @@
 
 namespace App\Livewire\SiteArchitect;
 
+use App\Enums\PublishStatus;
+use App\Enums\ServiceVisibility;
 use App\Models\Block;
 use App\Models\Page;
 use App\Models\PageRevision;
 use App\Models\PinCode;
+use App\Models\Service;
 use App\Models\SiteSlugRedirect;
 use App\Services\ActivityLogService;
 use App\Services\Growth\AiPulseService;
@@ -105,6 +108,8 @@ class Pages extends Component
 
     public string $module_choice = '';
 
+    public string $service_choice = '';
+
     public function render()
     {
         $pages = Page::query()->latest()->paginate(12);
@@ -116,6 +121,15 @@ class Pages extends Component
             ->get(['id', 'pincode', 'area_name', 'city']);
 
         $modules = collect(config('modules', []))->keys()->values()->all();
+
+        $servicesForInsert = $this->blockModalOpen
+            ? Service::query()
+                ->where('is_active', true)
+                ->where('publish_status', PublishStatus::Published)
+                ->where('visibility', ServiceVisibility::Public)
+                ->orderBy('title')
+                ->get(['id', 'title', 'service_code'])
+            : collect();
 
         $otherPagesForLinks = collect();
         $revisions = collect();
@@ -140,6 +154,7 @@ class Pages extends Component
             'pages' => $pages,
             'pinCodes' => $pinCodes,
             'modules' => $modules,
+            'servicesForInsert' => $servicesForInsert,
             'otherPagesForLinks' => $otherPagesForLinks,
             'revisions' => $revisions,
             'readabilityHint' => $this->mode === 'form' ? $this->computeReadabilityHint() : null,
@@ -679,6 +694,40 @@ class Pages extends Component
         $this->module_choice = '';
     }
 
+    /**
+     * Insert {{service:CODE}} into the open block modal's code textarea.
+     * Service tokens live INSIDE block code (not at page level), and the
+     * block's Blade markup decides how to render the loaded service.
+     */
+    public function appendServiceToken(): void
+    {
+        $code = trim($this->service_choice);
+        if ($code === '') {
+            $this->addError('service_choice', __('Choose a service to insert.'));
+
+            return;
+        }
+
+        $exists = Service::query()
+            ->where('service_code', $code)
+            ->where('is_active', true)
+            ->where('publish_status', PublishStatus::Published)
+            ->where('visibility', ServiceVisibility::Public)
+            ->exists();
+
+        if (! $exists) {
+            $this->addError('service_choice', __('That service is no longer available.'));
+
+            return;
+        }
+
+        $token = '{{service:'.$code.'}}';
+        $this->block_code = $this->block_code === ''
+            ? $token
+            : rtrim($this->block_code)."\n".$token;
+        $this->service_choice = '';
+    }
+
     public function removePart(int $index): void
     {
         unset($this->contentParts[$index]);
@@ -920,6 +969,7 @@ class Pages extends Component
         $this->selectedPinIds = [];
         $this->pinPivot = [];
         $this->module_choice = '';
+        $this->service_choice = '';
         $this->resetValidation();
     }
 }

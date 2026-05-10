@@ -102,6 +102,21 @@
                             <textarea wire:model="description" rows="3" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)]" placeholder="{{ __('Optional') }}"></textarea>
                         </div>
                         <div>
+                            <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Insert service…') }}</label>
+                            <div class="mt-2 flex flex-wrap items-center gap-2">
+                                <select wire:model.live="service_choice" class="rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)]">
+                                    <option value="">{{ __('— Choose a service —') }}</option>
+                                    @foreach ($services as $svc)
+                                        <option value="{{ $svc->service_code }}">{{ $svc->title }} ({{ $svc->service_code }})</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" wire:click="appendServiceToken" wire:loading.attr="disabled" class="rounded-mom-chrome border border-[var(--border-panel-soft)] px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-50">{{ __('Add service line') }}</button>
+                                <a href="{{ route('operations.services.index') }}" class="text-xs text-[var(--text-muted)] underline underline-offset-2 hover:text-[var(--text-primary)]" target="_blank" rel="noopener">{{ __('Manage services →') }}</a>
+                            </div>
+                            <p class="mom-subtext mt-2">{{ __('Each insert appends a service token to the Code textarea below in the form of double-braced service:code. The block layout (HTML/Blade) is yours — render the loaded $services collection or the per-code variable.') }}</p>
+                            @error('service_choice') <span class="mt-2 block text-xs text-[var(--danger)]">{{ $message }}</span> @enderror
+                        </div>
+                        <div>
                             <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Code (HTML / Blade)') }}</label>
                             <textarea wire:model="code" rows="16" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 font-mono text-xs text-[var(--text-primary)]"></textarea>
                             @error('code') <p class="mt-1 text-xs text-[var(--danger)]">{{ $message }}</p> @enderror

@@ -3,6 +3,13 @@
     $gTechnical = $globalSiteSeo['technical'] ?? null;
     $gBusiness = $globalSiteSeo['business'] ?? null;
 
+    if (isset($page) && isset($page->content)) {
+        \App\Services\ContentParser::preregister($page->content);
+    }
+    if (isset($service)) {
+        app(\App\Services\ServiceContextCollector::class)->register($service);
+    }
+
     $metaDescription = null;
     if (isset($page) && filled($page->meta_description)) {
         $metaDescription = $page->meta_description;
@@ -206,5 +213,49 @@
                 <script type="application/ld+json">{!! json_encode($chunk, $jsonFlags) !!}</script>
             @endif
         @endforeach
+    @endif
+@endif
+
+@php
+    /** @var \App\Services\ServiceContextCollector|null $serviceContextCollector */
+    $serviceContextCollector = $serviceContextCollector ?? app(\App\Services\ServiceContextCollector::class);
+    $collectedServices = $serviceContextCollector->collected();
+@endphp
+
+@if ($collectedServices->isNotEmpty())
+    @foreach ($collectedServices as $serviceItem)
+        @php
+            $serviceLd = array_merge(['@context' => 'https://schema.org'], $serviceItem->toServiceSchema());
+        @endphp
+        <script type="application/ld+json">{!! json_encode($serviceLd, $jsonFlags) !!}</script>
+
+        @if ($serviceItem->schema && is_array($serviceItem->schema->schema_json) && $serviceItem->schema->schema_json !== [])
+            @php
+                $customServiceLd = $serviceItem->schema->schema_json;
+                if (! isset($customServiceLd['@context'])) {
+                    $customServiceLd = array_merge(['@context' => 'https://schema.org'], $customServiceLd);
+                }
+            @endphp
+            <script type="application/ld+json">{!! json_encode($customServiceLd, $jsonFlags) !!}</script>
+        @endif
+    @endforeach
+
+    @php
+        $aggregatedFaqs = [];
+        foreach ($collectedServices as $serviceItem) {
+            foreach ($serviceItem->toFaqEntities() as $entity) {
+                $aggregatedFaqs[] = $entity;
+            }
+        }
+    @endphp
+    @if ($aggregatedFaqs !== [])
+        @php
+            $serviceFaqLd = [
+                '@context' => 'https://schema.org',
+                '@type' => 'FAQPage',
+                'mainEntity' => $aggregatedFaqs,
+            ];
+        @endphp
+        <script type="application/ld+json">{!! json_encode($serviceFaqLd, $jsonFlags) !!}</script>
     @endif
 @endif

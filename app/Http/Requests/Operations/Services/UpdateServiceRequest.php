@@ -50,6 +50,7 @@ class UpdateServiceRequest extends FormRequest
             'publish_status' => ['required', Rule::enum(PublishStatus::class)],
             'visibility' => ['required', Rule::enum(ServiceVisibility::class)],
             'sort_order' => ['nullable', 'integer', 'min:0'],
+            'detail_page_id' => ['nullable', 'integer', 'exists:pages,id'],
             'featured_image' => ['nullable', 'image', 'max:5120'],
             'icon' => ['nullable', 'image', 'max:2048'],
             'gallery_files' => ['nullable', 'array'],

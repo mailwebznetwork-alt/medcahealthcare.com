@@ -25,6 +25,7 @@ use App\Policies\PagePolicy;
 use App\Policies\PinCodePolicy;
 use App\Policies\ServicePolicy;
 use App\Policies\UserPolicy;
+use App\Services\ServiceContextCollector;
 use App\Services\SiteNavigationResolver;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -46,7 +47,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(ServiceContextCollector::class);
     }
 
     /**
@@ -128,6 +129,7 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('publicNavHeader', app(SiteNavigationResolver::class)->headerLinks());
             $view->with('publicNavFooter', app(SiteNavigationResolver::class)->footerLinks());
+            $view->with('serviceContextCollector', app(ServiceContextCollector::class));
         });
 
         Paginator::useTailwind();

@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Database\Factories\ServiceSeoFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -19,6 +21,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class ServiceSeo extends Model
 {
+    /** @use HasFactory<ServiceSeoFactory> */
+    use HasFactory;
+
     protected $table = 'service_seo';
 
     protected function casts(): array

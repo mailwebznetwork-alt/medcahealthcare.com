@@ -444,6 +444,20 @@
                         @error('block_slug') <p class="mt-1 text-xs text-[var(--danger)]">{{ $message }}</p> @enderror
                     </div>
                     <div>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Insert service…') }}</label>
+                        <div class="mt-2 flex flex-wrap items-center gap-2">
+                            <select wire:model.live="service_choice" class="rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)]">
+                                <option value="">{{ __('— Choose a service —') }}</option>
+                                @foreach ($servicesForInsert as $svc)
+                                    <option value="{{ $svc->service_code }}">{{ $svc->title }} ({{ $svc->service_code }})</option>
+                                @endforeach
+                            </select>
+                            <button type="button" wire:click="appendServiceToken" wire:loading.attr="disabled" class="rounded-mom-chrome border border-[var(--border-panel-soft)] px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-50">{{ __('Add service line') }}</button>
+                        </div>
+                        <p class="mom-subtext mt-2">{{ __('Adds a service token below in the form of double-braced service:code. Your Blade markup decides the layout — render the loaded $services collection or a per-code variable.') }}</p>
+                        @error('service_choice') <span class="mt-1 block text-xs text-[var(--danger)]">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
                         <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Code (HTML / Blade / Alpine)') }}</label>
                         <textarea wire:model="block_code" rows="14" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 font-mono text-xs"></textarea>
                         @error('block_code') <p class="mt-1 text-xs text-[var(--danger)]">{{ $message }}</p> @enderror

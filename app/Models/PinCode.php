@@ -73,7 +73,7 @@ class PinCode extends Model
      */
     public function services(): BelongsToMany
     {
-        return $this->belongsToMany(Service::class, 'service_pincodes')
+        return $this->belongsToMany(Service::class, 'service_pincodes', 'pincode_id', 'service_id')
             ->withTimestamps();
     }
 
