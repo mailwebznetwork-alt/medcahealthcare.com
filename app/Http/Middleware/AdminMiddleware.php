@@ -11,6 +11,9 @@ class AdminMiddleware
 {
     public function __construct(private readonly ActivityLogService $activityLogService) {}
 
+    /**
+     * @param  Closure(Request): Response  $next
+     */
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
@@ -22,11 +25,15 @@ class AdminMiddleware
                 'Unauthenticated request blocked by admin middleware.'
             );
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthenticated.',
-                'data' => [],
-            ], 401);
+            if ($this->wantsJsonResponse($request)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthenticated.',
+                    'data' => [],
+                ], 401);
+            }
+
+            return redirect()->guest(route('login'));
         }
 
         $role = trim((string) ($user->role ?? ''));
@@ -39,13 +46,22 @@ class AdminMiddleware
                 sprintf('User %d blocked by admin middleware.', (int) $user->id)
             );
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Forbidden.',
-                'data' => [],
-            ], 403);
+            if ($this->wantsJsonResponse($request)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Forbidden.',
+                    'data' => [],
+                ], 403);
+            }
+
+            abort(403);
         }
 
         return $next($request);
+    }
+
+    private function wantsJsonResponse(Request $request): bool
+    {
+        return $request->expectsJson() || $request->wantsJson() || $request->is('api/*');
     }
 }

@@ -27,6 +27,72 @@
         </section>
 
         <section class="mom-card mt-8 p-6">
+            <h2 class="mom-section-title">{{ __('Firewall & edge posture') }}</h2>
+            <p class="mom-subtext mt-1 mb-4">{{ __('Declarative rules mapped to middleware and infrastructure (see config/security.php).') }}</p>
+            <div class="mt-4 overflow-x-auto">
+                <table class="w-full min-w-[36rem] text-left text-[13px]">
+                    <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                        <tr>
+                            <th class="px-4 py-3 font-medium">{{ __('Rule') }}</th>
+                            <th class="px-4 py-3 font-medium">{{ __('Scope') }}</th>
+                            <th class="px-4 py-3 font-medium">{{ __('Enforcement summary') }}</th>
+                            <th class="px-4 py-3 font-medium">{{ __('Status') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                        @forelse ($firewallRules as $rule)
+                            <tr>
+                                <td class="px-4 py-3 font-medium text-[var(--text-primary)]">{{ $rule['name'] ?? '—' }}</td>
+                                <td class="px-4 py-3 font-mono text-[12px]">{{ $rule['scope'] ?? '—' }}</td>
+                                <td class="px-4 py-3">{{ $rule['rule'] ?? '—' }}</td>
+                                <td class="px-4 py-3">{{ $rule['status'] ?? '—' }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="px-4 py-8 text-center text-[var(--text-muted)]">{{ __('No firewall rules configured.') }}</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="mom-card mt-8 p-6">
+            <h2 class="mom-section-title">{{ __('Audit trail preview') }}</h2>
+            <p class="mom-subtext mt-1 mb-4">{{ __('Latest rows from activity_logs (operations and authentication signals).') }}</p>
+            <div class="mt-4 overflow-x-auto">
+                <table class="w-full min-w-[42rem] text-left text-[13px]">
+                    <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                        <tr>
+                            <th class="px-4 py-3 font-medium">{{ __('ID') }}</th>
+                            <th class="px-4 py-3 font-medium">{{ __('Action') }}</th>
+                            <th class="px-4 py-3 font-medium">{{ __('Module') }}</th>
+                            <th class="px-4 py-3 font-medium">{{ __('IP') }}</th>
+                            <th class="px-4 py-3 font-medium">{{ __('Description') }}</th>
+                            <th class="px-4 py-3 font-medium">{{ __('Timestamp') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                        @forelse ($auditLogPreview as $row)
+                            <tr>
+                                <td class="px-4 py-3 font-mono">{{ $row->id ?? '—' }}</td>
+                                <td class="px-4 py-3 font-mono text-[var(--text-primary)]">{{ $row->action ?? '—' }}</td>
+                                <td class="px-4 py-3">{{ $row->module ?? '—' }}</td>
+                                <td class="px-4 py-3 font-mono">{{ $row->ip_address ?? '—' }}</td>
+                                <td class="px-4 py-3">{{ $row->description ?? '—' }}</td>
+                                <td class="px-4 py-3">{{ isset($row->created_at) ? \Illuminate\Support\Carbon::parse($row->created_at)->timezone(config('app.timezone'))->format('Y-m-d H:i:s') : '—' }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-4 py-8 text-center text-[var(--text-muted)]">{{ __('No audit rows available.') }}</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="mom-card mt-8 p-6">
             <h2 class="mom-section-title">{{ __('Failed Login Attempts by IP') }}</h2>
             <div class="mt-4 overflow-x-auto">
                 <table class="w-full min-w-[24rem] text-left text-[13px]">

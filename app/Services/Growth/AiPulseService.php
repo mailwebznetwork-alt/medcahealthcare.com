@@ -394,6 +394,12 @@ class AiPulseService
 
     private function geminiGenerateText(string $apiKey, string $prompt): string
     {
+        if (trim($apiKey) === '') {
+            Log::notice('AI Pulse Gemini skipped: empty API key.');
+
+            return '';
+        }
+
         $res = Http::timeout(25)
             ->withHeaders(['Content-Type' => 'application/json'])
             ->post(
@@ -405,7 +411,10 @@ class AiPulseService
                 ]
             );
         if (! $res->successful()) {
-            Log::notice('AI Pulse Gemini request failed', ['status' => $res->status()]);
+            Log::critical('AI Pulse Gemini request rejected or failed', [
+                'status' => $res->status(),
+                'body_preview' => mb_substr($res->body(), 0, 500),
+            ]);
 
             return '';
         }

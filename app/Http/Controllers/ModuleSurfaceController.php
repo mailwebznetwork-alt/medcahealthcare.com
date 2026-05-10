@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\ModuleAccess;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
@@ -11,9 +12,6 @@ use Throwable;
 
 class ModuleSurfaceController extends Controller
 {
-    /**
-     * Minimal workspace shell for a module (expand with real features later).
-     */
     public function show(Request $request): View
     {
         /** @var string $key */
@@ -27,6 +25,8 @@ class ModuleSurfaceController extends Controller
         $securityMetrics = null;
         $recentSecurityEvents = [];
         $failedLoginByIp = [];
+        $auditLogPreview = collect();
+        $firewallRulesList = [];
 
         if ($key === ModuleAccess::SECURITY) {
             $securityMetrics = [
@@ -78,6 +78,9 @@ class ModuleSurfaceController extends Controller
                         ->limit(10)
                         ->get();
                 }
+
+                $auditLogPreview = $this->auditLogs();
+                $firewallRulesList = $this->firewallRules();
             } catch (Throwable) {
             }
         }
@@ -88,6 +91,38 @@ class ModuleSurfaceController extends Controller
             'securityMetrics' => $securityMetrics,
             'recentSecurityEvents' => $recentSecurityEvents,
             'failedLoginByIp' => $failedLoginByIp,
+            'auditLogPreview' => $auditLogPreview,
+            'firewallRules' => $firewallRulesList,
         ]);
+    }
+
+    /**
+     * Recent audit rows for the Security workspace (activity_logs).
+     *
+     * @return Collection<int, object>
+     */
+    public function auditLogs(): Collection
+    {
+        if (! Schema::hasTable('activity_logs')) {
+            return collect();
+        }
+
+        return DB::table('activity_logs')
+            ->orderByDesc('id')
+            ->limit(50)
+            ->get();
+    }
+
+    /**
+     * Declarative edge/firewall posture surfaced to operators (see config/security.php).
+     *
+     * @return list<array{name: string, scope: string, rule: string, status: string}>
+     */
+    public function firewallRules(): array
+    {
+        /** @var list<array{name: string, scope: string, rule: string, status: string}> $rules */
+        $rules = config('security.firewall_rules', []);
+
+        return is_array($rules) ? $rules : [];
     }
 }

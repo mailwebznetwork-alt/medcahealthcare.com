@@ -12,6 +12,9 @@ class CheckRole
 {
     public function __construct(private readonly ActivityLogService $activityLogService) {}
 
+    /**
+     * @param  Closure(Request): Response  $next
+     */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         if (! auth()->check()) {
@@ -21,7 +24,11 @@ class CheckRole
                 'Unauthenticated request blocked by role middleware.'
             );
 
-            return new JsonResponse(['message' => 'Unauthenticated.'], 401);
+            if ($this->wantsJsonResponse($request)) {
+                return new JsonResponse(['message' => 'Unauthenticated.'], 401);
+            }
+
+            return redirect()->guest(route('login'));
         }
 
         $allowedRoles = collect($roles)
@@ -64,9 +71,18 @@ class CheckRole
                 )
             );
 
-            return new JsonResponse(['message' => 'Forbidden.'], 403);
+            if ($this->wantsJsonResponse($request)) {
+                return new JsonResponse(['message' => 'Forbidden.'], 403);
+            }
+
+            abort(403);
         }
 
         return $next($request);
+    }
+
+    private function wantsJsonResponse(Request $request): bool
+    {
+        return $request->expectsJson() || $request->wantsJson() || $request->is('api/*');
     }
 }

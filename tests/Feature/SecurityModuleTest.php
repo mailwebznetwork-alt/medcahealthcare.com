@@ -45,7 +45,9 @@ it('shows security metrics for admin role users', function () {
         ->assertSee('Failed Logins')
         ->assertSee('Role Denials')
         ->assertSee('Failed Login Attempts by IP')
-        ->assertSee('Recent Security Events');
+        ->assertSee('Recent Security Events')
+        ->assertSee('Firewall & edge posture')
+        ->assertSee('Audit trail preview');
 });
 
 it('denies access to security page for viewer role users', function () {
@@ -57,6 +59,18 @@ it('denies access to security page for viewer role users', function () {
 
     $this->actingAs($user)
         ->get(route('modules.security'))
-        ->assertStatus(403)
+        ->assertForbidden();
+});
+
+it('returns JSON forbidden for viewer role when Accept is JSON', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'module_access' => securityAllModulesOn(),
+        'role' => 'viewer',
+    ]);
+
+    $this->actingAs($user)
+        ->getJson(route('modules.security'))
+        ->assertForbidden()
         ->assertJson(['message' => 'Forbidden.']);
 });

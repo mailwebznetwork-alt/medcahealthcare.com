@@ -27,10 +27,13 @@ use App\Policies\ServicePolicy;
 use App\Policies\UserPolicy;
 use App\Services\SiteNavigationResolver;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -51,6 +54,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureRateLimiting();
+
         Blade::precompiler(function (string $value): string {
             return preg_replace_callback(
                 '/\{\{\s*module:([\w-]+)\s*\}\}/',
@@ -132,6 +137,17 @@ class AppServiceProvider extends ServiceProvider
             if ($user instanceof User) {
                 $user->forceFill(['last_login_at' => now()])->saveQuietly();
             }
+        });
+    }
+
+    private function configureRateLimiting(): void
+    {
+        RateLimiter::for('api_leads', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
+        });
+
+        RateLimiter::for('payments_notify', function (Request $request) {
+            return Limit::perMinute(10)->by($request->ip());
         });
     }
 }

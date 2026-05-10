@@ -213,6 +213,12 @@ class MarketingInsightsService
 
     private function geminiRequest(string $key, string $prompt): ?string
     {
+        if (trim($key) === '') {
+            Log::notice('Marketing Gemini narrative skipped: empty API key.');
+
+            return null;
+        }
+
         try {
             $res = Http::timeout(20)
                 ->withHeaders(['Content-Type' => 'application/json'])
@@ -226,6 +232,11 @@ class MarketingInsightsService
                 );
 
             if (! $res->successful()) {
+                Log::critical('Marketing Gemini narrative HTTP failure', [
+                    'status' => $res->status(),
+                    'body_preview' => mb_substr($res->body(), 0, 500),
+                ]);
+
                 return null;
             }
 
@@ -233,6 +244,10 @@ class MarketingInsightsService
 
             return is_string($text) ? trim($text) : null;
         } catch (Throwable $e) {
+            Log::critical('Marketing Gemini narrative exception', [
+                'message' => $e->getMessage(),
+            ]);
+
             return null;
         }
     }

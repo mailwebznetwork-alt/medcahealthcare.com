@@ -66,4 +66,13 @@ return [
     */
     'payment_ingest_bearer' => env('SETTINGS_PAYMENT_INGEST_BEARER'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | HMAC secret for POST /api/payments/notify (hex X-Payment-Signature header)
+    |--------------------------------------------------------------------------
+    | When set, VerifyPaymentIngestSignature middleware requires a valid
+    | hash_hmac('sha256', raw_body, secret). Bearer token is optional extra.
+    */
+    'payment_ingest_hmac_secret' => env('SETTINGS_PAYMENT_INGEST_HMAC_SECRET'),
+
 ];

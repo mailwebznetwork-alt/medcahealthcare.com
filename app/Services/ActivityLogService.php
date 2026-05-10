@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class ActivityLogService
@@ -19,7 +20,13 @@ class ActivityLogService
                 'user_agent' => request()->userAgent(),
                 'created_at' => now(),
             ]);
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            Log::critical('Activity log could not be written to the database; falling back to file log.', [
+                'action' => $action,
+                'module' => $module,
+                'description' => $description,
+                'exception' => $e->getMessage(),
+            ]);
         }
     }
 }

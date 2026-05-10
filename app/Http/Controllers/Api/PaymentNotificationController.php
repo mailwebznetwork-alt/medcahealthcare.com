@@ -8,20 +8,35 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * External payment bridges POST JSON here with bearer SETTINGS_PAYMENT_INGEST_BEARER → fires payment.received webhooks.
+ * External payment bridges POST JSON here.
+ * Prefer HMAC (SETTINGS_PAYMENT_INGEST_HMAC_SECRET + X-Payment-Signature middleware).
+ * When HMAC is not configured, bearer SETTINGS_PAYMENT_INGEST_BEARER is required.
  */
 class PaymentNotificationController extends Controller
 {
     public function store(Request $request): JsonResponse
     {
-        $expected = config('settings.payment_ingest_bearer');
-        if (! is_string($expected) || trim($expected) === '') {
-            abort(503, __('Payment ingest is not configured.'));
-        }
+        $hmacSecret = config('settings.payment_ingest_hmac_secret');
+        $hmacConfigured = is_string($hmacSecret) && trim($hmacSecret) !== '';
 
-        $token = $request->bearerToken();
-        if (! is_string($token) || ! hash_equals($expected, $token)) {
-            abort(403, __('Invalid bearer token.'));
+        if ($hmacConfigured) {
+            $expectedBearer = config('settings.payment_ingest_bearer');
+            if (is_string($expectedBearer) && trim($expectedBearer) !== '') {
+                $token = $request->bearerToken();
+                if (! is_string($token) || ! hash_equals($expectedBearer, $token)) {
+                    abort(403, __('Invalid bearer token.'));
+                }
+            }
+        } else {
+            $expected = config('settings.payment_ingest_bearer');
+            if (! is_string($expected) || trim($expected) === '') {
+                abort(503, __('Payment ingest is not configured.'));
+            }
+
+            $token = $request->bearerToken();
+            if (! is_string($token) || ! hash_equals($expected, $token)) {
+                abort(403, __('Invalid bearer token.'));
+            }
         }
 
         $validated = $request->validate([

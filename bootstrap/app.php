@@ -5,6 +5,7 @@ use App\Http\Middleware\AutoLogout;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureModuleAccess;
+use App\Http\Middleware\VerifyPaymentIngestSignature;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => AdminMiddleware::class,
             'role' => CheckRole::class,
             'auto.logout' => AutoLogout::class,
+            'payment.ingest.signature' => VerifyPaymentIngestSignature::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
