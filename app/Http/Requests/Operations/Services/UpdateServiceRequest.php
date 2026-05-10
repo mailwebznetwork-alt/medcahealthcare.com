@@ -4,17 +4,22 @@ namespace App\Http\Requests\Operations\Services;
 
 use App\Enums\PublishStatus;
 use App\Enums\ServiceVisibility;
+use App\Http\Requests\Operations\Services\Concerns\NormalizesServiceKeywordArrays;
 use App\Models\Service;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateServiceRequest extends FormRequest
 {
+    use NormalizesServiceKeywordArrays;
+
     protected function prepareForValidation(): void
     {
         if ($this->input('schema_json') === '') {
             $this->merge(['schema_json' => null]);
         }
+
+        $this->normalizeServiceKeywordArrays();
     }
 
     public function authorize(): bool
