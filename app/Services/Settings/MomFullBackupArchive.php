@@ -3,16 +3,24 @@
 namespace App\Services\Settings;
 
 use App\Support\SqliteDatabaseFile;
+use FilesystemIterator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use RuntimeException;
+use SplFileInfo;
 use ZipArchive;
 
 final class MomFullBackupArchive
 {
     public const string FORMAT = 'medca-full-backup';
 
-    public const int VERSION = 1;
+    /** Oldest readable manifest version (DB + storage trees only). */
+    public const int VERSION_MIN = 1;
+
+    /** Current written manifest version (adds full application tree under project/). */
+    public const int VERSION_WRITE = 2;
 
     public const string ARCHIVE_DB_ENTRY = 'db.sqlite';
 
@@ -20,12 +28,26 @@ final class MomFullBackupArchive
 
     public const string ARCHIVE_PRIVATE_PREFIX = 'files/private';
 
+    public const string ARCHIVE_PROJECT_PREFIX = 'project';
+
     public const string MANIFEST_ENTRY = 'manifest.json';
+
+    /**
+     * Relative paths under the application root excluded from project/ (noise or recursion).
+     *
+     * @var list<string>
+     */
+    private const EXCLUDED_PROJECT_PREFIXES = [
+        '.git',
+        'node_modules',
+        'storage/app/backups',
+    ];
 
     public function __construct(
         private readonly ?string $sqlitePath,
         private readonly string $publicRoot,
         private readonly string $privateRoot,
+        private readonly string $applicationRoot,
     ) {}
 
     public static function fromApplicationDefaults(): self
@@ -34,11 +56,12 @@ final class MomFullBackupArchive
             SqliteDatabaseFile::defaultConnectionFilesystemPath(),
             storage_path('app/public'),
             storage_path('app/private'),
+            base_path(),
         );
     }
 
     /**
-     * Build a site archive (SQLite DB + storage/app/public + storage/app/private).
+     * Build a site archive: SQLite DB, storage trees, and (v2) the whole Laravel app tree under project/.
      *
      * @throws RuntimeException
      */
@@ -71,13 +94,15 @@ final class MomFullBackupArchive
         try {
             $manifest = [
                 'format' => self::FORMAT,
-                'version' => self::VERSION,
+                'version' => self::VERSION_WRITE,
+                'scope' => 'full_site',
                 'generated_at' => now()->toIso8601String(),
                 'database_driver' => 'sqlite',
                 'database_file' => self::ARCHIVE_DB_ENTRY,
                 'paths' => [
                     'public_prefix' => self::ARCHIVE_PUBLIC_PREFIX,
                     'private_prefix' => self::ARCHIVE_PRIVATE_PREFIX,
+                    'project_prefix' => self::ARCHIVE_PROJECT_PREFIX,
                 ],
             ];
 
@@ -94,6 +119,7 @@ final class MomFullBackupArchive
 
             $this->addTreeToZip($zip, $this->publicRoot, self::ARCHIVE_PUBLIC_PREFIX);
             $this->addTreeToZip($zip, $this->privateRoot, self::ARCHIVE_PRIVATE_PREFIX);
+            $this->addApplicationTreeToZip($zip, $this->applicationRoot, self::ARCHIVE_PROJECT_PREFIX);
         } finally {
             $zip->close();
         }
@@ -162,6 +188,14 @@ final class MomFullBackupArchive
                 File::copyDirectory($privateSrc, $this->privateRoot);
             }
 
+            $manifestVersion = (int) ($manifest['version'] ?? 1);
+            if ($manifestVersion >= self::VERSION_WRITE) {
+                $projectSrc = $extractRoot.DIRECTORY_SEPARATOR.self::ARCHIVE_PROJECT_PREFIX;
+                if (File::isDirectory($projectSrc)) {
+                    $this->restoreApplicationTreeFromExtract($projectSrc, $this->applicationRoot);
+                }
+            }
+
             File::copy($dbPathInExtract, $this->sqlitePath);
 
             if (config('database.default') === 'sqlite') {
@@ -188,7 +222,8 @@ final class MomFullBackupArchive
             throw new RuntimeException(__('Invalid backup archive (unrecognized format).'));
         }
 
-        if ((int) ($data['version'] ?? 0) !== self::VERSION) {
+        $version = (int) ($data['version'] ?? 0);
+        if ($version < self::VERSION_MIN || $version > self::VERSION_WRITE) {
             throw new RuntimeException(__('Invalid backup archive (unsupported version).'));
         }
 
@@ -204,13 +239,13 @@ final class MomFullBackupArchive
             throw new RuntimeException(__('Could not resolve a storage path for the archive.'));
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($absoluteDir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::SELF_FIRST
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($absoluteDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST
         );
 
         foreach ($iterator as $file) {
-            if (! $file instanceof \SplFileInfo) {
+            if (! $file instanceof SplFileInfo) {
                 continue;
             }
 
@@ -225,6 +260,110 @@ final class MomFullBackupArchive
             $zipPath = $zipPrefix.'/'.$relative;
             if (! $zip->addFile($path, $zipPath)) {
                 throw new RuntimeException(__('Could not add :path to the archive.', ['path' => $relative]));
+            }
+        }
+    }
+
+    private function addApplicationTreeToZip(ZipArchive $zip, string $absoluteDir, string $zipPrefix): void
+    {
+        File::ensureDirectoryExists($absoluteDir);
+
+        $absoluteDirReal = realpath($absoluteDir);
+        if ($absoluteDirReal === false) {
+            throw new RuntimeException(__('Could not resolve application root for the archive.'));
+        }
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($absoluteDirReal, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST
+        );
+
+        foreach ($iterator as $file) {
+            if (! $file instanceof SplFileInfo) {
+                continue;
+            }
+
+            if ($file->isLink()) {
+                continue;
+            }
+
+            $path = $file->getPathname();
+            $relative = substr($path, strlen($absoluteDirReal) + 1);
+            $relative = str_replace('\\', '/', $relative);
+
+            if ($file->isDir()) {
+                continue;
+            }
+
+            if ($this->isExcludedProjectRelativePath($relative)) {
+                continue;
+            }
+
+            $zipPath = $zipPrefix.'/'.$relative;
+            if (! $zip->addFile($path, $zipPath)) {
+                throw new RuntimeException(__('Could not add :path to the archive.', ['path' => $relative]));
+            }
+        }
+    }
+
+    private function isExcludedProjectRelativePath(string $relative): bool
+    {
+        $relative = str_replace('\\', '/', $relative);
+
+        foreach (self::EXCLUDED_PROJECT_PREFIXES as $prefix) {
+            if ($relative === $prefix || str_starts_with($relative, $prefix.'/')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function restoreApplicationTreeFromExtract(string $extractedProjectRoot, string $applicationRoot): void
+    {
+        $extractedReal = realpath($extractedProjectRoot);
+        $applicationReal = realpath($applicationRoot);
+
+        if ($extractedReal === false || $applicationReal === false) {
+            throw new RuntimeException(__('Could not resolve paths for application restore.'));
+        }
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($extractedReal, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST
+        );
+
+        foreach ($iterator as $file) {
+            if (! $file instanceof SplFileInfo || ! $file->isFile()) {
+                continue;
+            }
+
+            if ($file->isLink()) {
+                continue;
+            }
+
+            $srcPath = $file->getPathname();
+            $relative = substr($srcPath, strlen($extractedReal) + 1);
+            $relative = str_replace('\\', '/', $relative);
+
+            if (str_contains($relative, '..')) {
+                throw new RuntimeException(__('Unsafe relative path during application restore.'));
+            }
+
+            $destPath = $applicationReal.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $relative);
+
+            File::ensureDirectoryExists(dirname($destPath));
+
+            $destParentReal = realpath(dirname($destPath));
+            if (
+                $destParentReal === false
+                || ($destParentReal !== $applicationReal && ! str_starts_with($destParentReal, $applicationReal.DIRECTORY_SEPARATOR))
+            ) {
+                throw new RuntimeException(__('Blocked application restore path (outside project root).'));
+            }
+
+            if (! File::copy($srcPath, $destPath)) {
+                throw new RuntimeException(__('Could not write restored application file :path.', ['path' => $relative]));
             }
         }
     }

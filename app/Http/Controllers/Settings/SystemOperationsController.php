@@ -41,6 +41,8 @@ class SystemOperationsController extends Controller
     {
         $this->authorizeBackupOperator($request);
 
+        set_time_limit(0);
+
         $tmp = tempnam(sys_get_temp_dir(), 'momfb');
         if ($tmp === false) {
             return redirect()
@@ -69,10 +71,12 @@ class SystemOperationsController extends Controller
     }
 
     /**
-     * Restore SQLite + storage/app/public + storage/app/private from a full-site archive.
+     * Restore SQLite, storage trees, and application files from a full-site archive.
      */
     public function restoreBackup(RestoreDatabaseBackupRequest $request): RedirectResponse
     {
+        set_time_limit(0);
+
         $uploaded = $request->file('backup_file');
         if ($uploaded === null) {
             return redirect()

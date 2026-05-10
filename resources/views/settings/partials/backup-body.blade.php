@@ -8,7 +8,7 @@
 
     <div class="mt-8 border-t border-[var(--border-panel-soft)] pt-8">
         <h3 class="mom-micro mb-2">{{ __('Export to your computer') }}</h3>
-        <p class="mom-body-text text-[var(--text-secondary)]">{{ __('Download a zip that contains the SQLite database plus storage/app/public and storage/app/private (uploads and local app files). Requires file-based SQLite.') }}</p>
+        <p class="mom-body-text text-[var(--text-secondary)]">{{ __('Download a zip with manifest, SQLite database, storage trees, and the whole Laravel project under project/ (app, resources, vendor, config, .env, etc.). Excludes .git, node_modules, and storage/app/backups to avoid noise and recursion. Requires file-based SQLite.') }}</p>
         <div class="mt-4">
             <a href="{{ route('settings.system.backup.download') }}" class="mom-cta-primary inline-flex !px-3 !py-2 !text-[11px]">{{ __('Download full site backup') }}</a>
         </div>
@@ -16,7 +16,7 @@
 
     <div class="mt-8 border-t border-[var(--border-panel-soft)] pt-8">
         <h3 class="mom-micro mb-2">{{ __('Restore from upload') }}</h3>
-        <p class="mom-body-text text-[var(--text-secondary)]">{{ __('Upload a full-site zip created from this page. It replaces the database and both storage trees. A zip snapshot of the current site is saved under storage/app/backups before anything is overwritten.') }}</p>
+        <p class="mom-body-text text-[var(--text-secondary)]">{{ __('Upload a zip from this page. It overwrites storage/public and storage/private, copies project/ files onto the application root, then replaces the SQLite file. A safety zip of the current site is saved first. Files on disk that are not in the archive are left in place.') }}</p>
         @error('backup_file')
             <p class="mom-body-text mt-3 text-[var(--danger)]" role="alert">{{ $message }}</p>
         @enderror
