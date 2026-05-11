@@ -36,7 +36,15 @@ class CareersController extends Controller
 
         $data = $request->validated();
         $whatsappClick = (bool) ($data['whatsapp_click'] ?? false);
-        unset($data['whatsapp_click']);
+        unset($data['whatsapp_click'], $data['resume']);
+
+        $resumePath = null;
+        if ($request->hasFile('resume')) {
+            $resumePath = $request->file('resume')->store(
+                'job-application-resumes/'.now()->format('Y/m'),
+                'local'
+            );
+        }
 
         $application = Application::query()->create([
             'vacancy_id' => $vacancy->id,
@@ -46,6 +54,7 @@ class CareersController extends Controller
             'pin_code' => $data['pin_code'] ?? null,
             'city' => $data['city'] ?? null,
             'cover_message' => $data['cover_message'] ?? null,
+            'resume_path' => $resumePath,
             'source' => $whatsappClick ? 'whatsapp' : ($data['source'] ?? 'web'),
             'whatsapp_clicked_at' => $whatsappClick ? now() : null,
             'pipeline_status' => ApplicationPipelineStatus::Applied,

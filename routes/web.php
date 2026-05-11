@@ -144,6 +144,8 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
         Route::get('overview', JobPortalDashboardController::class)->name('overview');
         Route::post('vacancies/{vacancy}/duplicate', [VacancyController::class, 'duplicate'])->name('vacancies.duplicate');
         Route::resource('vacancies', VacancyController::class);
+        Route::get('applications/{application}/resume', [ApplicationController::class, 'downloadResume'])
+            ->name('applications.resume');
         Route::resource('applications', ApplicationController::class)->only(['index', 'show', 'update']);
     });
 

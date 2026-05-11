@@ -92,7 +92,7 @@
                 <div class="mom-card p-6">
                     <h2 class="mom-section-title">{{ __('Apply online') }}</h2>
                     <p class="mom-subtext mt-2">{{ __('Structured intake for the hiring operations engine.') }}</p>
-                    <form method="post" action="{{ route('careers.apply', ['slug' => $vacancy->slug]) }}" class="mt-6 space-y-4">
+                    <form method="post" action="{{ route('careers.apply', ['slug' => $vacancy->slug]) }}" enctype="multipart/form-data" class="mt-6 space-y-4">
                         @csrf
                         <div>
                             <x-input-label for="full_name" :value="__('Full name')" variant="public" />
@@ -120,6 +120,18 @@
                         <div>
                             <x-input-label for="cover_message" :value="__('Message')" variant="public" />
                             <textarea id="cover_message" name="cover_message" rows="4" class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-[#0046ad] focus:ring-1 focus:ring-[#0046ad]">{{ old('cover_message') }}</textarea>
+                        </div>
+                        <div>
+                            <x-input-label for="resume" :value="__('Resume (optional)')" variant="public" />
+                            <input
+                                id="resume"
+                                name="resume"
+                                type="file"
+                                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                class="mt-2 block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-slate-800 hover:file:bg-slate-200"
+                            />
+                            <p class="mom-subtext mt-1">{{ __('PDF or Word, up to 5 MB.') }}</p>
+                            <x-input-error class="mt-2" :messages="$errors->get('resume')" variant="public" />
                         </div>
                         <input type="hidden" name="source" value="web" />
                         <label class="flex items-start gap-2 text-[13px] text-slate-600">

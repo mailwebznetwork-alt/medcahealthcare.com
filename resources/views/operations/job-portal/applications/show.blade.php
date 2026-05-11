@@ -26,6 +26,16 @@
                     <dd class="mom-body-text mt-1 whitespace-pre-wrap">{{ $application->cover_message ?: '—' }}</dd>
                 </div>
                 <div>
+                    <dt class="mom-micro">{{ __('Resume') }}</dt>
+                    <dd class="mom-body-text mt-1">
+                        @if ($application->resume_path)
+                            <a href="{{ route('operations.job-portal.applications.resume', $application) }}" class="text-mom-gold hover:underline">{{ __('Download resume') }}</a>
+                        @else
+                            {{ __('No file uploaded.') }}
+                        @endif
+                    </dd>
+                </div>
+                <div>
                     <dt class="mom-micro">{{ __('WhatsApp tracking') }}</dt>
                     <dd class="mom-body-text mt-1">
                         @if ($application->whatsapp_clicked_at)

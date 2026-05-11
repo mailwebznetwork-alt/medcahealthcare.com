@@ -30,8 +30,19 @@ class StoreJobApplicationRequest extends FormRequest
             'pin_code' => ['nullable', 'string', 'max:16'],
             'city' => ['nullable', 'string', 'max:120'],
             'cover_message' => ['nullable', 'string', 'max:5000'],
+            'resume' => ['nullable', 'file', 'max:5120', 'mimes:pdf,doc,docx'],
             'source' => ['nullable', 'string', 'max:64'],
             'whatsapp_click' => ['boolean'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'resume' => __('Resume'),
         ];
     }
 }

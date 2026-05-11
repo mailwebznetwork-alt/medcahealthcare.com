@@ -8,8 +8,11 @@ use App\Models\Application;
 use App\Models\Vacancy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ApplicationController extends Controller
 {
@@ -48,6 +51,25 @@ class ApplicationController extends Controller
         $application->load('vacancy');
 
         return view('operations.job-portal.applications.show', compact('application'));
+    }
+
+    public function downloadResume(Application $application): StreamedResponse
+    {
+        $this->authorize('view', $application);
+
+        if (! is_string($application->resume_path) || $application->resume_path === '') {
+            abort(404);
+        }
+
+        $disk = Storage::disk('local');
+        if (! $disk->exists($application->resume_path)) {
+            abort(404);
+        }
+
+        $extension = pathinfo($application->resume_path, PATHINFO_EXTENSION) ?: 'bin';
+        $downloadName = Str::slug($application->full_name).'-resume.'.$extension;
+
+        return $disk->download($application->resume_path, $downloadName);
     }
 
     public function update(Request $request, Application $application): RedirectResponse

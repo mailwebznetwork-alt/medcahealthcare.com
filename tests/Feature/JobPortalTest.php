@@ -7,6 +7,8 @@ use App\Models\Application;
 use App\Models\User;
 use App\Models\Vacancy;
 use App\ModuleAccess;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 it('redirects operations entry to the job portal overview', function () {
@@ -83,4 +85,52 @@ it('accepts a public application', function () {
     ])->assertRedirect(route('careers.show', ['slug' => $vacancy->slug]));
 
     expect(Application::query()->where('vacancy_id', $vacancy->id)->count())->toBe(1);
+    expect(Application::query()->where('vacancy_id', $vacancy->id)->value('resume_path'))->toBeNull();
+});
+
+it('stores an optional resume with a public application', function () {
+    Storage::fake('local');
+
+    $vacancy = Vacancy::factory()->published()->create([
+        'slug' => 'apply-with-resume',
+    ]);
+
+    $file = UploadedFile::fake()->create('cv.pdf', 200);
+
+    $this->post(route('careers.apply', ['slug' => $vacancy->slug]), [
+        'full_name' => 'Resume Bearer',
+        'email' => 'resume@example.com',
+        'phone' => '9988776655',
+        'source' => 'web',
+        'resume' => $file,
+    ])->assertRedirect(route('careers.show', ['slug' => $vacancy->slug]));
+
+    $path = Application::query()->where('vacancy_id', $vacancy->id)->value('resume_path');
+    expect($path)->toBeString();
+    Storage::disk('local')->assertExists($path);
+});
+
+it('allows operations staff to download a candidate resume', function () {
+    Storage::fake('local');
+
+    $vacancy = Vacancy::factory()->published()->create();
+    $path = 'job-application-resumes/2026/01/test.pdf';
+    Storage::disk('local')->put($path, '%PDF-1.4 test');
+
+    $application = Application::factory()->create([
+        'vacancy_id' => $vacancy->id,
+        'resume_path' => $path,
+    ]);
+
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'role' => 'manager',
+        'module_access' => collect(ModuleAccess::keys())
+            ->mapWithKeys(fn (string $k) => [$k => $k === ModuleAccess::OPERATIONS])
+            ->all(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('operations.job-portal.applications.resume', $application))
+        ->assertOk();
 });

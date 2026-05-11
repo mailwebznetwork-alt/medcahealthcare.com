@@ -27,6 +27,7 @@ class ApplicationFactory extends Factory
             'pin_code' => '560076',
             'city' => 'Bangalore',
             'cover_message' => fake()->optional()->sentence(),
+            'resume_path' => null,
             'source' => fake()->randomElement(['web', 'whatsapp', 'referral']),
             'whatsapp_clicked_at' => null,
             'pipeline_status' => ApplicationPipelineStatus::Applied,
