@@ -2,10 +2,12 @@
 
 use App\Enums\VacancyVisibility;
 use App\Enums\VacancyWorkflowStatus;
+use App\Livewire\Modules\JobPortal;
 use App\Models\Application;
 use App\Models\User;
 use App\Models\Vacancy;
 use App\ModuleAccess;
+use Livewire\Livewire;
 
 it('redirects operations entry to the job portal overview', function () {
     $user = User::factory()->create([
@@ -34,6 +36,27 @@ it('allows operations users to open the job portal overview', function () {
         ->get(route('operations.job-portal.overview'))
         ->assertOk()
         ->assertSee(__('Create vacancy'), false);
+});
+
+it('renders published vacancies in the job portal module', function () {
+    $vacancy = Vacancy::factory()->published()->create([
+        'slug' => 'module-listing-test',
+        'title' => 'Unique Module Listing QA Title',
+    ]);
+
+    Livewire::test(JobPortal::class)
+        ->assertSee('Unique Module Listing QA Title', false)
+        ->assertSee(route('careers.show', ['slug' => $vacancy->slug]), false);
+});
+
+it('does not render draft vacancies in the job portal module', function () {
+    $vacancy = Vacancy::factory()->create([
+        'title' => 'Draft Only Should Not Render In Module',
+        'workflow_status' => VacancyWorkflowStatus::Draft,
+    ]);
+
+    Livewire::test(JobPortal::class)
+        ->assertDontSee($vacancy->title, false);
 });
 
 it('lists a published public vacancy on the careers site', function () {
