@@ -120,7 +120,7 @@
                         <option value="{{ $p->id }}" @selected((int) old('detail_page_id', $vacancy->detail_page_id) === (int) $p->id)>{{ $p->title }} ({{ $p->slug }})</option>
                     @endforeach
                 </select>
-                <p class="mom-micro mt-2">{{ __('Blocks on that page receive $vacancy. Include @include(\'careers.partials.apply-form\') for the apply form.') }}</p>
+                <p class="mom-micro mt-2">{{ __('Blocks on that page receive $vacancy. In block code use @@include(\'careers.partials.apply-form\', [\'vacancy\' => $vacancy]) for the apply form.') }}</p>
                 <x-input-error class="mt-2" :messages="$errors->get('detail_page_id')" variant="mom" />
             </div>
             @if ($vacancy->exists)

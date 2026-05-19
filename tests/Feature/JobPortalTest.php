@@ -28,6 +28,24 @@ it('redirects operations entry to the job portal overview', function () {
         ->assertRedirect(route('operations.job-portal.overview'));
 });
 
+it('loads the vacancy edit form without a blade syntax error', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'role' => 'manager',
+        'module_access' => collect(ModuleAccess::keys())
+            ->mapWithKeys(fn (string $k) => [$k => $k === ModuleAccess::OPERATIONS])
+            ->all(),
+    ]);
+
+    $vacancy = Vacancy::factory()->published()->create();
+
+    $this->actingAs($user)
+        ->get(route('operations.job-portal.vacancies.edit', $vacancy))
+        ->assertOk()
+        ->assertSee(__('Edit vacancy'), false)
+        ->assertSee(__('Detail page (custom layout)'), false);
+});
+
 it('allows operations users to open the job portal overview', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
