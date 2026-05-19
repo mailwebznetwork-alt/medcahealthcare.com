@@ -5,6 +5,7 @@ namespace App\Http\Requests\Operations\Services;
 use App\Enums\PublishStatus;
 use App\Enums\ServiceVisibility;
 use App\Http\Requests\Operations\Services\Concerns\NormalizesServiceKeywordArrays;
+use App\Http\Requests\Operations\Services\Concerns\NormalizesServiceListingLines;
 use App\Models\Service;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -12,6 +13,7 @@ use Illuminate\Validation\Rule;
 class UpdateServiceRequest extends FormRequest
 {
     use NormalizesServiceKeywordArrays;
+    use NormalizesServiceListingLines;
 
     protected function prepareForValidation(): void
     {
@@ -20,6 +22,7 @@ class UpdateServiceRequest extends FormRequest
         }
 
         $this->normalizeServiceKeywordArrays();
+        $this->normalizeServiceListingLines();
     }
 
     public function authorize(): bool
@@ -43,6 +46,9 @@ class UpdateServiceRequest extends FormRequest
             'service_code' => ['required', 'string', Rule::in([$service->service_code])],
             'short_summary' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string'],
+            'procedures_lines' => ['nullable', 'string', 'max:10000'],
+            'specialized_care_lines' => ['nullable', 'string', 'max:10000'],
+            'shifts_lines' => ['nullable', 'string', 'max:10000'],
             'price_range' => ['nullable', 'string', 'max:120'],
             'image_alt' => ['nullable', 'string', 'max:255'],
             'target_keywords' => ['nullable', 'array'],

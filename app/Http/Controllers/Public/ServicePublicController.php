@@ -4,12 +4,21 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Service;
+use App\Services\Content\ContentRenderContext;
+use App\Services\Public\PublicPagePresenter;
+use App\Services\Public\ServicesDetailPageResolver;
 use App\Services\ServiceContextCollector;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ServicePublicController extends Controller
 {
+    public function __construct(
+        private readonly PublicPagePresenter $presenter,
+        private readonly ContentRenderContext $renderContext,
+        private readonly ServicesDetailPageResolver $detailPageResolver,
+    ) {}
+
     public function show(Request $request, string $code): View
     {
         $service = Service::findPubliclyViewableByCode($code);
@@ -20,8 +29,11 @@ class ServicePublicController extends Controller
 
         app(ServiceContextCollector::class)->register($service);
 
-        $detailPage = $service->detailPage;
-        if ($detailPage !== null && (bool) $detailPage->is_active) {
+        $detailPage = $this->detailPageResolver->resolveFor($service);
+
+        if ($detailPage !== null) {
+            $this->renderContext->set($this->presenter->variablesForServiceDetail($service));
+
             return view('layouts.app', [
                 'page' => $detailPage,
                 'service' => $service,

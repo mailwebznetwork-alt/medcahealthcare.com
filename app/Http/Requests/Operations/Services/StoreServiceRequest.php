@@ -5,6 +5,7 @@ namespace App\Http\Requests\Operations\Services;
 use App\Enums\PublishStatus;
 use App\Enums\ServiceVisibility;
 use App\Http\Requests\Operations\Services\Concerns\NormalizesServiceKeywordArrays;
+use App\Http\Requests\Operations\Services\Concerns\NormalizesServiceListingLines;
 use App\Models\Service;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -12,6 +13,7 @@ use Illuminate\Validation\Rule;
 class StoreServiceRequest extends FormRequest
 {
     use NormalizesServiceKeywordArrays;
+    use NormalizesServiceListingLines;
 
     protected function prepareForValidation(): void
     {
@@ -20,6 +22,7 @@ class StoreServiceRequest extends FormRequest
         }
 
         $this->normalizeServiceKeywordArrays();
+        $this->normalizeServiceListingLines();
 
         $code = strtolower(trim((string) $this->input('service_code', '')));
         $code = str_replace([' ', '_'], '-', $code);
@@ -43,6 +46,9 @@ class StoreServiceRequest extends FormRequest
             'service_code' => ['required', 'string', 'max:120', 'regex:/^[a-zA-Z][a-zA-Z0-9_-]*$/', 'unique:services,service_code'],
             'short_summary' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string'],
+            'procedures_lines' => ['nullable', 'string', 'max:10000'],
+            'specialized_care_lines' => ['nullable', 'string', 'max:10000'],
+            'shifts_lines' => ['nullable', 'string', 'max:10000'],
             'price_range' => ['nullable', 'string', 'max:120'],
             'image_alt' => ['nullable', 'string', 'max:255'],
             'target_keywords' => ['nullable', 'array'],

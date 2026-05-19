@@ -3,9 +3,9 @@
 namespace App\Livewire\SiteArchitect;
 
 use App\Models\Block;
+use App\Services\ContentParser;
 use App\Services\SiteArchitect\ServiceInsertCatalog;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -252,7 +252,7 @@ class BlockFactory extends Component
         $this->previewError = '';
 
         try {
-            $this->previewHtml = Blade::render($block->code, []);
+            $this->previewHtml = ContentParser::renderBlockCode($block->code);
         } catch (\Throwable $e) {
             $this->previewError = $e->getMessage();
         }

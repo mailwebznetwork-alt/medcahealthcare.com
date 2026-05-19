@@ -18,6 +18,16 @@
             @endif
             <link rel="canonical" href="{{ url()->current() }}">
         @endisset
+        @isset($service)
+            @php
+                $serviceMetaTitle = $service->seo?->meta_title ?: $service->title;
+                $serviceMetaDescription = $service->seo?->meta_description ?: $service->short_summary;
+            @endphp
+            @if (filled($serviceMetaDescription))
+                <meta name="description" content="{{ \Illuminate\Support\Str::limit(strip_tags((string) $serviceMetaDescription), 320, '') }}">
+            @endif
+            <link rel="canonical" href="{{ $service->publicUrl() }}">
+        @endisset
         @if (isset($service) && ! $service->isListedPublicly())
             <meta name="robots" content="noindex, nofollow">
         @endif
@@ -33,7 +43,9 @@
             <script type="application/ld+json">{!! json_encode($jobPostingSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
         @endif
         <title>
-            @isset($vacancy)
+            @isset($service)
+                {{ $service->seo?->meta_title ?: $service->title }} — {{ config('app.name') }}
+            @elseif(isset($vacancy))
                 {{ $vacancy->seo_title ?: $vacancy->title }} — {{ config('app.name') }}
             @elseif(isset($page))
                 {{ $page->meta_title ?? $page->title }} — {{ config('app.name') }}

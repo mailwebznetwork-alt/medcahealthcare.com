@@ -131,3 +131,11 @@ it('includes the apply form partial when referenced from a job detail block', fu
         ->assertSee('name="full_name"', false)
         ->assertSee(route('careers.apply', ['slug' => $vacancy->slug]), false);
 });
+
+it('renders block code with empty vacancies when no page context is set', function () {
+    $html = ContentParser::renderBlockCode(
+        '<ul>@foreach($vacancies as $job)<li>{{ $job->title }}</li>@endforeach</ul>'
+    );
+
+    expect($html)->toBe('<ul></ul>');
+});

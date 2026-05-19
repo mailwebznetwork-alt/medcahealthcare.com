@@ -69,6 +69,22 @@
                 <x-input-label for="description" :value="__('Description')" variant="mom" />
                 <textarea id="description" name="description" rows="8" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('description', $service->description) }}</textarea>
             </div>
+            <div class="md:col-span-2">
+                <h4 class="mom-section-title text-base">{{ __('Detail carousel lists') }}</h4>
+                <p class="mom-micro mt-1">{{ __('One item per line — shown on the public service detail carousel.') }}</p>
+            </div>
+            <div>
+                <x-input-label for="procedures_lines" :value="__('Procedures')" variant="mom" />
+                <textarea id="procedures_lines" name="procedures_lines" rows="4" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('procedures_lines', $service->listingLines('procedures')) }}</textarea>
+            </div>
+            <div>
+                <x-input-label for="specialized_care_lines" :value="__('Specialized care')" variant="mom" />
+                <textarea id="specialized_care_lines" name="specialized_care_lines" rows="4" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('specialized_care_lines', $service->listingLines('specialized_care')) }}</textarea>
+            </div>
+            <div class="md:col-span-2">
+                <x-input-label for="shifts_lines" :value="__('Shifts')" variant="mom" />
+                <textarea id="shifts_lines" name="shifts_lines" rows="3" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('shifts_lines', $service->listingLines('shifts')) }}</textarea>
+            </div>
         </div>
     </section>
 

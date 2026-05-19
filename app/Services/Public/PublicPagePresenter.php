@@ -4,6 +4,7 @@ namespace App\Services\Public;
 
 use App\Models\Page;
 use App\Models\PinCode;
+use App\Models\Service;
 use App\Models\Vacancy;
 
 class PublicPagePresenter
@@ -26,8 +27,28 @@ class PublicPagePresenter
                     ->orderBy('pincode')
                     ->get(),
             ],
+            'services' => [
+                'publishedServices' => Service::query()
+                    ->publicListing()
+                    ->with(['seo'])
+                    ->get(),
+            ],
             default => [],
         };
+    }
+
+    /**
+     * Blade variables for /services/{code} CMS detail pages.
+     *
+     * @return array<string, mixed>
+     */
+    public function variablesForServiceDetail(Service $service): array
+    {
+        $service->loadMissing(['seo', 'faqs', 'pincodes']);
+
+        return [
+            'service' => $service,
+        ];
     }
 
     /**

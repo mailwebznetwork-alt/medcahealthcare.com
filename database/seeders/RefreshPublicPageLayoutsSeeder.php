@@ -98,8 +98,62 @@ BLADE,
             'layout_mode' => PageLayoutMode::Canvas,
         ]);
 
+        Block::query()->updateOrCreate(
+            ['block_slug' => 'services-block-carousel'],
+            [
+                'block_name' => 'Services — carousel (pick services)',
+                'code' => <<<'BLADE'
+{{-- Site Architect → Insert service (adds {{service:code}} tokens). $services = only those codes. --}}
+{{service:caregivers}}
+{{service:homenursing-services}}
+@include('public.services.partials.services-carousel', [
+    'services' => $services,
+    'sectionTitle' => __('Our clinical services'),
+])
+BLADE,
+                'is_active' => true,
+            ]
+        );
+
+        Block::query()->updateOrCreate(
+            ['block_slug' => 'services-block-grid'],
+            [
+                'block_name' => 'Services — grid (pick services)',
+                'code' => <<<'BLADE'
+{{-- Add {{service:your-code}} lines for each service in this category. --}}
+@include('public.services.partials.services-grid', [
+    'services' => $services,
+    'sectionTitle' => __('All services'),
+])
+BLADE,
+                'is_active' => true,
+            ]
+        );
+
+        Block::query()->updateOrCreate(
+            ['block_slug' => 'services-detail-layout'],
+            [
+                'block_name' => 'Services — detail carousel',
+                'code' => <<<'BLADE'
+{{-- Used on /services/{code} via page slug services-detail-template. $service is injected. --}}
+@include('public.services.partials.service-detail-carousel', ['service' => $service])
+BLADE,
+                'is_active' => true,
+            ]
+        );
+
+        Page::query()->updateOrCreate(
+            ['slug' => 'services-detail-template'],
+            [
+                'title' => 'Service detail (shared layout)',
+                'content' => '{{block:services-detail-layout}}',
+                'is_active' => true,
+                'layout_mode' => PageLayoutMode::Canvas,
+            ]
+        );
+
         Page::query()->where('slug', 'services')->update([
-            'content' => "{{block:hero-services}}\n{{block:sdfdfsdf}}\n{{block:cta-services}}",
+            'content' => "{{block:hero-services}}\n{{block:services-block-carousel}}\n{{block:cta-services}}",
             'layout_mode' => PageLayoutMode::Canvas,
         ]);
     }

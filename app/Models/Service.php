@@ -6,6 +6,7 @@ use App\Enums\PublishStatus;
 use App\Enums\ServiceVisibility;
 use Database\Factories\ServiceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,6 +19,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'service_code',
     'short_summary',
     'description',
+    'procedures',
+    'specialized_care',
+    'shifts',
     'price_range',
     'featured_image',
     'icon',
@@ -102,10 +106,27 @@ class Service extends Model
             && $this->visibility === ServiceVisibility::Public;
     }
 
+    /**
+     * @param  Builder<Service>  $query
+     * @return Builder<Service>
+     */
+    public function scopePublicListing(Builder $query): Builder
+    {
+        return $query
+            ->where('is_active', true)
+            ->where('publish_status', PublishStatus::Published)
+            ->where('visibility', ServiceVisibility::Public)
+            ->orderBy('sort_order')
+            ->orderBy('title');
+    }
+
     protected function casts(): array
     {
         return [
             'gallery' => 'array',
+            'procedures' => 'array',
+            'specialized_care' => 'array',
+            'shifts' => 'array',
             'target_keywords' => 'array',
             'ai_keywords' => 'array',
             'quality_score' => 'integer',
@@ -264,6 +285,20 @@ class Service extends Model
     public function bladeVariableName(): string
     {
         return str_replace('-', '_', (string) $this->service_code);
+    }
+
+    /**
+     * @param  'procedures'|'specialized_care'|'shifts'  $attribute
+     */
+    public function listingLines(string $attribute): string
+    {
+        $items = $this->{$attribute};
+
+        if (! is_array($items)) {
+            return '';
+        }
+
+        return implode("\n", array_map(static fn (mixed $line): string => (string) $line, $items));
     }
 
     private function absoluteMediaUrl(string $path): string

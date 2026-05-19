@@ -7,6 +7,8 @@ use App\Enums\ServiceVisibility;
 use App\Models\Block;
 use App\Models\Service;
 use App\Services\Content\ContentRenderContext;
+use App\Services\Content\ServiceBindingRegistry;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Blade;
 use Livewire\Livewire;
 
@@ -138,6 +140,58 @@ class ContentParser
         return Livewire::mount($class);
     }
 
+    /**
+     * Render a block's Blade code (preview, tests, or internal expansion).
+     */
+    public static function renderBlockCode(string $code, int $depth = 0): string
+    {
+        if (trim($code) === '') {
+            return '';
+        }
+
+        $serviceVars = self::loadServiceVariablesFromBlockCode($code);
+
+        $bladeReadyCode = self::parseInternal(
+            preg_replace(self::SERVICE_TOKEN_PATTERN, '', $code) ?? '',
+            $depth + 1
+        );
+
+        return Blade::render($bladeReadyCode, self::buildBlockRenderVariables($serviceVars));
+    }
+
+    /**
+     * @param  array<string, Service>  $serviceVars
+     * @return array<string, mixed>
+     */
+    public static function buildBlockRenderVariables(array $serviceVars): array
+    {
+        $services = collect(array_values($serviceVars))->filter(fn ($v): bool => $v instanceof Service);
+
+        return array_merge(
+            self::blockRenderDefaults(),
+            app(ContentRenderContext::class)->all(),
+            ['services' => $services],
+            $serviceVars
+        );
+    }
+
+    /**
+     * Safe fallbacks so block Blade never 500s when a variable is page-specific.
+     *
+     * @return array<string, mixed>
+     */
+    private static function blockRenderDefaults(): array
+    {
+        return [
+            'vacancies' => Collection::make(),
+            'publishedServices' => Collection::make(),
+            'services' => Collection::make(),
+            'pinCodes' => Collection::make(),
+            'vacancy' => null,
+            'service' => null,
+        ];
+    }
+
     private static function renderBlock(string $slug, int $depth): string
     {
         if ($depth >= self::MAX_BLOCK_DEPTH) {
@@ -153,24 +207,7 @@ class ContentParser
             return '';
         }
 
-        $serviceVars = self::loadServiceVariablesFromBlockCode($block->code);
-
-        $expandedNonServiceTokens = self::parseInternal(
-            preg_replace(self::SERVICE_TOKEN_PATTERN, '', $block->code) ?? '',
-            $depth + 1
-        );
-
-        $bladeReadyCode = $expandedNonServiceTokens;
-
-        $services = collect(array_values($serviceVars))->filter(fn ($v): bool => $v instanceof Service);
-
-        $sharedVars = array_merge(
-            app(ContentRenderContext::class)->all(),
-            ['services' => $services],
-            $serviceVars
-        );
-
-        return Blade::render($bladeReadyCode, $sharedVars);
+        return self::renderBlockCode($block->code, $depth);
     }
 
     /**
@@ -195,12 +232,18 @@ class ContentParser
                 continue;
             }
 
-            $service = Service::findForBlockBinding($serviceCode);
-            if ($service === null) {
-                continue;
-            }
+            $registry = app(ServiceBindingRegistry::class);
+            $service = $registry->get($serviceCode);
 
-            $service->loadMissing(['seo', 'faqs', 'pincodes']);
+            if ($service === null) {
+                $service = Service::findForBlockBinding($serviceCode);
+                if ($service === null) {
+                    continue;
+                }
+
+                $service->loadMissing(['seo', 'faqs', 'pincodes']);
+                $registry->remember($serviceCode, $service);
+            }
 
             if (
                 $service->publish_status === PublishStatus::Published
