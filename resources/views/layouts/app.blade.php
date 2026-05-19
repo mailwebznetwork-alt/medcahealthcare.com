@@ -7,6 +7,17 @@
         <meta name="theme-color" content="#001f5c">
         <style>[x-cloak]{display:none!important}</style>
         @stack('meta')
+        @isset($vacancy)
+            @php
+                $vacancyMetaTitle = $vacancy->seo_title ?: $vacancy->title;
+                $vacancyMetaDescription = $vacancy->seo_description ?: \Illuminate\Support\Str::limit(strip_tags((string) ($vacancy->summary ?: $vacancy->description)), 160);
+            @endphp
+            <meta name="description" content="{{ $vacancyMetaDescription }}">
+            @if ($vacancy->focus_keywords)
+                <meta name="keywords" content="{{ $vacancy->focus_keywords }}">
+            @endif
+            <link rel="canonical" href="{{ url()->current() }}">
+        @endisset
         @if (isset($service) && ! $service->isListedPublicly())
             <meta name="robots" content="noindex, nofollow">
         @endif
@@ -18,8 +29,13 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <x-marketing.tracking-head :settings="$marketingSettings ?? null" />
         @stack('schema')
+        @if (isset($vacancy) && isset($jobPostingSchema) && $jobPostingSchema !== [])
+            <script type="application/ld+json">{!! json_encode($jobPostingSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+        @endif
         <title>
-            @isset($page)
+            @isset($vacancy)
+                {{ $vacancy->seo_title ?: $vacancy->title }} — {{ config('app.name') }}
+            @elseif(isset($page))
                 {{ $page->meta_title ?? $page->title }} — {{ config('app.name') }}
             @elseif(isset($blog))
                 {{ $blog->meta_title ?? $blog->title }} — {{ config('app.name') }}

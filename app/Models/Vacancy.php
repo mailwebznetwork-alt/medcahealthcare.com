@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -45,6 +46,7 @@ class Vacancy extends Model
         'workflow_status',
         'is_active',
         'sort_order',
+        'detail_page_id',
         'published_at',
     ];
 
@@ -61,6 +63,7 @@ class Vacancy extends Model
             'published_at' => 'datetime',
             'is_active' => 'boolean',
             'sort_order' => 'integer',
+            'detail_page_id' => 'integer',
             'salary_min' => 'decimal:2',
             'salary_max' => 'decimal:2',
             'schema_json' => 'array',
@@ -99,6 +102,11 @@ class Vacancy extends Model
     public function applications(): HasMany
     {
         return $this->hasMany(Application::class);
+    }
+
+    public function detailPage(): BelongsTo
+    {
+        return $this->belongsTo(Page::class, 'detail_page_id');
     }
 
     public static function generateUniqueSlug(string $title, ?string $city, ?string $pinCode): string

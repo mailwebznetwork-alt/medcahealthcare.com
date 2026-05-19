@@ -55,6 +55,7 @@ class UpdateVacancyRequest extends FormRequest
             'workflow_status' => ['required', Rule::enum(VacancyWorkflowStatus::class)],
             'is_active' => ['sometimes', 'boolean'],
             'sort_order' => ['sometimes', 'integer', 'min:0', 'max:999999'],
+            'detail_page_id' => ['nullable', 'integer', 'exists:pages,id'],
         ];
     }
 }

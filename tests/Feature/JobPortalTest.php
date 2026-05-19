@@ -43,25 +43,14 @@ it('allows operations users to open the job portal overview', function () {
         ->assertSee(__('Create vacancy'), false);
 });
 
-it('renders published vacancies in the job portal module', function () {
-    $vacancy = Vacancy::factory()->published()->create([
+it('does not render listing markup in the job portal Livewire module', function () {
+    Vacancy::factory()->published()->create([
         'slug' => 'module-listing-test',
         'title' => 'Unique Module Listing QA Title',
     ]);
 
     Livewire::test(JobPortal::class)
-        ->assertSee('Unique Module Listing QA Title', false)
-        ->assertSee(route('careers.show', ['slug' => $vacancy->slug]), false);
-});
-
-it('does not render draft vacancies in the job portal module', function () {
-    $vacancy = Vacancy::factory()->create([
-        'title' => 'Draft Only Should Not Render In Module',
-        'workflow_status' => VacancyWorkflowStatus::Draft,
-    ]);
-
-    Livewire::test(JobPortal::class)
-        ->assertDontSee($vacancy->title, false);
+        ->assertDontSee('Unique Module Listing QA Title', false);
 });
 
 it('lists a published public vacancy on the careers site', function () {

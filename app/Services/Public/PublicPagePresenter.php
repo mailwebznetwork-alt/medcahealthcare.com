@@ -29,4 +29,16 @@ class PublicPagePresenter
             default => [],
         };
     }
+
+    /**
+     * Blade variables for /careers/{slug} when rendered via a CMS detail page.
+     *
+     * @return array<string, mixed>
+     */
+    public function variablesForVacancyDetail(Vacancy $vacancy): array
+    {
+        return [
+            'vacancy' => $vacancy,
+        ];
+    }
 }

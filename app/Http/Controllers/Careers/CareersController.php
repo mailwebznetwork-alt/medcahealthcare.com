@@ -7,7 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Careers\StoreJobApplicationRequest;
 use App\Models\Application;
 use App\Models\Vacancy;
+use App\Services\Content\ContentRenderContext;
 use App\Services\Integrations\OutboundWebhookDispatcher;
+use App\Services\Public\CareersJobDetailPageResolver;
+use App\Services\Public\PublicPagePresenter;
 use App\Support\JobPostingSchema;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
@@ -15,12 +18,30 @@ use Illuminate\View\View;
 
 class CareersController extends Controller
 {
+    public function __construct(
+        private readonly CareersJobDetailPageResolver $detailPageResolver,
+        private readonly PublicPagePresenter $presenter,
+        private readonly ContentRenderContext $renderContext,
+    ) {}
+
     public function show(string $slug): View
     {
         $vacancy = Vacancy::query()->careersListing()->where('slug', $slug)->firstOrFail();
         $schema = JobPostingSchema::forVacancy($vacancy);
 
-        return view('careers.show', compact('vacancy', 'schema'));
+        $detailPage = $this->detailPageResolver->resolveFor($vacancy);
+
+        if ($detailPage !== null) {
+            $this->renderContext->set($this->presenter->variablesForVacancyDetail($vacancy));
+
+            return view('layouts.app', [
+                'page' => $detailPage,
+                'vacancy' => $vacancy,
+                'jobPostingSchema' => $schema,
+            ]);
+        }
+
+        return view('careers.show-fallback', compact('vacancy', 'schema'));
     }
 
     public function storeApplication(StoreJobApplicationRequest $request, string $slug): RedirectResponse

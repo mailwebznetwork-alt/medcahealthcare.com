@@ -125,6 +125,10 @@ class ContentParser
 
     private static function renderModule(string $key): string
     {
+        if (in_array($key, ['job-portal', 'careers-listing'], true)) {
+            return '';
+        }
+
         $class = config('modules.'.$key);
 
         if (! is_string($class) || $class === '' || ! class_exists($class)) {

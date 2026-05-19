@@ -8,9 +8,11 @@ use App\Enums\VacancyWorkflowStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Operations\StoreVacancyRequest;
 use App\Http\Requests\Operations\UpdateVacancyRequest;
+use App\Models\Page;
 use App\Models\Vacancy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class VacancyController extends Controller
@@ -63,12 +65,15 @@ class VacancyController extends Controller
             'salary_currency' => 'INR',
         ]);
 
-        return view('operations.job-portal.vacancies.create', compact('vacancy'));
+        $detailPages = $this->detailPagesForForm();
+
+        return view('operations.job-portal.vacancies.create', compact('vacancy', 'detailPages'));
     }
 
     public function store(StoreVacancyRequest $request): RedirectResponse
     {
         $data = $request->validated();
+        $data['detail_page_id'] = $this->normalizeDetailPageId($data['detail_page_id'] ?? null);
         $data['slug'] = Vacancy::generateUniqueSlug(
             $data['title'],
             $data['city'] ?? null,
@@ -91,12 +96,16 @@ class VacancyController extends Controller
 
     public function edit(Vacancy $vacancy): View
     {
-        return view('operations.job-portal.vacancies.edit', compact('vacancy'));
+        $detailPages = $this->detailPagesForForm();
+
+        return view('operations.job-portal.vacancies.edit', compact('vacancy', 'detailPages'));
     }
 
     public function update(UpdateVacancyRequest $request, Vacancy $vacancy): RedirectResponse
     {
-        $vacancy->fill($request->validated());
+        $data = $request->validated();
+        $data['detail_page_id'] = $this->normalizeDetailPageId($data['detail_page_id'] ?? null);
+        $vacancy->fill($data);
         $this->syncPublishedTimestamp($vacancy);
         $vacancy->save();
 
@@ -138,5 +147,25 @@ class VacancyController extends Controller
         if ($vacancy->workflow_status === VacancyWorkflowStatus::Draft) {
             $vacancy->published_at = null;
         }
+    }
+
+    /**
+     * @return Collection<int, Page>
+     */
+    private function detailPagesForForm(): Collection
+    {
+        return Page::query()
+            ->where('is_active', true)
+            ->orderBy('title')
+            ->get(['id', 'title', 'slug']);
+    }
+
+    private function normalizeDetailPageId(mixed $value): ?int
+    {
+        if ($value === null || $value === '' || $value === '0' || $value === 0) {
+            return null;
+        }
+
+        return (int) $value;
     }
 }

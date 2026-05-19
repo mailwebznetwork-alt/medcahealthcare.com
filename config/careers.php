@@ -17,4 +17,16 @@ return [
 
     'organization_logo' => env('CAREERS_ORG_LOGO'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Shared job detail layout (Site Architect page slug)
+    |--------------------------------------------------------------------------
+    |
+    | Public /careers/{slug} renders this CMS page when active. Blocks receive
+    | $vacancy. Override per vacancy via detail_page_id in Job portal.
+    |
+    */
+
+    'job_detail_page_slug' => env('CAREERS_JOB_DETAIL_PAGE_SLUG', 'careers-job-detail'),
+
 ];

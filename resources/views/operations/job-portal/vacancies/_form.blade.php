@@ -1,8 +1,11 @@
 @php
     /** @var \App\Models\Vacancy $vacancy */
+    /** @var \Illuminate\Support\Collection<int, \App\Models\Page> $detailPages */
     use App\Enums\EmploymentType;
     use App\Enums\VacancyVisibility;
     use App\Enums\VacancyWorkflowStatus;
+
+    $detailPages = isset($detailPages) ? $detailPages : collect();
 @endphp
 
 <div class="space-y-8">
@@ -108,6 +111,17 @@
                 <x-input-label for="sort_order" :value="__('Sort order')" variant="mom" />
                 <x-text-input id="sort_order" name="sort_order" type="number" class="mt-2 block w-full" :value="old('sort_order', $vacancy->sort_order)" variant="mom" />
                 <x-input-error class="mt-2" :messages="$errors->get('sort_order')" variant="mom" />
+            </div>
+            <div class="md:col-span-2">
+                <x-input-label for="detail_page_id" :value="__('Detail page (custom layout)')" variant="mom" />
+                <select id="detail_page_id" name="detail_page_id" class="mt-2 block w-full rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner focus:border-[rgba(197,160,89,0.28)] focus:outline-none focus:ring-1 focus:ring-[rgba(197,160,89,0.22)]">
+                    <option value="">{{ __('Default — :slug', ['slug' => config('careers.job_detail_page_slug')]) }}</option>
+                    @foreach ($detailPages as $p)
+                        <option value="{{ $p->id }}" @selected((int) old('detail_page_id', $vacancy->detail_page_id) === (int) $p->id)>{{ $p->title }} ({{ $p->slug }})</option>
+                    @endforeach
+                </select>
+                <p class="mom-micro mt-2">{{ __('Blocks on that page receive $vacancy. Include @include(\'careers.partials.apply-form\') for the apply form.') }}</p>
+                <x-input-error class="mt-2" :messages="$errors->get('detail_page_id')" variant="mom" />
             </div>
             @if ($vacancy->exists)
                 <div class="md:col-span-2">

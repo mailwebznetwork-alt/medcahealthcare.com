@@ -51,6 +51,52 @@ BLADE,
             $cta->save();
         }
 
+        Block::query()->updateOrCreate(
+            ['block_slug' => 'careers-job-detail'],
+            [
+                'block_name' => 'Careers — job detail (your layout)',
+                'code' => <<<'BLADE'
+{{-- $vacancy is injected on /careers/{slug}. Style hero, description, and apply section in this block. --}}
+<article class="w-full" data-careers-job-detail>
+    <header>
+        <h1>{{ $vacancy->title }}</h1>
+        <p>
+            {{ $vacancy->employment_type->label() }}
+            @if ($vacancy->city) · {{ $vacancy->city }}@endif
+        </p>
+    </header>
+    @if ($vacancy->summary)
+        <section><h2>{{ __('Overview') }}</h2><div>{{ $vacancy->summary }}</div></section>
+    @endif
+    @if ($vacancy->description)
+        <section><h2>{{ __('Role description') }}</h2><div>{{ $vacancy->description }}</div></section>
+    @endif
+    @if ($vacancy->requirements)
+        <section><h2>{{ __('Requirements') }}</h2><div>{{ $vacancy->requirements }}</div></section>
+    @endif
+    @if ($vacancy->whatsapp_apply_url)
+        @include('careers.partials.whatsapp-apply', ['vacancy' => $vacancy])
+    @endif
+    <section>
+        <h2>{{ __('Apply online') }}</h2>
+        @include('careers.partials.apply-form', ['vacancy' => $vacancy])
+    </section>
+</article>
+BLADE,
+                'is_active' => true,
+            ]
+        );
+
+        Page::query()->updateOrCreate(
+            ['slug' => 'careers-job-detail'],
+            [
+                'title' => 'Careers job detail (layout template)',
+                'content' => '{{block:careers-job-detail}}',
+                'is_active' => true,
+                'layout_mode' => PageLayoutMode::Canvas,
+            ]
+        );
+
         Page::query()->where('slug', 'careers')->update([
             'content' => '{{block:careers-open-roles}}',
             'layout_mode' => PageLayoutMode::Canvas,
