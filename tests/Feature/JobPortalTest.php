@@ -1,10 +1,11 @@
 <?php
 
+use App\Enums\PageLayoutMode;
 use App\Enums\VacancyVisibility;
 use App\Enums\VacancyWorkflowStatus;
 use App\Livewire\Modules\JobPortal;
-use App\Enums\PageLayoutMode;
 use App\Models\Application;
+use App\Models\Block;
 use App\Models\Page;
 use App\Models\User;
 use App\Models\Vacancy;
@@ -64,11 +65,20 @@ it('does not render draft vacancies in the job portal module', function () {
 });
 
 it('lists a published public vacancy on the careers site', function () {
+    Block::query()->updateOrCreate(
+        ['block_slug' => 'careers-open-roles'],
+        [
+            'block_name' => 'Careers open roles',
+            'code' => '@foreach($vacancies as $job)<p>{{ $job->title }}</p>@endforeach',
+            'is_active' => true,
+        ]
+    );
+
     Page::query()->updateOrCreate(
         ['slug' => 'careers'],
         [
             'title' => 'Careers',
-            'content' => '{{module:job-portal}}',
+            'content' => '{{block:careers-open-roles}}',
             'is_active' => true,
             'layout_mode' => PageLayoutMode::Canvas,
         ]

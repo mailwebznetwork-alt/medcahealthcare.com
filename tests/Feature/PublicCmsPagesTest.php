@@ -6,11 +6,20 @@ use App\Models\Page;
 use App\Models\Vacancy;
 
 it('serves the careers hub from the CMS page at /careers without /p/', function () {
-    $page = Page::query()->updateOrCreate(
+    Block::query()->updateOrCreate(
+        ['block_slug' => 'careers-open-roles'],
+        [
+            'block_name' => 'Careers open roles',
+            'code' => '@foreach($vacancies as $job)<p>{{ $job->title }}</p>@endforeach',
+            'is_active' => true,
+        ]
+    );
+
+    Page::query()->updateOrCreate(
         ['slug' => 'careers'],
         [
             'title' => 'Careers',
-            'content' => '{{module:job-portal}}',
+            'content' => '{{block:careers-open-roles}}',
             'is_active' => true,
             'layout_mode' => PageLayoutMode::Canvas,
         ]
