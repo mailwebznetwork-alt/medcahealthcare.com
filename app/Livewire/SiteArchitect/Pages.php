@@ -107,6 +107,8 @@ class Pages extends Component
 
     public string $service_choice = '';
 
+    public int $serviceCatalogNonce = 0;
+
     public function render()
     {
         $pages = Page::query()->latest()->paginate(12);
@@ -147,6 +149,7 @@ class Pages extends Component
             'pinCodes' => $pinCodes,
             'modules' => $modules,
             'servicesForInsert' => $servicesForInsert,
+            'serviceCatalogNonce' => $this->serviceCatalogNonce,
             'otherPagesForLinks' => $otherPagesForLinks,
             'revisions' => $revisions,
             'readabilityHint' => $this->mode === 'form' ? $this->computeReadabilityHint() : null,
@@ -609,17 +612,19 @@ class Pages extends Component
         }
 
         $this->blockEditingSlug = $slug;
+        $catalog = app(ServiceInsertCatalog::class);
         if ($slug !== null) {
             $block = Block::query()->where('block_slug', $slug)->firstOrFail();
             $this->block_name = $block->block_name;
             $this->block_slug = $block->block_slug;
-            $this->block_code = $block->code;
+            $this->block_code = $catalog->ensureLayoutInBlockCode((string) ($block->code ?? ''));
         } else {
             $this->block_name = '';
             $this->block_slug = '';
             $this->block_code = '';
         }
         $this->blockModalOpen = true;
+        $this->serviceCatalogNonce++;
     }
 
     public function closeBlockModal(): void
@@ -690,7 +695,7 @@ class Pages extends Component
      */
     public function refreshServiceInsertCatalog(): void
     {
-        // Re-render so {@see ServiceInsertCatalog} reloads from the database (e.g. after creating a service in another tab).
+        $this->serviceCatalogNonce++;
     }
 
     public function appendServiceToken(): void
@@ -702,16 +707,20 @@ class Pages extends Component
             return;
         }
 
-        if (! app(ServiceInsertCatalog::class)->existsForToken($code)) {
+        $catalog = app(ServiceInsertCatalog::class);
+
+        if (! $catalog->existsForToken($code)) {
             $this->addError('service_choice', __('That service code was not found. Refresh the list or create the service first.'));
 
             return;
         }
 
+        $this->block_code = $catalog->ensureLayoutInBlockCode($this->block_code);
+
         $token = '{{service:'.$code.'}}';
-        $this->block_code = $this->block_code === ''
-            ? $token
-            : rtrim($this->block_code)."\n".$token;
+        $this->block_code = str_contains($this->block_code, $token)
+            ? $this->block_code
+            : ($this->block_code === '' ? $token : rtrim($this->block_code)."\n".$token);
         $this->service_choice = '';
     }
 

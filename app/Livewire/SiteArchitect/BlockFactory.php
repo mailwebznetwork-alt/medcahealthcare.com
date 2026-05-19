@@ -45,6 +45,8 @@ class BlockFactory extends Component
 
     public string $service_choice = '';
 
+    public int $serviceCatalogNonce = 0;
+
     public function mount(): void
     {
         if (request()->query('create') === '1') {
@@ -68,12 +70,13 @@ class BlockFactory extends Component
             'typesByGroup' => $typesByGroup,
             'allowedTypes' => $allowedTypes,
             'services' => $services,
+            'serviceCatalogNonce' => $this->serviceCatalogNonce,
         ]);
     }
 
     public function refreshServiceInsertCatalog(): void
     {
-        // Re-render so {@see ServiceInsertCatalog} reloads from the database (e.g. after creating a service in another tab).
+        $this->serviceCatalogNonce++;
     }
 
     public function appendServiceToken(): void
@@ -85,16 +88,20 @@ class BlockFactory extends Component
             return;
         }
 
-        if (! app(ServiceInsertCatalog::class)->existsForToken($code)) {
+        $catalog = app(ServiceInsertCatalog::class);
+
+        if (! $catalog->existsForToken($code)) {
             $this->addError('service_choice', __('That service code was not found. Refresh the list or create the service first.'));
 
             return;
         }
 
+        $this->code = $catalog->ensureLayoutInBlockCode($this->code);
+
         $token = '{{service:'.$code.'}}';
-        $this->code = $this->code === ''
-            ? $token
-            : rtrim($this->code)."\n".$token;
+        $this->code = str_contains($this->code, $token)
+            ? $this->code
+            : ($this->code === '' ? $token : rtrim($this->code)."\n".$token);
         $this->service_choice = '';
     }
 
@@ -105,6 +112,7 @@ class BlockFactory extends Component
         $this->resetForm();
         $this->mode = 'form';
         $this->editingId = null;
+        $this->serviceCatalogNonce++;
     }
 
     public function startEdit(int $id): void
@@ -120,7 +128,8 @@ class BlockFactory extends Component
         $this->block_slug = $block->block_slug;
         $this->description = (string) ($block->description ?? '');
         $this->block_type = (string) ($block->block_type ?? '');
-        $this->code = (string) ($block->code ?? '');
+        $this->code = app(ServiceInsertCatalog::class)->ensureLayoutInBlockCode((string) ($block->code ?? ''));
+        $this->serviceCatalogNonce++;
         $this->schema_json_input = $block->schema_json !== null
             ? json_encode($block->schema_json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
             : '';

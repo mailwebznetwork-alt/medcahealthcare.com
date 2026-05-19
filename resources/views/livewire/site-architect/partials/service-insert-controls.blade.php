@@ -1,5 +1,6 @@
 @props([
     'services',
+    'serviceCatalogNonce' => 0,
     'showManageLink' => false,
 ])
 
@@ -9,7 +10,7 @@
 >
     <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Insert service…') }}</label>
     <div class="mt-2 flex flex-wrap items-center gap-2">
-        <select wire:model.live="service_choice" wire:key="service-insert-{{ $services->pluck('id')->join('-') }}" class="rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)]">
+        <select wire:model.live="service_choice" wire:key="service-insert-select-{{ $serviceCatalogNonce }}" class="min-w-[14rem] flex-1 rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)]">
             <option value="">{{ __('— Choose a service —') }}</option>
             @foreach ($services as $svc)
                 <option value="{{ $svc->service_code }}">

@@ -12,7 +12,7 @@ class ServicePublicController extends Controller
 {
     public function show(Request $request, string $code): View
     {
-        $service = Service::findPublishedByCode($code);
+        $service = Service::findPubliclyViewableByCode($code);
 
         abort_if($service === null, 404);
 

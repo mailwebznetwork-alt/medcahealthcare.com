@@ -13,6 +13,7 @@ use App\Models\ServiceSchema;
 use App\Models\User;
 use App\Services\ContentParser;
 use App\Services\ServiceContextCollector;
+use App\Services\SiteArchitect\ServiceInsertCatalog;
 use Livewire\Livewire;
 
 beforeEach(function (): void {
@@ -79,9 +80,10 @@ it('does not auto-render service markup — the system only injects data, not la
         ->not->toContain('This summary should NEVER appear');
 });
 
-it('skips service tokens that reference a draft, inactive, or private service', function () {
+it('binds draft and private active services in blocks but skips inactive tokens', function () {
     Service::factory()->create([
         'service_code' => 'draft-only',
+        'title' => 'Draft Only Title',
         'publish_status' => PublishStatus::Draft,
     ]);
     Service::factory()->create([
@@ -91,6 +93,7 @@ it('skips service tokens that reference a draft, inactive, or private service', 
     ]);
     Service::factory()->create([
         'service_code' => 'private-only',
+        'title' => 'Private Only Title',
         'visibility' => ServiceVisibility::Private,
         'publish_status' => PublishStatus::Published,
     ]);
@@ -98,16 +101,43 @@ it('skips service tokens that reference a draft, inactive, or private service', 
     Block::query()->create([
         'block_name' => 'Variants',
         'block_slug' => 'variants',
-        'code' => '<x>[{{ $draft_only->title ?? "" }}]|[{{ $inactive_only->title ?? "" }}]|[{{ $private_only->title ?? "" }}]|OK</x>',
+        'code' => '<x>[{{ $draft_only->title ?? "" }}]|[{{ $inactive_only->title ?? "" }}]|[{{ $private_only->title ?? "" }}]|OK</x>{{service:draft-only}}{{service:inactive-only}}{{service:private-only}}',
         'is_active' => true,
     ]);
 
-    $rendered = ContentParser::parse('{{block:variants}}{{service:draft-only}}');
+    $rendered = ContentParser::parse('{{block:variants}}');
 
-    expect($rendered)
-        ->toContain('<x>[]|[]|[]|OK</x>');
+    expect($rendered)->toContain('<x>[Draft Only Title]|[]|[Private Only Title]|OK</x>');
 
     expect(app(ServiceContextCollector::class)->collected())->toHaveCount(0);
+});
+
+it('renders a services grid for token-only block code when services are draft', function () {
+    Service::factory()->create([
+        'service_code' => 'caregivers',
+        'title' => 'Caregivers (Male & Female)',
+        'publish_status' => PublishStatus::Draft,
+    ]);
+    Service::factory()->create([
+        'service_code' => 'homenursing-services',
+        'title' => 'Home Nursing Services',
+        'publish_status' => PublishStatus::Draft,
+    ]);
+
+    $catalog = app(ServiceInsertCatalog::class);
+
+    Block::query()->create([
+        'block_name' => 'Main Services',
+        'block_slug' => 'mainservices-test',
+        'code' => $catalog->ensureLayoutInBlockCode("{{service:caregivers}}\n{{service:homenursing-services}}"),
+        'is_active' => true,
+    ]);
+
+    $rendered = ContentParser::parse('{{block:mainservices-test}}');
+
+    expect($rendered)
+        ->toContain('Caregivers (Male &amp; Female)')
+        ->toContain('Home Nursing Services');
 });
 
 it('registers a service with the ServiceContextCollector when its token is rendered', function () {
@@ -335,12 +365,30 @@ it('serves /services/{code} via the admin-linked detail page when detail_page_id
         ->assertSee('"@type":"Service"', false);
 });
 
-it('returns 404 for /services/{code} when the service is unpublished or missing', function () {
+it('serves draft public services at /services/{code} with noindex until published', function () {
     Service::factory()->draft()->create([
         'service_code' => 'still-draft',
+        'title' => 'Still Draft Service',
     ]);
 
-    $this->get('/services/still-draft')->assertNotFound();
+    $this->get('/services/still-draft')
+        ->assertSuccessful()
+        ->assertSee('Still Draft Service', false)
+        ->assertSee('noindex', false);
+});
+
+it('returns 404 for /services/{code} when inactive, private, or missing', function () {
+    Service::factory()->create([
+        'service_code' => 'inactive-route',
+        'is_active' => false,
+    ]);
+    Service::factory()->create([
+        'service_code' => 'private-route',
+        'visibility' => ServiceVisibility::Private,
+    ]);
+
+    $this->get('/services/inactive-route')->assertNotFound();
+    $this->get('/services/private-route')->assertNotFound();
     $this->get('/services/never-existed')->assertNotFound();
 });
 

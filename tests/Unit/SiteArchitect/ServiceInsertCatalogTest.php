@@ -31,3 +31,14 @@ it('resolves tokens for inactive services by code', function () {
         ->and($catalog->existsForToken('missing-code'))->toBeFalse()
         ->and($catalog->existsForToken(''))->toBeFalse();
 });
+
+it('prepends a services grid layout when block code only contains tokens', function () {
+    $catalog = app(ServiceInsertCatalog::class);
+
+    $code = $catalog->ensureLayoutInBlockCode("{{service:alpha}}\n{{service:beta}}");
+
+    expect($code)
+        ->toContain('@foreach ($services as $service)')
+        ->toContain('{{service:alpha}}')
+        ->toContain('{{service:beta}}');
+});

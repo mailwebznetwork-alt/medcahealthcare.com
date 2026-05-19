@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\PublishStatus;
+use App\Enums\ServiceVisibility;
 use App\Models\Block;
 use App\Models\Service;
 use Illuminate\Support\Facades\Blade;
@@ -184,13 +186,19 @@ class ContentParser
                 continue;
             }
 
-            $service = Service::findPublishedByCode($serviceCode);
+            $service = Service::findForBlockBinding($serviceCode);
             if ($service === null) {
                 continue;
             }
 
             $service->loadMissing(['seo', 'faqs', 'pincodes']);
-            self::registerWithCollector($service);
+
+            if (
+                $service->publish_status === PublishStatus::Published
+                && $service->visibility === ServiceVisibility::Public
+            ) {
+                self::registerWithCollector($service);
+            }
 
             $vars[$service->bladeVariableName()] = $service;
         }

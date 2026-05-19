@@ -47,7 +47,7 @@ class Service extends Model
     }
 
     /**
-     * Token-time lookup: only published, active, public services bind to {{service:CODE}}.
+     * Public routes, sitemap, and Schema.org: published, active, public only.
      */
     public static function findPublishedByCode(string $code): ?self
     {
@@ -57,6 +57,49 @@ class Service extends Model
             ->where('publish_status', PublishStatus::Published)
             ->where('visibility', ServiceVisibility::Public)
             ->first();
+    }
+
+    /**
+     * Block {{service:CODE}} binding: any active service (draft/private allowed for staging).
+     */
+    public static function findForBlockBinding(string $code): ?self
+    {
+        $code = trim($code);
+        if ($code === '') {
+            return null;
+        }
+
+        return static::query()
+            ->where('service_code', $code)
+            ->where('is_active', true)
+            ->first();
+    }
+
+    /**
+     * Public detail URL (/services/CODE): active, public visibility (draft allowed until published).
+     */
+    public static function findPubliclyViewableByCode(string $code): ?self
+    {
+        $code = trim($code);
+        if ($code === '') {
+            return null;
+        }
+
+        return static::query()
+            ->where('service_code', $code)
+            ->where('is_active', true)
+            ->where('visibility', ServiceVisibility::Public)
+            ->first();
+    }
+
+    /**
+     * Listed in sitemap, Schema.org head output, and canonical indexable URLs.
+     */
+    public function isListedPublicly(): bool
+    {
+        return $this->is_active
+            && $this->publish_status === PublishStatus::Published
+            && $this->visibility === ServiceVisibility::Public;
     }
 
     protected function casts(): array

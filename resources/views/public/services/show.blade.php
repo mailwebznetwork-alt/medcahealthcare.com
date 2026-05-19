@@ -16,6 +16,9 @@
 @section('title', ($seo?->meta_title ?: $service->title).' — '.config('app.name'))
 
 @push('meta')
+    @if (! $service->isListedPublicly())
+        <meta name="robots" content="noindex, nofollow">
+    @endif
     @if (filled($metaDescription))
         <meta name="description" content="{{ \Illuminate\Support\Str::limit(strip_tags((string) $metaDescription), 320, '') }}">
     @endif

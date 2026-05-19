@@ -7,6 +7,9 @@
         <meta name="theme-color" content="#001f5c">
         <style>[x-cloak]{display:none!important}</style>
         @stack('meta')
+        @if (isset($service) && ! $service->isListedPublicly())
+            <meta name="robots" content="noindex, nofollow">
+        @endif
         @include('global.partials.site-seo-meta')
         @includeWhen(isset($page), 'global.partials.page-json-ld')
         <link rel="preconnect" href="https://fonts.googleapis.com">

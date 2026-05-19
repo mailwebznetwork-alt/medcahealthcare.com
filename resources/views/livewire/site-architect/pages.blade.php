@@ -445,6 +445,7 @@
                     </div>
                     @include('livewire.site-architect.partials.service-insert-controls', [
                         'services' => $servicesForInsert,
+                        'serviceCatalogNonce' => $serviceCatalogNonce,
                         'showManageLink' => true,
                     ])
                     <div>
