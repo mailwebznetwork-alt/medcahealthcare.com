@@ -74,12 +74,8 @@ BLADE,
     @if ($vacancy->requirements)
         <section><h2>{{ __('Requirements') }}</h2><div>{{ $vacancy->requirements }}</div></section>
     @endif
-    @if ($vacancy->whatsapp_apply_url)
-        @include('careers.partials.whatsapp-apply', ['vacancy' => $vacancy])
-    @endif
-    <section>
-        <h2>{{ __('Apply online') }}</h2>
-        @include('careers.partials.apply-form', ['vacancy' => $vacancy])
+    <section class="mc-job-detail-apply">
+        @include('careers.partials.apply-panel', ['vacancy' => $vacancy])
     </section>
 </article>
 BLADE,

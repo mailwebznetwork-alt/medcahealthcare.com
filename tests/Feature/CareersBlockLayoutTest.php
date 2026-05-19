@@ -67,6 +67,40 @@ it('uses a vacancy-specific detail page when detail_page_id is set', function ()
         ->assertSee('Per Vacancy Layout Title', false);
 });
 
+it('shows WhatsApp apply on job detail when site WhatsApp is configured', function () {
+    config(['medca.whatsapp_url' => 'https://wa.me/919999999999']);
+
+    Block::query()->updateOrCreate(
+        ['block_slug' => 'careers-job-wa-test'],
+        [
+            'block_name' => 'Job WA test',
+            'code' => '@include(\'careers.partials.apply-panel\', [\'vacancy\' => $vacancy])',
+            'is_active' => true,
+        ]
+    );
+
+    Page::query()->updateOrCreate(
+        ['slug' => 'careers-job-detail'],
+        [
+            'title' => 'Job detail layout',
+            'content' => '{{block:careers-job-wa-test}}',
+            'is_active' => true,
+            'layout_mode' => PageLayoutMode::Canvas,
+        ]
+    );
+
+    $vacancy = Vacancy::factory()->published()->create([
+        'slug' => 'whatsapp-apply-role',
+        'title' => 'WhatsApp Apply Role',
+        'whatsapp_apply_url' => null,
+    ]);
+
+    $this->get(route('careers.show', ['slug' => $vacancy->slug]))
+        ->assertSuccessful()
+        ->assertSee(__('Apply on WhatsApp'), false)
+        ->assertSee('wa.me/919999999999', false);
+});
+
 it('includes the apply form partial when referenced from a job detail block', function () {
     Block::query()->updateOrCreate(
         ['block_slug' => 'careers-job-apply-test'],

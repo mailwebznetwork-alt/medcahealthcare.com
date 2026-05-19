@@ -71,17 +71,8 @@
                     </section>
                 @endif
             </div>
-            <aside class="space-y-6">
-                @if ($vacancy->whatsapp_apply_url)
-                    @include('careers.partials.whatsapp-apply')
-                @endif
-                <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-                    <h2 class="text-lg font-semibold text-slate-900">{{ __('Apply online') }}</h2>
-                    <p class="mt-2 text-sm text-slate-600">{{ __('Structured intake for the hiring operations engine.') }}</p>
-                    <div class="mt-6">
-                        @include('careers.partials.apply-form', ['vacancy' => $vacancy])
-                    </div>
-                </div>
+            <aside>
+                @include('careers.partials.apply-panel', ['vacancy' => $vacancy])
             </aside>
         </div>
     </article>

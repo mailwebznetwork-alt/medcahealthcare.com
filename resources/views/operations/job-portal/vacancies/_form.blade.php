@@ -180,7 +180,8 @@
         <div class="mt-6 space-y-6">
             <div>
                 <x-input-label for="whatsapp_apply_url" :value="__('WhatsApp apply URL')" variant="mom" />
-                <x-text-input id="whatsapp_apply_url" name="whatsapp_apply_url" type="url" class="mt-2 block w-full" :value="old('whatsapp_apply_url', $vacancy->whatsapp_apply_url)" variant="mom" />
+                <x-text-input id="whatsapp_apply_url" name="whatsapp_apply_url" type="url" class="mt-2 block w-full" :value="old('whatsapp_apply_url', $vacancy->whatsapp_apply_url)" variant="mom" placeholder="https://wa.me/91..." />
+                <p class="mom-micro mt-2">{{ __('Leave empty to use the site WhatsApp number with a pre-filled message for this role.') }}</p>
                 <p class="mom-subtext mt-1">{{ __('wa.me link or deep link for applicant handoff.') }}</p>
                 <x-input-error class="mt-2" :messages="$errors->get('whatsapp_apply_url')" variant="mom" />
             </div>

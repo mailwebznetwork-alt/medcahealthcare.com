@@ -127,6 +127,43 @@ class Vacancy extends Model
         return $slug;
     }
 
+    /**
+     * Per-vacancy WhatsApp apply link, or site default with a pre-filled role message.
+     */
+    public function resolveWhatsAppApplyUrl(): ?string
+    {
+        if (filled($this->whatsapp_apply_url)) {
+            return (string) $this->whatsapp_apply_url;
+        }
+
+        $base = trim((string) config('medca.whatsapp_url', ''));
+        if ($base === '') {
+            return null;
+        }
+
+        $message = __('Hi, I would like to apply for the role :title at :company.', [
+            'title' => $this->title,
+            'company' => config('careers.organization_name'),
+        ]).' '.route('careers.show', ['slug' => $this->slug]);
+
+        return self::appendWhatsAppText($base, $message);
+    }
+
+    public function hasWhatsAppApply(): bool
+    {
+        return $this->resolveWhatsAppApplyUrl() !== null;
+    }
+
+    /**
+     * @internal
+     */
+    public static function appendWhatsAppText(string $url, string $text): string
+    {
+        $separator = str_contains($url, '?') ? '&' : '?';
+
+        return $url.$separator.'text='.rawurlencode($text);
+    }
+
     public function duplicateAsDraft(): Vacancy
     {
         $copy = $this->replicate([
