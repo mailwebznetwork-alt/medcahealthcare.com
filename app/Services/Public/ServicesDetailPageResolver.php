@@ -4,9 +4,14 @@ namespace App\Services\Public;
 
 use App\Models\Page;
 use App\Models\Service;
+use App\Services\Operations\ServiceDetailPageProvisioner;
 
 class ServicesDetailPageResolver
 {
+    public function __construct(
+        private readonly ServiceDetailPageProvisioner $detailPageProvisioner,
+    ) {}
+
     public function resolveFor(Service $service): ?Page
     {
         if ($service->detail_page_id !== null) {
@@ -17,6 +22,19 @@ class ServicesDetailPageResolver
 
             if ($linked !== null) {
                 return $linked;
+            }
+        }
+
+        $patternSlug = $this->detailPageProvisioner->suggestedSlug($service);
+
+        if ($patternSlug !== '') {
+            $byPattern = Page::query()
+                ->where('slug', $patternSlug)
+                ->where('is_active', true)
+                ->first();
+
+            if ($byPattern !== null) {
+                return $byPattern;
             }
         }
 

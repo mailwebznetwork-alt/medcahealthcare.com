@@ -48,6 +48,7 @@ class PublicPagePresenter
 
         return [
             'service' => $service,
+            $service->bladeVariableName() => $service,
         ];
     }
 

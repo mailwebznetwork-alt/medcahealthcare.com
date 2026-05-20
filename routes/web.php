@@ -188,6 +188,7 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
         Route::get('{service}/duplicate', [ServiceController::class, 'duplicate'])->name('duplicate');
         Route::get('{service}/preview', [ServiceController::class, 'preview'])->name('preview');
         Route::get('{service}/edit', [ServiceController::class, 'edit'])->name('edit');
+        Route::post('{service}/detail-page', [ServiceController::class, 'storeDetailPage'])->name('detail-page.store');
         Route::put('{service}', [ServiceController::class, 'update'])->name('update');
         Route::delete('{service}', [ServiceController::class, 'destroy'])->name('destroy');
     });

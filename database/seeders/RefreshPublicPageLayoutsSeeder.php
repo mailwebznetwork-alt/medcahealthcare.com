@@ -131,12 +131,47 @@ BLADE,
         );
 
         Block::query()->updateOrCreate(
+            ['block_slug' => 'service-detail-hero'],
+            [
+                'block_name' => 'Service detail — hero (uses $service)',
+                'code' => <<<'BLADE'
+<section class="w-full" data-service-detail-hero>
+    <header>
+        <h1>{{ $service->seo?->h1 ?: $service->title }}</h1>
+        @if (filled($service->short_summary))
+            <p>{{ $service->short_summary }}</p>
+        @endif
+    </header>
+    @if (filled($service->description))
+        <div>{!! $service->description !!}</div>
+    @endif
+</section>
+BLADE,
+                'is_active' => true,
+            ]
+        );
+
+        Block::query()->updateOrCreate(
+            ['block_slug' => 'service-detail-related'],
+            [
+                'block_name' => 'Service detail — related (Insert service tokens)',
+                'code' => <<<'BLADE'
+@include('public.services.partials.services-carousel', [
+    'services' => $services,
+    'sectionTitle' => __('Related services'),
+])
+BLADE,
+                'is_active' => true,
+            ]
+        );
+
+        Block::query()->updateOrCreate(
             ['block_slug' => 'services-detail-layout'],
             [
-                'block_name' => 'Services — detail carousel',
+                'block_name' => 'Services — detail fallback',
                 'code' => <<<'BLADE'
-{{-- Used on /services/{code} via page slug services-detail-template. $service is injected. --}}
-@include('public.services.partials.service-detail-carousel', ['service' => $service])
+{{block:service-detail-hero}}
+{{block:service-detail-related}}
 BLADE,
                 'is_active' => true,
             ]

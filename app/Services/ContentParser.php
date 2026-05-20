@@ -167,12 +167,21 @@ class ContentParser
     {
         $services = collect(array_values($serviceVars))->filter(fn ($v): bool => $v instanceof Service);
 
-        return array_merge(
+        $variables = array_merge(
             self::blockRenderDefaults(),
             app(ContentRenderContext::class)->all(),
             ['services' => $services],
             $serviceVars
         );
+
+        if (($variables['service'] ?? null) === null) {
+            $primary = $services->first();
+            if ($primary instanceof Service) {
+                $variables['service'] = $primary;
+            }
+        }
+
+        return $variables;
     }
 
     /**
@@ -187,6 +196,7 @@ class ContentParser
             'publishedServices' => Collection::make(),
             'services' => Collection::make(),
             'pinCodes' => Collection::make(),
+            'sectionTitle' => null,
             'vacancy' => null,
             'service' => null,
         ];

@@ -10,6 +10,7 @@ use App\Http\Requests\Operations\Services\UpdateServiceRequest;
 use App\Models\Page;
 use App\Models\PinCode;
 use App\Models\Service;
+use App\Services\Operations\ServiceDetailPageProvisioner;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -20,6 +21,10 @@ use Illuminate\View\View;
 
 class ServiceController extends Controller
 {
+    public function __construct(
+        private readonly ServiceDetailPageProvisioner $detailPageProvisioner,
+    ) {}
+
     public function index(Request $request): View
     {
         $this->authorize('viewAny', Service::class);
@@ -78,7 +83,16 @@ class ServiceController extends Controller
         $pinCodes = $this->pinCodesForForm();
         $detailPages = $this->detailPagesForForm();
 
-        return view('operations.services.create', compact('service', 'pinCodes', 'detailPages'));
+        $suggestedDetailPageSlug = 'service-{code}';
+        $patternDetailPage = null;
+
+        return view('operations.services.create', compact(
+            'service',
+            'pinCodes',
+            'detailPages',
+            'suggestedDetailPageSlug',
+            'patternDetailPage',
+        ));
     }
 
     public function store(StoreServiceRequest $request): RedirectResponse
@@ -129,7 +143,27 @@ class ServiceController extends Controller
         $pinCodes = $this->pinCodesForForm();
         $detailPages = $this->detailPagesForForm();
 
-        return view('operations.services.edit', compact('service', 'pinCodes', 'detailPages'));
+        $suggestedDetailPageSlug = $this->detailPageProvisioner->suggestedSlug($service);
+        $patternDetailPage = $this->detailPageProvisioner->findPageBySuggestedSlug($service);
+
+        return view('operations.services.edit', compact(
+            'service',
+            'pinCodes',
+            'detailPages',
+            'suggestedDetailPageSlug',
+            'patternDetailPage',
+        ));
+    }
+
+    public function storeDetailPage(Service $service): RedirectResponse
+    {
+        $this->authorize('update', $service);
+
+        $page = $this->detailPageProvisioner->provision($service);
+
+        return redirect()
+            ->route('operations.services.edit', $service)
+            ->with('status', __('Detail page created and linked. Slug: :slug — edit blocks in Site Architect → Pages.', ['slug' => $page->slug]));
     }
 
     public function update(UpdateServiceRequest $request, Service $service): RedirectResponse
@@ -207,6 +241,7 @@ class ServiceController extends Controller
         $copy = DB::transaction(function () use ($service) {
             $new = $service->replicate();
             $new->service_code = $service->service_code.'_copy_'.time();
+            $new->detail_page_id = null;
             $new->publish_status = PublishStatus::Draft;
             $new->featured_image = null;
             $new->icon = null;

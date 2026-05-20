@@ -176,14 +176,22 @@
                 <x-text-input id="sort_order" name="sort_order" type="number" class="mt-2 block w-full" :value="old('sort_order', $service->sort_order)" variant="mom" />
             </div>
             <div class="md:col-span-2">
-                <x-input-label for="detail_page_id" :value="__('Detail page (custom layout)')" variant="mom" />
+                <x-input-label for="detail_page_id" :value="__('Detail page (blocks layout for /services/CODE)')" variant="mom" />
                 <select id="detail_page_id" name="detail_page_id" class="rounded-mom-chrome mt-2 block w-full border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
-                    <option value="">{{ __('— Default service layout —') }}</option>
+                    <option value="">{{ __('— Auto: page slug :slug if it exists —', ['slug' => $suggestedDetailPageSlug ?? 'service-{code}']) }}</option>
                     @foreach ($detailPages as $p)
                         <option value="{{ $p->id }}" @selected((int) old('detail_page_id', $service->detail_page_id) === (int) $p->id)>{{ $p->title }} ({{ $p->slug }})</option>
                     @endforeach
                 </select>
-                <p class="mom-subtext mt-1">{{ __('Optional — pick a Site Architect page whose blocks (with this service token bound) will render at /services/CODE.') }}</p>
+                @php
+                    $serviceTokenHint = '{{service:'.($service->service_code ?: 'code').'}}';
+                @endphp
+                <p class="mom-subtext mt-1">
+                    {{ __('Public URL /services/:code renders the linked Site Architect page (canvas + blocks). Use :token in blocks; add other services via Insert service for related rows.', ['code' => $service->service_code ?: 'CODE', 'token' => $serviceTokenHint]) }}
+                </p>
+                @if (isset($patternDetailPage) && $patternDetailPage !== null && (int) $service->detail_page_id !== (int) $patternDetailPage->id)
+                    <p class="mom-subtext mt-1">{{ __('An active page exists at slug :slug and will be used when no page is selected above.', ['slug' => $patternDetailPage->slug]) }}</p>
+                @endif
                 <x-input-error class="mt-2" :messages="$errors->get('detail_page_id')" />
             </div>
             <div class="flex flex-col gap-4 pt-8">
