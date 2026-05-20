@@ -59,3 +59,29 @@ it('normalizes service code spacing before validation', function () {
 
     expect(Service::query()->where('service_code', 'my-service-code')->exists())->toBeTrue();
 });
+
+it('persists detail carousel lines when updating a service', function () {
+    $user = operationsManagerUser();
+    $service = Service::factory()->create([
+        'service_code' => 'caregivers',
+        'procedures' => null,
+    ]);
+
+    $response = $this->actingAs($user)->put(route('operations.services.update', $service), [
+        'title' => $service->title,
+        'service_code' => 'caregivers',
+        'publish_status' => 'published',
+        'visibility' => 'public',
+        'procedures_lines' => "Injection care\nWound dressing\n",
+        'specialized_care_lines' => "Post-surgery care\n",
+        'shifts_lines' => "12 hour day\n",
+    ]);
+
+    $response->assertSessionDoesntHaveErrors();
+    $response->assertRedirect();
+
+    $service->refresh();
+    expect($service->procedures)->toEqual(['Injection care', 'Wound dressing'])
+        ->and($service->specialized_care)->toEqual(['Post-surgery care'])
+        ->and($service->shifts)->toEqual(['12 hour day']);
+});
