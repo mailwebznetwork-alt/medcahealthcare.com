@@ -8,28 +8,35 @@
 
     $selectedPinIds = array_map(static fn ($v) => (int) $v, old('pincodes', $service->exists ? $service->pincodes->pluck('id')->all() : []));
 
-    $faqRows = old('faqs', ($service->exists && $service->faqs->isNotEmpty())
-        ? $service->faqs->map(fn ($f) => ['question' => $f->question, 'answer' => $f->answer])->values()->all()
-        : []);
-
-    if (count($faqRows) < 3) {
-        $faqRows = array_pad($faqRows, 3, ['question' => '', 'answer' => '']);
-    }
-
-    $schemaJsonPretty = old(
-        'schema_json',
-        ($service->schema && $service->schema->schema_json)
-            ? json_encode($service->schema->schema_json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-            : ''
-    );
-
-    $tk = old('target_keywords', $service->target_keywords ?? []);
-    $ak = old('ai_keywords', $service->ai_keywords ?? []);
-    $fk = old('seo.focus_keywords', optional($service->seo)->focus_keywords ?? []);
+    $detailPageId = (int) old('detail_page_id', $service->detail_page_id);
+    $linkedDetailPage = $detailPageId > 0
+        ? $detailPages->firstWhere('id', $detailPageId)
+        : ($patternDetailPage ?? null);
 @endphp
 
 <div class="space-y-8">
-    {{-- Basic --}}
+    @if ($mode === 'edit')
+        <section class="mom-card border border-[rgba(197,160,89,0.22)] bg-[rgba(197,160,89,0.04)] p-6">
+            <h3 class="mom-section-title mb-2">{{ __('Public page — blocks, SEO & schema') }}</h3>
+            <p class="mom-body-text mb-4 max-w-3xl">
+                {{ __('Content layout, meta tags, FAQs, JSON-LD, and OG image live on the linked Site Architect page. This form keeps service identity, publish rules, and GEO pincodes only.') }}
+            </p>
+            <div class="flex flex-wrap gap-3">
+                @if ($linkedDetailPage)
+                    <a href="{{ route('operations.services.detail-page.edit', $service) }}" class="mom-cta-primary">{{ __('Edit blocks & SEO') }}</a>
+                    <span class="mom-subtext self-center">{{ $linkedDetailPage->title }} · {{ $linkedDetailPage->slug }}</span>
+                @else
+                    <form action="{{ route('operations.services.detail-page.store', $service) }}" method="post" class="inline">
+                        @csrf
+                        <x-primary-button variant="mom" type="submit">{{ __('Create detail page & open editor') }}</x-primary-button>
+                    </form>
+                @endif
+                <a href="{{ route('site-architect.block-factory.index') }}" class="mom-cta-ghost">{{ __('Block Factory') }}</a>
+                <a href="{{ route('site-architect.media.index') }}" class="mom-cta-ghost">{{ __('Media library') }}</a>
+            </div>
+        </section>
+    @endif
+
     <section class="mom-card p-6">
         <h3 class="mom-section-title mb-4">{{ __('Basic') }}</h3>
         <div class="grid gap-6 md:grid-cols-2">
@@ -61,97 +68,9 @@
                 <x-input-label for="price_range" :value="__('Price range')" variant="mom" />
                 <x-text-input id="price_range" name="price_range" type="text" class="mt-2 block w-full" :value="old('price_range', $service->price_range)" variant="mom" />
             </div>
-            <div class="md:col-span-2">
-                <x-input-label for="short_summary" :value="__('Short summary')" variant="mom" />
-                <textarea id="short_summary" name="short_summary" rows="2" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('short_summary', $service->short_summary) }}</textarea>
-            </div>
-            <div class="md:col-span-2">
-                <x-input-label for="description" :value="__('Description')" variant="mom" />
-                <textarea id="description" name="description" rows="8" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('description', $service->description) }}</textarea>
-            </div>
-            <div class="md:col-span-2">
-                <h4 class="mom-section-title text-base">{{ __('Detail carousel lists') }}</h4>
-                <p class="mom-micro mt-1">{{ __('One item per line — shown on the public service detail carousel.') }}</p>
-            </div>
-            <div>
-                <x-input-label for="procedures_lines" :value="__('Procedures')" variant="mom" />
-                <textarea id="procedures_lines" name="procedures_lines" rows="4" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('procedures_lines', $service->listingLines('procedures')) }}</textarea>
-            </div>
-            <div>
-                <x-input-label for="specialized_care_lines" :value="__('Specialized care')" variant="mom" />
-                <textarea id="specialized_care_lines" name="specialized_care_lines" rows="4" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('specialized_care_lines', $service->listingLines('specialized_care')) }}</textarea>
-            </div>
-            <div class="md:col-span-2">
-                <x-input-label for="shifts_lines" :value="__('Shifts')" variant="mom" />
-                <textarea id="shifts_lines" name="shifts_lines" rows="3" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('shifts_lines', $service->listingLines('shifts')) }}</textarea>
-            </div>
         </div>
     </section>
 
-    {{-- Media --}}
-    <section class="mom-card p-6">
-        <h3 class="mom-section-title mb-4">{{ __('Media') }}</h3>
-        <div class="grid gap-6 md:grid-cols-2">
-            <div>
-                <x-input-label for="featured_image" :value="__('Featured image')" variant="mom" />
-                <input id="featured_image" name="featured_image" type="file" accept="image/*" class="mom-subtext mt-2 block w-full text-sm" />
-                @if ($mode === 'edit' && $service->featured_image)
-                    <p class="mom-subtext mt-2">{{ __('Current file on disk; uploading replaces it.') }}</p>
-                    <label class="mom-subtext mt-2 inline-flex items-center gap-2">
-                        <input type="checkbox" name="clear_featured_image" value="1" class="rounded border-[rgba(255,255,255,0.15)]" />
-                        {{ __('Clear featured image') }}
-                    </label>
-                @endif
-            </div>
-            <div>
-                <x-input-label for="icon" :value="__('Icon')" variant="mom" />
-                <input id="icon" name="icon" type="file" accept="image/*" class="mom-subtext mt-2 block w-full text-sm" />
-                @if ($mode === 'edit' && $service->icon)
-                    <label class="mom-subtext mt-2 inline-flex items-center gap-2">
-                        <input type="checkbox" name="clear_icon" value="1" class="rounded border-[rgba(255,255,255,0.15)]" />
-                        {{ __('Clear icon') }}
-                    </label>
-                @endif
-            </div>
-            <div class="md:col-span-2">
-                <x-input-label for="gallery_files" :value="__('Gallery (append images)')" variant="mom" />
-                <input id="gallery_files" name="gallery_files[]" type="file" accept="image/*" multiple class="mom-subtext mt-2 block w-full text-sm" />
-            </div>
-            <div class="md:col-span-2">
-                <x-input-label for="image_alt" :value="__('Featured image alt text')" variant="mom" />
-                <x-text-input id="image_alt" name="image_alt" type="text" class="mt-2 block w-full" :value="old('image_alt', $service->image_alt)" variant="mom" />
-            </div>
-        </div>
-    </section>
-
-    {{-- Keywords --}}
-    <section class="mom-card p-6">
-        <h3 class="mom-section-title mb-4">{{ __('Keywords & quality') }}</h3>
-        <div class="grid gap-6 md:grid-cols-3">
-            @foreach (range(0, 11) as $i)
-                <div>
-                    @if ($i === 0)
-                        <x-input-label :value="__('Target keywords')" variant="mom" />
-                    @endif
-                    <x-text-input name="target_keywords[]" type="text" class="{{ $i === 0 ? 'mt-2' : 'mt-2' }} block w-full" :value="data_get($tk, $i)" variant="mom" />
-                </div>
-            @endforeach
-            @foreach (range(0, 11) as $i)
-                <div>
-                    @if ($i === 0)
-                        <x-input-label :value="__('AI keywords')" variant="mom" />
-                    @endif
-                    <x-text-input name="ai_keywords[]" type="text" class="mt-2 block w-full" :value="data_get($ak, $i)" variant="mom" />
-                </div>
-            @endforeach
-            <div class="md:col-span-2">
-                <x-input-label for="quality_score" :value="__('Quality score (0–100)')" variant="mom" />
-                <x-text-input id="quality_score" name="quality_score" type="number" min="0" max="100" class="mt-2 block w-full" :value="old('quality_score', $service->quality_score)" variant="mom" />
-            </div>
-        </div>
-    </section>
-
-    {{-- Control --}}
     <section class="mom-card p-6">
         <h3 class="mom-section-title mb-4">{{ __('Control') }}</h3>
         <div class="grid gap-6 md:grid-cols-2">
@@ -187,7 +106,7 @@
                     $serviceTokenHint = '{{service:'.($service->service_code ?: 'code').'}}';
                 @endphp
                 <p class="mom-subtext mt-1">
-                    {{ __('Public URL /services/:code renders the linked Site Architect page (canvas + blocks). Use :token in blocks; add other services via Insert service for related rows.', ['code' => $service->service_code ?: 'CODE', 'token' => $serviceTokenHint]) }}
+                    {{ __('Public URL /services/:code renders the linked Site Architect page. Use :token in blocks for related offerings.', ['code' => $service->service_code ?: 'CODE', 'token' => $serviceTokenHint]) }}
                 </p>
                 @if (isset($patternDetailPage) && $patternDetailPage !== null && (int) $service->detail_page_id !== (int) $patternDetailPage->id)
                     <p class="mom-subtext mt-1">{{ __('An active page exists at slug :slug and will be used when no page is selected above.', ['slug' => $patternDetailPage->slug]) }}</p>
@@ -209,90 +128,6 @@
         </div>
     </section>
 
-    {{-- SEO --}}
-    <section class="mom-card p-6">
-        <h3 class="mom-section-title mb-4">{{ __('SEO') }}</h3>
-        <div class="grid gap-6 md:grid-cols-2">
-            <div class="md:col-span-2">
-                <x-input-label for="seo_meta_title" :value="__('Meta title')" variant="mom" />
-                <x-text-input id="seo_meta_title" name="seo[meta_title]" type="text" class="mt-2 block w-full" :value="old('seo.meta_title', optional($service->seo)->meta_title)" variant="mom" />
-            </div>
-            <div class="md:col-span-2">
-                <x-input-label for="seo_meta_description" :value="__('Meta description')" variant="mom" />
-                <textarea id="seo_meta_description" name="seo[meta_description]" rows="3" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('seo.meta_description', optional($service->seo)->meta_description) }}</textarea>
-            </div>
-            @foreach (range(0, 9) as $i)
-                <div>
-                    @if ($i === 0)
-                        <x-input-label :value="__('Focus keywords')" variant="mom" />
-                    @endif
-                    <x-text-input name="seo[focus_keywords][]" type="text" class="mt-2 block w-full" :value="data_get($fk, $i)" variant="mom" />
-                </div>
-            @endforeach
-            <div class="md:col-span-2">
-                <x-input-label for="seo_h1" :value="__('H1')" variant="mom" />
-                <x-text-input id="seo_h1" name="seo[h1]" type="text" class="mt-2 block w-full" :value="old('seo.h1', optional($service->seo)->h1)" variant="mom" />
-            </div>
-            @foreach (range(0, 7) as $i)
-                <div class="md:col-span-2">
-                    @if ($i === 0)
-                        <x-input-label :value="__('H2 headings')" variant="mom" />
-                    @endif
-                    <x-text-input name="seo[h2][]" type="text" class="mt-2 block w-full" :value="old('seo.h2.'.$i, data_get(optional($service->seo)->h2, $i))" variant="mom" />
-                </div>
-            @endforeach
-            @foreach (range(0, 7) as $i)
-                <div class="md:col-span-2">
-                    @if ($i === 0)
-                        <x-input-label :value="__('H3 headings')" variant="mom" />
-                    @endif
-                    <x-text-input name="seo[h3][]" type="text" class="mt-2 block w-full" :value="old('seo.h3.'.$i, data_get(optional($service->seo)->h3, $i))" variant="mom" />
-                </div>
-            @endforeach
-        </div>
-    </section>
-
-    {{-- AEO --}}
-    <section class="mom-card p-6">
-        <h3 class="mom-section-title mb-4">{{ __('AEO') }}</h3>
-        <div class="space-y-6">
-            @foreach ($faqRows as $idx => $row)
-                <div class="rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-4">
-                    <p class="mom-micro mb-2">{{ __('FAQ') }} #{{ $idx + 1 }}</p>
-                    <x-input-label :for="'faq_q_'.$idx" :value="__('Question')" variant="mom" />
-                    <textarea id="{{ 'faq_q_'.$idx }}" name="faqs[{{ $idx }}][question]" rows="2" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('faqs.'.$idx.'.question', $row['question'] ?? '') }}</textarea>
-                    <x-input-label class="mt-3" :for="'faq_a_'.$idx" :value="__('Answer')" variant="mom" />
-                    <textarea id="{{ 'faq_a_'.$idx }}" name="faqs[{{ $idx }}][answer]" rows="4" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('faqs.'.$idx.'.answer', $row['answer'] ?? '') }}</textarea>
-                </div>
-            @endforeach
-            <div>
-                <x-input-label for="seo_ai_context" :value="__('AI context')" variant="mom" />
-                <textarea id="seo_ai_context" name="seo[ai_context]" rows="5" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('seo.ai_context', optional($service->seo)->ai_context) }}</textarea>
-            </div>
-            <div>
-                <x-input-label for="seo_search_intent" :value="__('Search intent')" variant="mom" />
-                <x-text-input id="seo_search_intent" name="seo[search_intent]" type="text" class="mt-2 block w-full" :value="old('seo.search_intent', optional($service->seo)->search_intent)" variant="mom" />
-            </div>
-        </div>
-    </section>
-
-    {{-- Schema --}}
-    <section class="mom-card p-6">
-        <h3 class="mom-section-title mb-4">{{ __('Structured data (JSON-LD)') }}</h3>
-        <div class="grid gap-6 md:grid-cols-2">
-            <div>
-                <x-input-label for="schema_type" :value="__('Schema type')" variant="mom" />
-                <x-text-input id="schema_type" name="schema_type" type="text" class="mt-2 block w-full" :value="old('schema_type', optional($service->schema)->schema_type ?? 'MedicalBusiness')" placeholder="MedicalBusiness, Service, …" variant="mom" />
-            </div>
-            <div class="md:col-span-2">
-                <x-input-label for="schema_json" :value="__('Schema JSON')" variant="mom" />
-                <textarea id="schema_json" name="schema_json" rows="14" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 font-mono text-xs text-[var(--text-primary)] shadow-mom-inner" placeholder='{"@@context":"https://schema.org","@@type":"Service"}'>{{ $schemaJsonPretty }}</textarea>
-                <x-input-error class="mt-2" :messages="$errors->get('schema_json')" />
-            </div>
-        </div>
-    </section>
-
-    {{-- GEO --}}
     <section class="mom-card p-6">
         <h3 class="mom-section-title mb-4">{{ __('GEO — serviceable pincodes') }}</h3>
         <p class="mom-body-text mb-4 max-w-3xl">{{ __('Select existing coverage areas from your pin code directory. No manual pin strings.') }}</p>

@@ -32,6 +32,7 @@ class ServicePublicController extends Controller
         $detailPage = $this->detailPageResolver->resolveFor($service);
 
         if ($detailPage !== null) {
+            $detailPage->loadMissing('faqs');
             $this->renderContext->set($this->presenter->variablesForServiceDetail($service));
 
             return view('layouts.app', [

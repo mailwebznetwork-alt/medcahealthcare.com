@@ -21,6 +21,7 @@ class Page extends Model
         'meta_title',
         'meta_description',
         'keywords',
+        'focus_keywords',
         'canonical_url',
         'robots_meta',
         'og_image',
@@ -35,9 +36,14 @@ class Page extends Model
         'h4',
         'h5',
         'h6',
+        'heading_h2',
+        'heading_h3',
         'aeo_question',
         'aeo_answer',
+        'ai_context',
+        'search_intent',
         'schema_json',
+        'schema_type',
         'gtm_code',
         'pixel_code',
         'is_active',
@@ -51,6 +57,9 @@ class Page extends Model
     {
         return [
             'schema_json' => 'array',
+            'focus_keywords' => 'array',
+            'heading_h2' => 'array',
+            'heading_h3' => 'array',
             'hreflang_json' => 'array',
             'entity_tags' => 'array',
             'fact_check_verified' => 'boolean',
@@ -157,6 +166,7 @@ class Page extends Model
             'meta_title',
             'meta_description',
             'keywords',
+            'focus_keywords',
             'canonical_url',
             'robots_meta',
             'og_image',
@@ -171,9 +181,14 @@ class Page extends Model
             'h4',
             'h5',
             'h6',
+            'heading_h2',
+            'heading_h3',
             'aeo_question',
             'aeo_answer',
+            'ai_context',
+            'search_intent',
             'schema_json',
+            'schema_type',
             'gtm_code',
             'pixel_code',
             'is_active',
@@ -181,6 +196,14 @@ class Page extends Model
         ]);
 
         $attributes['content_reviewed_at'] = $this->content_reviewed_at?->toAtomString();
+
+        $this->loadMissing('faqs');
+
+        $attributes['faqs'] = $this->faqs->map(fn (PageFaq $faq) => [
+            'question' => $faq->question,
+            'answer' => $faq->answer,
+            'sort_order' => $faq->sort_order,
+        ])->values()->all();
 
         $attributes['pin_codes'] = $this->pinCodes->map(fn ($pc) => [
             'id' => $pc->id,
@@ -208,6 +231,14 @@ class Page extends Model
     public function revisions(): HasMany
     {
         return $this->hasMany(PageRevision::class);
+    }
+
+    /**
+     * @return HasMany<PageFaq, $this>
+     */
+    public function faqs(): HasMany
+    {
+        return $this->hasMany(PageFaq::class)->orderBy('sort_order');
     }
 
     public function getRouteKeyName(): string

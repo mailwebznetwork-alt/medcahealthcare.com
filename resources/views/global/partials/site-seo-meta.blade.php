@@ -173,6 +173,33 @@
     @endif
 @endif
 
+@if (isset($page) && $page->relationLoaded('faqs') && $page->faqs->isNotEmpty())
+    @php
+        $pageFaqMain = [];
+        foreach ($page->faqs as $pageFaq) {
+            if (! filled($pageFaq->question) || ! filled($pageFaq->answer)) {
+                continue;
+            }
+            $pageFaqMain[] = [
+                '@type' => 'Question',
+                'name' => $pageFaq->question,
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text' => $pageFaq->answer,
+                ],
+            ];
+        }
+        $pageFaqLd = [
+            '@context' => 'https://schema.org',
+            '@type' => 'FAQPage',
+            'mainEntity' => $pageFaqMain,
+        ];
+    @endphp
+    @if (count($pageFaqMain) > 0)
+        <script type="application/ld+json">{!! json_encode($pageFaqLd, $jsonFlags) !!}</script>
+    @endif
+@endif
+
 @if ($gEntity !== null && is_array($gEntity->entity_faqs) && count($gEntity->entity_faqs) > 0)
     @php
         $faqMain = [];

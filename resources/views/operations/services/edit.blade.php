@@ -19,14 +19,6 @@
         <a href="{{ route('operations.services.preview', $service) }}" class="mom-cta-ghost" target="_blank" rel="noopener">{{ __('Preview public URL') }}</a>
         <a href="{{ $service->publicUrl() }}" class="mom-cta-ghost" target="_blank" rel="noopener">{{ __('Open /services/:code', ['code' => $service->service_code]) }}</a>
         <a href="{{ route('operations.services.duplicate', $service) }}" class="mom-cta-ghost">{{ __('Duplicate') }}</a>
-        @if ($service->exists)
-            <form action="{{ route('operations.services.detail-page.store', $service) }}" method="post" class="inline">
-                @csrf
-                <x-secondary-button variant="mom" type="submit">{{ __('Create & link detail page') }}</x-secondary-button>
-            </form>
-            <a href="{{ route('site-architect.pages.index') }}" class="mom-cta-ghost">{{ __('Site Architect → Pages') }}</a>
-            <a href="{{ route('site-architect.block-factory.index') }}" class="mom-cta-ghost">{{ __('Site Architect → Blocks') }}</a>
-        @endif
     </div>
 
     <form action="{{ route('operations.services.update', $service) }}" method="post" enctype="multipart/form-data" class="space-y-8">

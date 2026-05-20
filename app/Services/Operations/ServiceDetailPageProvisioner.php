@@ -9,6 +9,10 @@ use App\Models\Service;
 
 class ServiceDetailPageProvisioner
 {
+    public function __construct(
+        private readonly ServiceDetailPageSeoSync $seoSync,
+    ) {}
+
     public function suggestedSlug(Service $service): string
     {
         $pattern = (string) config('public_pages.service_detail_page_slug_pattern', 'service-{code}');
@@ -49,7 +53,10 @@ class ServiceDetailPageProvisioner
             $service->forceFill(['detail_page_id' => $page->id])->save();
         }
 
-        return $page->fresh();
+        $service->loadMissing(['seo', 'faqs', 'schema']);
+        $this->seoSync->migrateFromServiceIfEmpty($service, $page);
+
+        return $page->fresh(['faqs']);
     }
 
     private function ensureStarterBlocks(): void

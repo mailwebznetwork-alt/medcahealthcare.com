@@ -175,15 +175,35 @@
                         <textarea wire:model="meta_description" rows="3" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm"></textarea>
                     </div>
                     <div class="md:col-span-2">
-                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Keywords') }}</label>
+                        <p class="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Focus keywords (up to 10)') }}</p>
+                        <div class="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                            @foreach (range(0, 9) as $i)
+                                <input type="text" wire:model="focusKeywords.{{ $i }}" class="w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" placeholder="{{ __('Keyword') }} {{ $i + 1 }}" />
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Legacy keywords (comma-separated, optional)') }}</label>
                         <input type="text" wire:model="keywords" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" />
                     </div>
-                    @foreach (['h1' => __('H1'), 'h2' => __('H2'), 'h3' => __('H3'), 'h4' => __('H4'), 'h5' => __('H5'), 'h6' => __('H6')] as $field => $label)
+                    @foreach (['h1' => __('H1'), 'h4' => __('H4'), 'h5' => __('H5'), 'h6' => __('H6')] as $field => $label)
                         <div>
                             <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ $label }}</label>
                             <input type="text" wire:model="{{ $field }}" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" />
                         </div>
                     @endforeach
+                    <div class="md:col-span-2">
+                        <p class="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('H2 headings (repeatable)') }}</p>
+                        @foreach (range(0, 7) as $i)
+                            <input type="text" wire:model="headingH2.{{ $i }}" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" />
+                        @endforeach
+                    </div>
+                    <div class="md:col-span-2">
+                        <p class="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('H3 headings (repeatable)') }}</p>
+                        @foreach (range(0, 7) as $i)
+                            <input type="text" wire:model="headingH3.{{ $i }}" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" />
+                        @endforeach
+                    </div>
                 </div>
             </section>
 
@@ -232,15 +252,30 @@
             </section>
 
             <section class="mom-card p-6">
-                <h3 class="mom-section-title mb-4">{{ __('AEO') }}</h3>
+                <h3 class="mom-section-title mb-4">{{ __('AEO & FAQs') }}</h3>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Question') }}</label>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Featured question (snippet)') }}</label>
                         <textarea wire:model="aeo_question" rows="2" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm"></textarea>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Answer snippet') }}</label>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Featured answer') }}</label>
                         <textarea wire:model="aeo_answer" rows="4" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm"></textarea>
+                    </div>
+                    @foreach ($faqRows as $idx => $row)
+                        <div wire:key="page-faq-{{ $idx }}" class="rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] p-4">
+                            <p class="mom-micro mb-2">{{ __('FAQ') }} #{{ $idx + 1 }}</p>
+                            <textarea wire:model="faqRows.{{ $idx }}.question" rows="2" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" placeholder="{{ __('Question') }}"></textarea>
+                            <textarea wire:model="faqRows.{{ $idx }}.answer" rows="4" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" placeholder="{{ __('Answer') }}"></textarea>
+                        </div>
+                    @endforeach
+                    <div>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('AI context') }}</label>
+                        <textarea wire:model="ai_context" rows="5" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Search intent') }}</label>
+                        <input type="text" wire:model="search_intent" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" />
                     </div>
                 </div>
             </section>
@@ -411,6 +446,10 @@
                 <h3 class="mom-section-title mb-4">{{ __('Schema & tracking') }}</h3>
                 <p class="mom-subtext mb-4">{{ __('JSON-LD below is emitted on the public page in addition to global organization schema.') }}</p>
                 <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Schema type') }}</label>
+                        <input type="text" wire:model="schema_type" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" placeholder="MedicalBusiness, Service, FAQPage, …" />
+                    </div>
                     <div>
                         <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Schema JSON') }}</label>
                         <textarea wire:model="schema_json_input" rows="8" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 font-mono text-xs"></textarea>

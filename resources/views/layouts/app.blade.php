@@ -19,14 +19,16 @@
             <link rel="canonical" href="{{ url()->current() }}">
         @endisset
         @isset($service)
-            @php
-                $serviceMetaTitle = $service->seo?->meta_title ?: $service->title;
-                $serviceMetaDescription = $service->seo?->meta_description ?: $service->short_summary;
-            @endphp
-            @if (filled($serviceMetaDescription))
-                <meta name="description" content="{{ \Illuminate\Support\Str::limit(strip_tags((string) $serviceMetaDescription), 320, '') }}">
-            @endif
-            <link rel="canonical" href="{{ $service->publicUrl() }}">
+            @unless (isset($page))
+                @php
+                    $serviceMetaTitle = $service->seo?->meta_title ?: $service->title;
+                    $serviceMetaDescription = $service->seo?->meta_description ?: $service->short_summary;
+                @endphp
+                @if (filled($serviceMetaDescription))
+                    <meta name="description" content="{{ \Illuminate\Support\Str::limit(strip_tags((string) $serviceMetaDescription), 320, '') }}">
+                @endif
+                <link rel="canonical" href="{{ $service->publicUrl() }}">
+            @endunless
         @endisset
         @if (isset($service) && ! $service->isListedPublicly())
             <meta name="robots" content="noindex, nofollow">
@@ -44,7 +46,13 @@
         @endif
         <title>
             @isset($service)
-                {{ $service->seo?->meta_title ?: $service->title }} — {{ config('app.name') }}
+                @if (isset($page) && filled($page->meta_title))
+                    {{ $page->meta_title }} — {{ config('app.name') }}
+                @elseif (isset($page))
+                    {{ $page->title }} — {{ config('app.name') }}
+                @else
+                    {{ $service->seo?->meta_title ?: $service->title }} — {{ config('app.name') }}
+                @endif
             @elseif(isset($vacancy))
                 {{ $vacancy->seo_title ?: $vacancy->title }} — {{ config('app.name') }}
             @elseif(isset($page))

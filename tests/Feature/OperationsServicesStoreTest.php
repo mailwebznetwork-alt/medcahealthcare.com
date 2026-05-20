@@ -1,8 +1,13 @@
 <?php
 
+use App\Models\Page;
+use App\Models\PinCode;
 use App\Models\Service;
+use App\Models\ServiceFaq;
+use App\Models\ServiceSeo;
 use App\Models\User;
 use App\ModuleAccess;
+use App\Services\Operations\ServiceDetailPageSeoSync;
 
 function operationsManagerUser(): User
 {
@@ -14,36 +19,6 @@ function operationsManagerUser(): User
             ->all(),
     ]);
 }
-
-it('normalizes nested keyword payloads when creating a service', function () {
-    $user = operationsManagerUser();
-
-    $response = $this->actingAs($user)->post(route('operations.services.store'), [
-        'title' => 'Physio Consult',
-        'service_code' => 'ValidCode',
-        'publish_status' => 'published',
-        'visibility' => 'public',
-        'target_keywords' => [['nested', 'pair'], 'single'],
-        'ai_keywords' => [null, '', 'ai-term'],
-        'seo' => [
-            'focus_keywords' => [['a', 'b'], 'c'],
-            'h2' => [['h2-one']],
-            'h3' => [],
-        ],
-    ]);
-
-    $response->assertSessionDoesntHaveErrors();
-    $response->assertRedirect();
-
-    $service = Service::query()->where('service_code', 'validcode')->first();
-    expect($service)->not->toBeNull();
-    expect($service->target_keywords)->toEqual(['nested', 'pair', 'single']);
-    expect($service->ai_keywords)->toEqual(['ai-term']);
-
-    $service->load('seo');
-    expect($service->seo?->focus_keywords)->toEqual(['a', 'b', 'c']);
-    expect($service->seo?->h2)->toEqual(['h2-one']);
-});
 
 it('normalizes service code spacing before validation', function () {
     $user = operationsManagerUser();
@@ -60,28 +35,69 @@ it('normalizes service code spacing before validation', function () {
     expect(Service::query()->where('service_code', 'my-service-code')->exists())->toBeTrue();
 });
 
-it('persists detail carousel lines when updating a service', function () {
+it('persists GEO pincodes when updating a service', function () {
     $user = operationsManagerUser();
-    $service = Service::factory()->create([
-        'service_code' => 'caregivers',
-        'procedures' => null,
-    ]);
+    $service = Service::factory()->create(['service_code' => 'caregivers']);
+    $pin = PinCode::factory()->create(['is_active' => true]);
 
     $response = $this->actingAs($user)->put(route('operations.services.update', $service), [
         'title' => $service->title,
         'service_code' => 'caregivers',
         'publish_status' => 'published',
         'visibility' => 'public',
-        'procedures_lines' => "Injection care\nWound dressing\n",
-        'specialized_care_lines' => "Post-surgery care\n",
-        'shifts_lines' => "12 hour day\n",
+        'pincodes' => [$pin->id],
     ]);
 
     $response->assertSessionDoesntHaveErrors();
     $response->assertRedirect();
 
-    $service->refresh();
-    expect($service->procedures)->toEqual(['Injection care', 'Wound dressing'])
-        ->and($service->specialized_care)->toEqual(['Post-surgery care'])
-        ->and($service->shifts)->toEqual(['12 hour day']);
+    expect($service->fresh()->pincodes->pluck('id')->all())->toEqual([$pin->id]);
+});
+
+it('migrates legacy service SEO into the linked detail page when empty', function () {
+    $service = Service::withoutEvents(fn () => Service::factory()->create([
+        'service_code' => 'home-nursing',
+        'detail_page_id' => null,
+    ]));
+
+    $service->seo()->create([
+        'meta_title' => 'Home Nursing Meta',
+        'meta_description' => 'Trusted nursing at home.',
+        'focus_keywords' => ['nursing', 'home care'],
+        'h1' => 'Home Nursing H1',
+        'h2' => ['Section A'],
+        'ai_context' => 'Context for AI surfaces.',
+        'search_intent' => 'commercial',
+    ]);
+
+    ServiceFaq::factory()->create([
+        'service_id' => $service->id,
+        'question' => 'What areas do you cover?',
+        'answer' => 'Bangalore south cluster.',
+    ]);
+
+    $page = Page::withoutEvents(fn () => Page::query()->create([
+        'uuid' => (string) Str::uuid(),
+        'title' => 'Home Nursing detail',
+        'slug' => 'service-home-nursing',
+        'meta_title' => null,
+        'meta_description' => null,
+        'is_active' => true,
+    ]));
+
+    expect($service->fresh('seo')->seo?->meta_title)->toBe('Home Nursing Meta');
+
+    app(ServiceDetailPageSeoSync::class)->migrateFromServiceIfEmpty(
+        $service->fresh(['seo', 'faqs', 'schema']),
+        $page
+    );
+
+    $page->refresh()->load('faqs');
+
+    expect($page->meta_title)->toBe('Home Nursing Meta')
+        ->and($page->focus_keywords)->toEqual(['nursing', 'home care'])
+        ->and($page->heading_h2)->toEqual(['Section A'])
+        ->and($page->ai_context)->toBe('Context for AI surfaces.')
+        ->and($page->aeo_question)->toBe('What areas do you cover?')
+        ->and($page->faqs)->toHaveCount(1);
 });

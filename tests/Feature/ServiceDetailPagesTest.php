@@ -1,9 +1,12 @@
 <?php
 
 use App\Enums\PageLayoutMode;
+use App\Enums\PublishStatus;
+use App\Enums\ServiceVisibility;
 use App\Models\Block;
 use App\Models\Page;
 use App\Models\Service;
+use App\Models\ServiceSeo;
 use App\Models\User;
 use App\ModuleAccess;
 use App\Services\Operations\ServiceDetailPageProvisioner;
@@ -89,7 +92,44 @@ it('renders the operations service edit form without a view error', function () 
     $this->actingAs($user)
         ->get(route('operations.services.edit', $service))
         ->assertSuccessful()
-        ->assertSee('Detail page', false);
+        ->assertSee('Public page', false)
+        ->assertSee('GEO', false);
+});
+
+it('uses page meta title on public service detail when a detail page is linked', function () {
+    $service = Service::factory()->create([
+        'service_code' => 'meta-test',
+        'publish_status' => PublishStatus::Published,
+        'visibility' => ServiceVisibility::Public,
+        'is_active' => true,
+    ]);
+
+    $service->seo()->updateOrCreate([], [
+        'meta_title' => 'Legacy Service Meta',
+    ]);
+
+    $page = Page::factory()->create([
+        'slug' => 'service-meta-test',
+        'meta_title' => 'Page Primary Meta',
+        'meta_description' => 'From the Site Architect page.',
+        'is_active' => true,
+        'content' => '{{block:meta-block}}',
+        'layout_mode' => PageLayoutMode::Canvas,
+    ]);
+
+    $service->update(['detail_page_id' => $page->id]);
+
+    Block::query()->create([
+        'block_name' => 'Meta block',
+        'block_slug' => 'meta-block',
+        'code' => '<p data-meta-block>ok</p>',
+        'is_active' => true,
+    ]);
+
+    $this->get('/services/meta-test')
+        ->assertSuccessful()
+        ->assertSee('Page Primary Meta', false)
+        ->assertDontSee('Legacy Service Meta', false);
 });
 
 it('stores detail page from operations', function () {
@@ -100,10 +140,12 @@ it('stores detail page from operations', function () {
         'detail_page_id' => null,
     ]);
 
-    $this->actingAs($user)
-        ->post(route('operations.services.detail-page.store', $service))
-        ->assertRedirect(route('operations.services.edit', $service));
+    $response = $this->actingAs($user)
+        ->post(route('operations.services.detail-page.store', $service));
 
     expect($service->fresh()->detail_page_id)->not->toBeNull();
+
+    $pageId = $service->fresh()->detail_page_id;
+    $response->assertRedirect(route('site-architect.pages.index', ['edit' => $pageId]));
     expect(Page::query()->where('slug', 'service-icu-at-home')->exists())->toBeTrue();
 });

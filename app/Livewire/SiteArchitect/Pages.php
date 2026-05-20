@@ -5,6 +5,7 @@ namespace App\Livewire\SiteArchitect;
 use App\Enums\PageLayoutMode;
 use App\Models\Block;
 use App\Models\Page;
+use App\Models\PageFaq;
 use App\Models\PageRevision;
 use App\Models\PinCode;
 use App\Models\SiteSlugRedirect;
@@ -28,6 +29,11 @@ class Pages extends Component
     {
         if (request()->query('create') === '1') {
             $this->startCreate();
+        }
+
+        $editId = request()->query('edit');
+        if (is_numeric($editId)) {
+            $this->startEdit((int) $editId);
         }
     }
 
@@ -86,6 +92,24 @@ class Pages extends Component
     public string $gtm_code = '';
 
     public string $pixel_code = '';
+
+    /** @var list<string> */
+    public array $focusKeywords = [];
+
+    /** @var list<string> */
+    public array $headingH2 = [];
+
+    /** @var list<string> */
+    public array $headingH3 = [];
+
+    public string $ai_context = '';
+
+    public string $search_intent = '';
+
+    public string $schema_type = '';
+
+    /** @var list<array{question: string, answer: string}> */
+    public array $faqRows = [];
 
     /** @var list<array{type: string, slug: string}> */
     public array $contentParts = [];
@@ -172,7 +196,7 @@ class Pages extends Component
 
     public function startEdit(int $id): void
     {
-        $page = Page::query()->with('pinCodes')->findOrFail($id);
+        $page = Page::query()->with(['pinCodes', 'faqs'])->findOrFail($id);
         $this->authorize('update', $page);
 
         $this->resetForm();
@@ -213,6 +237,26 @@ class Pages extends Component
             : '';
         $this->gtm_code = (string) ($page->gtm_code ?? '');
         $this->pixel_code = (string) ($page->pixel_code ?? '');
+        $this->focusKeywords = $this->padStringList(
+            is_array($page->focus_keywords) ? $page->focus_keywords : $this->keywordsFromLegacyField($page->keywords),
+            10
+        );
+        $this->headingH2 = $this->padStringList(
+            is_array($page->heading_h2) && $page->heading_h2 !== []
+                ? $page->heading_h2
+                : (filled($page->h2) ? [(string) $page->h2] : []),
+            8
+        );
+        $this->headingH3 = $this->padStringList(
+            is_array($page->heading_h3) && $page->heading_h3 !== []
+                ? $page->heading_h3
+                : (filled($page->h3) ? [(string) $page->h3] : []),
+            8
+        );
+        $this->ai_context = (string) ($page->ai_context ?? '');
+        $this->search_intent = (string) ($page->search_intent ?? '');
+        $this->schema_type = (string) ($page->schema_type ?? '');
+        $this->faqRows = $this->faqRowsFromPage($page);
 
         $this->contentParts = Page::parseContentTokens($page->content);
 
@@ -315,6 +359,22 @@ class Pages extends Component
             : '';
         $this->gtm_code = (string) ($snap['gtm_code'] ?? '');
         $this->pixel_code = (string) ($snap['pixel_code'] ?? '');
+        $this->focusKeywords = $this->padStringList(
+            is_array($snap['focus_keywords'] ?? null) ? $snap['focus_keywords'] : $this->keywordsFromLegacyField((string) ($snap['keywords'] ?? '')),
+            10
+        );
+        $this->headingH2 = $this->padStringList(is_array($snap['heading_h2'] ?? null) ? $snap['heading_h2'] : [], 8);
+        $this->headingH3 = $this->padStringList(is_array($snap['heading_h3'] ?? null) ? $snap['heading_h3'] : [], 8);
+        $this->ai_context = (string) ($snap['ai_context'] ?? '');
+        $this->search_intent = (string) ($snap['search_intent'] ?? '');
+        $this->schema_type = (string) ($snap['schema_type'] ?? '');
+        $faqSnap = $snap['faqs'] ?? [];
+        $this->faqRows = is_array($faqSnap) && $faqSnap !== []
+            ? $this->padFaqRows(array_map(fn (array $row): array => [
+                'question' => (string) ($row['question'] ?? ''),
+                'answer' => (string) ($row['answer'] ?? ''),
+            ], $faqSnap))
+            : $this->padFaqRows([]);
         $this->contentParts = Page::parseContentTokens($snap['content'] ?? null);
 
         $this->selectedPinIds = [];
@@ -402,11 +462,27 @@ class Pages extends Component
             'h6' => ['nullable', 'string', 'max:255'],
             'aeo_question' => ['nullable', 'string'],
             'aeo_answer' => ['nullable', 'string'],
+            'ai_context' => ['nullable', 'string'],
+            'search_intent' => ['nullable', 'string', 'max:255'],
+            'schema_type' => ['nullable', 'string', 'max:120'],
             'gtm_code' => ['nullable', 'string'],
             'pixel_code' => ['nullable', 'string'],
+            'focusKeywords' => ['nullable', 'array'],
+            'focusKeywords.*' => ['string', 'max:120'],
+            'headingH2' => ['nullable', 'array'],
+            'headingH2.*' => ['string', 'max:500'],
+            'headingH3' => ['nullable', 'array'],
+            'headingH3.*' => ['string', 'max:500'],
+            'faqRows' => ['nullable', 'array'],
+            'faqRows.*.question' => ['nullable', 'string', 'max:2000'],
+            'faqRows.*.answer' => ['nullable', 'string'],
         ];
 
         $this->validate($rules);
+
+        $focusKeywords = array_values(array_filter($this->focusKeywords, fn ($v) => is_string($v) && trim($v) !== ''));
+        $headingH2 = array_values(array_filter($this->headingH2, fn ($v) => is_string($v) && trim($v) !== ''));
+        $headingH3 = array_values(array_filter($this->headingH3, fn ($v) => is_string($v) && trim($v) !== ''));
 
         $content = Page::buildContentFromParts($this->contentParts);
 
@@ -424,7 +500,8 @@ class Pages extends Component
             'content' => $content,
             'meta_title' => $this->meta_title ?: null,
             'meta_description' => $this->meta_description ?: null,
-            'keywords' => $this->keywords ?: null,
+            'keywords' => $focusKeywords !== [] ? implode(', ', $focusKeywords) : ($this->keywords ?: null),
+            'focus_keywords' => $focusKeywords !== [] ? $focusKeywords : null,
             'canonical_url' => $this->canonical_url ?: null,
             'robots_meta' => $this->robots_meta !== '' ? $this->robots_meta : null,
             'og_image' => $this->og_image ?: null,
@@ -433,14 +510,19 @@ class Pages extends Component
             'entity_tags' => $entityTagsDecoded,
             'fact_check_verified' => $this->fact_check_verified,
             'h1' => $this->h1 ?: null,
-            'h2' => $this->h2 ?: null,
-            'h3' => $this->h3 ?: null,
+            'h2' => $this->h2 ?: ($headingH2[0] ?? null),
+            'h3' => $this->h3 ?: ($headingH3[0] ?? null),
+            'heading_h2' => $headingH2 !== [] ? $headingH2 : null,
+            'heading_h3' => $headingH3 !== [] ? $headingH3 : null,
             'h4' => $this->h4 ?: null,
             'h5' => $this->h5 ?: null,
             'h6' => $this->h6 ?: null,
             'aeo_question' => $this->aeo_question ?: null,
             'aeo_answer' => $this->aeo_answer ?: null,
+            'ai_context' => $this->ai_context ?: null,
+            'search_intent' => $this->search_intent ?: null,
             'schema_json' => $schemaDecoded,
+            'schema_type' => $this->schema_type ?: null,
             'gtm_code' => $this->gtm_code ?: null,
             'pixel_code' => $this->pixel_code ?: null,
             'is_active' => $this->is_active,
@@ -484,8 +566,10 @@ class Pages extends Component
             }
             $page->pinCodes()->sync($sync);
 
+            $this->syncPageFaqs($page);
+
             $page->refresh();
-            $page->load('pinCodes');
+            $page->load(['pinCodes', 'faqs']);
 
             PageRevision::query()->create([
                 'page_id' => $page->id,
@@ -910,9 +994,18 @@ class Pages extends Component
             }
         }
 
-        $kw = strtolower(trim($this->keywords));
+        $primaryKw = '';
+        foreach ($this->focusKeywords as $candidate) {
+            if (is_string($candidate) && trim($candidate) !== '') {
+                $primaryKw = strtolower(trim($candidate));
+                break;
+            }
+        }
+        if ($primaryKw === '') {
+            $kw = strtolower(trim($this->keywords));
+            $primaryKw = $kw !== '' ? strtolower(trim(explode(',', $kw)[0])) : '';
+        }
         $h1 = strtolower(trim($this->h1));
-        $primaryKw = $kw !== '' ? strtolower(trim(explode(',', $kw)[0])) : '';
         if ($primaryKw !== '' && $h1 !== '' && str_contains($h1, $primaryKw)) {
             $score += 12;
             $checks[] = __('Primary keyword appears reflected in H1.');
@@ -936,6 +1029,75 @@ class Pages extends Component
             __('Home Care in :pin', ['pin' => $pc->pincode]),
             __('Nursing service in :area', ['area' => $pc->area_name]),
         ];
+    }
+
+    /**
+     * @param  list<string>  $items
+     * @return list<string>
+     */
+    protected function padStringList(array $items, int $size): array
+    {
+        $items = array_values(array_map(fn ($v) => is_string($v) ? $v : '', $items));
+
+        return array_pad($items, $size, '');
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function keywordsFromLegacyField(?string $keywords): array
+    {
+        if ($keywords === null || trim($keywords) === '') {
+            return [];
+        }
+
+        return array_values(array_filter(array_map('trim', preg_split('/[,|\n]+/', $keywords) ?: [])));
+    }
+
+    /**
+     * @return list<array{question: string, answer: string}>
+     */
+    protected function faqRowsFromPage(Page $page): array
+    {
+        $rows = $page->faqs->map(fn (PageFaq $faq) => [
+            'question' => $faq->question,
+            'answer' => $faq->answer,
+        ])->values()->all();
+
+        return $this->padFaqRows($rows);
+    }
+
+    /**
+     * @param  list<array{question: string, answer: string}>  $rows
+     * @return list<array{question: string, answer: string}>
+     */
+    protected function padFaqRows(array $rows): array
+    {
+        if (count($rows) < 5) {
+            $rows = array_pad($rows, 5, ['question' => '', 'answer' => '']);
+        }
+
+        return $rows;
+    }
+
+    protected function syncPageFaqs(Page $page): void
+    {
+        $page->faqs()->delete();
+        $order = 0;
+        foreach ($this->faqRows as $row) {
+            $question = trim((string) ($row['question'] ?? ''));
+            $answer = trim((string) ($row['answer'] ?? ''));
+            if ($question === '' || $answer === '') {
+                continue;
+            }
+            PageFaq::query()->create([
+                'page_id' => $page->id,
+                'sort_order' => $order,
+                'question' => $question,
+                'answer' => $answer,
+            ]);
+            $order++;
+        }
     }
 
     protected function resetForm(): void
@@ -964,8 +1126,15 @@ class Pages extends Component
         $this->aeo_question = '';
         $this->aeo_answer = '';
         $this->schema_json_input = '';
+        $this->schema_type = '';
         $this->gtm_code = '';
         $this->pixel_code = '';
+        $this->focusKeywords = $this->padStringList([], 10);
+        $this->headingH2 = $this->padStringList([], 8);
+        $this->headingH3 = $this->padStringList([], 8);
+        $this->ai_context = '';
+        $this->search_intent = '';
+        $this->faqRows = $this->padFaqRows([]);
         $this->contentParts = [];
         $this->selectedPinIds = [];
         $this->pinPivot = [];

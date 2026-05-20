@@ -11,6 +11,8 @@ use App\Models\Page;
 use App\Models\PinCode;
 use App\Models\Service;
 use App\Services\Operations\ServiceDetailPageProvisioner;
+use App\Services\Operations\ServiceDetailPageSeoSync;
+use App\Services\Public\ServicesDetailPageResolver;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -23,6 +25,8 @@ class ServiceController extends Controller
 {
     public function __construct(
         private readonly ServiceDetailPageProvisioner $detailPageProvisioner,
+        private readonly ServicesDetailPageResolver $detailPageResolver,
+        private readonly ServiceDetailPageSeoSync $detailPageSeoSync,
     ) {}
 
     public function index(Request $request): View
@@ -103,34 +107,20 @@ class ServiceController extends Controller
             $service = Service::query()->create([
                 'title' => $data['title'],
                 'service_code' => $data['service_code'],
-                'short_summary' => $data['short_summary'] ?? null,
-                'description' => $data['description'] ?? null,
-                'procedures' => $data['procedures'] ?? null,
-                'specialized_care' => $data['specialized_care'] ?? null,
-                'shifts' => $data['shifts'] ?? null,
                 'price_range' => $data['price_range'] ?? null,
-                'image_alt' => $data['image_alt'] ?? null,
-                'target_keywords' => $data['target_keywords'] ?? null,
-                'ai_keywords' => $data['ai_keywords'] ?? null,
-                'quality_score' => $data['quality_score'] ?? 0,
                 'is_active' => $request->boolean('is_active', true),
                 'is_featured' => $request->boolean('is_featured', false),
                 'publish_status' => $data['publish_status'],
                 'visibility' => $data['visibility'],
                 'sort_order' => $data['sort_order'] ?? 0,
                 'detail_page_id' => $this->normalizeDetailPageId($data['detail_page_id'] ?? null),
-                'gallery' => [],
             ]);
 
-            $this->syncMedia($request, $service);
             $service->save();
 
-            $this->syncSeo($service, $data['seo'] ?? []);
-            $this->syncFaqs($service, $data['faqs'] ?? []);
-            $this->syncSchema($service, $data['schema_type'] ?? null, $data['schema_json'] ?? null);
             $this->syncPincodes($service, $data['pincodes'] ?? []);
 
-            return $service->fresh(['seo', 'faqs', 'schema', 'pincodes']);
+            return $service->fresh(['pincodes']);
         });
 
         return redirect()
@@ -142,7 +132,7 @@ class ServiceController extends Controller
     {
         $this->authorize('update', $service);
 
-        $service->load(['seo', 'faqs', 'schema', 'pincodes']);
+        $service->load(['pincodes']);
         $pinCodes = $this->pinCodesForForm();
         $detailPages = $this->detailPagesForForm();
 
@@ -165,8 +155,21 @@ class ServiceController extends Controller
         $page = $this->detailPageProvisioner->provision($service);
 
         return redirect()
-            ->route('operations.services.edit', $service)
-            ->with('status', __('Detail page created and linked. Slug: :slug — edit blocks in Site Architect → Pages.', ['slug' => $page->slug]));
+            ->route('site-architect.pages.index', ['edit' => $page->id])
+            ->with('status', __('Detail page created and linked. Slug: :slug — edit blocks and SEO below.', ['slug' => $page->slug]));
+    }
+
+    public function editDetailPage(Service $service): RedirectResponse
+    {
+        $this->authorize('update', $service);
+
+        $page = $this->detailPageResolver->resolveFor($service)
+            ?? $this->detailPageProvisioner->provision($service);
+
+        $service->loadMissing(['seo', 'faqs', 'schema']);
+        $this->detailPageSeoSync->migrateFromServiceIfEmpty($service, $page);
+
+        return redirect()->route('site-architect.pages.index', ['edit' => $page->id]);
     }
 
     public function update(UpdateServiceRequest $request, Service $service): RedirectResponse
@@ -176,16 +179,7 @@ class ServiceController extends Controller
         DB::transaction(function () use ($request, $data, $service): void {
             $service->fill([
                 'title' => $data['title'],
-                'short_summary' => $data['short_summary'] ?? null,
-                'description' => $data['description'] ?? null,
-                'procedures' => $data['procedures'] ?? null,
-                'specialized_care' => $data['specialized_care'] ?? null,
-                'shifts' => $data['shifts'] ?? null,
                 'price_range' => $data['price_range'] ?? null,
-                'image_alt' => $data['image_alt'] ?? null,
-                'target_keywords' => $data['target_keywords'] ?? null,
-                'ai_keywords' => $data['ai_keywords'] ?? null,
-                'quality_score' => $data['quality_score'] ?? 0,
                 'is_active' => $request->boolean('is_active', true),
                 'is_featured' => $request->boolean('is_featured', false),
                 'publish_status' => $data['publish_status'],
@@ -194,23 +188,15 @@ class ServiceController extends Controller
                 'detail_page_id' => $this->normalizeDetailPageId($data['detail_page_id'] ?? null),
             ]);
 
-            if ($request->boolean('clear_featured_image')) {
-                $this->deletePublicPath($service->featured_image);
-                $service->featured_image = null;
-            }
-            if ($request->boolean('clear_icon')) {
-                $this->deletePublicPath($service->icon);
-                $service->icon = null;
-            }
-
-            $this->syncMedia($request, $service);
             $service->save();
 
-            $this->syncSeo($service, $data['seo'] ?? []);
-            $service->faqs()->delete();
-            $this->syncFaqs($service, $data['faqs'] ?? []);
-            $this->syncSchema($service, $data['schema_type'] ?? null, $data['schema_json'] ?? null);
             $this->syncPincodes($service, $data['pincodes'] ?? []);
+
+            $detailPage = $this->detailPageResolver->resolveFor($service->fresh());
+            if ($detailPage !== null) {
+                $service->loadMissing(['seo', 'faqs', 'schema']);
+                $this->detailPageSeoSync->migrateFromServiceIfEmpty($service, $detailPage);
+            }
         });
 
         return redirect()
@@ -286,7 +272,7 @@ class ServiceController extends Controller
     {
         $this->authorize('view', $service);
 
-        $service->load(['seo', 'faqs', 'schema', 'pincodes']);
+        $service->load(['pincodes']);
 
         return view('operations.services.preview', compact('service'));
     }
