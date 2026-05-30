@@ -18,6 +18,8 @@ class Lead extends Model
         'email',
         'service',
         'message',
+        'ai_priority_score',
+        'ai_intent_category',
         'source',
         'campaign',
         'pin_code_id',

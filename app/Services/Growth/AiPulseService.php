@@ -401,9 +401,12 @@ class AiPulseService
         }
 
         $res = Http::timeout(25)
-            ->withHeaders(['Content-Type' => 'application/json'])
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+                'x-goog-api-key' => $apiKey,
+            ])
             ->post(
-                'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='.$apiKey,
+                'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
                 [
                     'contents' => [
                         ['parts' => [['text' => $prompt]]],

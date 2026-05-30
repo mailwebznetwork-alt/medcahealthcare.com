@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\LeadStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreLeadRequest;
+use App\Jobs\ScoreLeadPayloadJob;
 use App\Models\Lead;
 use App\Services\Integrations\OutboundWebhookDispatcher;
 use App\Services\LeadSourceResolver;
@@ -86,6 +87,8 @@ class LeadController extends Controller
             'status' => LeadStatus::New,
         ]);
         $lead->save();
+
+        ScoreLeadPayloadJob::dispatch($lead);
 
         app(OutboundWebhookDispatcher::class)->dispatch('lead.created', [
             'lead_id' => $lead->id,
