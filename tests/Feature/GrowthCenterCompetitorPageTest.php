@@ -123,7 +123,7 @@ it('removes competitor from growth center list', function () {
         ->delete(route('growth-center.competitors.destroy', $competitor))
         ->assertRedirect(route('growth-center.competitors.index'));
 
-    $this->assertDatabaseMissing('competitors', [
+    $this->assertSoftDeleted('competitors', [
         'id' => $competitor->id,
     ]);
 });

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Growth;
 
+use App\Models\Competitor;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreInterceptRequest extends FormRequest
@@ -11,7 +12,7 @@ class StoreInterceptRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can('create', Competitor::class) ?? false;
     }
 
     /**

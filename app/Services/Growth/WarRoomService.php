@@ -46,6 +46,8 @@ class WarRoomService
         return Intercept::query()->create([
             'business_profile_id' => $profile->id,
             'keyword' => $data['keyword'],
+            'title' => $data['keyword'],
+            'channel' => 'growth_war_room',
             'competitor_id' => $data['competitor_id'] ?? null,
             'gap_type' => $data['gap_type'],
             'action' => $data['action'],

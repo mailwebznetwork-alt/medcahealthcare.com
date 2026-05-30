@@ -247,6 +247,30 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:growth_c
     Route::get('/growth-center/readiness', static fn () => redirect()->route('growth-center.competitors.index', ['tab' => 'readiness']))
         ->name('growth-center.readiness');
     Route::get('/growth-center/competitors', CompetitorPageController::class)->name('growth-center.competitors.index');
+
+    Route::prefix('growth-center')->group(function () {
+        Route::prefix('seo')->group(function () {
+            Route::get('entity', [SeoController::class, 'entity'])->name('growth-center.seo.entity');
+            Route::get('technical', [SeoController::class, 'technical'])->name('growth-center.seo.technical');
+        });
+
+        Route::prefix('aeo')->group(function () {
+            Route::get('/', [AeoController::class, 'index'])->name('growth-center.aeo.index');
+        });
+
+        Route::prefix('geo')->group(function () {
+            Route::get('location', [GeoController::class, 'location'])->name('growth-center.geo.location');
+            Route::get('pincodes', [GeoController::class, 'pincodes'])->name('growth-center.geo.pincodes');
+        });
+
+        Route::prefix('war-room')->group(function () {
+            Route::get('dashboard', [WarRoomController::class, 'dashboard'])->name('growth-center.war-room.dashboard');
+            Route::get('intercepts', [WarRoomController::class, 'intercepts'])->name('growth-center.war-room.intercepts');
+        });
+    });
+});
+
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:growth_center', 'role:editor,manager,admin,super_admin'])->group(function () {
     Route::post('/growth-center/competitors', [CompetitorPageController::class, 'store'])->name('growth-center.competitors.store');
     Route::post('/growth-center/competitors/bulk', [CompetitorPageController::class, 'bulkStore'])->name('growth-center.competitors.bulk-store');
     Route::post('/growth-center/competitors/compare', [CompetitorPageController::class, 'compare'])->name('growth-center.competitors.compare');
@@ -259,28 +283,21 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:growth_c
 
     Route::prefix('growth-center')->group(function () {
         Route::prefix('seo')->group(function () {
-            Route::get('entity', [SeoController::class, 'entity'])->name('growth-center.seo.entity');
             Route::post('entity', [SeoController::class, 'storeEntity'])->name('growth-center.seo.entity.store');
-            Route::get('technical', [SeoController::class, 'technical'])->name('growth-center.seo.technical');
             Route::post('technical', [SeoController::class, 'storeTechnical'])->name('growth-center.seo.technical.store');
         });
 
         Route::prefix('aeo')->group(function () {
-            Route::get('/', [AeoController::class, 'index'])->name('growth-center.aeo.index');
             Route::post('/', [AeoController::class, 'store'])->name('growth-center.aeo.store');
         });
 
         Route::prefix('geo')->group(function () {
-            Route::get('location', [GeoController::class, 'location'])->name('growth-center.geo.location');
             Route::post('location', [GeoController::class, 'storeLocation'])->name('growth-center.geo.location.store');
-            Route::get('pincodes', [GeoController::class, 'pincodes'])->name('growth-center.geo.pincodes');
             Route::post('pincode', [GeoController::class, 'storePincode'])->name('growth-center.geo.pincode.store');
             Route::put('pincode/{id}', [GeoController::class, 'updatePincode'])->name('growth-center.geo.pincode.update');
         });
 
         Route::prefix('war-room')->group(function () {
-            Route::get('dashboard', [WarRoomController::class, 'dashboard'])->name('growth-center.war-room.dashboard');
-            Route::get('intercepts', [WarRoomController::class, 'intercepts'])->name('growth-center.war-room.intercepts');
             Route::post('intercept', [WarRoomController::class, 'storeIntercept'])->name('growth-center.war-room.intercept.store');
             Route::put('intercept/{id}', [WarRoomController::class, 'updateIntercept'])->name('growth-center.war-room.intercept.update');
         });

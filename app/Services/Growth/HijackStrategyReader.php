@@ -2,8 +2,8 @@
 
 namespace App\Services\Growth;
 
-use App\Models\SeoEntity;
 use App\Models\SiteKeywordRanking;
+use App\Services\Growth\SeoEntityResolver;
 use Illuminate\Support\Facades\Schema;
 
 class HijackStrategyReader
@@ -17,7 +17,7 @@ class HijackStrategyReader
             return [];
         }
 
-        $entity = SeoEntity::query()->latest('id')->first();
+        $entity = app(SeoEntityResolver::class)->forCurrentBusiness();
 
         return $entity?->hijackStrategies() ?? [];
     }

@@ -5,7 +5,7 @@ namespace App\Observers;
 use App\Jobs\AnalyzeHijackOpportunityJob;
 use App\Models\CompetitorKeyword;
 use App\Models\SiteKeywordRanking;
-use App\Services\CompetitorComparisonService;
+use App\Services\Growth\CompetitorComparisonService;
 
 class SiteKeywordRankingObserver
 {
@@ -55,7 +55,7 @@ class SiteKeywordRankingObserver
         $service = app(CompetitorComparisonService::class);
 
         foreach ($keywordIds as $keywordId) {
-            $service->identifyHighValueOpportunities((int) $keywordId);
+            $service->recalculateHijackPriorities((int) $keywordId);
 
             $priority = $service->hijackPriorityForKeyword((int) $keywordId);
             if ($priority !== null && $priority >= 1) {

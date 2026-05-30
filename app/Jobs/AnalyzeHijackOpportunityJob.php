@@ -3,8 +3,9 @@
 namespace App\Jobs;
 
 use App\Models\CompetitorKeyword;
-use App\Models\SeoEntity;
+use App\Models\CompetitorTracking;
 use App\Models\SiteKeywordRanking;
+use App\Services\Growth\SeoEntityResolver;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
@@ -41,7 +42,8 @@ class AnalyzeHijackOpportunityJob implements ShouldQueue
             return;
         }
 
-        $competitorPosition = $keyword->latestPosition();
+        $latestPositions = CompetitorTracking::latestPositionsByKeywordIds([$keyword->id]);
+        $competitorPosition = $latestPositions->get($keyword->id);
         $ourPosition = SiteKeywordRanking::latestPositionForKeyword($keyword->keyword);
 
         if ($competitorPosition === null || $ourPosition === null || $competitorPosition >= $ourPosition) {
@@ -127,10 +129,7 @@ TXT;
      */
     private function persistStrategy(int $competitorKeywordId, array $strategy): void
     {
-        $entity = SeoEntity::query()->latest('id')->first();
-        if ($entity === null) {
-            $entity = SeoEntity::query()->create([]);
-        }
+        $entity = app(SeoEntityResolver::class)->ensureForCurrentBusiness();
 
         $existing = [];
         if (is_string($entity->hijack_strategy) && trim($entity->hijack_strategy) !== '') {

@@ -27,13 +27,17 @@ class GeminiService
 
             $response = Http::timeout(12)
                 ->connectTimeout(5)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'x-goog-api-key' => $apiKey,
+                ])
                 ->post(
                     "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent",
                     [
                         'contents' => [
                             ['parts' => [['text' => 'ping']]],
                         ],
-                    ] + ['key' => $apiKey]
+                    ]
                 );
 
             if (! $response->successful()) {

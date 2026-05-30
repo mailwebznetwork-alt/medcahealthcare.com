@@ -6,7 +6,7 @@ use App\Models\CompetitorKeyword;
 use App\Models\CompetitorTracking;
 use App\Models\SiteKeywordRanking;
 use App\Models\User;
-use App\Services\CompetitorComparisonService;
+use App\Services\Growth\CompetitorComparisonService;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 

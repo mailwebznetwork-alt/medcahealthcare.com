@@ -9,9 +9,11 @@ class GeoLocation extends Model
 {
     protected $fillable = [
         'business_profile_id',
+        'label',
         'latitude',
         'longitude',
         'radius_km',
+        'is_active',
     ];
 
     protected function casts(): array
@@ -20,6 +22,7 @@ class GeoLocation extends Model
             'latitude' => 'float',
             'longitude' => 'float',
             'radius_km' => 'integer',
+            'is_active' => 'boolean',
         ];
     }
 

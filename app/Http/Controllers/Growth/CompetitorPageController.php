@@ -10,18 +10,18 @@ use App\Models\CompetitorLead;
 use App\Models\CompetitorTracking;
 use App\Models\GeoLocation;
 use App\Models\PinCode;
-use App\Models\Intercept;
 use App\Models\SeoAiSignal;
-use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
 use App\Models\SiteKeywordRanking;
-use App\Services\CompetitorComparisonService;
+use App\Services\Growth\CompetitorComparisonService;
 use App\Services\Growth\GeoService;
+use App\Services\Growth\SeoEntityResolver;
 use App\Services\Growth\WarRoomService;
 use App\Support\GrowthReadinessReport;
 use App\Support\WarRoomRollup;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -94,7 +94,7 @@ class CompetitorPageController extends Controller
         ];
 
         if (Schema::hasTable('seo_entities')) {
-            $seoEntity = SeoEntity::query()->latest('id')->first();
+            $seoEntity = app(SeoEntityResolver::class)->forCurrentBusiness();
         }
         if (Schema::hasTable('seo_technical')) {
             $seoTechnical = SeoTechnical::query()->latest('id')->first();
@@ -114,7 +114,7 @@ class CompetitorPageController extends Controller
 
         $hijackOpportunities = collect();
         if (Schema::hasTable('competitor_keywords') && Schema::hasColumn('competitor_keywords', 'hijack_priority')) {
-            $hijackOpportunities = $this->comparisonService->identifyHighValueOpportunities();
+            $hijackOpportunities = $this->comparisonService->listHighValueOpportunities();
         }
 
         $hijackStrategies = $seoEntity?->hijackStrategies() ?? [];
@@ -148,9 +148,7 @@ class CompetitorPageController extends Controller
             'pincodes' => $pincodes,
             'geoStats' => $this->geoService->getCoverageStats(),
             'warRoomDashboard' => $warRoomDashboard,
-            'intercepts' => Schema::hasTable('intercepts')
-                ? Intercept::query()->with('competitor:id,name')->latest('id')->limit(100)->get()
-                : collect(),
+            'intercepts' => $warRoomDashboard['intercepts'] ?? collect(),
             'hijackOpportunities' => $hijackOpportunities,
             'hijackStrategies' => $hijackStrategies,
         ]);
@@ -158,6 +156,7 @@ class CompetitorPageController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        Gate::authorize('create', Competitor::class);
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'website' => ['nullable', 'url', 'max:255'],
@@ -183,6 +182,7 @@ class CompetitorPageController extends Controller
 
     public function bulkStore(Request $request): RedirectResponse
     {
+        Gate::authorize('create', Competitor::class);
         $validated = $request->validate([
             'bulk_competitors' => ['required', 'string', 'max:20000'],
         ]);
@@ -237,6 +237,7 @@ class CompetitorPageController extends Controller
 
     public function destroy(Competitor $competitor): RedirectResponse
     {
+        Gate::authorize('delete', $competitor);
         $competitor->delete();
 
         WarRoomRollup::forget();

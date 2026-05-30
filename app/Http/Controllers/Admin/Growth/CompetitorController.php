@@ -45,23 +45,23 @@ class CompetitorController extends Controller
         Gate::authorize('create', Competitor::class);
 
         $validated = $request->validated();
+        $count = 0;
 
-        $competitors = collect($validated['competitors'])->map(function (array $data) {
-            return [
-                'name' => $data['name'],
-                'website' => $data['website'] ?? null,
-                'is_active' => $data['is_active'] ?? true,
-                'is_intercept_target' => $data['is_intercept_target'] ?? false,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        })->toArray();
-
-        Competitor::insert($competitors);
+        foreach ($validated['competitors'] as $data) {
+            Competitor::query()->updateOrCreate(
+                ['name' => $data['name']],
+                [
+                    'website' => $data['website'] ?? null,
+                    'is_active' => $data['is_active'] ?? true,
+                    'is_intercept_target' => $data['is_intercept_target'] ?? false,
+                ]
+            );
+            $count++;
+        }
 
         return response()->json([
             'message' => 'Competitors successfully added.',
-            'count' => count($competitors),
+            'count' => $count,
         ], 201);
     }
 

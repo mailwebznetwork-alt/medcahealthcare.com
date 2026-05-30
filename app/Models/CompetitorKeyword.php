@@ -37,10 +37,7 @@ class CompetitorKeyword extends Model
 
     public function latestPosition(): ?int
     {
-        $position = $this->trackings()
-            ->orderByDesc('recorded_date')
-            ->orderByDesc('id')
-            ->value('position');
+        $position = CompetitorTracking::latestPositionsByKeywordIds([$this->id])->get($this->id);
 
         return $position !== null ? (int) $position : null;
     }

@@ -22,12 +22,16 @@ class GeoService
 
     public function saveLocation(array $data): GeoLocation
     {
+        $label = trim((string) ($data['label'] ?? 'Arekere service radius'));
+
         return GeoLocation::query()->updateOrCreate(
             ['business_profile_id' => $this->resolveBusinessProfileId()],
             [
+                'label' => $label !== '' ? $label : 'Arekere service radius',
                 'latitude' => $data['latitude'],
                 'longitude' => $data['longitude'],
                 'radius_km' => $data['radius_km'],
+                'is_active' => (bool) ($data['is_active'] ?? true),
             ]
         );
     }

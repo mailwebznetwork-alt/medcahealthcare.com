@@ -26,7 +26,11 @@ class WarRoomController extends Controller
     public function intercepts(Request $request): RedirectResponse|Response
     {
         if ($request->expectsJson()) {
-            return response(['data' => Intercept::query()->latest('id')->limit(100)->get()]);
+            return response(['data' => Intercept::query()
+                ->with('competitor:id,name')
+                ->latest('id')
+                ->limit(100)
+                ->get()]);
         }
 
         return redirect()->route('growth-center.competitors.index', ['tab' => 'war-room']);

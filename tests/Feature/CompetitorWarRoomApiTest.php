@@ -12,7 +12,10 @@ it('stores competitors in bulk and returns paginated list', function () {
         $this->markTestSkipped('Competitors table is not migrated.');
     }
 
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'role' => 'editor',
+        'module_access' => ['growth_center' => true],
+    ]);
     $this->actingAs($user, 'sanctum');
 
     $this->postJson('/api/admin/growth/competitors/bulk', [
@@ -40,7 +43,10 @@ it('returns compare and summary payloads', function () {
         $this->markTestSkipped('Competitor module tables are not migrated.');
     }
 
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'role' => 'editor',
+        'module_access' => ['growth_center' => true],
+    ]);
     $this->actingAs($user, 'sanctum');
 
     $a = Competitor::query()->create(['name' => 'Comp A', 'is_intercept_target' => true]);
