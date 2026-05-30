@@ -1,5 +1,6 @@
 import './bootstrap';
 import './site-architect-navigation';
+import { bootLocationDetection } from './location-detection';
 
 import Alpine from 'alpinejs';
 import { bootIcons } from './shell';
@@ -15,3 +16,4 @@ if (window.Livewire) {
 }
 
 requestAnimationFrame(() => bootIcons());
+bootLocationDetection();

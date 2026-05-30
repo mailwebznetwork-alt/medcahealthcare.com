@@ -79,6 +79,9 @@
                 <div @class(['w-full', 'py-6 md:py-8' => ! $page->usesCanvasLayout()])>
                     {!! \App\Services\ContentParser::parse($page->content ?? '') !!}
                 </div>
+                @if ($page->slug === 'home')
+                    @include('public.partials.near-you-services', app(\App\Services\Public\PublicPagePresenter::class)->nearYouPayload())
+                @endif
             @elseif(isset($blog))
                 <article class="w-full py-6 md:py-8">
                     @if ($blog->featured_image)
@@ -101,6 +104,7 @@
         </main>
 
         @include('global.footer')
+        @livewire('location.pincode-modal')
         @include('global.floating')
         <x-marketing.tracking-body :settings="$marketingSettings ?? null" />
         @stack('scripts')

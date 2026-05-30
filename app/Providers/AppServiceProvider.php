@@ -15,6 +15,7 @@ use App\Models\Page;
 use App\Models\PinCode;
 use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
+use App\Models\Review;
 use App\Models\Service;
 use App\Models\SiteKeywordRanking;
 use App\Models\User;
@@ -32,6 +33,7 @@ use App\Policies\MarketingSettingPolicy;
 use App\Policies\MediaPolicy;
 use App\Policies\PagePolicy;
 use App\Policies\PinCodePolicy;
+use App\Policies\ReviewPolicy;
 use App\Policies\ServicePolicy;
 use App\Policies\UserPolicy;
 use App\Services\Content\ContentRenderContext;
@@ -108,6 +110,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(MarketingCampaign::class, MarketingCampaignPolicy::class);
         Gate::policy(Lead::class, LeadPolicy::class);
         Gate::policy(Competitor::class, CompetitorPolicy::class);
+        Gate::policy(Review::class, ReviewPolicy::class);
 
         Page::observe(PageObserver::class);
         Blog::observe(BlogObserver::class);

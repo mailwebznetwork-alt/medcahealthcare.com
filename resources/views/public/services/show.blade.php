@@ -42,6 +42,11 @@
             @if (filled($service->short_summary))
                 <p class="max-w-3xl text-base text-slate-600 md:text-lg">{{ $service->short_summary }}</p>
             @endif
+            @if (($averageRating ?? null) !== null && ($reviewsCount ?? 0) > 0)
+                <p class="text-sm font-medium text-amber-700">
+                    {{ __(':rating / 5 · :count reviews', ['rating' => number_format((float) $averageRating, 1), 'count' => (int) $reviewsCount]) }}
+                </p>
+            @endif
             @if ($service->hasPriceRange())
                 <p class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-1.5 text-sm font-medium text-slate-700 ring-1 ring-slate-200">
                     <span class="font-semibold">{{ __('Pricing') }}:</span> {{ $service->price_range }}
@@ -95,5 +100,9 @@
                 </ul>
             </section>
         @endif
+
+        <section class="space-y-4">
+            @livewire('reviews.review-form', ['serviceId' => $service->id], key('review-form-'.$service->id))
+        </section>
     </article>
 @endsection

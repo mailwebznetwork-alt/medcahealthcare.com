@@ -23,6 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle:60,1',
         ]);
 
+        $middleware->web(append: [
+            \App\Http\Middleware\EnsurePincodeDetected::class,
+        ]);
+
         $middleware->alias([
             'module' => EnsureModuleAccess::class,
             'active' => EnsureAccountIsActive::class,
@@ -31,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auto.logout' => AutoLogout::class,
             'payment.ingest.signature' => VerifyPaymentIngestSignature::class,
             'backup.operator' => EnsureBackupOperator::class,
+            'pincode.detected' => \App\Http\Middleware\EnsurePincodeDetected::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

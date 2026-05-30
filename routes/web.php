@@ -18,6 +18,7 @@ use App\Http\Controllers\Operations\PinCodes\PinCodeImportController;
 use App\Http\Controllers\Operations\Services\ServiceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\CmsPageController;
+use App\Http\Controllers\Public\LocationController;
 use App\Http\Controllers\Public\ServicePublicController;
 use App\Http\Controllers\Settings\IntegrationController;
 use App\Http\Controllers\Settings\SystemOperationsController;
@@ -43,6 +44,13 @@ Route::get('/sitemap-{segment}.xml', [SeoController::class, 'sitemapSegmentXml']
 Route::get('/llm.txt', [AeoController::class, 'llmTxt'])->name('public.llm');
 Route::get('/ai-discovery', [AeoController::class, 'discovery'])->name('public.ai-discovery');
 
+Route::post('/location/pincode', [LocationController::class, 'storePincode'])
+    ->middleware('throttle:20,1')
+    ->name('location.pincode.store');
+Route::post('/location/geolocation', [LocationController::class, 'storeGeolocation'])
+    ->middleware('throttle:20,1')
+    ->name('location.geolocation.store');
+
 Route::get('/', function () {
     $page = Page::query()->where('slug', 'home')->where('is_active', true)->first();
 
@@ -54,8 +62,10 @@ Route::get('/', function () {
         return view('layouts.app', ['page' => $page]);
     }
 
-    return view('home');
+    return view('home', app(\App\Services\Public\PublicPagePresenter::class)->nearYouPayload());
 })->name('public.home');
+
+Route::get('/services-catalog', [ServicePublicController::class, 'index'])->name('public.services.index');
 
 Route::get('/t/mail/{token}/open.gif', [MarketingEmailOpenController::class, 'pixel'])
     ->middleware('throttle:120,1')

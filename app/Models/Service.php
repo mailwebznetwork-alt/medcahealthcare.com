@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\PublishStatus;
 use App\Enums\ServiceVisibility;
+use App\Models\Review;
 use Database\Factories\ServiceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -173,6 +174,70 @@ class Service extends Model
     {
         return $this->belongsToMany(PinCode::class, 'service_pincodes', 'service_id', 'pincode_id')
             ->withTimestamps();
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function approvedReviews(): HasMany
+    {
+        return $this->reviews()->where('status', Review::STATUS_APPROVED);
+    }
+
+    public function averageApprovedRating(): ?float
+    {
+        $avg = $this->approvedReviews()->avg('rating');
+
+        return $avg !== null ? round((float) $avg, 1) : null;
+    }
+
+    public function approvedReviewsCount(): int
+    {
+        return (int) $this->approvedReviews()->count();
+    }
+
+    /**
+     * @param  Builder<Service>  $query
+     * @return Builder<Service>
+     */
+    public function scopeForPincode(Builder $query, string $pincode): Builder
+    {
+        $normalized = preg_replace('/\D/', '', $pincode) ?? '';
+
+        return $query->whereHas('pincodes', function (Builder $pinQuery) use ($normalized): void {
+            $pinQuery->where('pincode', $normalized)->where('is_active', true);
+        });
+    }
+
+    /**
+     * @param  Builder<Service>  $query
+     * @return Builder<Service>
+     */
+    public function scopeLocalizedListing(Builder $query, ?string $pincode): Builder
+    {
+        $query->publicListing();
+
+        if ($pincode !== null && $pincode !== '') {
+            $query->forPincode($pincode);
+        }
+
+        return $query;
+    }
+
+    public function isAvailableInPincode(?string $pincode): bool
+    {
+        if ($pincode === null || $pincode === '') {
+            return true;
+        }
+
+        $normalized = preg_replace('/\D/', '', $pincode) ?? '';
+
+        return $this->pincodes()
+            ->where('pincode', $normalized)
+            ->where('is_active', true)
+            ->exists();
     }
 
     /**

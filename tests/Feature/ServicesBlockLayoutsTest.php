@@ -5,9 +5,11 @@ use App\Enums\PublishStatus;
 use App\Enums\ServiceVisibility;
 use App\Models\Block;
 use App\Models\Page;
+use App\Models\PinCode;
 use App\Models\Service;
 use App\Services\Content\ServiceBindingRegistry;
 use App\Services\ContentParser;
+use App\Services\UserLocationService;
 use Illuminate\Support\Facades\DB;
 
 beforeEach(function (): void {
@@ -55,12 +57,16 @@ it('deduplicates service binding queries within one request', function () {
 });
 
 it('exposes publishedServices on the services hub page', function () {
-    Service::factory()->create([
+    $pin = PinCode::factory()->create(['pincode' => '560076', 'is_active' => true, 'is_serviceable' => true]);
+    $service = Service::factory()->create([
         'service_code' => 'hub-listed',
         'title' => 'Hub Listed Service',
         'publish_status' => PublishStatus::Published,
         'visibility' => ServiceVisibility::Public,
     ]);
+    $service->pincodes()->attach($pin->id);
+
+    app(UserLocationService::class)->rememberPincode('560076');
 
     Block::query()->updateOrCreate(
         ['block_slug' => 'services-published-count'],
