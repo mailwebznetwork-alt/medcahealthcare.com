@@ -4,6 +4,7 @@ namespace App\Livewire\Operations;
 
 use App\Enums\LeadSource;
 use App\Enums\LeadStatus;
+use App\Jobs\ScoreLeadPayloadJob;
 use App\Models\Lead;
 use App\Models\LeadNote;
 use App\Models\PinCode;
@@ -145,6 +146,7 @@ class Bookings extends Component
         if ($this->editingId === null) {
             $this->authorize('create', Lead::class);
             $lead = Lead::query()->create($payload);
+            ScoreLeadPayloadJob::dispatch($lead);
             $this->maybeDispatchServiceBooked(null, $lead);
         } else {
             $lead = Lead::query()->findOrFail($this->editingId);
