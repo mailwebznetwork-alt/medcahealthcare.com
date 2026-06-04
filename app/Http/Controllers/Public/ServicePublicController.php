@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Service;
-use App\Services\Content\ContentRenderContext;
-use App\Services\Public\PublicPagePresenter;
+use App\Services\Operations\ServiceDetailPageProvisioner;
+use App\Services\Public\PageRenderContextRegistrar;
 use App\Services\Public\ServicesDetailPageResolver;
 use App\Services\ServiceContextCollector;
 use App\Services\UserLocationService;
@@ -15,9 +15,9 @@ use Illuminate\View\View;
 class ServicePublicController extends Controller
 {
     public function __construct(
-        private readonly PublicPagePresenter $presenter,
-        private readonly ContentRenderContext $renderContext,
+        private readonly PageRenderContextRegistrar $pageRenderContext,
         private readonly ServicesDetailPageResolver $detailPageResolver,
+        private readonly ServiceDetailPageProvisioner $detailPageProvisioner,
         private readonly UserLocationService $location,
     ) {}
 
@@ -55,9 +55,17 @@ class ServicePublicController extends Controller
 
         $detailPage = $this->detailPageResolver->resolveFor($service);
 
+        if ($detailPage === null) {
+            try {
+                $detailPage = $this->detailPageProvisioner->provision($service);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
         if ($detailPage !== null) {
             $detailPage->loadMissing('faqs');
-            $this->renderContext->set($this->presenter->variablesForServiceDetail($service));
+            $this->pageRenderContext->registerServiceDetail($detailPage, $service);
 
             return view('layouts.app', [
                 'page' => $detailPage,

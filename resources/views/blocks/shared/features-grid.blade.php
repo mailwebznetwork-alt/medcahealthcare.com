@@ -1,0 +1,3 @@
+<x-blocks.element-wrap tone="light">
+    <x-blocks.marketing-headline class="text-2xl font-semibold" /><div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"><div class="rounded-xl border border-slate-200 p-5"><h3 class="font-semibold">Feature</h3><p class="mt-2 text-sm text-slate-600">Short benefit copy.</p></div><div class="rounded-xl border border-slate-200 p-5"><h3 class="font-semibold">Feature</h3><p class="mt-2 text-sm text-slate-600">Short benefit copy.</p></div><div class="rounded-xl border border-slate-200 p-5"><h3 class="font-semibold">Feature</h3><p class="mt-2 text-sm text-slate-600">Short benefit copy.</p></div></div>
+</x-blocks.element-wrap>

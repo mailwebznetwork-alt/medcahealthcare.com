@@ -1,9 +1,13 @@
-<x-layouts.markonminds
-    page-title="{{ __('Marketing Intelligence') }}"
+<x-admin.workspace
+    page-title="{{ __('Marketing') }}"
     :welcome-line="__('Campaigns, ads, communication, and insights — GA4 detail reports live under Growth Center → GA4.')"
+    :breadcrumbs="[
+        ['label' => __('Marketing'), 'url' => route('marketing.dashboard')],
+        ['label' => __('Dashboard'), 'url' => null],
+    ]"
 >
-    <div class="mb-6">
-        <a href="{{ route('modules.marketing.intelligence') }}" class="mom-cta-compact mom-cta-primary">{{ __('Open intelligence platform') }}</a>
-    </div>
+    <x-slot:tabs>
+        @include('marketing.partials.primary-tabs', ['activeSection' => 'dashboard'])
+    </x-slot:tabs>
     @livewire('marketing.dashboard')
-</x-layouts.markonminds>
+</x-admin.workspace>

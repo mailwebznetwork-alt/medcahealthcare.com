@@ -94,6 +94,27 @@
         </div>
 
         <div class="space-y-8">
+            @if ($productionPreviewUrl)
+                <section class="mom-card overflow-hidden p-0" aria-label="{{ __('Production preview') }}">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-panel-soft)] px-4 py-3">
+                        <div>
+                            <h3 class="mom-section-title">{{ __('Preview (production path)') }}</h3>
+                            <p class="mom-subtext mt-1 max-w-2xl">{{ __('Same render as public: ContentParser + layouts.app. Save the blog, then refresh preview if you changed structure or SEO.') }}</p>
+                        </div>
+                        <a href="{{ $productionPreviewUrl }}" target="_blank" rel="noopener" class="mom-cta-compact mom-cta-primary">{{ __('Open full preview') }}</a>
+                    </div>
+                    <iframe
+                        wire:key="blog-preview-{{ $previewRefreshNonce }}-{{ $editingId }}"
+                        src="{{ $productionPreviewUrl }}{{ str_contains($productionPreviewUrl, '?') ? '&' : '?' }}_preview={{ $previewRefreshNonce }}"
+                        title="{{ __('Blog preview') }}"
+                        class="h-[min(70vh,720px)] w-full border-0 bg-white"
+                        loading="lazy"
+                    ></iframe>
+                </section>
+            @elseif ($editingId === null)
+                <p class="mom-subtext rounded-mom-chrome border border-[var(--border-panel-soft)] px-4 py-3">{{ __('Save the blog once to enable the production preview panel.') }}</p>
+            @endif
+
             <section class="mom-card p-6">
                 <h3 class="mom-section-title mb-4">{{ __('Basic info') }}</h3>
                 <div class="grid gap-4 md:grid-cols-2">
@@ -156,8 +177,8 @@
                 <p class="mom-subtext mb-4 max-w-2xl">{{ __('Order defines blog structure. Blocks hold Blade/HTML; modules resolve via config.') }}</p>
 
                 <div class="flex flex-wrap gap-2">
-                    <button type="button" wire:click="addBlock" class="rounded-mom-chrome border border-[var(--border-panel-soft)] px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-hover)]">
-                        {{ __('Add block') }}
+                    <button type="button" wire:click="addSection" class="rounded-mom-chrome border border-[rgba(197,160,89,0.35)] bg-[rgba(197,160,89,0.08)] px-4 py-2 text-sm font-semibold text-mom-gold">
+                        {{ __('Add section') }}
                     </button>
                     <div class="flex flex-wrap items-center gap-2">
                         <select wire:model.live="module_choice" class="rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)]">
@@ -181,25 +202,17 @@
 
                 <ul class="mt-6 space-y-2">
                     @foreach ($contentParts as $idx => $part)
-                        <li wire:key="blog-part-{{ $idx }}-{{ $part['type'] }}-{{ $part['slug'] }}" class="flex flex-wrap items-center justify-between gap-2 rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] px-3 py-2 text-xs text-[var(--text-secondary)]">
-                            <div class="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
-                                <span class="font-mono">{{ '{{'.$part['type'].':'.$part['slug'].str_repeat('}', 2) }}</span>
-                                <span class="text-[var(--text-primary)]">
-                                    @if ($part['type'] === 'block')
-                                        <span class="text-[var(--text-muted)]">{{ __('Block name') }}:</span>
-                                        {{ $blockNameMap[$part['slug']] ?? '—' }}
-                                        <span class="mx-2 text-[var(--text-muted)]">·</span>
-                                        <span class="text-[var(--text-muted)]">{{ __('Slug') }}:</span>
-                                        {{ $part['slug'] }}
-                                    @else
-                                        <span class="text-[var(--text-muted)]">{{ __('Module') }}:</span>
-                                        {{ $part['slug'] }}
-                                    @endif
-                                </span>
-                            </div>
+                        <li wire:key="blog-part-{{ $idx }}-{{ $part['type'] }}-{{ $part['slug'] }}" class="flex flex-wrap items-center justify-between gap-2 rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] px-3 py-2 text-sm">
+                            <span class="font-medium text-[var(--text-primary)]">
+                                @if ($part['type'] === 'block')
+                                    {{ app(\App\Services\SiteArchitect\PageSectionCatalog::class)->displayNameForSlug($part['slug']) }}
+                                @else
+                                    {{ ucfirst($part['type']) }} · {{ $part['slug'] }}
+                                @endif
+                            </span>
                             <span class="flex flex-wrap gap-1">
                                 @if ($part['type'] === 'block')
-                                    <button type="button" wire:click="editBlockFromPart({{ $idx }})" class="text-mom-gold hover:underline">{{ __('Edit') }}</button>
+                                    <a href="{{ route('site-architect.block-studio.index', ['block' => $part['slug']]) }}" class="text-mom-gold hover:underline" target="_blank" rel="noopener">{{ __('Edit section content') }}</a>
                                 @endif
                                 <button type="button" wire:click="movePartUp({{ $idx }})" class="hover:text-[var(--text-primary)]">{{ __('Up') }}</button>
                                 <button type="button" wire:click="movePartDown({{ $idx }})" class="hover:text-[var(--text-primary)]">{{ __('Down') }}</button>
@@ -260,10 +273,20 @@
             </section>
 
             <div class="flex flex-wrap gap-3">
+                @include('livewire.site-architect.partials.architect-save-approvals')
+
                 <button type="button" wire:click="saveBlog" class="rounded-mom-chrome bg-[var(--accent-gold)] px-5 py-2.5 text-sm font-semibold text-[#120f0d]">{{ __('Save blog') }}</button>
                 <button type="button" wire:click="cancelForm" class="rounded-mom-chrome border border-[var(--border-panel-soft)] px-5 py-2.5 text-sm text-[var(--text-secondary)]">{{ __('Cancel') }}</button>
             </div>
         </div>
+    @endif
+
+    @if ($sectionPickerOpen ?? false)
+        @include('livewire.site-architect.partials.section-picker-modal', [
+            'sectionPickerGroups' => $sectionPickerGroups,
+            'sectionPickerCategories' => $sectionPickerCategories,
+            'canUseDeveloperBlockTools' => $canUseDeveloperBlockTools,
+        ])
     @endif
 
     @if ($blockModalOpen)

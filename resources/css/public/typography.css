@@ -1,0 +1,16 @@
+/**
+ * Medca public typography utilities — sizes come from ThemeResolver CSS variables.
+ */
+@layer components {
+    .medca-text-body-lg {
+        font-size: var(--medca-text-body-large-size, 1.125rem);
+    }
+
+    .medca-text-body {
+        font-size: var(--medca-text-body-regular-size, 1rem);
+    }
+
+    .medca-text-small {
+        font-size: var(--medca-text-small-size, 0.875rem);
+    }
+}

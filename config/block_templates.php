@@ -37,6 +37,22 @@ return [
             'block_type' => 'Service Grid',
             'view' => 'blocks.home.services-overview-home',
         ],
+        'near-you-home' => [
+            'category' => 'home',
+            'block_name' => 'Home — Near You (pincode services)',
+            'description' => 'Hyper-local service grid based on the visitor pincode. Service cards come from Operations → Services.',
+            'block_type' => 'Service Grid',
+            'view' => 'blocks.shared.near-you-services',
+            'is_required_on_pages' => ['home'],
+        ],
+        'near-you-locations' => [
+            'category' => 'locations',
+            'block_name' => 'Locations — Near You (pincode services)',
+            'description' => 'Same pincode-based service grid for the Locations page. Edit labels in Blocks Studio.',
+            'block_type' => 'Service Grid',
+            'view' => 'blocks.shared.near-you-services',
+            'is_required_on_pages' => ['locations'],
+        ],
         'locations-overview-home' => [
             'category' => 'home',
             'block_name' => 'Home — Locations Overview',
@@ -144,6 +160,13 @@ return [
             'block_type' => 'Hero',
             'view' => 'blocks.services.service-detail-hero',
         ],
+        'service-detail-areas' => [
+            'category' => 'services',
+            'block_name' => 'Service detail — areas served',
+            'description' => 'GEO pincode grid for the current service.',
+            'block_type' => 'Text',
+            'view' => 'blocks.services.service-detail-areas',
+        ],
         'service-detail-related' => [
             'category' => 'services',
             'block_name' => 'Service detail — related (Insert service tokens)',
@@ -154,9 +177,9 @@ return [
         'services-detail-layout' => [
             'category' => 'services',
             'block_name' => 'Services — detail fallback',
-            'description' => 'Composed fallback layout for /services/{code} when no custom page exists.',
+            'description' => 'Composed layout for /services/{code} Site Architect pages.',
             'block_type' => 'Layout',
-            'code' => "{{block:service-detail-hero}}\n{{block:service-detail-related}}",
+            'code' => "{{block:service-detail-hero}}\n{{block:service-detail-areas}}\n{{block:service-detail-related}}",
         ],
 
         // ── Locations ─────────────────────────────────────────────────────
@@ -190,5 +213,8 @@ return [
             'block_type' => 'Text',
             'view' => 'blocks.contact.contact-info',
         ],
+
+        // ── Shared element library (blueprints, sections, landing pages) ─
+        ...require __DIR__.'/block_templates_shared.php',
     ],
 ];

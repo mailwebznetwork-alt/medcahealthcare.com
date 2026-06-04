@@ -1,0 +1,3 @@
+<x-blocks.element-wrap tone="muted">
+    <div class="grid gap-4 sm:grid-cols-3"><div class="rounded-xl bg-white p-6 text-center shadow-sm"><p class="text-3xl font-bold text-medca-primary">98%</p><p class="mt-1 text-sm text-slate-600">Satisfaction</p></div><div class="rounded-xl bg-white p-6 text-center shadow-sm"><p class="text-3xl font-bold text-medca-primary">98%</p><p class="mt-1 text-sm text-slate-600">Satisfaction</p></div><div class="rounded-xl bg-white p-6 text-center shadow-sm"><p class="text-3xl font-bold text-medca-primary">98%</p><p class="mt-1 text-sm text-slate-600">Satisfaction</p></div></div>
+</x-blocks.element-wrap>

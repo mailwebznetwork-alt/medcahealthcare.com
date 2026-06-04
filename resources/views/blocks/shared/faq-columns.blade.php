@@ -1,0 +1,3 @@
+<x-blocks.element-wrap tone="muted">
+    <x-blocks.marketing-headline class="text-2xl font-semibold" /><div class="mt-8 grid gap-8 md:grid-cols-2"><div><h3 class="font-semibold">Topic</h3><p class="mt-2 text-sm text-slate-600">Answer in column layout.</p></div><div><h3 class="font-semibold">Topic</h3><p class="mt-2 text-sm text-slate-600">Answer in column layout.</p></div><div><h3 class="font-semibold">Topic</h3><p class="mt-2 text-sm text-slate-600">Answer in column layout.</p></div><div><h3 class="font-semibold">Topic</h3><p class="mt-2 text-sm text-slate-600">Answer in column layout.</p></div></div>
+</x-blocks.element-wrap>

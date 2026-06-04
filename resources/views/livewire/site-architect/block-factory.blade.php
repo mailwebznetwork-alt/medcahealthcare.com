@@ -12,8 +12,12 @@
     @endif
 
     @if ($mode === 'list')
+        <p class="mom-card mb-6 border border-[var(--border-panel-soft)] px-4 py-3 text-sm text-[var(--text-secondary)]">
+            <span class="font-semibold text-[var(--text-primary)]">{{ __('For developers') }}</span>
+            — {{ __('Registers block slugs and Blade code. Eyebrow, headlines, and media can be edited here when the block has a content schema, or in Section Content.') }}
+        </p>
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-            <h2 class="text-lg font-semibold text-[var(--text-primary)]">{{ __('Block Factory') }}</h2>
+            <h2 class="text-lg font-semibold text-[var(--text-primary)]">{{ __('Blocks Factory') }}</h2>
             <a
                 href="{{ route('site-architect.block-factory.index') }}?create=1"
                 wire:click.prevent="startCreate"
@@ -22,6 +26,18 @@
             >
                 {{ __('Create block') }}
             </a>
+        </div>
+
+        <div class="mb-6 max-w-xl">
+            <label for="block-factory-search" class="mom-micro text-[var(--text-muted)]">{{ __('Search blocks') }}</label>
+            <input
+                id="block-factory-search"
+                type="search"
+                wire:model.live.debounce.400ms="search"
+                class="mt-1 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)]"
+                placeholder="{{ __('Name, slug, type, or description…') }}"
+                autocomplete="off"
+            />
         </div>
 
         <div class="mom-card overflow-x-auto p-0">
@@ -68,19 +84,24 @@
                                     x-data="{ code: {{ \Illuminate\Support\Js::from($block->code) }} }"
                                     @click="navigator.clipboard.writeText(code)"
                                 >{{ __('Copy code') }}</button>
-                                @unless ($block->is_managed)
-                                    <button
-                                        type="button"
-                                        wire:click="deleteBlock({{ $block->id }})"
-                                        wire:confirm="{{ __('Delete this block? Any page or blog that still references this slug will show an empty slot until you change the token.') }}"
-                                        class="text-[var(--danger)] hover:underline"
-                                    >{{ __('Delete') }}</button>
-                                @endunless
+                                <button
+                                    type="button"
+                                    wire:click="removeBlock({{ $block->id }})"
+                                    @php
+                                        $removeConfirm = $block->is_managed
+                                            ? __('Remove this managed block from the database? It will return after php artisan blocks:sync unless you change Git templates.')
+                                            : __('Remove this block? Any page or blog that still uses slug “:slug” will show an empty slot until you change the token.', ['slug' => $block->block_slug]);
+                                    @endphp
+                                    wire:confirm="{{ $removeConfirm }}"
+                                    class="text-[var(--danger)] hover:underline"
+                                >{{ __('Remove') }}</button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-10 text-center text-[var(--text-muted)]">{{ __('No blocks yet.') }}</td>
+                            <td colspan="6" class="px-4 py-10 text-center text-[var(--text-muted)]">
+                                {{ $search !== '' ? __('No blocks match your search.') : __('No blocks yet.') }}
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -97,6 +118,34 @@
         </div>
 
         <div class="space-y-8">
+            @include('livewire.site-architect.partials.architect-save-approvals')
+
+            @if ($editingManaged)
+                <div class="mom-card border border-[rgba(197,160,89,0.35)] bg-[rgba(197,160,89,0.08)] px-4 py-3 text-sm text-[var(--text-secondary)]">
+                    <p class="font-semibold text-mom-gold">{{ __('Git-managed block') }}</p>
+                    <p class="mt-1">{{ __('Markup lives in resources/views/blocks and syncs via php artisan blocks:sync. You can also edit copy below or in') }}
+                        <a href="{{ route('site-architect.block-studio.index', ['block' => $block_slug]) }}" class="text-mom-gold underline">{{ \App\Support\SiteArchitectNavigation::LABEL_SECTION_CONTENT }}</a>.
+                    </p>
+                </div>
+            @endif
+            @if ($showMarketingCopy)
+                <section class="mom-card p-6">
+                    <h3 class="text-sm font-semibold uppercase tracking-wide text-[var(--text-muted)]">{{ __('Marketing copy') }}</h3>
+                    <p class="mom-subtext mt-2 text-sm">{{ __('Saved to block settings and used by the Blade template (e.g. eyebrow above the headline). Schema follows the block slug or the included blocks.* view name.') }}</p>
+                    <div class="mt-6 grid gap-4 md:grid-cols-2">
+                        @foreach ($contentSchema as $key => $field)
+                            <label class="block {{ ($field['type'] ?? 'text') === 'textarea' ? 'md:col-span-2' : '' }}">
+                                <span class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ $field['label'] ?? $key }}</span>
+                                @if (($field['type'] ?? 'text') === 'textarea')
+                                    <textarea wire:model="block_content.{{ $key }}" rows="3" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)]"></textarea>
+                                @else
+                                    <input type="text" wire:model="block_content.{{ $key }}" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)]" />
+                                @endif
+                            </label>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
             <section class="mom-card p-6">
                 <div class="grid gap-8 md:grid-cols-2">
                     <div class="space-y-4">
@@ -126,7 +175,7 @@
                         ])
                         <div>
                             <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Code (HTML / Blade)') }}</label>
-                            <textarea wire:model="code" rows="16" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 font-mono text-xs text-[var(--text-primary)]"></textarea>
+                            <textarea wire:model.live.debounce.400ms="code" rows="16" @readonly($editingManaged) @class(['mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 font-mono text-xs text-[var(--text-primary)]', 'opacity-70' => $editingManaged])></textarea>
                             @error('code') <p class="mt-1 text-xs text-[var(--danger)]">{{ $message }}</p> @enderror
                         </div>
                         @include('livewire.site-architect.partials.block-custom-css-field', ['wireModel' => 'custom_css'])
@@ -159,6 +208,16 @@
                     </label>
                     <button type="button" wire:click="saveBlock" class="rounded-mom-chrome bg-[var(--accent-gold)] px-5 py-2.5 text-sm font-semibold text-[#120f0d]">{{ __('Save block') }}</button>
                     <button type="button" wire:click="cancelForm" class="rounded-mom-chrome border border-[var(--border-panel-soft)] px-5 py-2.5 text-sm text-[var(--text-secondary)]">{{ __('Cancel') }}</button>
+                    @if ($editingId)
+                        <button
+                            type="button"
+                            wire:click="removeBlock({{ $editingId }})"
+                            wire:confirm="{{ $editingManaged
+                                ? __('Remove this managed block from the database? It will return after php artisan blocks:sync unless you change Git templates.')
+                                : __('Remove this block? Any page or blog that still uses this slug will show an empty slot until you change the token.') }}"
+                            class="rounded-mom-chrome border border-[rgba(226,92,92,0.35)] px-5 py-2.5 text-sm font-semibold text-[var(--danger)]"
+                        >{{ __('Remove block') }}</button>
+                    @endif
                 </div>
             </section>
         </div>

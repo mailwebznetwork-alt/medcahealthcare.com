@@ -65,9 +65,7 @@ it('denies integrations access for non-admin users', function () {
 
     $this->actingAs($viewer)
         ->getJson(route('admin.settings.integrations.index'))
-        ->assertStatus(403)
-        ->assertJsonPath('success', false)
-        ->assertJsonPath('message', 'Forbidden.');
+        ->assertForbidden();
 });
 
 it('updates and masks credentials for chatgpt integration', function () {

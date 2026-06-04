@@ -35,6 +35,8 @@ class PublicPagePresenter
                     ->orderBy('city')
                     ->orderBy('pincode')
                     ->get(),
+                'nearYouServices' => $this->localizedServices(limit: 6),
+                'nearYouPayload' => $this->nearYouPayload(),
             ],
             'services' => [
                 'publishedServices' => $this->localizedServices(),

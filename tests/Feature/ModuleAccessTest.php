@@ -19,7 +19,7 @@ it('returns forbidden when the user lacks module access', function () {
     ]);
 
     $this->actingAs($user)
-        ->get(route('modules.marketing'))
+        ->get(route('marketing.dashboard'))
         ->assertForbidden();
 });
 
@@ -34,7 +34,7 @@ it('does not render sidebar links for modules the user cannot access', function 
     $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertOk()
-        ->assertDontSee(route('modules.marketing'), false);
+        ->assertDontSee(route('marketing.dashboard'), false);
 });
 
 it('allows an administrator to update another user module access', function () {

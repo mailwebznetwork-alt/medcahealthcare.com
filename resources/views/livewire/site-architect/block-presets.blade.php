@@ -6,7 +6,7 @@
         @if ($errorMessage)<p class="text-sm text-[var(--danger)]" role="alert">{{ $errorMessage }}</p>@endif
 
         <div class="grid gap-6 lg:grid-cols-2">
-            <x-admin.card :title="__('Create block preset')">
+            <x-admin.card :title="__('Create template')">
                 <form wire:submit="createPreset" class="grid gap-3">
                     <label class="block"><span class="mom-label">{{ __('Name') }}</span><input type="text" wire:model="preset_name" class="mom-input w-full" /></label>
                     <label class="block"><span class="mom-label">{{ __('Block type') }}</span><input type="text" wire:model="block_type" class="mom-input w-full" /></label>
@@ -25,17 +25,17 @@
                             @endforeach
                         </select>
                     </label>
-                    <button type="submit" class="mom-cta-compact mom-cta-primary">{{ __('Save preset') }}</button>
+                    <button type="submit" class="mom-cta-compact mom-cta-primary">{{ __('Save template') }}</button>
                 </form>
             </x-admin.card>
 
             <x-admin.card :title="__('Import / export')">
                 <textarea wire:model="import_json" rows="8" class="mom-input w-full font-mono text-xs"></textarea>
-                <button type="button" wire:click="importPreset" class="mom-cta-compact mom-cta-ghost mt-2">{{ __('Import preset') }}</button>
+                <button type="button" wire:click="importPreset" class="mom-cta-compact mom-cta-ghost mt-2">{{ __('Import template') }}</button>
             </x-admin.card>
         </div>
 
-        <x-admin.card :title="__('Saved presets')">
+        <x-admin.card :title="__('Saved templates')">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead><tr class="text-left text-[var(--text-secondary)]"><th class="py-2">{{ __('Name') }}</th><th>{{ __('Type') }}</th><th>{{ __('Target') }}</th><th></th></tr></thead>
@@ -58,7 +58,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="py-4 text-[var(--text-secondary)]">{{ __('No presets yet.') }}</td></tr>
+                            <tr><td colspan="4" class="py-4 text-[var(--text-secondary)]">{{ __('No templates yet.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -66,7 +66,7 @@
         </x-admin.card>
 
         @if ($preview_html)
-            <x-admin.card :title="__('Preset preview')">
+            <x-admin.card :title="__('Template preview')">
                 <div class="rounded-lg border border-[var(--border-panel-soft)] bg-white p-4 text-slate-900">{!! $preview_html !!}</div>
             </x-admin.card>
         @endif

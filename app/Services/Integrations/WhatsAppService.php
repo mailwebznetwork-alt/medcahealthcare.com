@@ -8,10 +8,30 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsAppService
 {
-    public function __construct(private readonly ActivityLogService $activityLogService) {}
+    public function __construct(
+        private readonly ActivityLogService $activityLogService,
+        private readonly WhatsAppClickToChatService $clickToChatService,
+    ) {}
 
     public function testConnection(string $integrationName = 'whatsapp_business_1'): array
     {
+        if ($integrationName === WhatsAppClickToChatService::INTEGRATION_NAME) {
+            $active = $this->clickToChatService->activeNumbers();
+            if ($active === []) {
+                return [
+                    'success' => false,
+                    'message' => 'No enabled WhatsApp numbers. Add at least one number in Configure.',
+                    'data' => [],
+                ];
+            }
+
+            return [
+                'success' => true,
+                'message' => sprintf('Click-to-WhatsApp ready (%d active number(s)).', count($active)),
+                'data' => ['numbers' => array_map(fn ($n) => $n->displayName, $active)],
+            ];
+        }
+
         try {
             $integration = Integration::query()->where('name', $integrationName)->first();
 

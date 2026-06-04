@@ -2,6 +2,7 @@
     'pageTitle' => null,
     'welcomeLine' => null,
     'contentClass' => null,
+    'breadcrumbs' => [],
 ])
 
 @php
@@ -14,6 +15,10 @@
     :welcome-line="$welcomeLine"
 >
     <div class="operations-workspace">
+        @if (! empty($breadcrumbs))
+            <x-admin.breadcrumb :items="$breadcrumbs" />
+        @endif
+
         @isset($tabs)
             <div class="mom-backend-tabstrip">
                 {{ $tabs }}

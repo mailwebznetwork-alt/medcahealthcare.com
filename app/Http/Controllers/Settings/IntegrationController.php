@@ -10,6 +10,7 @@ use App\Services\ActivityLogService;
 use App\Services\Integrations\CredentialVault;
 use App\Services\Integrations\GoogleBusinessProfileService;
 use App\Services\Integrations\IntegrationRegistry;
+use App\Services\Integrations\WhatsAppClickToChatService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -344,6 +345,47 @@ class IntegrationController extends Controller
         ]);
 
         return redirect()->route('settings.integrations')->with('status', __('WhatsApp account added.'));
+    }
+
+    public function updateClickToChat(Request $request, WhatsAppClickToChatService $whatsAppClickToChat)
+    {
+        $integration = $this->findByName(WhatsAppClickToChatService::INTEGRATION_NAME);
+        if (! $integration instanceof Integration) {
+            return redirect()->route('settings.integrations')->withErrors(['integration' => __('Add the WhatsApp integration first.')]);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'is_enabled' => ['sometimes', 'boolean'],
+            'floating_button_enabled' => ['sometimes', 'boolean'],
+            'click_numbers' => ['nullable', 'array', 'max:'.WhatsAppClickToChatService::MAX_NUMBERS],
+            'click_numbers.*.display_name' => ['nullable', 'string', 'max:120'],
+            'click_numbers.*.phone' => ['nullable', 'string', 'max:32'],
+            'click_numbers.*.default_message' => ['nullable', 'string', 'max:1000'],
+            'click_numbers.*.enabled' => ['sometimes', 'boolean'],
+            'click_numbers.*.sort_order' => ['nullable', 'integer', 'min:0', 'max:99'],
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->route('settings.integrations')->withErrors($validator)->withInput();
+        }
+
+        $validated = $validator->validated();
+        $existing = $this->credentialVault->decrypt($integration->credentials);
+        $existing['click_numbers'] = $whatsAppClickToChat->sanitizeClickNumbers((array) ($validated['click_numbers'] ?? []));
+        $existing['floating_button_enabled'] = $request->boolean('floating_button_enabled');
+
+        $integration->forceFill([
+            'credentials' => $this->credentialVault->encrypt($existing),
+            'is_enabled' => $request->has('is_enabled') ? $request->boolean('is_enabled') : $integration->is_enabled,
+        ])->save();
+
+        $this->activityLogService->log(
+            'integration_updated',
+            'integrations',
+            sprintf('WhatsApp click-to-chat numbers updated by user %d.', (int) auth()->id())
+        );
+
+        return redirect()->route('settings.integrations')->with('status', __('WhatsApp click-to-chat settings saved.'));
     }
 
     private function findByName(string $name, bool $withAccounts = false): ?Integration

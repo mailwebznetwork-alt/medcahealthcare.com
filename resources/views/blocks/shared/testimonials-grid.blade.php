@@ -1,0 +1,3 @@
+<x-blocks.element-wrap tone="light">
+    <x-blocks.marketing-headline class="text-2xl font-semibold" /><div class="mt-8 grid gap-6 md:grid-cols-2"><blockquote class="rounded-xl bg-slate-50 p-5 text-sm text-slate-700">Trusted care at home.</blockquote><blockquote class="rounded-xl bg-slate-50 p-5 text-sm text-slate-700">Trusted care at home.</blockquote><blockquote class="rounded-xl bg-slate-50 p-5 text-sm text-slate-700">Trusted care at home.</blockquote><blockquote class="rounded-xl bg-slate-50 p-5 text-sm text-slate-700">Trusted care at home.</blockquote></div>
+</x-blocks.element-wrap>

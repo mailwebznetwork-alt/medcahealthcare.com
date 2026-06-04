@@ -2,29 +2,31 @@
 
 namespace App\Providers;
 
+use App\Contracts\Deployment\AiDeploymentAdvisoryInterface;
+use App\Http\Controllers\Public\LeadCaptureController;
 use App\Models\Block;
 use App\Models\Blog;
 use App\Models\BusinessProfile;
 use App\Models\Competitor;
 use App\Models\CompetitorTracking;
 use App\Models\Lead;
-use App\Observers\LeadObserver;
 use App\Models\MarketingCampaign;
-use App\Models\ThemeConfiguration;
-use App\Policies\ThemeConfigurationPolicy;
 use App\Models\MarketingSetting;
 use App\Models\Media;
 use App\Models\Module;
 use App\Models\Page;
 use App\Models\PinCode;
+use App\Models\Review;
 use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
-use App\Models\Review;
 use App\Models\Service;
+use App\Models\ServiceCategory;
 use App\Models\SiteKeywordRanking;
+use App\Models\ThemeConfiguration;
 use App\Models\User;
 use App\Observers\BlogObserver;
 use App\Observers\CompetitorTrackingObserver;
+use App\Observers\LeadObserver;
 use App\Observers\PageObserver;
 use App\Observers\ServiceObserver;
 use App\Observers\SiteKeywordRankingObserver;
@@ -39,11 +41,16 @@ use App\Policies\ModulePolicy;
 use App\Policies\PagePolicy;
 use App\Policies\PinCodePolicy;
 use App\Policies\ReviewPolicy;
+use App\Policies\ServiceCategoryPolicy;
 use App\Policies\ServicePolicy;
+use App\Policies\ThemeConfigurationPolicy;
 use App\Policies\UserPolicy;
 use App\Services\Content\ContentRenderContext;
 use App\Services\Content\ServiceBindingRegistry;
+use App\Services\Deployment\NullAiDeploymentAdvisory;
+use App\Services\Integrations\WhatsAppClickToChatService;
 use App\Services\ServiceContextCollector;
+use App\Services\Theme\ThemeResolver;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -52,6 +59,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -69,9 +77,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ServiceBindingRegistry::class);
 
         $this->app->bind(
-            \App\Contracts\Deployment\AiDeploymentAdvisoryInterface::class,
-            \App\Services\Deployment\NullAiDeploymentAdvisory::class
+            AiDeploymentAdvisoryInterface::class,
+            NullAiDeploymentAdvisory::class
         );
+
+        $this->app->singleton(WhatsAppClickToChatService::class);
     }
 
     /**
@@ -79,6 +89,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->ensurePublicLeadRouteIsRegistered();
+
         $this->configureRateLimiting();
 
         Blade::precompiler(function (string $value): string {
@@ -111,6 +123,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(PinCode::class, PinCodePolicy::class);
         Gate::policy(Service::class, ServicePolicy::class);
+        Gate::policy(ServiceCategory::class, ServiceCategoryPolicy::class);
         Gate::policy(Block::class, BlockPolicy::class);
         Gate::policy(Blog::class, BlogPolicy::class);
         Gate::policy(Module::class, ModulePolicy::class);
@@ -163,14 +176,24 @@ class AppServiceProvider extends ServiceProvider
             $view->with('globalSiteSeo', $globalSiteSeo);
 
             $view->with('serviceContextCollector', app(ServiceContextCollector::class));
+
+            $whatsApp = app(WhatsAppClickToChatService::class);
+            $view->with('whatsAppNumbers', $whatsApp->activeNumbers());
+            $view->with('whatsAppPrimaryUrl', $whatsApp->primaryUrl());
+            $view->with('whatsAppFloatingEnabled', $whatsApp->isFloatingButtonEnabled());
         });
 
-        View::composer(['global.header', 'global.footer'], function ($view): void {
+        View::composer(['global.header', 'global.footer', 'global.floating'], function ($view): void {
             $view->with('marketingSettings', MarketingSetting::current());
 
-            if (\Illuminate\Support\Facades\Schema::hasTable('theme_configurations')) {
-                $view->with('themeBranding', app(\App\Services\Theme\ThemeResolver::class)->branding());
+            if (Schema::hasTable('theme_configurations')) {
+                $view->with('themeBranding', app(ThemeResolver::class)->branding());
             }
+
+            $whatsApp = app(WhatsAppClickToChatService::class);
+            $view->with('whatsAppNumbers', $whatsApp->activeNumbers());
+            $view->with('whatsAppPrimaryUrl', $whatsApp->primaryUrl());
+            $view->with('whatsAppFloatingEnabled', $whatsApp->isFloatingButtonEnabled());
         });
 
         Paginator::useTailwind();
@@ -183,9 +206,30 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * ContentParser renders blocks via Blade::render(); ensure the lead route exists
+     * even if route cache or load order omits the web.php registration.
+     */
+    private function ensurePublicLeadRouteIsRegistered(): void
+    {
+        $this->app->booted(function (): void {
+            if (Route::has('public.leads.store')) {
+                return;
+            }
+
+            Route::post('/leads', [LeadCaptureController::class, 'store'])
+                ->middleware('throttle:public_leads')
+                ->name('public.leads.store');
+        });
+    }
+
     private function configureRateLimiting(): void
     {
         RateLimiter::for('api_leads', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
+        });
+
+        RateLimiter::for('public_leads', function (Request $request) {
             return Limit::perMinute(5)->by($request->ip());
         });
 

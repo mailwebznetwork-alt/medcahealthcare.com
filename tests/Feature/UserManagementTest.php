@@ -141,8 +141,9 @@ it('omits profile read-only users from the user management index', function () {
         ->assertDontSee('Hidden From Index');
 });
 
-it('still lists the root super administrator on the index when the read-only name list overlaps', function () {
+it('hides the root super administrator from the index by default', function () {
     config([
+        'user_management.hide_root_account_in_directory' => true,
         'user_management.profile_readonly_emails' => [],
         'user_management.profile_readonly_names' => ['wdjerrie'],
     ]);
@@ -160,7 +161,7 @@ it('still lists the root super administrator on the index when the read-only nam
     $this->actingAs($admin)
         ->get(route('user-management.index'))
         ->assertOk()
-        ->assertSee($root->email);
+        ->assertDontSee($root->email);
 });
 
 it('prevents modifying user management read-only accounts by email', function () {

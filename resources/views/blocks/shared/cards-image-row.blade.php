@@ -1,0 +1,3 @@
+<x-blocks.element-wrap tone="light">
+    <div class="grid gap-6 md:grid-cols-3"><article class="overflow-hidden rounded-2xl border border-slate-200"><div class="aspect-[4/3] bg-slate-200"></div><div class="p-4"><h3 class="font-semibold">Card</h3></div></article><article class="overflow-hidden rounded-2xl border border-slate-200"><div class="aspect-[4/3] bg-slate-200"></div><div class="p-4"><h3 class="font-semibold">Card</h3></div></article><article class="overflow-hidden rounded-2xl border border-slate-200"><div class="aspect-[4/3] bg-slate-200"></div><div class="p-4"><h3 class="font-semibold">Card</h3></div></article></div>
+</x-blocks.element-wrap>

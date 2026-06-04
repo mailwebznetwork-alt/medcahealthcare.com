@@ -2,26 +2,58 @@
     @if ($statusMessage)<p class="text-sm text-[var(--success)]" role="status">{{ $statusMessage }}</p>@endif
     @if ($errorMessage)<p class="text-sm text-[var(--danger)]" role="alert">{{ $errorMessage }}</p>@endif
 
-    <x-admin.card :title="__('Block deployment studio')">
-        <p class="mom-body-text mb-4 text-sm text-[var(--text-secondary)]">{{ __('Media mapping and section design controls are stored in blocks.settings_json. Pages can override per block via block_overrides_json.') }}</p>
+    <x-admin.card :title="__('Edit section content')">
+        <p class="mom-body-text mb-4 text-sm text-[var(--text-secondary)]">{{ __('Pick the section you want to edit, then use the tabs below for wording, images, and layout. Phone and WhatsApp numbers come from Settings → Global content.') }}</p>
+        @if ($block_slug !== '' && ($sectionDisplayName ?? '') !== '')
+            <p class="mb-4 text-sm font-semibold text-[var(--text-primary)]">{{ __('Editing: :name', ['name' => $sectionDisplayName]) }}</p>
+        @endif
         <label class="block max-w-md">
-            <span class="mom-label">{{ __('Block') }}</span>
+            <span class="mom-label">{{ __('Section') }}</span>
             <select wire:model.live="block_slug" class="mom-input w-full">
-                @foreach ($blocks as $block)
-                    <option value="{{ $block->block_slug }}">{{ $block->block_name }} ({{ $block->block_slug }})</option>
+                @foreach ($sectionPickerGroups as $category => $sections)
+                    <optgroup label="{{ $category }}">
+                        @foreach ($sections as $section)
+                            <option value="{{ $section['slug'] }}">{{ $section['display_name'] }}</option>
+                        @endforeach
+                    </optgroup>
                 @endforeach
             </select>
         </label>
     </x-admin.card>
 
     <div class="flex flex-wrap gap-2">
-        @foreach (['media' => __('Media mapping'), 'section' => __('Section controls'), 'style' => __('Style variant')] as $key => $label)
+        @php
+            $panels = [];
+            if (count($contentSchema) > 0) {
+                $panels['content'] = __('Section content');
+            }
+            $panels['media'] = __('Images & media');
+            $panels['section'] = __('Section layout');
+            $panels['style'] = __('Style variant');
+        @endphp
+        @foreach ($panels as $key => $label)
             <button type="button" wire:click="$set('activePanel', '{{ $key }}')" @class(['mom-cta-compact', 'mom-cta-primary' => $activePanel === $key, 'mom-cta-ghost' => $activePanel !== $key])>{{ $label }}</button>
         @endforeach
     </div>
 
     <x-admin.card>
-        @if ($activePanel === 'media')
+        @if ($activePanel === 'content')
+            <div class="grid gap-4 md:grid-cols-2">
+                @foreach ($contentSchema as $key => $field)
+                    <label class="block {{ ($field['type'] ?? 'text') === 'textarea' ? 'md:col-span-2' : '' }}">
+                        <span class="mom-label">{{ $field['label'] ?? $key }}</span>
+                        @if (($field['type'] ?? 'text') === 'textarea')
+                            <textarea wire:model="content.{{ $key }}" rows="3" class="mom-input mt-2 w-full text-sm"></textarea>
+                        @else
+                            <input type="text" wire:model="content.{{ $key }}" class="mom-input mt-2 w-full text-sm" />
+                        @endif
+                    </label>
+                @endforeach
+            </div>
+            @if (count($contentSchema) === 0)
+                <p class="mom-subtext text-sm">{{ __('This section has no editable text fields. Try Images & media or ask a developer to add a content schema.') }}</p>
+            @endif
+        @elseif ($activePanel === 'media')
             <div class="grid gap-4 md:grid-cols-2">
                 @foreach ($mediaSlots as $slot)
                     <div class="rounded-lg border border-[var(--border-panel-soft)] p-3">
@@ -63,13 +95,13 @@
         @endif
 
         <div class="mt-6 flex flex-wrap gap-2">
-            <button type="button" wire:click="preview" class="mom-cta-compact mom-cta-ghost">{{ __('Preview') }}</button>
-            <button type="button" wire:click="saveDraft" class="mom-cta-compact mom-cta-primary">{{ __('Save to block') }}</button>
+            <button type="button" wire:click="preview" class="mom-cta-compact mom-cta-ghost">{{ __('Preview section') }}</button>
+            <button type="button" wire:click="saveDraft" class="mom-cta-compact mom-cta-primary">{{ __('Save section') }}</button>
         </div>
     </x-admin.card>
 
     @if ($preview_html)
-        <x-admin.card :title="__('Preview')">
+        <x-admin.card :title="__('Section preview')">
             <div class="rounded-lg border border-[var(--border-panel-soft)] bg-white p-4 text-slate-900">{!! $preview_html !!}</div>
         </x-admin.card>
     @endif

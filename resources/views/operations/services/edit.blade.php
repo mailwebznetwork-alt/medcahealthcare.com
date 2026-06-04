@@ -26,6 +26,12 @@
         <a href="{{ route('operations.services.duplicate', $service) }}" class="mom-cta-ghost">{{ __('Duplicate') }}</a>
     </div>
 
+    @include('operations.services._composition-guidance', [
+        'service' => $service,
+        'linkedDetailPage' => $linkedDetailPage,
+        'patternDetailPage' => $patternDetailPage ?? null,
+    ])
+
     @include('operations.services._detail-page-panel', [
         'service' => $service,
         'linkedDetailPage' => $linkedDetailPage,
@@ -43,6 +49,12 @@
             'suggestedDetailPageSlug' => $suggestedDetailPageSlug,
             'patternDetailPage' => $patternDetailPage,
             'linkedDetailPage' => $linkedDetailPage,
+            'activeTab' => $activeTab ?? 'basic',
+            'serviceCatalog' => $serviceCatalog ?? collect(),
+            'selectedRelatedCodes' => $selectedRelatedCodes ?? [],
+            'serviceReviews' => $serviceReviews ?? collect(),
+            'managedModule' => $managedModule ?? null,
+            'customFieldValues' => $customFieldValues ?? new stdClass(),
         ])
 
         <div class="flex flex-wrap gap-3">

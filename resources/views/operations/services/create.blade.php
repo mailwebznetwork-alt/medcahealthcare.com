@@ -18,7 +18,12 @@
             'detailPages' => $detailPages,
             'suggestedDetailPageSlug' => $suggestedDetailPageSlug,
             'patternDetailPage' => $patternDetailPage,
-            'linkedDetailPage' => null,
+            'activeTab' => $activeTab ?? 'basic',
+            'serviceCatalog' => $serviceCatalog ?? collect(),
+            'selectedRelatedCodes' => $selectedRelatedCodes ?? [],
+            'serviceReviews' => $serviceReviews ?? collect(),
+            'managedModule' => $managedModule ?? null,
+            'customFieldValues' => $customFieldValues ?? new stdClass(),
         ])
 
         <div class="flex flex-wrap gap-3">

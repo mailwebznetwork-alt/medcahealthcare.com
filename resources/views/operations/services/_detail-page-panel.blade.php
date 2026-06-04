@@ -18,7 +18,7 @@
             <a href="{{ route('operations.services.detail-page.create', $service) }}" class="mom-cta-primary">{{ __('Create detail page & open editor') }}</a>
             <p class="mom-subtext w-full">{{ __('Creates page slug :slug and links it to this service.', ['slug' => $suggestedDetailPageSlug ?? 'service-{code}']) }}</p>
         @endif
-        <a href="{{ route('site-architect.block-factory.index') }}" class="mom-cta-ghost">{{ __('Block Factory') }}</a>
+        <a href="{{ route('site-architect.block-factory.index') }}" class="mom-cta-ghost">{{ __('Blocks Factory') }}</a>
         <a href="{{ route('site-architect.media.index') }}" class="mom-cta-ghost">{{ __('Media library') }}</a>
     </div>
 </section>

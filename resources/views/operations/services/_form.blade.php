@@ -3,10 +3,39 @@
     /** @var \Illuminate\Support\Collection<int, \App\Models\PinCode> $pinCodes */
     /** @var \Illuminate\Support\Collection<int, \App\Models\Page> $detailPages */
     $mode = $mode ?? 'create';
-
+    $activeTab = $activeTab ?? 'basic';
     $detailPages = isset($detailPages) ? $detailPages : collect();
-
     $selectedPinIds = array_map(static fn ($v) => (int) $v, old('pincodes', $service->exists ? $service->pincodes->pluck('id')->all() : []));
+    $categoryOptions = $categoryOptions ?? collect();
+    $selectedCategoryIds = array_map(static fn ($v) => (int) $v, old('category_ids', $service->exists ? $service->categories->pluck('id')->all() : []));
+    $seo = $service->seo;
+    $schema = $service->schema;
+
+    $arrayLines = static function (?array $items): string {
+        if (! is_array($items) || $items === []) {
+            return '';
+        }
+
+        return implode("\n", array_map(static fn (mixed $line): string => (string) $line, $items));
+    };
+
+    $faqSeed = old('faqs');
+    if ($faqSeed === null) {
+        $faqSeed = $service->exists
+            ? $service->faqs->map(static fn ($faq): array => [
+                'question' => $faq->question,
+                'answer' => $faq->answer,
+            ])->values()->all()
+            : [];
+    }
+    if ($faqSeed === []) {
+        $faqSeed = [['question' => '', 'answer' => '']];
+    }
+
+    $schemaJsonDisplay = old('schema_json');
+    if ($schemaJsonDisplay === null && $schema !== null && is_array($schema->schema_json) && $schema->schema_json !== []) {
+        $schemaJsonDisplay = json_encode($schema->schema_json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
 
     if (! isset($linkedDetailPage)) {
         $detailPageId = (int) old('detail_page_id', $service->detail_page_id);
@@ -16,142 +45,441 @@
     }
 @endphp
 
-<div class="space-y-8">
-    <section class="mom-card p-6">
-        <h3 class="mom-section-title mb-4">{{ __('Basic') }}</h3>
-        <div class="grid gap-6 md:grid-cols-2">
-            <div class="md:col-span-2">
-                <x-input-label for="title" :value="__('Title')" variant="mom" />
-                <x-text-input id="title" name="title" type="text" class="mt-2 block w-full" :value="old('title', $service->title)" required autofocus variant="mom" />
-                <x-input-error class="mt-2" :messages="$errors->get('title')" />
-            </div>
-            <div>
-                <x-input-label for="service_code" :value="__('Service code')" variant="mom" />
-                @if ($mode === 'edit')
-                    <input type="hidden" name="service_code" value="{{ $service->service_code }}" />
-                    <input
-                        id="service_code"
-                        type="text"
-                        class="mt-2 block w-full cursor-not-allowed rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.5)] px-3 py-2.5 text-sm text-[var(--text-muted)]"
-                        value="{{ $service->service_code }}"
-                        readonly
-                        autocomplete="off"
-                    />
-                    <p class="mom-subtext mt-1">{{ __('Immutable identifier for Block Factory — cannot be changed.') }}</p>
-                @else
-                    <x-text-input id="service_code" name="service_code" type="text" class="mt-2 block w-full" :value="old('service_code')" required variant="mom" />
-                    <p class="mom-subtext mt-1">{{ __('Letters, numbers, underscore, hyphen. Starts with a letter.') }}</p>
-                @endif
-                <x-input-error class="mt-2" :messages="$errors->get('service_code')" />
-            </div>
-            <div>
-                <x-input-label for="price_range" :value="__('Price range')" variant="mom" />
-                <x-text-input id="price_range" name="price_range" type="text" class="mt-2 block w-full" :value="old('price_range', $service->price_range)" variant="mom" />
-            </div>
-        </div>
-    </section>
+<div x-data="{ tab: @js($activeTab) }" class="space-y-0">
+    @include('operations.partials.architect-save-form-flags')
 
-    <section class="mom-card p-6">
-        <h3 class="mom-section-title mb-4">{{ __('Control') }}</h3>
-        <div class="grid gap-6 md:grid-cols-2">
-            <div>
-                <x-input-label for="publish_status" :value="__('Publish status')" variant="mom" />
-                <select id="publish_status" name="publish_status" class="rounded-mom-chrome mt-2 block w-full border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
-                    @foreach (\App\Enums\PublishStatus::cases() as $case)
-                        <option value="{{ $case->value }}" @selected(old('publish_status', $service->publish_status?->value ?? \App\Enums\PublishStatus::Draft->value) === $case->value)>{{ $case->label() }}</option>
-                    @endforeach
-                </select>
+    @include('operations.services.partials.tabs-nav', [
+        'mode' => $mode,
+        'activeTab' => $activeTab,
+        'service' => $service,
+        'serviceReviews' => $serviceReviews ?? collect(),
+        'managedModule' => $managedModule ?? null,
+    ])
+
+    <div x-show="tab === 'basic'" x-cloak class="space-y-8">
+        <section class="mom-card p-6">
+            <h3 class="mom-section-title mb-4">{{ __('Basic') }}</h3>
+            <div class="grid gap-6 md:grid-cols-2">
+                <div class="md:col-span-2">
+                    <x-input-label for="title" :value="__('Title')" variant="mom" />
+                    <x-text-input id="title" name="title" type="text" class="mt-2 block w-full" :value="old('title', $service->title)" required autofocus variant="mom" />
+                    <x-input-error class="mt-2" :messages="$errors->get('title')" />
+                </div>
+                <div>
+                    <x-input-label for="service_code" :value="__('Service code')" variant="mom" />
+                    @if ($mode === 'edit')
+                        <input type="hidden" name="service_code" value="{{ $service->service_code }}" />
+                        <input id="service_code" type="text" class="mt-2 block w-full cursor-not-allowed rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.5)] px-3 py-2.5 text-sm text-[var(--text-muted)]" value="{{ $service->service_code }}" readonly autocomplete="off" />
+                        <p class="mom-subtext mt-1">{{ __('Immutable identifier for Block Factory — cannot be changed.') }}</p>
+                    @else
+                        <x-text-input id="service_code" name="service_code" type="text" class="mt-2 block w-full" :value="old('service_code')" required variant="mom" />
+                        <p class="mom-subtext mt-1">{{ __('Letters, numbers, underscore, hyphen. Starts with a letter.') }}</p>
+                    @endif
+                    <x-input-error class="mt-2" :messages="$errors->get('service_code')" />
+                </div>
+                <div>
+                    <x-input-label for="price_range" :value="__('Price range')" variant="mom" />
+                    <x-text-input id="price_range" name="price_range" type="text" class="mt-2 block w-full" :value="old('price_range', $service->price_range)" variant="mom" />
+                </div>
+                <div class="md:col-span-2" x-data="{ catQ: '' }">
+                    <x-input-label for="category_ids" :value="__('Categories')" variant="mom" />
+                    <p class="mom-subtext mt-1">{{ __('Assign one or more categories for navigation and filtering. Does not change service SEO.') }}</p>
+                    @if ($categoryOptions->isEmpty())
+                        <p class="mt-3 text-sm text-[var(--text-muted)]">
+                            {{ __('No categories yet.') }}
+                            <a href="{{ route('operations.service-categories.create') }}" class="text-mom-gold hover:underline">{{ __('Create a category') }}</a>
+                        </p>
+                    @else
+                        <input type="search" x-model="catQ" class="mom-input mt-3 block w-full text-sm" placeholder="{{ __('Filter categories…') }}" autocomplete="off" />
+                        <div class="mt-3 max-h-48 overflow-y-auto custom-scrollbar rounded-mom-chrome border border-[var(--border-panel-soft)] p-3 space-y-2">
+                            @foreach ($categoryOptions as $cat)
+                                @php $blob = strtolower($cat->name.' '.$cat->code); @endphp
+                                <label x-show="!catQ || @js($blob).includes(catQ.toLowerCase())" class="flex items-start gap-2 text-sm">
+                                    <input type="checkbox" name="category_ids[]" value="{{ $cat->id }}" class="mt-1 rounded" @checked(in_array((int) $cat->id, $selectedCategoryIds, true)) />
+                                    <span>
+                                        <span class="font-medium text-[var(--text-primary)]">{{ $cat->name }}</span>
+                                        <span class="block font-mono text-[10px] text-[var(--text-muted)]">{{ $cat->code }}</span>
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
+                    @endif
+                    <x-input-error class="mt-2" :messages="$errors->get('category_ids')" />
+                </div>
             </div>
-            <div>
-                <x-input-label for="visibility" :value="__('Visibility')" variant="mom" />
-                <select id="visibility" name="visibility" class="rounded-mom-chrome mt-2 block w-full border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
-                    @foreach (\App\Enums\ServiceVisibility::cases() as $case)
-                        <option value="{{ $case->value }}" @selected(old('visibility', $service->visibility?->value ?? \App\Enums\ServiceVisibility::Public->value) === $case->value)>{{ $case->label() }}</option>
-                    @endforeach
-                </select>
+        </section>
+    </div>
+
+    <div x-show="tab === 'content'" x-cloak class="space-y-8">
+        <section class="mom-card p-6">
+            <h3 class="mom-section-title mb-4">{{ __('Content') }}</h3>
+            <div class="grid gap-6">
+                <div>
+                    <x-input-label for="short_summary" :value="__('Short summary')" variant="mom" />
+                    <textarea id="short_summary" name="short_summary" rows="3" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('short_summary', $service->short_summary) }}</textarea>
+                    <x-input-error class="mt-2" :messages="$errors->get('short_summary')" />
+                </div>
+                <div>
+                    <x-input-label for="description" :value="__('Description')" variant="mom" />
+                    <textarea id="description" name="description" rows="10" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('description', $service->description) }}</textarea>
+                    <x-input-error class="mt-2" :messages="$errors->get('description')" />
+                </div>
+                <div>
+                    <x-input-label for="procedures_lines" :value="__('Procedures')" variant="mom" />
+                    <textarea id="procedures_lines" name="procedures_lines" rows="6" placeholder="{{ __('One procedure per line') }}" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 font-mono text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('procedures_lines', $service->exists ? $service->listingLines('procedures') : '') }}</textarea>
+                    <p class="mom-subtext mt-1">{{ __('Shown on service detail layouts that include the procedures carousel block.') }}</p>
+                    <x-input-error class="mt-2" :messages="$errors->get('procedures_lines')" />
+                </div>
             </div>
-            <div>
-                <x-input-label for="sort_order" :value="__('Sort order')" variant="mom" />
-                <x-text-input id="sort_order" name="sort_order" type="number" class="mt-2 block w-full" :value="old('sort_order', $service->sort_order)" variant="mom" />
+        </section>
+    </div>
+
+    <div x-show="tab === 'media'" x-cloak class="space-y-8">
+        <section class="mom-card p-6">
+            <h3 class="mom-section-title mb-4">{{ __('Media') }}</h3>
+            <div class="grid gap-6 md:grid-cols-2">
+                <div class="md:col-span-2">
+                    <x-input-label for="featured_image" :value="__('Featured image')" variant="mom" />
+                    @if ($service->exists && filled($service->featured_image))
+                        @php
+                            $featuredPreview = \Illuminate\Support\Str::startsWith($service->featured_image, ['http://', 'https://'])
+                                ? $service->featured_image
+                                : asset('storage/'.$service->featured_image);
+                        @endphp
+                        <div class="mt-2 flex items-start gap-4">
+                            <img src="{{ $featuredPreview }}" alt="" class="h-24 w-32 rounded-mom-chrome border border-[rgba(255,255,255,0.08)] object-cover" />
+                            <p class="mom-subtext break-all">{{ $service->featured_image }}</p>
+                        </div>
+                    @endif
+                    <input id="featured_image" name="featured_image" type="file" accept="image/*" class="mt-2 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-chrome file:border-0 file:bg-[rgba(197,160,89,0.15)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[var(--text-primary)]" />
+                    <x-input-error class="mt-2" :messages="$errors->get('featured_image')" />
+                </div>
+                <div>
+                    <x-input-label for="image_alt" :value="__('Featured image alt text')" variant="mom" />
+                    <x-text-input id="image_alt" name="image_alt" type="text" class="mt-2 block w-full" :value="old('image_alt', $service->image_alt)" variant="mom" />
+                    <x-input-error class="mt-2" :messages="$errors->get('image_alt')" />
+                </div>
+                <div>
+                    <x-input-label for="icon" :value="__('Icon image')" variant="mom" />
+                    @if ($service->exists && filled($service->icon))
+                        @php
+                            $iconPreview = \Illuminate\Support\Str::startsWith($service->icon, ['http://', 'https://'])
+                                ? $service->icon
+                                : asset('storage/'.$service->icon);
+                        @endphp
+                        <div class="mt-2 flex items-center gap-3">
+                            <img src="{{ $iconPreview }}" alt="" class="h-12 w-12 rounded object-cover" />
+                            <p class="mom-subtext break-all text-xs">{{ $service->icon }}</p>
+                        </div>
+                    @endif
+                    <input id="icon" name="icon" type="file" accept="image/*" class="mt-2 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-chrome file:border-0 file:bg-[rgba(197,160,89,0.15)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[var(--text-primary)]" />
+                    <x-input-error class="mt-2" :messages="$errors->get('icon')" />
+                </div>
+                <div class="md:col-span-2">
+                    <x-input-label for="gallery_files" :value="__('Gallery images')" variant="mom" />
+                    @php $galleryItems = is_array($service->gallery) ? array_values(array_filter($service->gallery)) : []; @endphp
+                    @if ($galleryItems !== [])
+                        <ul class="mt-3 space-y-2">
+                            @foreach ($galleryItems as $galleryPath)
+                                @php
+                                    $galleryPreview = \Illuminate\Support\Str::startsWith($galleryPath, ['http://', 'https://'])
+                                        ? $galleryPath
+                                        : asset('storage/'.$galleryPath);
+                                @endphp
+                                <li class="flex items-center gap-3 rounded-mom-chrome border border-[rgba(255,255,255,0.06)] p-2">
+                                    <img src="{{ $galleryPreview }}" alt="" class="h-14 w-20 shrink-0 rounded object-cover" />
+                                    <label class="flex flex-1 cursor-pointer items-center gap-2 text-sm text-[var(--text-secondary)]">
+                                        <input type="checkbox" name="remove_gallery[]" value="{{ $galleryPath }}" class="rounded border-[rgba(255,255,255,0.15)]" />
+                                        {{ __('Remove') }}
+                                    </label>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                    <input id="gallery_files" name="gallery_files[]" type="file" accept="image/*" multiple class="mt-2 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-chrome file:border-0 file:bg-[rgba(197,160,89,0.15)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[var(--text-primary)]" />
+                    <p class="mom-subtext mt-1">{{ __('Upload one or more images. New files are appended to the gallery.') }}</p>
+                    <x-input-error class="mt-2" :messages="$errors->get('gallery_files')" />
+                    <x-input-error class="mt-2" :messages="$errors->get('gallery_files.*')" />
+                </div>
             </div>
-            <div class="md:col-span-2">
-                <x-input-label for="detail_page_id" :value="__('Detail page (blocks layout for /services/CODE)')" variant="mom" />
-                <select id="detail_page_id" name="detail_page_id" class="rounded-mom-chrome mt-2 block w-full border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
-                    <option value="">{{ __('— Auto: page slug :slug if it exists —', ['slug' => $suggestedDetailPageSlug ?? 'service-{code}']) }}</option>
-                    @foreach ($detailPages as $p)
-                        <option value="{{ $p->id }}" @selected((int) old('detail_page_id', $service->detail_page_id) === (int) $p->id)>{{ $p->title }} ({{ $p->slug }})</option>
-                    @endforeach
-                </select>
-                @php
-                    $serviceTokenHint = '{{service:'.($service->service_code ?: 'code').'}}';
-                @endphp
-                <p class="mom-subtext mt-1">
-                    {{ __('Public URL /services/:code renders the linked Site Architect page. Use :token in blocks for related offerings.', ['code' => $service->service_code ?: 'CODE', 'token' => $serviceTokenHint]) }}
+        </section>
+    </div>
+
+    <div x-show="tab === 'clinical'" x-cloak class="space-y-8">
+        <section class="mom-card p-6">
+            <h3 class="mom-section-title mb-4">{{ __('Clinical lists') }}</h3>
+            <div class="grid gap-6 md:grid-cols-2">
+                <div>
+                    <x-input-label for="specialized_care_lines" :value="__('Specialized care')" variant="mom" />
+                    <textarea id="specialized_care_lines" name="specialized_care_lines" rows="5" placeholder="{{ __('One item per line') }}" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 font-mono text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('specialized_care_lines', $service->exists ? $service->listingLines('specialized_care') : '') }}</textarea>
+                    <x-input-error class="mt-2" :messages="$errors->get('specialized_care_lines')" />
+                </div>
+                <div>
+                    <x-input-label for="shifts_lines" :value="__('Shifts / availability')" variant="mom" />
+                    <textarea id="shifts_lines" name="shifts_lines" rows="5" placeholder="{{ __('One item per line') }}" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 font-mono text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('shifts_lines', $service->exists ? $service->listingLines('shifts') : '') }}</textarea>
+                    <x-input-error class="mt-2" :messages="$errors->get('shifts_lines')" />
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div x-show="tab === 'seo'" x-cloak class="space-y-8">
+        <section class="mom-card p-6">
+            <h3 class="mom-section-title mb-2">{{ __('SEO') }}</h3>
+            @include('operations.services.partials._seo-canonical-banner', ['linkedDetailPage' => $linkedDetailPage ?? null])
+            @php
+                $pageSeoLocksFields = \App\Services\Operations\ServiceSeoOwnership::pageSeoOverridesService($linkedDetailPage ?? null);
+                $seoLockedClass = 'mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner opacity-70';
+                $seoOpenClass = 'mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner';
+            @endphp
+            @if (isset($linkedDetailPage) && $linkedDetailPage && ! $pageSeoLocksFields)
+                <p class="mom-body-text mb-4 text-mom-gold">
+                    <a href="{{ route('operations.services.detail-page.edit', $service) }}" class="underline">{{ __('Edit blocks & page SEO in Site Architect') }}</a>
                 </p>
-                @if (isset($patternDetailPage) && $patternDetailPage !== null && (int) $service->detail_page_id !== (int) $patternDetailPage->id)
-                    <p class="mom-subtext mt-1">{{ __('An active page exists at slug :slug and will be used when no page is selected above.', ['slug' => $patternDetailPage->slug]) }}</p>
-                @endif
-                <x-input-error class="mt-2" :messages="$errors->get('detail_page_id')" />
+            @endif
+            <div class="grid gap-6 md:grid-cols-2">
+                <div class="md:col-span-2">
+                    <x-input-label for="seo_meta_title" :value="__('Meta title')" variant="mom" />
+                    <x-text-input id="seo_meta_title" name="seo[meta_title]" type="text" :value="old('seo.meta_title', $seo?->meta_title)" variant="mom" @if ($pageSeoLocksFields) readonly class="mt-2 block w-full opacity-70" @else class="mt-2 block w-full" @endif />
+                    <x-input-error class="mt-2" :messages="$errors->get('seo.meta_title')" />
+                </div>
+                <div class="md:col-span-2">
+                    <x-input-label for="seo_meta_description" :value="__('Meta description')" variant="mom" />
+                    <textarea id="seo_meta_description" name="seo[meta_description]" rows="3" @class([$seoLockedClass => $pageSeoLocksFields, $seoOpenClass => ! $pageSeoLocksFields]) @readonly($pageSeoLocksFields)>{{ old('seo.meta_description', $seo?->meta_description) }}</textarea>
+                    <x-input-error class="mt-2" :messages="$errors->get('seo.meta_description')" />
+                </div>
+                <div>
+                    <x-input-label for="seo_h1" :value="__('H1')" variant="mom" />
+                    <x-text-input id="seo_h1" name="seo[h1]" type="text" :value="old('seo.h1', $seo?->h1)" variant="mom" @if ($pageSeoLocksFields) readonly class="mt-2 block w-full opacity-70" @else class="mt-2 block w-full" @endif />
+                    <x-input-error class="mt-2" :messages="$errors->get('seo.h1')" />
+                </div>
+                <div>
+                    <x-input-label for="seo_focus_keywords_lines" :value="__('Focus keywords')" variant="mom" />
+                    <textarea id="seo_focus_keywords_lines" name="seo[focus_keywords_lines]" rows="3" placeholder="{{ __('One keyword per line') }}" @class([$seoLockedClass => $pageSeoLocksFields, $seoOpenClass => ! $pageSeoLocksFields, 'font-mono' => true]) @readonly($pageSeoLocksFields)>{{ old('seo.focus_keywords_lines', $arrayLines($seo?->focus_keywords)) }}</textarea>
+                    <x-input-error class="mt-2" :messages="$errors->get('seo.focus_keywords')" />
+                </div>
+                <div>
+                    <x-input-label for="seo_h2_lines" :value="__('H2 headings')" variant="mom" />
+                    <textarea id="seo_h2_lines" name="seo[h2_lines]" rows="4" placeholder="{{ __('One heading per line') }}" @class([$seoLockedClass => $pageSeoLocksFields, $seoOpenClass => ! $pageSeoLocksFields, 'font-mono' => true]) @readonly($pageSeoLocksFields)>{{ old('seo.h2_lines', $arrayLines($seo?->h2)) }}</textarea>
+                    <x-input-error class="mt-2" :messages="$errors->get('seo.h2')" />
+                </div>
+                <div>
+                    <x-input-label for="seo_h3_lines" :value="__('H3 headings')" variant="mom" />
+                    <textarea id="seo_h3_lines" name="seo[h3_lines]" rows="4" placeholder="{{ __('One heading per line') }}" @class([$seoLockedClass => $pageSeoLocksFields, $seoOpenClass => ! $pageSeoLocksFields, 'font-mono' => true]) @readonly($pageSeoLocksFields)>{{ old('seo.h3_lines', $arrayLines($seo?->h3)) }}</textarea>
+                    <x-input-error class="mt-2" :messages="$errors->get('seo.h3')" />
+                </div>
+                <div class="md:col-span-2">
+                    <x-input-label for="target_keywords_lines" :value="__('Target keywords (catalog)')" variant="mom" />
+                    <textarea id="target_keywords_lines" name="target_keywords_lines" rows="3" placeholder="{{ __('One keyword per line') }}" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 font-mono text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('target_keywords_lines', $arrayLines($service->target_keywords)) }}</textarea>
+                    <x-input-error class="mt-2" :messages="$errors->get('target_keywords')" />
+                </div>
             </div>
-            <div class="flex flex-col gap-4 pt-8">
-                <input type="hidden" name="is_active" value="0" />
-                <label class="flex cursor-pointer items-center gap-3">
-                    <input type="checkbox" name="is_active" value="1" class="rounded border-[rgba(255,255,255,0.15)]" @checked(old('is_active', $service->is_active ?? true)) />
-                    <span class="text-sm text-[var(--text-secondary)]">{{ __('Active') }}</span>
-                </label>
-                <input type="hidden" name="is_featured" value="0" />
-                <label class="flex cursor-pointer items-center gap-3">
-                    <input type="checkbox" name="is_featured" value="1" class="rounded border-[rgba(255,255,255,0.15)]" @checked(old('is_featured', $service->is_featured ?? false)) />
-                    <span class="text-sm text-[var(--text-secondary)]">{{ __('Featured') }}</span>
-                </label>
-            </div>
-        </div>
-    </section>
+        </section>
+    </div>
 
-    <section class="mom-card p-6">
-        <h3 class="mom-section-title mb-4">{{ __('GEO — serviceable pincodes') }}</h3>
-        <p class="mom-body-text mb-4 max-w-3xl">{{ __('Select existing coverage areas from your pin code directory. No manual pin strings.') }}</p>
-        <div x-data="{ q: '' }" class="space-y-3">
-            <input
-                type="search"
-                x-model="q"
-                class="block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner"
-                placeholder="{{ __('Filter by pincode, area, city…') }}"
-                autocomplete="off"
-            />
-            <div class="custom-scrollbar max-h-72 overflow-y-auto rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(0,0,0,0.12)] p-3">
-                @forelse ($pinCodes as $pc)
-                    @php $blob = strtolower($pc->pincode.' '.$pc->area_name.' '.$pc->city.' '.(string) $pc->locality); @endphp
-                    <label
-                        class="flex cursor-pointer gap-3 rounded px-2 py-1.5 hover:bg-[var(--bg-hover)]"
-                        x-show='q.trim() === "" || {{ json_encode($blob) }}.toLowerCase().includes(q.toLowerCase())'
-                    >
-                        <input
-                            type="checkbox"
-                            name="pincodes[]"
-                            value="{{ $pc->id }}"
-                            class="mt-1 rounded border-[rgba(255,255,255,0.15)]"
-                            @checked(in_array((int) $pc->id, $selectedPinIds, true))
-                        />
-                        <span class="text-sm text-[var(--text-secondary)]">
-                            <span class="font-mono text-[var(--text-primary)]">{{ $pc->pincode }}</span>
-                            — {{ $pc->area_name }}, {{ $pc->city }}
-                            @if ($pc->locality)
-                                <span class="text-[var(--text-muted)]">({{ $pc->locality }})</span>
-                            @endif
-                        </span>
-                    </label>
-                @empty
-                    <p class="mom-subtext text-sm">
-                        {{ __('No pin codes in the directory yet. Add or import pin codes first, then return here.') }}
-                        <a href="{{ route('operations.pin-codes.directory') }}" class="text-[var(--accent)] underline underline-offset-2">{{ __('Open pin code directory') }}</a>
-                    </p>
-                @endforelse
+    <div x-show="tab === 'aeo'" x-cloak class="space-y-8">
+        <section class="mom-card p-6">
+            <h3 class="mom-section-title mb-2">{{ __('AEO — Answer Engine Optimization') }}</h3>
+            <p class="mom-subtext mb-6 max-w-3xl">{{ __('AI context, search intent, and answer keywords for assistants and rich results.') }}</p>
+            <div class="grid gap-6">
+                <div>
+                    <x-input-label for="seo_ai_context" :value="__('AI context')" variant="mom" />
+                    <textarea id="seo_ai_context" name="seo[ai_context]" rows="5" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('seo.ai_context', $seo?->ai_context) }}</textarea>
+                    <x-input-error class="mt-2" :messages="$errors->get('seo.ai_context')" />
+                </div>
+                <div class="grid gap-6 md:grid-cols-2">
+                    <div>
+                        <x-input-label for="seo_search_intent" :value="__('Search intent')" variant="mom" />
+                        <x-text-input id="seo_search_intent" name="seo[search_intent]" type="text" class="mt-2 block w-full" :value="old('seo.search_intent', $seo?->search_intent)" placeholder="informational, commercial, …" variant="mom" />
+                        <x-input-error class="mt-2" :messages="$errors->get('seo.search_intent')" />
+                    </div>
+                    <div>
+                        <x-input-label for="ai_keywords_lines" :value="__('AI / answer keywords')" variant="mom" />
+                        <textarea id="ai_keywords_lines" name="ai_keywords_lines" rows="4" placeholder="{{ __('One phrase per line') }}" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 font-mono text-sm text-[var(--text-primary)] shadow-mom-inner">{{ old('ai_keywords_lines', $arrayLines($service->ai_keywords)) }}</textarea>
+                        <x-input-error class="mt-2" :messages="$errors->get('ai_keywords')" />
+                    </div>
+                </div>
             </div>
+        </section>
+    </div>
+
+    <div x-show="tab === 'faq'" x-cloak class="space-y-8">
+        <section class="mom-card p-6" x-data="{ faqs: @js($faqSeed) }">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h3 class="mom-section-title">{{ __('FAQs') }}</h3>
+                    <p class="mom-subtext mt-2 max-w-3xl">{{ __('Service-level FAQs for fallback pages and schema. When a detail page is linked, empty page FAQs can inherit these.') }}</p>
+                </div>
+                <button type="button" class="rounded-mom-chrome border border-[var(--border-panel-soft)] px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-hover)]" @click="faqs.push({ question: '', answer: '' })">{{ __('Add FAQ') }}</button>
+            </div>
+            <div class="mt-6 space-y-4">
+                <template x-for="(faq, index) in faqs" :key="index">
+                    <div class="rounded-mom-chrome border border-[rgba(255,255,255,0.06)] p-4">
+                        <div class="mb-3 flex items-center justify-between gap-3">
+                            <span class="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]" x-text="'{{ __('FAQ') }} ' + (index + 1)"></span>
+                            <button type="button" class="text-xs font-semibold text-[var(--danger)] hover:underline" @click="faqs.splice(index, 1)" x-show="faqs.length > 1">{{ __('Remove') }}</button>
+                        </div>
+                        <div class="grid gap-4">
+                            <div>
+                                <label class="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">{{ __('Question') }}</label>
+                                <input type="text" class="mt-1 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)] shadow-mom-inner" :name="`faqs[${index}][question]`" x-model="faq.question" />
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">{{ __('Answer') }}</label>
+                                <textarea rows="3" class="mt-1 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)] shadow-mom-inner" :name="`faqs[${index}][answer]`" x-model="faq.answer"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            <x-input-error class="mt-4" :messages="$errors->get('faqs')" />
+        </section>
+    </div>
+
+    <div x-show="tab === 'schema'" x-cloak class="space-y-8">
+        <section class="mom-card p-6">
+            <h3 class="mom-section-title mb-2">{{ __('Structured data (Schema.org)') }}</h3>
+            <p class="mom-subtext mb-6 max-w-3xl">{{ __('JSON-LD stored on the service record. Syncs to the linked page when page schema is empty.') }}</p>
+            <div class="grid gap-6 md:grid-cols-2">
+                <div>
+                    <x-input-label for="schema_type" :value="__('Schema type')" variant="mom" />
+                    <x-text-input id="schema_type" name="schema_type" type="text" class="mt-2 block w-full" :value="old('schema_type', $schema?->schema_type)" placeholder="Service, MedicalProcedure, …" variant="mom" />
+                    <x-input-error class="mt-2" :messages="$errors->get('schema_type')" />
+                </div>
+                <div class="md:col-span-2">
+                    <x-input-label for="schema_json" :value="__('Schema JSON')" variant="mom" />
+                    <textarea id="schema_json" name="schema_json" rows="8" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 font-mono text-xs text-[var(--text-primary)] shadow-mom-inner" placeholder="{ &quot;@type&quot;: &quot;Service&quot;, ... }">{{ $schemaJsonDisplay }}</textarea>
+                    <x-input-error class="mt-2" :messages="$errors->get('schema_json')" />
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div x-show="tab === 'related'" x-cloak class="space-y-8">
+        @include('operations.services.partials.tab-related', [
+            'service' => $service,
+            'serviceCatalog' => $serviceCatalog ?? collect(),
+            'selectedRelatedCodes' => $selectedRelatedCodes ?? [],
+            'linkedDetailPage' => $linkedDetailPage ?? null,
+            'suggestedDetailPageSlug' => $suggestedDetailPageSlug ?? null,
+        ])
+    </div>
+
+    <div x-show="tab === 'geo'" x-cloak class="space-y-8">
+        <section class="mom-card p-6">
+            <h3 class="mom-section-title mb-4">{{ __('GEO — serviceable pincodes') }}</h3>
+            <p class="mom-body-text mb-4 max-w-3xl">{{ __('Select existing coverage areas from your pin code directory. No manual pin strings.') }}</p>
+            <div
+                x-data="{
+                    q: '',
+                    setAll(checked) {
+                        this.$refs.pinList.querySelectorAll('[data-pin-checkbox]').forEach((el) => { el.checked = checked; });
+                    },
+                    setVisible(checked) {
+                        this.$refs.pinList.querySelectorAll('label').forEach((label) => {
+                            if (label.offsetParent === null) {
+                                return;
+                            }
+                            const input = label.querySelector('[data-pin-checkbox]');
+                            if (input) {
+                                input.checked = checked;
+                            }
+                        });
+                    },
+                }"
+                class="space-y-3"
+            >
+                <div class="flex flex-wrap items-center gap-2">
+                    <input type="search" x-model="q" class="min-w-[12rem] flex-1 rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner" placeholder="{{ __('Filter by pincode, area, city…') }}" autocomplete="off" />
+                    <button type="button" class="mom-cta-compact mom-cta-ghost text-xs" @click="setAll(true)">{{ __('Select all') }}</button>
+                    <button type="button" class="mom-cta-compact mom-cta-ghost text-xs" x-show="q.trim() !== ''" x-cloak @click="setVisible(true)">{{ __('Select filtered') }}</button>
+                    <button type="button" class="mom-cta-compact mom-cta-ghost text-xs" @click="setAll(false)">{{ __('Clear all') }}</button>
+                </div>
+                <div x-ref="pinList" class="custom-scrollbar max-h-72 overflow-y-auto rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(0,0,0,0.12)] p-3">
+                    @forelse ($pinCodes as $pc)
+                        @php $blob = strtolower($pc->pincode.' '.$pc->area_name.' '.$pc->city.' '.(string) $pc->locality); @endphp
+                        <label class="flex cursor-pointer gap-3 rounded px-2 py-1.5 hover:bg-[var(--bg-hover)]" x-show='q.trim() === "" || {{ json_encode($blob) }}.toLowerCase().includes(q.toLowerCase())'>
+                            <input type="checkbox" name="pincodes[]" value="{{ $pc->id }}" data-pin-checkbox class="mt-1 rounded border-[rgba(255,255,255,0.15)]" @checked(in_array((int) $pc->id, $selectedPinIds, true)) />
+                            <span class="text-sm text-[var(--text-secondary)]">
+                                <span class="font-mono text-[var(--text-primary)]">{{ $pc->pincode }}</span>
+                                — {{ $pc->area_name }}, {{ $pc->city }}
+                                @if ($pc->locality)
+                                    <span class="text-[var(--text-muted)]">({{ $pc->locality }})</span>
+                                @endif
+                            </span>
+                        </label>
+                    @empty
+                        <p class="mom-subtext text-sm">
+                            {{ __('No pin codes in the directory yet.') }}
+                            <a href="{{ route('operations.pin-codes.directory') }}" class="text-[var(--accent)] underline underline-offset-2">{{ __('Open pin code directory') }}</a>
+                        </p>
+                    @endforelse
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div x-show="tab === 'publishing'" x-cloak class="space-y-8">
+        <section class="mom-card p-6">
+            <h3 class="mom-section-title mb-4">{{ __('Publishing') }}</h3>
+            <div class="grid gap-6 md:grid-cols-2">
+                <div>
+                    <x-input-label for="publish_status" :value="__('Publish status')" variant="mom" />
+                    <select id="publish_status" name="publish_status" class="rounded-mom-chrome mt-2 block w-full border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
+                        @foreach (\App\Enums\PublishStatus::cases() as $case)
+                            <option value="{{ $case->value }}" @selected(old('publish_status', $service->publish_status?->value ?? \App\Enums\PublishStatus::Draft->value) === $case->value)>{{ $case->label() }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <x-input-label for="visibility" :value="__('Visibility')" variant="mom" />
+                    <select id="visibility" name="visibility" class="rounded-mom-chrome mt-2 block w-full border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
+                        @foreach (\App\Enums\ServiceVisibility::cases() as $case)
+                            <option value="{{ $case->value }}" @selected(old('visibility', $service->visibility?->value ?? \App\Enums\ServiceVisibility::Public->value) === $case->value)>{{ $case->label() }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <x-input-label for="sort_order" :value="__('Sort order')" variant="mom" />
+                    <x-text-input id="sort_order" name="sort_order" type="number" class="mt-2 block w-full" :value="old('sort_order', $service->sort_order)" variant="mom" />
+                </div>
+                <div class="md:col-span-2">
+                    <x-input-label for="detail_page_id" :value="__('Detail page (blocks layout for /services/CODE)')" variant="mom" />
+                    <select id="detail_page_id" name="detail_page_id" class="rounded-mom-chrome mt-2 block w-full border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
+                        <option value="">{{ __('— Auto: page slug :slug if it exists —', ['slug' => $suggestedDetailPageSlug ?? 'service-{code}']) }}</option>
+                        @foreach ($detailPages as $p)
+                            <option value="{{ $p->id }}" @selected((int) old('detail_page_id', $service->detail_page_id) === (int) $p->id)>{{ $p->title }} ({{ $p->slug }})</option>
+                        @endforeach
+                    </select>
+                    @php $serviceTokenHint = '{{service:'.($service->service_code ?: 'code').'}}'; @endphp
+                    <p class="mom-subtext mt-1">{{ __('Public URL /services/:code renders the linked Site Architect page.', ['code' => $service->service_code ?: 'CODE']) }}</p>
+                    <x-input-error class="mt-2" :messages="$errors->get('detail_page_id')" />
+                </div>
+                <div class="flex flex-col gap-4 pt-4 md:col-span-2">
+                    <input type="hidden" name="is_active" value="0" />
+                    <label class="flex cursor-pointer items-center gap-3">
+                        <input type="checkbox" name="is_active" value="1" class="rounded border-[rgba(255,255,255,0.15)]" @checked(old('is_active', $service->is_active ?? true)) />
+                        <span class="text-sm text-[var(--text-secondary)]">{{ __('Active') }}</span>
+                    </label>
+                    <input type="hidden" name="is_featured" value="0" />
+                    <label class="flex cursor-pointer items-center gap-3">
+                        <input type="checkbox" name="is_featured" value="1" class="rounded border-[rgba(255,255,255,0.15)]" @checked(old('is_featured', $service->is_featured ?? false)) />
+                        <span class="text-sm text-[var(--text-secondary)]">{{ __('Featured') }}</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    @if ($mode === 'edit')
+        <div x-show="tab === 'reviews'" x-cloak class="space-y-8">
+            @include('operations.services.partials.tab-reviews', ['serviceReviews' => $serviceReviews ?? collect()])
         </div>
-    </section>
+    @endif
 
     @isset($managedModule)
-        <x-dynamic-fields.unified-table :module="$managedModule" :values="$customFieldValues ?? new stdClass()" />
+        <div x-show="tab === 'custom'" x-cloak class="space-y-8">
+            <x-dynamic-fields.unified-table :module="$managedModule" :values="$customFieldValues ?? new stdClass()" />
+        </div>
     @endisset
 </div>

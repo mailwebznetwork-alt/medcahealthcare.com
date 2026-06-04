@@ -26,6 +26,10 @@ class DatabaseSeeder extends Seeder
                     'name' => (string) env('SEED_ADMIN_NAME', 'Admin'),
                     'password' => $password,
                     'email_verified_at' => now(),
+                    'role' => 'super_admin',
+                    'role_label' => 'Super Admin',
+                    'is_active' => true,
+                    'module_access' => ModuleAccess::defaultGrants(),
                 ]
             );
 

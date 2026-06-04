@@ -13,6 +13,7 @@
             'communication' => __('Communication'),
             'campaigns' => __('Campaigns'),
             'insights' => __('Insights'),
+            'lead-intent' => __('Lead Intent'),
         ] as $key => $label)
             <button
                 type="button"
@@ -390,6 +391,113 @@
                     <p class="mom-micro mt-4">{{ __('Uses config(gemini.api_key); cached 1 hour.') }}</p>
                 </div>
             @endif
+        </section>
+    @endif
+
+    @if ($tab === 'lead-intent')
+        @php
+            $li = $leadIntentReport ?? [];
+            $totals = $li['totals'] ?? ['calls' => 0, 'whatsapp' => 0, 'forms' => 0, 'total' => 0];
+            $periodLabel = $li['period']['label'] ?? __('Last 28 days');
+        @endphp
+        <p class="mom-micro text-[var(--text-muted)]">{{ __('Lead Intent layer — :period. GA4/Meta/UTM tracking unchanged; intents are stored separately for management reporting.', ['period' => $periodLabel]) }}</p>
+
+        <section class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="mom-card px-5 py-4">
+                <p class="mom-micro">{{ __('Total lead intents') }}</p>
+                <p class="mom-metric mt-2">{{ number_format((int) ($totals['total'] ?? 0)) }}</p>
+            </div>
+            <div class="mom-card px-5 py-4">
+                <p class="mom-micro">{{ __('Calls') }}</p>
+                <p class="mom-metric mt-2">{{ number_format((int) ($totals['calls'] ?? 0)) }}</p>
+                <p class="mom-subtext mt-1">{{ __('tel: clicks & GBP call intents') }}</p>
+            </div>
+            <div class="mom-card px-5 py-4">
+                <p class="mom-micro">{{ __('WhatsApp') }}</p>
+                <p class="mom-metric mt-2">{{ number_format((int) ($totals['whatsapp'] ?? 0)) }}</p>
+                <p class="mom-subtext mt-1">{{ __('wa.me / GBP WhatsApp intents') }}</p>
+            </div>
+            <div class="mom-card px-5 py-4">
+                <p class="mom-micro">{{ __('Forms') }}</p>
+                <p class="mom-metric mt-2">{{ number_format((int) ($totals['forms'] ?? 0)) }}</p>
+                <p class="mom-subtext mt-1">{{ __('Leads captured: :n', ['n' => number_format((int) ($li['leads_captured'] ?? 0))]) }}</p>
+            </div>
+        </section>
+
+        <section class="mom-card mt-8 p-6">
+            <h3 class="mom-section-title">{{ __('Source breakdown') }}</h3>
+            <p class="mom-subtext mt-1">{{ __('Organic, Google Ads, Meta Ads, GBP, Direct, Referral') }}</p>
+            <div class="mt-4 overflow-x-auto">
+                <table class="w-full min-w-[44rem] text-left text-[13px]">
+                    <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                        <tr>
+                            <th class="px-4 py-3">{{ __('Source') }}</th>
+                            <th class="px-4 py-3">{{ __('Calls') }}</th>
+                            <th class="px-4 py-3">{{ __('WhatsApp') }}</th>
+                            <th class="px-4 py-3">{{ __('Forms') }}</th>
+                            <th class="px-4 py-3">{{ __('Total') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                        @forelse ($li['source_breakdown'] ?? [] as $row)
+                            @if (($row['total'] ?? 0) > 0)
+                                <tr>
+                                    <td class="px-4 py-3 font-medium text-[var(--text-primary)]">{{ $row['label'] }}</td>
+                                    <td class="px-4 py-3">{{ number_format($row['calls']) }}</td>
+                                    <td class="px-4 py-3">{{ number_format($row['whatsapp']) }}</td>
+                                    <td class="px-4 py-3">{{ number_format($row['forms']) }}</td>
+                                    <td class="px-4 py-3">{{ number_format($row['total']) }}</td>
+                                </tr>
+                            @endif
+                        @empty
+                            <tr><td colspan="5" class="px-4 py-8 text-center text-[var(--text-muted)]">{{ __('No lead intents yet. Run php artisan lead-intent:backfill after deploy.') }}</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="mt-8 grid gap-8 lg:grid-cols-2">
+            <div class="mom-card p-6">
+                <h3 class="mom-section-title">{{ __('Channel breakdown') }}</h3>
+                <ul class="mt-4 space-y-3">
+                    @foreach ($li['channel_breakdown'] ?? [] as $row)
+                        <li class="flex justify-between border-b border-[var(--border-panel-soft)] pb-2">
+                            <span>{{ $row['label'] }}</span>
+                            <span class="font-semibold text-[var(--text-primary)]">{{ number_format($row['total']) }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+            <div class="mom-card p-6">
+                <h3 class="mom-section-title">{{ __('Campaign breakdown') }}</h3>
+                <div class="mt-4 overflow-x-auto">
+                    <table class="w-full text-left text-[13px]">
+                        <thead class="text-[11px] uppercase text-[var(--text-muted)]">
+                            <tr>
+                                <th class="py-2">{{ __('Campaign') }}</th>
+                                <th class="py-2">{{ __('Calls') }}</th>
+                                <th class="py-2">{{ __('WA') }}</th>
+                                <th class="py-2">{{ __('Forms') }}</th>
+                                <th class="py-2">{{ __('Total') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-[var(--text-secondary)]">
+                            @forelse ($li['campaign_breakdown'] ?? [] as $row)
+                                <tr class="border-t border-[var(--border-panel-soft)]">
+                                    <td class="py-2 pr-2">{{ $row['campaign'] }}</td>
+                                    <td class="py-2">{{ $row['calls'] }}</td>
+                                    <td class="py-2">{{ $row['whatsapp'] }}</td>
+                                    <td class="py-2">{{ $row['forms'] }}</td>
+                                    <td class="py-2 font-medium">{{ $row['total'] }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="5" class="py-4 text-[var(--text-muted)]">{{ __('No UTM campaigns in period.') }}</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </section>
     @endif
 </div>

@@ -10,6 +10,7 @@ use App\Services\Deployment\StylePackRegistry;
 use App\Services\Theme\ThemePresetRegistry;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Session;
 use Livewire\Component;
 
 class BlueprintBuilder extends Component
@@ -23,6 +24,8 @@ class BlueprintBuilder extends Component
     public string $theme_preset_slug = 'clinical_blue';
 
     public string $layout_preset = 'contained';
+
+    public bool $activate_generated_pages = false;
 
     public ?string $statusMessage = null;
 
@@ -72,6 +75,7 @@ class BlueprintBuilder extends Component
                 $this->layout_preset,
                 auth()->user(),
                 applyThemeToDraft: true,
+                activatePages: $this->activate_generated_pages,
             );
 
             $this->generatedSlugs = is_array($result['generation']->generated_page_slugs)
@@ -84,6 +88,23 @@ class BlueprintBuilder extends Component
         } catch (\Throwable $e) {
             $this->errorMessage = $e->getMessage();
         }
+    }
+
+    public function previewStylePack(): void
+    {
+        Session::put(
+            (string) config('deployment_engine.preview_session_keys.style_pack'),
+            $this->style_pack_slug,
+        );
+        $this->statusMessage = __('Style pack preview enabled on the public site. Publish theme separately to go live.');
+        $this->errorMessage = null;
+    }
+
+    public function clearStylePackPreview(): void
+    {
+        Session::forget((string) config('deployment_engine.preview_session_keys.style_pack'));
+        $this->statusMessage = __('Style pack preview cleared.');
+        $this->errorMessage = null;
     }
 
     public function render(

@@ -2,25 +2,31 @@
 
 namespace App\Livewire\SiteArchitect;
 
+use App\Livewire\Concerns\HandlesArchitectFlexibleSave;
 use App\Models\Block;
 use App\Services\DynamicModules\DynamicModuleInsertCatalog;
 use App\Services\ContentParser;
 use App\Services\SiteArchitect\ServiceInsertCatalog;
+use App\Support\ArchitectSaveBypass;
+use App\Support\BlockContent;
+use App\Services\Deployment\BlockSettingsEditor;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class BlockFactory extends Component
 {
     use AuthorizesRequests;
+    use HandlesArchitectFlexibleSave;
     use WithPagination;
 
     public string $mode = 'list';
 
     public ?int $editingId = null;
+
+    public bool $editingManaged = false;
 
     public string $block_name = '';
 
@@ -52,6 +58,11 @@ class BlockFactory extends Component
 
     public int $serviceCatalogNonce = 0;
 
+    public string $search = '';
+
+    /** @var array<string, string> */
+    public array $block_content = [];
+
     public function mount(): void
     {
         if (request()->query('create') === '1') {
@@ -59,9 +70,26 @@ class BlockFactory extends Component
         }
     }
 
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
-        $blocks = Block::query()->latest()->paginate(15);
+        $query = Block::query()->latest();
+
+        if (trim($this->search) !== '') {
+            $term = '%'.trim($this->search).'%';
+            $query->where(function ($q) use ($term): void {
+                $q->where('block_name', 'like', $term)
+                    ->orWhere('block_slug', 'like', $term)
+                    ->orWhere('block_type', 'like', $term)
+                    ->orWhere('description', 'like', $term);
+            });
+        }
+
+        $blocks = $query->paginate(15);
 
         $typesByGroup = config('block_factory.types_by_group', []);
         $allowedTypes = collect($typesByGroup)->flatten()->unique()->values()->all();
@@ -81,6 +109,12 @@ class BlockFactory extends Component
             'services' => $services,
             'moduleOptions' => $moduleOptions,
             'serviceCatalogNonce' => $this->serviceCatalogNonce,
+            'editingManaged' => $this->editingManaged,
+            'contentSchema' => $this->mode === 'form'
+                ? BlockContent::schema(BlockContent::resolveSchemaSlug($this->block_slug, $this->code))
+                : [],
+            'showMarketingCopy' => $this->mode === 'form'
+                && BlockContent::marketingCopyVisible($this->block_slug, $this->code),
         ]);
     }
 
@@ -161,13 +195,42 @@ class BlockFactory extends Component
             ? json_encode($block->schema_json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
             : '';
         $this->is_active = $block->is_active;
+        $this->editingManaged = (bool) $block->is_managed;
+        $this->loadBlockMarketingContent($block);
+    }
+
+    public function updatedCode(): void
+    {
+        $block = $this->editingId !== null ? Block::query()->find($this->editingId) : null;
+        $this->loadBlockMarketingContent($block instanceof Block ? $block : null);
+    }
+
+    public function updatedBlockSlug(): void
+    {
+        if ($this->editingId === null) {
+            $this->loadBlockMarketingContent(null);
+        }
     }
 
     public function cancelForm(): void
     {
         $this->mode = 'list';
         $this->editingId = null;
+        $this->editingManaged = false;
         $this->resetForm();
+        $this->resetArchitectSaveFlags();
+    }
+
+    public function confirmArchitectOverwriteSave(): void
+    {
+        $this->architectOverwriteApproved = true;
+        $this->saveBlock();
+    }
+
+    public function confirmArchitectIncompleteSave(): void
+    {
+        $this->architectIncompleteSaveApproved = true;
+        $this->saveBlock();
     }
 
     public function updatedBlockName(string $value): void
@@ -179,6 +242,18 @@ class BlockFactory extends Component
 
     public function saveBlock(): void
     {
+        if ($this->architectSaveBypassEligible() && $this->architectIncompleteSaveApproved) {
+            if (trim($this->block_name) === '') {
+                $this->block_name = ArchitectSaveBypass::defaultBlockName();
+            }
+            if (trim($this->block_slug) === '') {
+                $this->block_slug = ArchitectSaveBypass::defaultBlockSlug($this->block_name);
+            }
+            if (trim($this->code) === '') {
+                $this->code = '<!-- -->';
+            }
+        }
+
         $schemaDecoded = null;
         if (trim($this->schema_json_input) !== '') {
             $decoded = json_decode($this->schema_json_input, true);
@@ -190,14 +265,13 @@ class BlockFactory extends Component
             $schemaDecoded = $decoded;
         }
 
-        $this->validate([
+        if (! $this->validateArchitectForm([
             'block_name' => ['required', 'string', 'max:255'],
             'block_slug' => [
                 'required',
                 'string',
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('blocks', 'block_slug')->ignore($this->editingId),
             ],
             'description' => ['nullable', 'string'],
             'block_type' => ['nullable', 'string', 'max:255'],
@@ -205,7 +279,13 @@ class BlockFactory extends Component
             'custom_css' => ['nullable', 'string'],
             'schema_json_input' => ['nullable', 'string'],
             'is_active' => ['boolean'],
-        ]);
+        ], ['block_name', 'block_slug', 'code'])) {
+            return;
+        }
+
+        if (! $this->assertArchitectUniqueAvailable(Block::class, 'block_slug', $this->block_slug, $this->editingId)) {
+            return;
+        }
 
         $data = [
             'block_name' => $this->block_name,
@@ -219,13 +299,35 @@ class BlockFactory extends Component
         ];
 
         DB::transaction(function () use ($data): void {
+            $block = null;
             if ($this->editingId === null) {
                 $this->authorize('create', Block::class);
-                Block::query()->create($data);
+                $block = Block::query()->create($data);
             } else {
                 $block = Block::query()->findOrFail($this->editingId);
                 $this->authorize('update', $block);
-                $block->update($data);
+                if ($block->is_managed) {
+                    $block->update([
+                        'block_name' => $data['block_name'],
+                        'block_slug' => $data['block_slug'],
+                        'description' => $data['description'],
+                        'block_type' => $data['block_type'],
+                        'custom_css' => $data['custom_css'],
+                        'is_active' => $data['is_active'],
+                    ]);
+                } else {
+                    $block->update($data);
+                }
+            }
+
+            if ($block !== null && BlockContent::marketingCopyVisible((string) $block->block_slug, (string) $block->code)) {
+                $schemaSlug = BlockContent::resolveSchemaSlug((string) $block->block_slug, (string) $block->code);
+                $allowed = array_keys(BlockContent::schema($schemaSlug));
+                $content = array_intersect_key(
+                    $this->block_content,
+                    array_flip($allowed)
+                );
+                app(BlockSettingsEditor::class)->save($block, ['content' => $content]);
             }
         });
 
@@ -233,24 +335,42 @@ class BlockFactory extends Component
         $this->mode = 'list';
         $this->editingId = null;
         $this->resetForm();
+        $this->resetArchitectSaveFlags();
         $this->resetPage();
     }
 
-    public function deleteBlock(int $id): void
+    public function removeBlock(int $id): void
     {
         $block = Block::query()->findOrFail($id);
-        $this->authorize('delete', $block);
 
-        if ($block->is_managed) {
-            session()->flash('error', __('Managed blocks are Git-controlled and cannot be deleted. Run php artisan blocks:sync to restore from templates.'));
+        if ($block->is_managed && ! $this->architectSaveBypassEligible()) {
+            session()->flash('error', __('Managed blocks cannot be removed here. Duplicate to create an editable copy, or use a WDJERRIE account to remove from the database.'));
 
             return;
         }
 
+        $this->authorize('delete', $block);
+
+        $wasManaged = $block->is_managed;
         $block->delete();
 
-        session()->flash('status', __('Block deleted.'));
+        if ($this->editingId === $id) {
+            $this->cancelForm();
+        }
+
+        session()->flash(
+            'status',
+            $wasManaged
+                ? __('Managed block removed from the database. Run blocks:sync to restore from Git templates.')
+                : __('Block removed.')
+        );
         $this->resetPage();
+    }
+
+    /** @deprecated Use removeBlock() */
+    public function deleteBlock(int $id): void
+    {
+        $this->removeBlock($id);
     }
 
     public function duplicateBlock(int $id): void
@@ -265,6 +385,7 @@ class BlockFactory extends Component
                 'block_name' => $original->block_name.' ('.__('Copy').')',
                 'block_slug' => $this->uniqueSlugFrom($original->block_slug.'-copy'),
                 'is_active' => false,
+                'is_managed' => false,
             ]);
             $new->save();
         });
@@ -334,6 +455,30 @@ class BlockFactory extends Component
         $this->schema_json_input = '';
         $this->is_active = true;
         $this->service_choice = '';
+        $this->editingManaged = false;
+        $this->block_content = [];
         $this->resetValidation();
+    }
+
+    protected function loadBlockMarketingContent(?Block $block): void
+    {
+        if (! BlockContent::marketingCopyVisible($this->block_slug, $this->code)) {
+            $this->block_content = [];
+
+            return;
+        }
+
+        $schemaSlug = BlockContent::resolveSchemaSlug($this->block_slug, $this->code);
+        $schema = BlockContent::schema($schemaSlug);
+        $stored = [];
+        if ($block !== null) {
+            $settings = app(BlockSettingsEditor::class)->settings($block);
+            $stored = is_array($settings['content'] ?? null) ? $settings['content'] : [];
+        }
+
+        $this->block_content = [];
+        foreach ($schema as $key => $field) {
+            $this->block_content[$key] = (string) ($stored[$key] ?? ($field['default'] ?? ''));
+        }
     }
 }

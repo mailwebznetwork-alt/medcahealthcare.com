@@ -1,0 +1,36 @@
+/**
+ * Public service fallback detail page (public/services/show).
+ */
+@layer components {
+    .medca-service-detail {
+        @apply mx-auto w-full max-w-4xl;
+    }
+
+    .medca-service-detail .medca-service-prose {
+        @apply text-base leading-relaxed text-slate-700 md:text-lg md:leading-relaxed;
+    }
+
+    .medca-service-detail .medca-service-prose :is(p, li) {
+        @apply max-w-none;
+    }
+
+    .medca-service-detail .medca-service-prose :is(img, video, iframe, svg) {
+        @apply h-auto max-w-full rounded-lg;
+    }
+
+    .medca-service-detail .medca-service-prose :is(table) {
+        @apply block w-full max-w-full overflow-x-auto text-sm md:text-base;
+    }
+
+    .medca-service-detail .medca-service-prose :is(pre, code) {
+        @apply max-w-full overflow-x-auto text-sm;
+    }
+
+    .medca-service-areas__grid {
+        @apply grid gap-2 sm:grid-cols-2 lg:grid-cols-3;
+    }
+
+    .medca-service-areas__item {
+        @apply flex min-w-0 flex-col gap-0.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 shadow-sm;
+    }
+}

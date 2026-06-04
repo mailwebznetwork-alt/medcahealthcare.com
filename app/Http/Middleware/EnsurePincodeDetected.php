@@ -77,6 +77,8 @@ class EnsurePincodeDetected
             'public.page.services',
             'public.services.index',
             'public.services.show',
+            'public.service-categories.index',
+            'public.service-categories.show',
         );
     }
 }

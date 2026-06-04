@@ -131,11 +131,22 @@ return [
                 'access_token' => ['required', 'string', 'max:255'],
             ],
         ],
+        'whatsapp' => [
+            'label' => 'WhatsApp',
+            'type' => 'communication',
+            'service' => WhatsAppService::class,
+            'click_to_chat' => true,
+            'custom_configure' => true,
+            'fields' => [
+                'floating_button_enabled' => ['boolean'],
+            ],
+        ],
         'whatsapp_business' => [
-            'label' => 'WhatsApp Business',
+            'label' => 'WhatsApp Business API',
             'type' => 'communication',
             'service' => WhatsAppService::class,
             'fields' => [],
+            'hidden_from_add_list' => true,
             'multi_account' => true,
             'account_fields' => [
                 'phone_number_id' => ['required', 'string', 'max:120'],

@@ -11,7 +11,7 @@ function settingsAllModulesOn(): array
         ->all();
 }
 
-it('redirects legacy settings URL to integrations', function () {
+it('redirects legacy settings URL to appearance', function () {
     $admin = User::factory()->create([
         'email_verified_at' => now(),
         'module_access' => settingsAllModulesOn(),
@@ -20,7 +20,7 @@ it('redirects legacy settings URL to integrations', function () {
 
     $this->actingAs($admin)
         ->get(route('settings.index'))
-        ->assertRedirect(route('settings.integrations'));
+        ->assertRedirect(route('settings.appearance'));
 });
 
 it('renders settings integrations page with integration cards', function () {

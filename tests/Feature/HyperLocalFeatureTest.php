@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Location\PincodeModal;
 use App\Enums\LeadSource;
 use App\Enums\LeadStatus;
 use App\Models\Lead;
@@ -8,6 +9,27 @@ use App\Models\Service;
 use App\Models\User;
 use App\Services\UserLocationService;
 use Illuminate\Support\Facades\Session;
+use Livewire\Livewire;
+
+it('suggests pincodes by prefix in the location modal', function () {
+    foreach (range(0, 9) as $i) {
+        PinCode::factory()->create([
+            'pincode' => '56007'.$i,
+            'area_name' => 'Area '.$i,
+            'is_active' => true,
+        ]);
+    }
+    PinCode::factory()->create(['pincode' => '560100', 'is_active' => true]);
+
+    Livewire::test(PincodeModal::class)
+        ->set('open', true)
+        ->set('pincode', '56007')
+        ->assertSet('showPincodeSuggestions', true)
+        ->assertCount('pincodeSuggestions', 10)
+        ->call('selectPincode', '560075')
+        ->assertSet('pincode', '560075')
+        ->assertSet('showPincodeSuggestions', false);
+});
 
 it('stores pincode in session and scopes localized services', function () {
     $pin = PinCode::factory()->create(['pincode' => '560076', 'is_active' => true, 'is_serviceable' => true]);
@@ -65,7 +87,7 @@ it('allows review only after completed lead for service', function () {
 
     $this->actingAs($user);
 
-    Livewire\Livewire::test(\App\Livewire\Reviews\ReviewForm::class, ['serviceId' => $service->id])
+    Livewire::test(\App\Livewire\Reviews\ReviewForm::class, ['serviceId' => $service->id])
         ->set('rating', 5)
         ->set('comment', 'Excellent care')
         ->call('submit')

@@ -15,7 +15,7 @@ it('shows ai pulse tab in growth center for authorized users', function () {
     ]);
 
     $this->actingAs($user)
-        ->get(route('growth-center.competitors.index', ['tab' => 'ai-pulse']))
+        ->get(route('growth-center.ai-pulse.index'))
         ->assertOk()
         ->assertSeeLivewire('growth.ai-pulse-panel');
 });

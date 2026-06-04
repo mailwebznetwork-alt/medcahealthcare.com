@@ -5,12 +5,14 @@ namespace App\Services\Public;
 use App\Models\Page;
 use App\Models\Service;
 use App\Services\Content\ContentRenderContext;
+use App\Services\Operations\ServiceDetailPageProvisioner;
 
 class PagePublicPreviewService
 {
     public function __construct(
         private readonly PublicPagePresenter $presenter,
         private readonly ContentRenderContext $renderContext,
+        private readonly PageRenderContextRegistrar $pageRenderContext,
     ) {}
 
     /**
@@ -33,11 +35,7 @@ class PagePublicPreviewService
             ];
         }
 
-        $this->renderContext->set(array_merge(
-            $this->presenter->variablesFor($page),
-            app(\App\Services\Deployment\StylePackResolver::class)->contextVariables($page),
-            ['currentPage' => $page],
-        ));
+        $this->pageRenderContext->register($page);
 
         return ['page' => $page];
     }
@@ -52,7 +50,7 @@ class PagePublicPreviewService
             return $linked;
         }
 
-        $code = $this->serviceCodeFromDetailPageSlug($page->slug);
+        $code = ServiceDetailPageProvisioner::serviceCodeFromPageSlug($page->slug);
 
         if ($code === null) {
             return null;
@@ -61,17 +59,4 @@ class PagePublicPreviewService
         return Service::query()->where('service_code', $code)->first();
     }
 
-    private function serviceCodeFromDetailPageSlug(string $slug): ?string
-    {
-        $pattern = (string) config('public_pages.service_detail_page_slug_pattern', 'service-{code}');
-        $prefix = str_replace('{code}', '', $pattern);
-
-        if ($prefix === '' || ! str_starts_with($slug, $prefix)) {
-            return null;
-        }
-
-        $code = substr($slug, strlen($prefix));
-
-        return $code !== '' ? $code : null;
-    }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Services\Marketing\Tracking;
 
-use App\Models\MarketingClickEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -37,6 +36,8 @@ class MarketingTrackingValidator
             'source' => ['nullable', 'string', 'max:128'],
             'medium' => ['nullable', 'string', 'max:128'],
             'element_label' => ['nullable', 'string', 'max:255'],
+            'button_name' => ['nullable', 'string', 'max:255'],
+            'phone_number' => ['nullable', 'string', 'max:32'],
             'destination_url' => ['nullable', 'string', 'max:500'],
             'session_fingerprint' => ['nullable', 'string', 'max:64'],
             'meta' => ['nullable', 'array'],
@@ -52,11 +53,28 @@ class MarketingTrackingValidator
             }
         }
 
-        if (isset($data['destination_url']) && $data['destination_url'] !== '' && ! filter_var($data['destination_url'], FILTER_VALIDATE_URL)) {
+        if (isset($data['destination_url']) && $data['destination_url'] !== '' && ! $this->isValidDestinationUrl($data['destination_url'])) {
             throw ValidationException::withMessages(['destination_url' => __('Invalid destination URL.')]);
         }
 
         return $data;
+    }
+
+    private function isValidDestinationUrl(string $url): bool
+    {
+        $lower = strtolower($url);
+
+        if (str_starts_with($lower, 'tel:')) {
+            $digits = preg_replace('/\D+/', '', substr($url, 4));
+
+            return $digits !== null && strlen($digits) >= 8 && strlen($digits) <= 15;
+        }
+
+        if (str_starts_with($lower, 'mailto:')) {
+            return filter_var(substr($url, 7), FILTER_VALIDATE_EMAIL) !== false;
+        }
+
+        return filter_var($url, FILTER_VALIDATE_URL) !== false;
     }
 
     public function isDuplicate(string $fingerprint, string $eventType): bool

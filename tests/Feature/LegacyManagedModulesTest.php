@@ -136,6 +136,49 @@ it('persists custom field schema and values for services', function () {
     expect($service->fresh()->custom_fields)->toMatchArray(['warranty_months' => '12']);
 });
 
+it('allows saving a service without filling required custom field values', function () {
+    $schemaManager = operationsSchemaManager();
+    $user = operationsAdmin();
+    $module = Module::query()->where('slug', LegacyManagedModuleRegistry::SERVICES)->firstOrFail();
+
+    $this->actingAs($schemaManager)
+        ->put(route('operations.managed-modules.fields.update', $module), [
+            'fields' => [
+                [
+                    'label' => 'Internal note',
+                    'field_name' => 'internal_note',
+                    'field_type' => 'text',
+                    'is_required' => '1',
+                ],
+            ],
+        ])
+        ->assertRedirect();
+
+    $service = Service::factory()->create([
+        'service_code' => 'SVC-OPT-CF',
+        'publish_status' => 'draft',
+        'visibility' => 'public',
+    ]);
+
+    $this->actingAs($user)
+        ->put(route('operations.services.update', $service), [
+            'title' => $service->title,
+            'service_code' => $service->service_code,
+            'price_range' => '999',
+            'is_active' => '1',
+            'is_featured' => '0',
+            'publish_status' => 'draft',
+            'visibility' => 'public',
+            'sort_order' => 0,
+            'detail_page_id' => '',
+            'pincodes' => [],
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('operations.services.edit', $service));
+
+    expect($service->fresh()->custom_fields)->toBeEmpty();
+});
+
 it('shows value table for admin when fields are defined', function () {
     $schemaManager = operationsSchemaManager();
     $user = operationsAdmin();

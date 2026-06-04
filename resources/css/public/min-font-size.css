@@ -1,0 +1,72 @@
+/**
+ * Public frontend body readability (main content only).
+ * - Mobile (≤767px): 16px body floor inside <main>; header/footer/drawer unchanged.
+ * - Desktop (≥768px): 18px body floor inside <main>; chrome unchanged.
+ */
+@layer base {
+    @media (max-width: 767px) {
+        body.medca-public-surface main {
+            --medca-public-min-font-size: 1rem;
+        }
+
+        body.medca-public-surface main :is(
+            .text-xs,
+            .text-sm,
+            .text-\[10px\],
+            .text-\[11px\],
+            .text-\[12px\],
+            .text-\[13px\],
+            .text-\[0\.625rem\],
+            .text-\[0\.6875rem\],
+            .text-\[0\.75rem\],
+            .text-\[0\.8125rem\]
+        ) {
+            font-size: var(--medca-public-min-font-size) !important;
+        }
+
+        body.medca-public-surface main .medca-text-small,
+        body.medca-public-surface main .mom-subtext,
+        body.medca-public-surface main .mom-micro {
+            font-size: max(var(--medca-text-small-size, 1rem), var(--medca-public-min-font-size));
+        }
+
+        body.medca-public-surface main .medca-text-body {
+            font-size: max(var(--medca-text-body-regular-size, 1rem), var(--medca-public-min-font-size));
+        }
+
+        body.medca-public-surface main .medca-text-body-lg,
+        body.medca-public-surface main .mom-body-text {
+            font-size: max(var(--medca-text-body-large-size, 1rem), var(--medca-public-min-font-size));
+        }
+
+        body.medca-public-surface main .medca-eyebrow,
+        body.medca-public-surface main .medca-link-primary,
+        body.medca-public-surface main .medca-cta-solid,
+        body.medca-public-surface main .medca-cta-on-hero,
+        body.medca-public-surface main .medca-subheadline {
+            font-size: var(--medca-public-min-font-size);
+        }
+    }
+
+    @media (min-width: 768px) {
+        body.medca-public-surface main {
+            --medca-public-body-font-size: 1.125rem;
+        }
+
+        body.medca-public-surface main .text-sm {
+            font-size: var(--medca-public-body-font-size);
+        }
+
+        body.medca-public-surface main .medca-text-body,
+        body.medca-public-surface main .medca-text-small,
+        body.medca-public-surface main .medca-text-body-lg,
+        body.medca-public-surface main .mom-body-text {
+            font-size: max(var(--medca-text-body-regular-size, 1.125rem), var(--medca-public-body-font-size));
+        }
+
+        body.medca-public-surface main p,
+        body.medca-public-surface main .medca-content-shell p {
+            font-size: max(1em, var(--medca-public-body-font-size));
+        }
+    }
+}

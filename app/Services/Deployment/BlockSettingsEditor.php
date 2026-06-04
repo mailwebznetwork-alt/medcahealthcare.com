@@ -20,14 +20,17 @@ class BlockSettingsEditor
     }
 
     /**
-     * @param  array<string, mixed>  $partial  Keys: style_variant, media, section
+     * @param  array<string, mixed>  $partial  Keys: style_variant, media, section, content
      */
     public function save(Block $block, array $partial): Block
     {
         $current = is_array($block->settings_json) ? $block->settings_json : [];
 
-        foreach (['style_variant', 'media', 'section'] as $key) {
+        foreach (['style_variant', 'media', 'section', 'content'] as $key) {
             if (! array_key_exists($key, $partial)) {
+                continue;
+            }
+            if ($key === 'content' && ! is_array($partial[$key])) {
                 continue;
             }
             $current[$key] = $partial[$key];
@@ -37,6 +40,19 @@ class BlockSettingsEditor
         $block->save();
 
         return $block;
+    }
+
+    /**
+     * @return array<string, array{label: string, type: string, default?: string}>
+     */
+    public function contentSchemaForBlock(Block $block): array
+    {
+        $slug = \App\Support\BlockContent::resolveSchemaSlug(
+            (string) $block->block_slug,
+            (string) $block->code
+        );
+
+        return \App\Support\BlockContent::schema($slug);
     }
 
     /**

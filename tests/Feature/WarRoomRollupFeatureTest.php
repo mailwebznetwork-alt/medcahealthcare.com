@@ -15,7 +15,7 @@ it('exposes war room rollup metrics on the war-room tab', function () {
     $user = User::factory()->create(['role' => 'manager']);
 
     $this->actingAs($user)
-        ->get(route('growth-center.competitors.index', ['tab' => 'war-room']))
+        ->get(route('growth-center.war-room'))
         ->assertSuccessful()
         ->assertSee('Silent Hijack Monitor', false)
         ->assertSee('Keyword intelligence', false)

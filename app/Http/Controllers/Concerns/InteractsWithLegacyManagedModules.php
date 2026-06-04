@@ -31,7 +31,7 @@ trait InteractsWithLegacyManagedModules
             return;
         }
 
-        $values = app(LegacyCustomFieldService::class)->validatedValues($request, $module);
+        $values = app(LegacyCustomFieldService::class)->validatedValuesForServiceForm($request, $module);
         app(LegacyCustomFieldService::class)->persistOnModel($record, $module, $values);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\ModuleAccess;
+use App\Support\AdminNavigation;
 use App\Support\RootAccount;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -49,6 +50,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isRootSuperAdmin(): bool
     {
         return RootAccount::isRootUser($this);
+    }
+
+    public function canBypassArchitectSaveConstraints(): bool
+    {
+        return \App\Support\ArchitectSaveBypass::eligible($this);
     }
 
     /**
@@ -101,12 +107,21 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Exclude profile read-only identities from the User Management user list (root always kept).
+     * Exclude profile read-only identities (and optionally the root account) from the directory.
      *
      * @param  Builder<User>  $query
      */
     public function scopeVisibleInUserManagementDirectory(Builder $query): void
     {
+        $table = $query->getModel()->getTable();
+
+        if (config('user_management.hide_root_account_in_directory', true)) {
+            $rootEmail = strtolower(trim((string) config('root_account.email', '')));
+            if ($rootEmail !== '') {
+                $query->whereRaw("lower({$table}.email) != ?", [$rootEmail]);
+            }
+        }
+
         $emails = config('user_management.profile_readonly_emails', []);
         $names = config('user_management.profile_readonly_names', []);
 
@@ -114,19 +129,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return;
         }
 
-        $table = $query->getModel()->getTable();
-        $rootEmail = strtolower(trim((string) config('root_account.email', '')));
-
-        $query->where(function (Builder $outer) use ($emails, $names, $rootEmail, $table): void {
-            if ($rootEmail !== '') {
-                $outer->whereRaw("lower({$table}.email) = ?", [$rootEmail])
-                    ->orWhere(function (Builder $inner) use ($emails, $names, $table): void {
-                        self::applyUserManagementDirectoryReadonlyExclusions($inner, $emails, $names, $table);
-                    });
-            } else {
-                self::applyUserManagementDirectoryReadonlyExclusions($outer, $emails, $names, $table);
-            }
-        });
+        self::applyUserManagementDirectoryReadonlyExclusions($query, $emails, $names, $table);
     }
 
     /**
@@ -159,6 +162,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Effective module grants (persisted map merged over defaults for missing keys).
      * Root account always resolves to full module access at runtime.
+     * Null {@see $module_access} denies all modules except {@see role} super_admin (authority preserved).
      *
      * @return array<string, bool>
      */
@@ -169,7 +173,11 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         if ($this->module_access === null) {
-            return ModuleAccess::defaultGrants();
+            if (strtolower((string) ($this->role ?? '')) === 'super_admin') {
+                return ModuleAccess::defaultGrants();
+            }
+
+            return array_fill_keys(ModuleAccess::keys(), false);
         }
 
         $base = array_fill_keys(ModuleAccess::keys(), false);
@@ -200,18 +208,39 @@ class User extends Authenticatable implements MustVerifyEmail
     public function visibleSidebarNodes(): array
     {
         $out = [];
+        $navigation = ModuleAccess::navigation();
+        $supplemental = AdminNavigation::supplementalTopLevel();
 
-        foreach (ModuleAccess::navigation() as $key => $meta) {
-            if (! $this->hasModuleAccess($key)) {
+        foreach (AdminNavigation::sidebarOrder() as $navKey) {
+            $accessKey = AdminNavigation::accessModuleKey($navKey);
+            if (! $this->hasModuleAccess($accessKey)) {
                 continue;
             }
 
+            if (isset($supplemental[$navKey])) {
+                $meta = $supplemental[$navKey];
+                $out[] = [
+                    'type' => 'link',
+                    'key' => $navKey,
+                    'label' => $meta['label'],
+                    'icon' => $meta['icon'],
+                    'route' => $meta['route'],
+                ];
+
+                continue;
+            }
+
+            if (! isset($navigation[$navKey])) {
+                continue;
+            }
+
+            $meta = $navigation[$navKey];
             $children = $meta['children'] ?? [];
 
             if ($children !== []) {
                 $out[] = [
                     'type' => 'group',
-                    'key' => $key,
+                    'key' => $navKey,
                     'label' => $meta['label'],
                     'icon' => $meta['icon'],
                     'children' => $children,
@@ -224,7 +253,7 @@ class User extends Authenticatable implements MustVerifyEmail
             if (is_string($routeName) && $routeName !== '') {
                 $out[] = [
                     'type' => 'link',
-                    'key' => $key,
+                    'key' => $navKey,
                     'label' => $meta['label'],
                     'icon' => $meta['icon'],
                     'route' => $routeName,

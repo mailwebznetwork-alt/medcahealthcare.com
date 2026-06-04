@@ -8,51 +8,25 @@
     $isSuperAdmin = auth()->check() && strtolower((string) auth()->user()?->role) === 'super_admin';
     $navItems = app(\App\Services\SiteNavigationResolver::class)->headerLinks();
     $medcaPhoneTel = preg_replace('/\s+/', '', (string) ($themeBranding['phone_tel'] ?? config('medca.phone_tel')));
-    $medcaWhatsAppUrl = (string) ($themeBranding['whatsapp_url'] ?? config('medca.whatsapp_url'));
+    $medcaWhatsAppUrl = (string) ($whatsAppPrimaryUrl ?? $themeBranding['whatsapp_url'] ?? config('medca.whatsapp_url'));
     $headerPresetClass = $themeResolver->headerPresetClass();
     $headerConfig = $themeResolver->headerConfiguration();
     $layoutShellClass = $themeResolver->layoutShellClass();
 
-    $medcaGmbUrl = trim((string) config('medca.public_profile_url', ''));
-    $medcaGmbValid = $medcaGmbUrl !== '' && filter_var($medcaGmbUrl, FILTER_VALIDATE_URL);
-
-    $navLinkBase = 'inline-flex items-center py-2 text-xs font-medium uppercase tracking-[0.06em] transition-colors duration-200 md:text-sm focus-visible:outline-none';
+    $navLinkBase = 'medca-primary-nav-link inline-flex items-center py-2 text-base font-semibold uppercase tracking-[0.06em] transition-colors duration-200 md:text-lg focus-visible:outline-none';
     $navLinkDefault = 'text-medca-primary hover:text-medca-primary-hover focus-visible:text-medca-primary-hover';
     $navLinkActive = 'text-[#581c87] hover:text-[#3b0764] focus-visible:text-[#3b0764]';
     $navDrawerTriggerClass = 'inline-flex items-center justify-center rounded-lg border border-clinical-200 bg-white p-2 text-medca-primary shadow-sm transition-colors duration-200 hover:border-clinical-300 hover:bg-clinical-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-clinical-500/40';
 @endphp
 
 {{-- Sticky stack: slim topbar (~32–36px) + navbar row (~78–90px min). Approximate total px: config('medca.marketing_sticky_header_approx_px'). --}}
-<header class="sticky top-0 z-40 w-full font-sans {{ $headerPresetClass }}" data-header-preset="{{ $themeResolver->headerPreset() }}">
+<header class="medca-site-header sticky top-0 z-40 w-full font-sans {{ $headerPresetClass }}" data-header-preset="{{ $themeResolver->headerPreset() }}">
     @if ($headerConfig['show_top_bar'] ?? true)
     <div class="w-full border-b border-medca-navy-border bg-medca-navy medca-header-top-bar">
-        <div @class(['mx-auto flex h-9 min-h-[32px] items-center justify-between gap-3 px-4 md:px-6 lg:px-8', $layoutShellClass])>
-            <p class="min-w-0 flex-1 truncate text-left text-[11px] font-medium leading-none tracking-wide text-white md:text-xs">{{ config('medca.top_bar_claim') }}</p>
-            <div class="flex shrink-0 items-center justify-end">
-                @if ($medcaGmbValid)
-                    <a
-                        href="{{ $medcaGmbUrl }}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="inline-flex max-w-[min(52vw,14rem)] items-center gap-1.5 truncate text-[11px] font-medium leading-none text-white underline decoration-white/50 underline-offset-2 transition-colors duration-200 hover:text-white hover:decoration-white md:max-w-none md:text-xs"
-                        aria-label="{{ __('Google Business Profile') }} — {{ config('medca.location_display') }}"
-                    >
-                        <svg class="h-3.5 w-3.5 shrink-0 text-white md:h-4 md:w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                        </svg>
-                        <span class="min-w-0 truncate">{{ config('medca.location_display') }}</span>
-                    </a>
-                @else
-                    <span class="inline-flex max-w-[min(52vw,14rem)] items-center gap-1.5 text-[11px] font-medium leading-none tracking-wide text-white/95 md:max-w-none md:text-xs">
-                        <svg class="h-3.5 w-3.5 shrink-0 text-white md:h-4 md:w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                        </svg>
-                        <span class="min-w-0 truncate">{{ config('medca.location_display') }}</span>
-                    </span>
-                @endif
-            </div>
+        <div @class(['mx-auto flex h-10 min-h-[36px] items-center justify-start px-4 md:h-9 md:min-h-[32px] md:px-6 lg:px-8', $layoutShellClass])>
+            <p class="min-w-0 truncate text-left text-sm font-semibold leading-snug tracking-wide text-white md:text-base">
+                {{ config('medca.top_bar_claim') }}
+            </p>
         </div>
     </div>
     @endif
@@ -103,6 +77,19 @@
                     </ul>
                 </nav>
 
+                @if ($themeResolver->headerConfigEnabled('show_search') && Route::has('public.services.index'))
+                    <a href="{{ route('public.services.index') }}" class="{{ $navLinkBase }} {{ $navLinkDefault }} ml-4 shrink-0">
+                        {{ __('Search') }}
+                    </a>
+                @endif
+
+                @if ($themeResolver->headerConfigEnabled('show_secondary_menu'))
+                    <div class="ml-4 hidden shrink-0 items-center gap-2 lg:flex">
+                        <a href="tel:{{ $medcaPhoneTel }}" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-medca-primary hover:bg-slate-50">{{ __('Call') }}</a>
+                        <a href="{{ $medcaWhatsAppUrl }}" target="_blank" rel="noopener noreferrer" class="rounded-xl bg-emerald-700 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-800">{{ __('WhatsApp') }}</a>
+                    </div>
+                @endif
+
                 @if($isSuperAdmin && Route::has('admin.site-architect.live-edit.toggle'))
                     <form method="POST" action="{{ route('admin.site-architect.live-edit.toggle') }}" class="ml-4 shrink-0 md:ml-6">
                         @csrf
@@ -132,7 +119,7 @@
                         x-show="open"
                         x-cloak
                         x-transition.opacity
-                        class="fixed inset-0 z-[99990] md:hidden"
+                        class="medca-site-header-drawer fixed inset-0 z-[99990] md:hidden"
                         style="pointer-events: auto;"
                         x-on:keydown.escape.window="open = false"
                     >
@@ -219,14 +206,18 @@
                                 @endif
                             </nav>
 
+                            @if ($themeResolver->headerConfigEnabled('mobile_cta_enabled') || $themeResolver->headerConfigEnabled('mobile_whatsapp_enabled'))
                             <div class="border-t border-slate-200 bg-slate-50 p-4">
-                                <div class="grid grid-cols-2 gap-2">
+                                <div @class(['grid gap-2', 'grid-cols-2' => $themeResolver->headerConfigEnabled('mobile_cta_enabled') && $themeResolver->headerConfigEnabled('mobile_whatsapp_enabled'), 'grid-cols-1' => ! ($themeResolver->headerConfigEnabled('mobile_cta_enabled') && $themeResolver->headerConfigEnabled('mobile_whatsapp_enabled'))])>
+                                    @if ($themeResolver->headerConfigEnabled('mobile_cta_enabled'))
                                     <a
                                         href="tel:{{ $medcaPhoneTel }}"
                                         class="flex min-h-[52px] items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-clinical-800 shadow-sm transition-colors duration-200 hover:bg-slate-50"
                                     >
                                         {{ __('Call Now') }}
                                     </a>
+                                    @endif
+                                    @if ($themeResolver->headerConfigEnabled('mobile_whatsapp_enabled'))
                                     <a
                                         href="{{ $medcaWhatsAppUrl }}"
                                         target="_blank"
@@ -235,8 +226,10 @@
                                     >
                                         {{ __('WhatsApp') }}
                                     </a>
+                                    @endif
                                 </div>
                             </div>
+                            @endif
                         </aside>
                     </div>
                 </template>

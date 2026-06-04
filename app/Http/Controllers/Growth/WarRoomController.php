@@ -9,18 +9,20 @@ use App\Services\Growth\WarRoomService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class WarRoomController extends Controller
 {
     public function __construct(private readonly WarRoomService $warRoomService) {}
 
-    public function dashboard(Request $request): RedirectResponse|Response
+    public function dashboard(Request $request): RedirectResponse|Response|View|SymfonyResponse
     {
         if ($request->expectsJson()) {
             return response(['data' => $this->warRoomService->getDashboard()]);
         }
 
-        return redirect()->route('growth-center.competitors.index', ['tab' => 'war-room']);
+        return app(CompetitorPageController::class)->hubTab($request, 'war-room');
     }
 
     public function intercepts(Request $request): RedirectResponse|Response

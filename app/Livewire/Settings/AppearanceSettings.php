@@ -8,6 +8,7 @@ use App\Services\Theme\ThemeConfigRepository;
 use App\Services\Theme\ThemeContrastValidator;
 use App\Services\Theme\ThemeCssVariableBuilder;
 use App\Services\Theme\ThemePresetRegistry;
+use App\Support\TypographyTypeScale;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Schema;
@@ -152,12 +153,18 @@ class AppearanceSettings extends Component
 
         try {
             $repository->saveDraftTypography($payload, auth()->user());
-            $this->typography = $repository->draftTypography();
+            $this->typography = $this->normalizeTypographyState($repository->draftTypography());
             $this->syncFontModesFromTypography();
             $this->notice(__('Typography draft saved. Enable preview or publish to apply on the public site.'));
         } catch (ValidationException $e) {
             $this->errorMessage = collect($e->errors())->flatten()->first() ?: __('Unable to save typography.');
         }
+    }
+
+    public function resetTypeScaleToDefaults(): void
+    {
+        $this->typography['type_scale'] = TypographyTypeScale::defaults();
+        $this->notice(__('Type scale reset to platform defaults. Save typography draft to keep.'));
     }
 
     public function saveHeader(ThemeConfigRepository $repository): void
@@ -319,6 +326,9 @@ class AppearanceSettings extends Component
             'faviconUrl' => $repository->assetUrl($this->branding['favicon_path'] ?? null),
             'headerConfigKeys' => config('theme_management.header_configuration_keys', []),
             'stickyBehaviors' => config('theme_management.sticky_behaviors', []),
+            'typeScaleLabels' => TypographyTypeScale::elementLabels(),
+            'resolvedHeadingFont' => $this->resolvedHeadingFont(),
+            'resolvedBodyFont' => $this->resolvedBodyFont(),
         ]);
     }
 
@@ -326,7 +336,7 @@ class AppearanceSettings extends Component
     {
         $this->tokens = $repository->draftPublicTokens();
         $this->branding = $repository->draftBranding();
-        $this->typography = $repository->draftTypography();
+        $this->typography = $this->normalizeTypographyState($repository->draftTypography());
         $this->header_preset = $repository->draftHeaderPreset();
         $this->layout_preset = $repository->draftLayoutPreset();
         $this->header_config = $repository->draftHeaderConfiguration();
@@ -380,23 +390,38 @@ class AppearanceSettings extends Component
         }
     }
 
+    private function resolvedHeadingFont(): string
+    {
+        return $this->heading_font_mode === 'custom'
+            ? trim($this->custom_heading_font)
+            : (string) ($this->typography['heading_font'] ?? config('typography.defaults.heading_font', 'Plus Jakarta Sans'));
+    }
+
+    private function resolvedBodyFont(): string
+    {
+        return $this->body_font_mode === 'custom'
+            ? trim($this->custom_body_font)
+            : (string) ($this->typography['body_font'] ?? config('typography.defaults.body_font', 'Noto Sans'));
+    }
+
     /**
      * @return array<string, mixed>
      */
     private function resolvedTypographyPayload(): array
     {
-        $heading = $this->heading_font_mode === 'custom'
-            ? trim($this->custom_heading_font)
-            : (string) ($this->typography['heading_font'] ?? 'Plus Jakarta Sans');
+        return TypographyTypeScale::mergeIntoTypography(array_merge($this->typography, [
+            'heading_font' => $this->resolvedHeadingFont(),
+            'body_font' => $this->resolvedBodyFont(),
+        ]));
+    }
 
-        $body = $this->body_font_mode === 'custom'
-            ? trim($this->custom_body_font)
-            : (string) ($this->typography['body_font'] ?? 'Plus Jakarta Sans');
-
-        return array_merge($this->typography, [
-            'heading_font' => $heading,
-            'body_font' => $body,
-        ]);
+    /**
+     * @param  array<string, mixed>  $typography
+     * @return array<string, mixed>
+     */
+    private function normalizeTypographyState(array $typography): array
+    {
+        return TypographyTypeScale::mergeIntoTypography($typography);
     }
 
     private function notice(string $message): void

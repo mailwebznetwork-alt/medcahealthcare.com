@@ -3,4 +3,7 @@
  */
 @import '../shared/tailwind.css';
 @import './tokens.css';
+@import './typography.css';
+@import './min-font-size.css';
 @import './components.css';
+@import './service-detail.css';

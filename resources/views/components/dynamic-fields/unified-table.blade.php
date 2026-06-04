@@ -34,7 +34,7 @@
                 <h3 class="mom-section-title">{{ __('Custom fields') }}</h3>
                 <p class="mom-subtext mt-2 max-w-2xl">
                     @if ($canManageSchema)
-                        {{ __('Define fields and enter values in one place. Schema changes require Save custom fields; record values save with the main form.') }}
+                        {{ __('Custom fields are optional. Define schema with Save custom fields when needed; values on saved fields submit with Save changes.') }}
                     @else
                         {{ __('Additional attributes defined in Module Builder for :module.', ['module' => $module->name]) }}
                     @endif
@@ -50,10 +50,12 @@
         @endif
 
         @if ($canManageSchema)
-            <form id="{{ $schemaFormId }}" method="post" action="{{ route('operations.managed-modules.fields.update', $module) }}" class="hidden">
-                @csrf
-                @method('PUT')
-            </form>
+            @push('schema-forms')
+                <form id="{{ $schemaFormId }}" method="post" action="{{ route('operations.managed-modules.fields.update', $module) }}" class="hidden" aria-hidden="true">
+                    @csrf
+                    @method('PUT')
+                </form>
+            @endpush
 
             <div
                 class="mt-6"
@@ -91,6 +93,10 @@
                 <div class="mt-4 flex flex-wrap gap-3">
                     <x-primary-button variant="mom" type="submit" :form="$schemaFormId">{{ __('Save custom fields') }}</x-primary-button>
                 </div>
+
+                @if ($errors->has('fields') || $errors->has('fields.*'))
+                    <p class="mom-body-text mt-3 text-[var(--danger)]">{{ __('Please fix the field definitions above, then use Save custom fields.') }}</p>
+                @endif
             </div>
         @else
             <div class="mt-6 overflow-x-auto">
@@ -115,7 +121,7 @@
                                 <td class="px-3 py-3 text-[var(--text-secondary)]">{{ __(FieldDefinition::typeLabels()[$field->field_type] ?? $field->field_type) }}</td>
                                 <td class="px-3 py-3 text-[var(--text-secondary)]">{{ $field->is_required ? __('Yes') : __('No') }}</td>
                                 <td class="px-3 py-3">
-                                    <x-dynamic-fields.value-cell :field="$field" :value="$cellValue" />
+                                    <x-dynamic-fields.value-cell :field="$field" :value="$cellValue" :optional-values="true" />
                                 </td>
                             </tr>
                         @endforeach

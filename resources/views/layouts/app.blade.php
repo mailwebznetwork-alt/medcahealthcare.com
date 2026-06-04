@@ -49,6 +49,9 @@
         @vite(['resources/css/public/public.css', 'resources/js/app.js'])
         <x-theme.public-vars />
         <x-marketing.tracking-head :settings="$marketingSettings ?? null" />
+        @if (isset($page) && filled($page->gtm_code))
+            {!! $page->gtm_code !!}
+        @endif
         @stack('schema')
         @if (isset($vacancy) && isset($jobPostingSchema) && $jobPostingSchema !== [])
             <script type="application/ld+json">{!! json_encode($jobPostingSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
@@ -93,8 +96,20 @@
                 <div @class(['w-full', 'py-6 md:py-8' => ! $page->usesCanvasLayout()])>
                     {!! \App\Services\ContentParser::parse($page->content ?? '') !!}
                 </div>
-                @if ($page->slug === 'home')
-                    @include('public.partials.near-you-services', app(\App\Services\Public\PublicPagePresenter::class)->nearYouPayload())
+                @php
+                    $nearYouFallback = match ($page->slug) {
+                        'home' => ['block' => 'near-you-home', 'partial' => true],
+                        'locations' => ['block' => 'near-you-locations', 'partial' => true],
+                        default => null,
+                    };
+                    $nearYouTokenMissing = $nearYouFallback !== null
+                        && ! preg_match('/\{\{\s*block\s*:\s*near-you[\w-]*\s*\}\}/', (string) ($page->content ?? ''));
+                @endphp
+                @if ($nearYouTokenMissing)
+                    @include('public.partials.near-you-services', array_merge(
+                        app(\App\Services\Public\PublicPagePresenter::class)->nearYouPayload(),
+                        ['contentSlug' => $nearYouFallback['block']]
+                    ))
                 @endif
             @elseif(isset($blog))
                 <article class="w-full">

@@ -2,6 +2,7 @@
     'field',
     'value',
     'inputId' => null,
+    'optionalValues' => false,
 ])
 
 @php
@@ -9,7 +10,7 @@
     $inputName = 'custom_fields['.$field->field_name.']';
     $errorKey = 'custom_fields.'.$field->field_name;
     $inputId = $inputId ?? 'custom_'.$field->field_name;
-    $requiredAttr = $field->is_required ? 'required' : '';
+    $requiredAttr = ($optionalValues || ! $field->is_required) ? '' : 'required';
 @endphp
 
 @if ($field->field_type === \App\Models\FieldDefinition::TYPE_TEXTAREA)

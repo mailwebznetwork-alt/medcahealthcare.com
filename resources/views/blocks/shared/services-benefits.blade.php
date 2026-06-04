@@ -1,0 +1,3 @@
+<x-blocks.element-wrap tone="light">
+    <x-blocks.marketing-headline class="text-2xl font-semibold" /><ul class="mt-6 grid gap-4 sm:grid-cols-2"><li class="flex gap-3 rounded-lg border border-slate-200 p-4 text-sm"><span class="text-medca-primary">●</span> Clinical assessment</li><li class="flex gap-3 rounded-lg border border-slate-200 p-4 text-sm"><span class="text-medca-primary">●</span> Clinical assessment</li><li class="flex gap-3 rounded-lg border border-slate-200 p-4 text-sm"><span class="text-medca-primary">●</span> Clinical assessment</li><li class="flex gap-3 rounded-lg border border-slate-200 p-4 text-sm"><span class="text-medca-primary">●</span> Clinical assessment</li></ul>
+</x-blocks.element-wrap>

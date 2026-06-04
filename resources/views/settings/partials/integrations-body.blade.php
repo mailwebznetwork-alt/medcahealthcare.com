@@ -38,6 +38,7 @@
             </thead>
             <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
                 @forelse ($integrations as $integration)
+                    @continue($integration->name === 'whatsapp_business')
                     @php
                         $definition = $definitions[$integration->name] ?? null;
                         $label = $definition['label'] ?? str_replace('_', ' ', $integration->name);
@@ -57,7 +58,10 @@
                             <div class="flex flex-wrap gap-2">
                                 <details class="inline-block">
                                     <summary class="mom-cta-primary cursor-pointer mom-cta-compact">{{ __('Configure') }}</summary>
-                                    <div class="mt-3 w-[28rem] rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[rgba(10,15,28,0.92)] p-4">
+                                    <div class="mt-3 {{ $integration->name === 'whatsapp' ? 'w-[40rem] max-w-[min(40rem,92vw)]' : 'w-[28rem]' }} rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[rgba(10,15,28,0.92)] p-4">
+                                        @if ($integration->name === 'whatsapp')
+                                            @include('settings.partials.whatsapp-configure', ['integration' => $integration])
+                                        @else
                                         <form method="post" action="{{ route('admin.settings.integrations.update', $integration->name) }}" class="space-y-3">
                                             @csrf
                                             <input type="hidden" name="is_enabled" value="{{ $integration->is_enabled ? '1' : '0' }}">
@@ -96,6 +100,7 @@
                                                     @endforeach
                                                 </ul>
                                             </div>
+                                        @endif
                                         @endif
                                     </div>
                                 </details>

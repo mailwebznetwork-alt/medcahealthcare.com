@@ -31,6 +31,7 @@ class BlueprintPageGenerator
         string $layoutPreset,
         User $user,
         bool $applyThemeToDraft = true,
+        bool $activatePages = false,
     ): array {
         $blueprint = $this->blueprints->find($blueprintSlug);
         if ($blueprint === null) {
@@ -47,7 +48,7 @@ class BlueprintPageGenerator
         $slugs = [];
 
         foreach ($this->pageDefinitions($blueprint) as $definition) {
-            $page = $this->upsertPage($definition, $blueprintSlug, $stylePackSlug, $themePresetSlug, $layoutPreset);
+            $page = $this->upsertPage($definition, $blueprintSlug, $stylePackSlug, $themePresetSlug, $layoutPreset, $activatePages);
             $pages[] = $page;
             $slugs[] = $page->slug;
         }
@@ -86,6 +87,7 @@ class BlueprintPageGenerator
         string $stylePackSlug,
         string $themePresetSlug,
         string $layoutPreset,
+        bool $activatePages = false,
     ): Page {
         $slug = (string) ($definition['slug'] ?? '');
         $blocks = is_array($definition['blocks'] ?? null) ? $definition['blocks'] : [];
@@ -126,7 +128,7 @@ class BlueprintPageGenerator
                 'generated_at' => now()->toIso8601String(),
             ],
             'layout_mode' => $layoutMode,
-            'is_active' => $page->exists ? $page->is_active : false,
+            'is_active' => $activatePages ? true : ($page->exists ? $page->is_active : false),
         ]);
 
         if (! $page->exists) {

@@ -14,6 +14,15 @@
         @apply bg-gradient-to-br from-medca-navy via-medca-navy-mid to-medca-primary text-white;
     }
 
+    /** Hero / section / card body — 16px mobile, 18px desktop */
+    .medca-subheadline {
+        @apply text-base leading-relaxed md:text-lg;
+    }
+
+    .medca-card-body {
+        @apply text-sm leading-relaxed text-slate-600 md:text-lg;
+    }
+
     .medca-eyebrow {
         @apply text-xs font-semibold uppercase tracking-[0.18em] text-medca-primary;
     }
@@ -596,6 +605,27 @@
     }
 }
 
+/* Pre-header claim — always left-aligned in the content shell */
+body.medca-public-surface .medca-header-top-bar p {
+    width: 100%;
+    text-align: left;
+}
+
+/* Primary nav — largest sizes used on site (16px mobile / 18px desktop readability peak) */
+@layer components {
+    body.medca-public-surface .medca-site-header .medca-primary-nav-link {
+        font-size: 1rem !important;
+        line-height: 1.35rem;
+    }
+
+    @media (min-width: 768px) {
+        body.medca-public-surface .medca-site-header .medca-primary-nav-link {
+            font-size: 1.125rem !important;
+            line-height: 1.4rem;
+        }
+    }
+}
+
 /* Phase 8 — public header style presets (navigation resolver unchanged) */
 body.medca-public-surface .medca-header-classic {
     /* Default Medca stack — no overrides */
@@ -670,6 +700,24 @@ body.medca-public-surface .medca-header-sticky-pro {
 }
 
 /* Block style variants (style pack assignments) */
+@media (min-width: 1024px) {
+    body.medca-public-surface .medca-block--hide-desktop {
+        display: none !important;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023.98px) {
+    body.medca-public-surface .medca-block--hide-tablet {
+        display: none !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    body.medca-public-surface .medca-block--hide-mobile {
+        display: none !important;
+    }
+}
+
 body.medca-public-surface .medca-block--style-2 {
     --medca-block-accent: var(--medca-primary-hover);
 }

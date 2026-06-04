@@ -7,9 +7,15 @@ use App\Models\Lead;
 use App\Models\Review;
 use App\Models\Service;
 use App\Models\User;
+use App\ModuleAccess;
 
 class ReviewPolicy
 {
+    public function moderate(User $user): bool
+    {
+        return $user->hasModuleAccess(ModuleAccess::OPERATIONS);
+    }
+
     public function create(User $user, Service $service): bool
     {
         if (Review::query()->where('user_id', $user->id)->where('service_id', $service->id)->exists()) {

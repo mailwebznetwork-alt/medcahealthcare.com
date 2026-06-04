@@ -50,7 +50,7 @@
                                 {!! $schemaFormAttr !!}
                                 x-model="field.label"
                                 @input="syncFieldName(index)"
-                                required
+                                @if (! $embedded) required @endif
                             >
                         </td>
                         <td class="px-3 py-3">
@@ -61,7 +61,7 @@
                                 {!! $schemaFormAttr !!}
                                 x-model="field.field_name"
                                 pattern="^[a-z][a-z0-9_]*$"
-                                required
+                                @if (! $embedded) required @endif
                             >
                         </td>
                         <td class="px-3 py-3">
@@ -70,7 +70,7 @@
                                 :name="`fields[${index}][field_type]`"
                                 {!! $schemaFormAttr !!}
                                 x-model="field.field_type"
-                                required
+                                @if (! $embedded) required @endif
                             >
                                 @foreach ($fieldTypes as $typeKey => $typeLabel)
                                     <option value="{{ $typeKey }}">{{ __($typeLabel) }}</option>
@@ -93,7 +93,7 @@
                         </td>
                         @if ($showValueColumn)
                             <td class="px-3 py-3">
-                                <template x-if="field.field_name">
+                                <template x-if="{{ $embedded ? 'field.id' : 'field.field_name' }}">
                                     <div>
                                         <template x-if="field.field_type === 'textarea'">
                                             <textarea
@@ -101,7 +101,6 @@
                                                 rows="2"
                                                 :name="`custom_fields[${field.field_name}]`"
                                                 x-model="field.value"
-                                                :required="field.is_required"
                                             ></textarea>
                                         </template>
                                         <template x-if="field.field_type === 'boolean'">
@@ -123,7 +122,6 @@
                                                 class="block w-full min-w-[10rem] rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)] shadow-mom-inner"
                                                 :name="`custom_fields[${field.field_name}]`"
                                                 x-model="field.value"
-                                                :required="field.is_required"
                                             >
                                         </template>
                                         <template x-if="field.field_type === 'number'">
@@ -133,7 +131,6 @@
                                                 class="block w-full min-w-[10rem] rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)] shadow-mom-inner"
                                                 :name="`custom_fields[${field.field_name}]`"
                                                 x-model="field.value"
-                                                :required="field.is_required"
                                             >
                                         </template>
                                         <template x-if="field.field_type === 'date'">
@@ -142,7 +139,6 @@
                                                 class="block w-full min-w-[10rem] rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)] shadow-mom-inner"
                                                 :name="`custom_fields[${field.field_name}]`"
                                                 x-model="field.value"
-                                                :required="field.is_required"
                                             >
                                         </template>
                                         <template x-if="field.field_type === 'email'">
@@ -151,7 +147,6 @@
                                                 class="block w-full min-w-[10rem] rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)] shadow-mom-inner"
                                                 :name="`custom_fields[${field.field_name}]`"
                                                 x-model="field.value"
-                                                :required="field.is_required"
                                             >
                                         </template>
                                         <template x-if="field.field_type === 'url'">
@@ -160,7 +155,6 @@
                                                 class="block w-full min-w-[10rem] rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)] shadow-mom-inner"
                                                 :name="`custom_fields[${field.field_name}]`"
                                                 x-model="field.value"
-                                                :required="field.is_required"
                                             >
                                         </template>
                                         <template x-if="field.field_type === 'select'">
@@ -168,7 +162,6 @@
                                                 class="block w-full min-w-[10rem] rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)] shadow-mom-inner"
                                                 :name="`custom_fields[${field.field_name}]`"
                                                 x-model="field.value"
-                                                :required="field.is_required"
                                             >
                                                 <option value="">{{ __('Select…') }}</option>
                                                 <template x-for="option in (field.options || '').split(/[,\n]/).map(o => o.trim()).filter(Boolean)" :key="option">
@@ -178,8 +171,14 @@
                                         </template>
                                     </div>
                                 </template>
-                                <template x-if="!field.field_name">
-                                    <span class="text-xs text-[var(--text-muted)]">{{ __('Save field name first') }}</span>
+                                <template x-if="{{ $embedded ? '!field.id' : '!field.field_name' }}">
+                                    <span class="text-xs text-[var(--text-muted)]">
+                                        @if ($embedded)
+                                            {{ __('Save custom fields to enter a value on this record.') }}
+                                        @else
+                                            {{ __('Save field name first') }}
+                                        @endif
+                                    </span>
                                 </template>
                             </td>
                         @endif
@@ -209,7 +208,7 @@
         {{ __('No custom fields yet. Press Add field when you need to define one.') }}
     </p>
 
-    @if ($errors->has('fields') || $errors->has('fields.*'))
+    @if (! $embedded && ($errors->has('fields') || $errors->has('fields.*')))
         <p class="mom-body-text mt-4 text-[var(--danger)]">{{ __('Please fix the field definitions above.') }}</p>
     @endif
 </div>

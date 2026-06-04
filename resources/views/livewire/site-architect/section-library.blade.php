@@ -1,19 +1,21 @@
 <div class="space-y-6">
     @if (! $ready)
-        <x-admin.card><p class="mom-body-text">{{ __('Run migrations for Section Library.') }}</p></x-admin.card>
+        <x-admin.card><p class="mom-body-text">{{ __('Run migrations for Legacy Sections.') }}</p></x-admin.card>
     @else
         @if ($statusMessage)<p class="mom-body-text text-[var(--success)]">{{ $statusMessage }}</p>@endif
         @if ($errorMessage)<p class="mom-body-text text-[var(--danger)]">{{ $errorMessage }}</p>@endif
 
-        <x-admin.card :title="__('Create section')">
-            <div class="grid gap-4 md:grid-cols-2">
-                <label class="block"><span class="mom-label">{{ __('Name') }}</span><input type="text" wire:model="create_name" class="mom-input w-full" /></label>
-                <label class="block"><span class="mom-label">{{ __('Block slugs (comma-separated)') }}</span><input type="text" wire:model="create_blocks" class="mom-input w-full" placeholder="hero-home,stats-row,cta-banner" /></label>
-            </div>
-            <button type="button" wire:click="createSection" class="mom-cta-compact mom-cta-primary mt-3">{{ __('Create section') }}</button>
-        </x-admin.card>
+        @unless (config('platform_composition.section_library_deprecated'))
+            <x-admin.card :title="__('Create section')">
+                <div class="grid gap-4 md:grid-cols-2">
+                    <label class="block"><span class="mom-label">{{ __('Name') }}</span><input type="text" wire:model="create_name" class="mom-input w-full" /></label>
+                    <label class="block"><span class="mom-label">{{ __('Block slugs (comma-separated)') }}</span><input type="text" wire:model="create_blocks" class="mom-input w-full" placeholder="hero-home,stats-row,cta-banner" /></label>
+                </div>
+                <button type="button" wire:click="createSection" class="mom-cta-compact mom-cta-primary mt-3">{{ __('Create section') }}</button>
+            </x-admin.card>
+        @endunless
 
-        <x-admin.card :title="__('Section Library')">
+        <x-admin.card :title="__('Legacy Sections')">
             <p class="mom-body-text mb-4 text-[var(--text-secondary)]">{{ __('Multi-block reusable sections. Insert with standard block tokens or') }} <code class="text-mom-gold">@{{ section:slug }}</code> {{ __('on pages.') }}</p>
             <ul class="space-y-3">
                 @forelse ($sections as $section)

@@ -1,8 +1,10 @@
 <?php
 
 use App\Jobs\AutonomousContentJob;
+use App\Livewire\SiteArchitect\Pages;
 use App\Models\Competitor;
 use App\Models\CompetitorBacklink;
+use App\Models\CompetitorKeyword;
 use App\Models\Page;
 use App\Models\SeoEntity;
 use App\Models\SiteBacklink;
@@ -44,7 +46,7 @@ it('merges autonomous gemini content into hijack strategy json', function () {
     config(['gemini.api_key' => 'test-gemini-key']);
 
     $competitor = Competitor::query()->create(['name' => 'Rival', 'is_active' => true]);
-    $keyword = \App\Models\CompetitorKeyword::query()->create([
+    $keyword = CompetitorKeyword::query()->create([
         'competitor_id' => $competitor->id,
         'keyword' => 'arekere home nursing',
         'intent_type' => 'local',
@@ -160,7 +162,7 @@ it('shows backlink gap widget on war room tab', function () {
     ]);
 
     $this->actingAs($user)
-        ->get(route('growth-center.competitors.index', ['tab' => 'war-room']))
+        ->get(route('growth-center.war-room'))
         ->assertOk()
         ->assertSeeText('Backlink gap intelligence');
 });
@@ -193,7 +195,7 @@ it('site architect one click publish livewire updates page', function () {
     ]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\SiteArchitect\Pages::class)
+        ->test(Pages::class)
         ->call('startEdit', $page->id)
         ->call('applyAndPublishHijackStrategy', '12')
         ->assertHasNoErrors();

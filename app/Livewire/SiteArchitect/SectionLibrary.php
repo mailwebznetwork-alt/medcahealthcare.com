@@ -39,6 +39,12 @@ class SectionLibrary extends Component
 
     public function createSection(SectionLibraryRepository $repository): void
     {
+        if (config('platform_composition.section_library_deprecated', false)) {
+            $this->errorMessage = __('Section Library is deprecated. Compose pages with {{block:slug}} tokens instead.');
+
+            return;
+        }
+
         if ($this->create_name === '') {
             $this->errorMessage = __('Enter a section name.');
 

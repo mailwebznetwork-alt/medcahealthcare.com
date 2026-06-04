@@ -20,7 +20,7 @@
                     $name = 'custom_fields.'.$field->field_name;
                     $inputName = 'custom_fields['.$field->field_name.']';
                     $value = old('custom_fields.'.$field->field_name, $values->{$field->field_name} ?? null);
-                    $requiredAttr = $field->is_required ? 'required' : '';
+                    $requiredAttr = '';
                 @endphp
                 <div @class(['md:col-span-2' => $field->field_type === \App\Models\FieldDefinition::TYPE_TEXTAREA])>
                     <x-input-label :for="'custom_'.$field->field_name" :value="$field->label" variant="mom" />
@@ -40,15 +40,15 @@
                             @endforeach
                         </select>
                     @elseif ($field->field_type === \App\Models\FieldDefinition::TYPE_NUMBER)
-                        <x-text-input :id="'custom_'.$field->field_name" :name="$inputName" type="number" step="any" class="mt-2 block w-full" :value="$value" variant="mom" :required="$field->is_required" />
+                        <x-text-input :id="'custom_'.$field->field_name" :name="$inputName" type="number" step="any" class="mt-2 block w-full" :value="$value" variant="mom" />
                     @elseif ($field->field_type === \App\Models\FieldDefinition::TYPE_DATE)
-                        <x-text-input :id="'custom_'.$field->field_name" :name="$inputName" type="date" class="mt-2 block w-full" :value="$value" variant="mom" :required="$field->is_required" />
+                        <x-text-input :id="'custom_'.$field->field_name" :name="$inputName" type="date" class="mt-2 block w-full" :value="$value" variant="mom" />
                     @elseif ($field->field_type === \App\Models\FieldDefinition::TYPE_EMAIL)
-                        <x-text-input :id="'custom_'.$field->field_name" :name="$inputName" type="email" class="mt-2 block w-full" :value="$value" variant="mom" :required="$field->is_required" />
+                        <x-text-input :id="'custom_'.$field->field_name" :name="$inputName" type="email" class="mt-2 block w-full" :value="$value" variant="mom" />
                     @elseif ($field->field_type === \App\Models\FieldDefinition::TYPE_URL)
-                        <x-text-input :id="'custom_'.$field->field_name" :name="$inputName" type="url" class="mt-2 block w-full" :value="$value" variant="mom" :required="$field->is_required" />
+                        <x-text-input :id="'custom_'.$field->field_name" :name="$inputName" type="url" class="mt-2 block w-full" :value="$value" variant="mom" />
                     @else
-                        <x-text-input :id="'custom_'.$field->field_name" :name="$inputName" type="text" class="mt-2 block w-full" :value="$value" variant="mom" :required="$field->is_required" />
+                        <x-text-input :id="'custom_'.$field->field_name" :name="$inputName" type="text" class="mt-2 block w-full" :value="$value" variant="mom" />
                     @endif
                     <x-input-error class="mt-2" :messages="$errors->get($name)" variant="mom" />
                 </div>

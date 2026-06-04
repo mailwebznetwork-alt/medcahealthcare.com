@@ -26,6 +26,18 @@
                 <option value="0" @selected(($filters['active'] ?? '') === '0')>{{ __('No') }}</option>
             </select>
         </div>
+        @isset($categoryOptions)
+            <div class="min-w-[14rem]">
+                <x-input-label for="category_ids" :value="__('Categories')" variant="mom" />
+                <select id="category_ids" name="category_ids[]" multiple class="rounded-mom-chrome mt-2 block min-h-[6rem] w-full border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
+                    @php $selectedCats = array_map('intval', (array) ($filters['category_ids'] ?? [])); @endphp
+                    @foreach ($categoryOptions as $cat)
+                        <option value="{{ $cat->id }}" @selected(in_array((int) $cat->id, $selectedCats, true))>{{ $cat->name }}</option>
+                    @endforeach
+                </select>
+                <p class="mom-subtext mt-1 text-xs">{{ __('Hold Ctrl/Cmd to filter by multiple categories.') }}</p>
+            </div>
+        @endisset
         <div>
             <x-input-label for="featured" :value="__('Featured')" variant="mom" />
             <select id="featured" name="featured" class="rounded-mom-chrome mt-2 block min-w-[8rem] border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
@@ -47,6 +59,7 @@
                     <tr>
                         <th class="px-5 py-3">{{ __('Title') }}</th>
                         <th class="px-5 py-3">{{ __('Service code') }}</th>
+                        <th class="px-5 py-3">{{ __('Categories') }}</th>
                         <th class="px-5 py-3">{{ __('Active') }}</th>
                         <th class="px-5 py-3">{{ __('Publish') }}</th>
                         <th class="px-5 py-3">{{ __('Featured') }}</th>
@@ -60,6 +73,9 @@
                         <tr class="text-[var(--text-primary)]">
                             <td class="px-5 py-3 font-medium">{{ $service->title }}</td>
                             <td class="px-5 py-3 font-mono text-xs text-[var(--text-secondary)]">{{ $service->service_code }}</td>
+                            <td class="px-5 py-3 max-w-[14rem]">
+                                @include('operations.services.partials.category-badges', ['service' => $service])
+                            </td>
                             <td class="px-5 py-3">
                                 <span class="rounded-mom-chrome border border-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] uppercase">{{ $service->is_active ? __('Yes') : __('No') }}</span>
                             </td>
@@ -82,7 +98,10 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-5 py-10 text-center text-[var(--text-muted)]">{{ __('No services yet.') }}</td>
+                            <td colspan="9" class="px-5 py-10 text-center text-[var(--text-muted)]">
+                                <p>{{ __('No services yet.') }}</p>
+                                <a href="{{ route('operations.services.create') }}" class="mom-cta-primary mt-4 inline-flex">{{ __('Create service') }}</a>
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>

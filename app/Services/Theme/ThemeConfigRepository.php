@@ -6,6 +6,8 @@ use App\Models\ThemeConfiguration;
 use App\Models\ThemePreset;
 use App\Models\User;
 use App\Services\Deployment\GlobalContentVariableRepository;
+use App\Support\TypographyTypeScale;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -68,13 +70,13 @@ class ThemeConfigRepository
      */
     public function defaultTypography(): array
     {
-        return [
-            'heading_font' => 'Plus Jakarta Sans',
-            'body_font' => 'Plus Jakarta Sans',
+        return TypographyTypeScale::mergeIntoTypography([
+            'heading_font' => config('typography.defaults.heading_font', 'Plus Jakarta Sans'),
+            'body_font' => config('typography.defaults.body_font', 'Noto Sans'),
             'scale' => 'default',
             'line_height' => '1.5',
             'letter_spacing' => 'normal',
-        ];
+        ]);
     }
 
     /**
@@ -87,7 +89,7 @@ class ThemeConfigRepository
         return [
             'show_top_bar' => true,
             'show_search' => false,
-            'show_location_selector' => true,
+            'show_location_selector' => false,
             'show_branch_selector' => false,
             'show_social_icons' => false,
             'show_secondary_menu' => false,
@@ -377,6 +379,7 @@ class ThemeConfigRepository
             'typography' => $publishedTypography,
             'header_preset' => $config->draft_header_preset ?: $config->header_preset,
             'layout_preset' => $config->draft_layout_preset ?: $config->layout_preset,
+            'active_style_pack' => $config->draft_style_pack ?: $config->active_style_pack,
             'published_at' => now(),
             'published_by_id' => $user->id,
             'draft_public' => null,
@@ -384,6 +387,7 @@ class ThemeConfigRepository
             'draft_typography' => null,
             'draft_header_preset' => null,
             'draft_layout_preset' => null,
+            'draft_style_pack' => null,
         ])->save();
 
         ThemeConfiguration::forgetCache();
@@ -399,6 +403,7 @@ class ThemeConfigRepository
             'draft_typography' => null,
             'draft_header_preset' => null,
             'draft_layout_preset' => null,
+            'draft_style_pack' => null,
         ])->save();
     }
 
@@ -476,7 +481,7 @@ class ThemeConfigRepository
         ]);
     }
 
-    public function storeUploadedAsset(string $field, \Illuminate\Http\UploadedFile $file): string
+    public function storeUploadedAsset(string $field, UploadedFile $file): string
     {
         if (! in_array($field, ['logo_path', 'favicon_path'], true)) {
             throw ValidationException::withMessages([$field => __('Invalid upload field.')]);
@@ -538,6 +543,10 @@ class ThemeConfigRepository
 
         if (isset($typography['scale']) && ! in_array($typography['scale'], ['compact', 'default', 'large'], true)) {
             throw ValidationException::withMessages(['typography.scale' => __('Invalid font scale.')]);
+        }
+
+        if (isset($typography['type_scale']) && is_array($typography['type_scale'])) {
+            TypographyTypeScale::assertValid($typography['type_scale']);
         }
     }
 }

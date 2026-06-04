@@ -1,0 +1,3 @@
+<x-blocks.element-wrap tone="light">
+    <x-blocks.marketing-headline class="text-2xl font-semibold" /><div class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4"><div class="aspect-square rounded-lg bg-slate-200"></div><div class="aspect-square rounded-lg bg-slate-200"></div><div class="aspect-square rounded-lg bg-slate-200"></div><div class="aspect-square rounded-lg bg-slate-200"></div><div class="aspect-square rounded-lg bg-slate-200"></div><div class="aspect-square rounded-lg bg-slate-200"></div><div class="aspect-square rounded-lg bg-slate-200"></div><div class="aspect-square rounded-lg bg-slate-200"></div></div>
+</x-blocks.element-wrap>

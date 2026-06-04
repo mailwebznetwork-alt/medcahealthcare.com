@@ -49,7 +49,7 @@ it('exposes block presets admin route', function () {
     $this->actingAs($user)
         ->get(route('site-architect.block-presets.index'))
         ->assertSuccessful()
-        ->assertSee(__('Block Presets'));
+        ->assertSee(__('Templates'));
 });
 
 it('saves block media and section settings via block studio', function () {
@@ -145,6 +145,20 @@ it('allows admin on deployment packages route', function () {
     $this->actingAs($admin)
         ->get(route('site-architect.deployment-packages.index'))
         ->assertSuccessful();
+});
+
+it('renders section library shell without blade parse errors', function () {
+    $admin = User::factory()->create([
+        'role' => 'admin',
+        'module_access' => ModuleAccess::defaultGrants(),
+    ]);
+
+    config(['platform_composition.section_library_deprecated' => true]);
+
+    $this->actingAs($admin)
+        ->get(route('site-architect.section-library.index'))
+        ->assertSuccessful()
+        ->assertSee('Deprecated', false);
 });
 
 it('section library supports clone and delete', function () {

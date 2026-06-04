@@ -32,6 +32,26 @@ class DynamicFieldValidator
     }
 
     /**
+     * Record forms (legacy JSON modules): field values are optional on save even when marked required in schema.
+     *
+     * @return array<string, list<string|\Illuminate\Validation\Rules\In>>
+     */
+    public function rulesForServiceForm(Module $module, string $prefix = 'custom_fields'): array
+    {
+        $module->loadMissing('fieldDefinitions');
+
+        $rules = [];
+
+        foreach ($module->fieldDefinitions as $field) {
+            $fieldRules = $this->rulesForField($field);
+            $fieldRules[0] = 'nullable';
+            $rules[$prefix.'.'.$field->field_name] = $fieldRules;
+        }
+
+        return $rules;
+    }
+
+    /**
      * @return array<string, string>
      */
     public function attributesFor(Module $module, string $prefix = ''): array

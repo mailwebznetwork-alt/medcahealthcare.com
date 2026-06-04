@@ -81,7 +81,7 @@ final class ModuleAccess
             self::MARKETING => [
                 'label' => 'Marketing',
                 'icon' => 'megaphone',
-                'route' => 'modules.marketing',
+                'route' => 'marketing.dashboard',
             ],
             self::GROWTH_CENTER => [
                 'label' => 'Growth Center',
@@ -101,7 +101,7 @@ final class ModuleAccess
             self::SETTINGS => [
                 'label' => 'Settings',
                 'icon' => 'settings',
-                'route' => 'settings.integrations',
+                'route' => 'settings.appearance',
             ],
         ];
     }

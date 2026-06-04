@@ -52,12 +52,18 @@
                     @endforeach
                 </select>
             </label>
+            <label class="flex items-center gap-2 md:col-span-2">
+                <input type="checkbox" wire:model="activate_generated_pages" class="rounded border-[var(--border-panel-soft)]" />
+                <span class="text-sm text-[var(--text-primary)]">{{ __('Activate generated pages immediately (opt-in)') }}</span>
+            </label>
             <div class="md:col-span-2 flex flex-wrap gap-2">
                 <button type="submit" class="mom-cta-compact mom-cta-primary" wire:loading.attr="disabled">
                     {{ __('Generate pages (draft)') }}
                 </button>
                 <a href="{{ route('settings.appearance') }}" class="mom-cta-compact mom-cta-ghost">{{ __('Theme settings') }}</a>
                 <a href="{{ route('site-architect.pages.index') }}" class="mom-cta-compact mom-cta-ghost">{{ __('Edit pages') }}</a>
+                <button type="button" wire:click="previewStylePack" class="mom-cta-compact mom-cta-ghost">{{ __('Preview style pack') }}</button>
+                <button type="button" wire:click="clearStylePackPreview" class="mom-cta-compact mom-cta-ghost">{{ __('Clear style pack preview') }}</button>
             </div>
         </form>
 

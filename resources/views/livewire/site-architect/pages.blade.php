@@ -8,14 +8,38 @@
     @if ($mode === 'list')
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-lg font-semibold text-[var(--text-primary)]">{{ __('Pages') }}</h2>
-            <a
-                href="{{ route('site-architect.pages.index') }}?create=1"
-                wire:click.prevent="startCreate"
-                role="button"
-                class="inline-flex cursor-pointer rounded-mom-chrome border border-[rgba(197,160,89,0.28)] bg-[rgba(197,160,89,0.1)] px-4 py-2 text-sm font-medium text-mom-gold no-underline"
-            >
-                {{ __('Create page') }}
-            </a>
+            <div class="flex flex-wrap items-center gap-2">
+                <button
+                    type="button"
+                    wire:click="syncServiceDetailPages"
+                    wire:confirm="{{ __('Create or update Site Architect pages for every service (slug service-{code})?') }}"
+                    class="inline-flex rounded-mom-chrome border border-[rgba(197,160,89,0.28)] bg-[rgba(197,160,89,0.1)] px-4 py-2 text-sm font-medium text-mom-gold"
+                >
+                    {{ __('Sync service pages') }}
+                </button>
+                <a
+                    href="{{ route('site-architect.pages.index') }}?create=1"
+                    wire:click.prevent="startCreate"
+                    role="button"
+                    class="inline-flex cursor-pointer rounded-mom-chrome border border-[rgba(197,160,89,0.28)] bg-[rgba(197,160,89,0.1)] px-4 py-2 text-sm font-medium text-mom-gold no-underline"
+                >
+                    {{ __('Create page') }}
+                </a>
+            </div>
+        </div>
+
+        <p class="mom-subtext mb-4 max-w-3xl text-sm">{{ __('Marketing pages (home, about, …) and service detail pages (slug service-your-code) live here. Public service URLs use /services/CODE and pull blocks from the matching page.') }}</p>
+
+        <div class="mb-4 max-w-md">
+            <label for="pages-search" class="mom-micro text-[var(--text-muted)]">{{ __('Search pages') }}</label>
+            <input
+                id="pages-search"
+                type="search"
+                wire:model.live.debounce.300ms="pageSearch"
+                placeholder="{{ __('Title or slug — e.g. service-medical-lab') }}"
+                class="mom-input mt-1 w-full text-sm"
+                autocomplete="off"
+            />
         </div>
 
         <div class="mom-card overflow-x-auto p-0">
@@ -31,8 +55,16 @@
                 </thead>
                 <tbody>
                     @forelse ($pages as $page)
+                        @php
+                            $serviceCode = $serviceCodesByPageId[$page->id] ?? \App\Services\Operations\ServiceDetailPageProvisioner::serviceCodeFromPageSlug($page->slug);
+                        @endphp
                         <tr wire:key="page-row-{{ $page->id }}">
-                            <td class="px-4 py-3 font-medium text-[var(--text-primary)]">{{ $page->title }}</td>
+                            <td class="px-4 py-3 font-medium text-[var(--text-primary)]">
+                                {{ $page->title }}
+                                @if ($serviceCode !== null)
+                                    <span class="ml-2 rounded-full bg-[rgba(197,160,89,0.15)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-mom-gold">{{ __('Service') }}</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-3 font-mono text-xs text-[var(--text-muted)]">{{ $page->slug }}</td>
                             <td class="px-4 py-3">
                                 <button
@@ -52,12 +84,21 @@
                                 >{{ __('Preview') }}</a>
                                 @if ($page->is_active)
                                     <span class="text-[var(--text-muted)]">·</span>
-                                    <a
-                                        href="{{ route('pages.public', ['slug' => $page->slug]) }}"
-                                        target="_blank"
-                                        rel="noopener"
-                                        class="text-mom-gold hover:underline"
-                                    >{{ __('Live') }}</a>
+                                    @if ($serviceCode !== null && Route::has('public.services.show'))
+                                        <a
+                                            href="{{ route('public.services.show', $serviceCode) }}"
+                                            target="_blank"
+                                            rel="noopener"
+                                            class="text-mom-gold hover:underline"
+                                        >{{ __('Service URL') }}</a>
+                                    @else
+                                        <a
+                                            href="{{ route('pages.public', ['slug' => $page->slug]) }}"
+                                            target="_blank"
+                                            rel="noopener"
+                                            class="text-mom-gold hover:underline"
+                                        >{{ __('Live') }}</a>
+                                    @endif
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">
@@ -73,7 +114,15 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-10 text-center text-[var(--text-muted)]">{{ __('No pages yet.') }}</td>
+                            <td colspan="5" class="px-4 py-12 text-center">
+                                <p class="text-[var(--text-primary)] font-medium">{{ __('No pages yet') }}</p>
+                                <p class="mom-subtext mx-auto mt-2 max-w-md text-sm">{{ __('Create your first page, add blocks (sections), edit copy in Blocks Studio, then turn Live on.') }}</p>
+                                <a
+                                    href="{{ route('site-architect.pages.index') }}?create=1"
+                                    wire:click.prevent="startCreate"
+                                    class="mt-4 inline-flex rounded-mom-chrome bg-[var(--accent-gold)] px-4 py-2 text-sm font-semibold text-[#120f0d] no-underline"
+                                >{{ __('Create page') }}</a>
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -90,6 +139,33 @@
         </div>
 
         <div class="space-y-8">
+            @if ($productionPreviewUrl)
+                <section class="mom-card overflow-hidden p-0" aria-label="{{ __('Production preview') }}">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-panel-soft)] px-4 py-3">
+                        <div>
+                            <h3 class="mom-section-title">{{ __('Preview (production path)') }}</h3>
+                            <p class="mom-subtext mt-1 max-w-2xl">{{ __('Same render as public: ContentParser + layouts.app. Save the page, then refresh preview if you changed structure or SEO.') }}</p>
+                        </div>
+                        <a href="{{ $productionPreviewUrl }}" target="_blank" rel="noopener" class="mom-cta-compact mom-cta-primary">{{ __('Open full preview') }}</a>
+                    </div>
+                    <iframe
+                        wire:key="page-preview-{{ $previewRefreshNonce }}-{{ $editingId }}"
+                        src="{{ $productionPreviewUrl }}{{ str_contains($productionPreviewUrl, '?') ? '&' : '?' }}_preview={{ $previewRefreshNonce }}"
+                        title="{{ __('Page preview') }}"
+                        class="h-[min(70vh,720px)] w-full border-0 bg-white"
+                        loading="lazy"
+                    ></iframe>
+                </section>
+            @elseif ($editingId === null)
+                <p class="mom-subtext rounded-mom-chrome border border-[var(--border-panel-soft)] px-4 py-3">{{ __('Save the page once to enable the production preview panel.') }}</p>
+            @endif
+
+            @if ($hasSectionTokens && ($sectionLibraryDeprecated ?? false))
+                <div class="rounded-mom-chrome border border-[rgba(197,160,89,0.35)] bg-[rgba(197,160,89,0.08)] px-4 py-3 text-sm text-[var(--text-secondary)]">
+                    {{ config('platform_composition.section_library_deprecation_note') }}
+                </div>
+            @endif
+
             <section class="mom-card p-6">
                 <h3 class="mom-section-title mb-4">{{ __('Basic') }}</h3>
                 <div class="grid gap-4 md:grid-cols-2">
@@ -122,13 +198,18 @@
             </section>
 
             <section class="mom-card p-6">
-                <h3 class="mom-section-title mb-4">{{ __('Blocks & modules (structure)') }}</h3>
-                <p class="mom-subtext mb-4 max-w-2xl">{{ __('Order defines page structure. Blocks hold Blade/HTML; modules resolve via config.') }}</p>
+                <h3 class="mom-section-title mb-2">{{ __('Page sections') }}</h3>
+                <p class="mom-subtext mb-4 max-w-3xl">{{ __('Each line is one section on the public page (hero, services, contact form, etc.). Drag order with Up/Down. To change headlines and button text, use Edit content — not the code fields below.') }}</p>
 
                 <div class="flex flex-wrap gap-2">
-                    <button type="button" wire:click="addBlock" class="rounded-mom-chrome border border-[var(--border-panel-soft)] px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-hover)]">
-                        {{ __('Add block') }}
+                    <button type="button" wire:click="addSection" class="rounded-mom-chrome border border-[rgba(197,160,89,0.35)] bg-[rgba(197,160,89,0.08)] px-4 py-2 text-sm font-semibold text-mom-gold hover:bg-[rgba(197,160,89,0.14)]">
+                        {{ __('Add section') }}
                     </button>
+                    @if ($canUseDeveloperBlockTools ?? false)
+                        <button type="button" wire:click="openDeveloperBlockModal" class="rounded-mom-chrome border border-[var(--border-panel-soft)] px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">
+                            {{ __('Developer tools') }}
+                        </button>
+                    @endif
                     <div class="flex flex-wrap items-center gap-2">
                         <select wire:model.live="module_choice" class="rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)]">
                             <option value="">{{ __('Insert module…') }}</option>
@@ -153,11 +234,20 @@
 
                 <ul class="mt-6 space-y-2">
                     @foreach ($contentParts as $idx => $part)
-                        <li wire:key="part-{{ $idx }}-{{ $part['type'] }}-{{ $part['slug'] }}" class="flex flex-wrap items-center justify-between gap-2 rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] px-3 py-2 font-mono text-xs text-[var(--text-secondary)]">
-                            <span>{{ '{{'.$part['type'].':'.$part['slug'].str_repeat('}', 2) }}</span>
-                            <span class="flex flex-wrap gap-1">
+                        <li wire:key="part-{{ $idx }}-{{ $part['type'] }}-{{ $part['slug'] }}" class="flex flex-wrap items-center justify-between gap-2 rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] px-3 py-2 text-sm text-[var(--text-primary)]">
+                            <span class="font-medium">
                                 @if ($part['type'] === 'block')
-                                    <button type="button" wire:click="editBlockFromPart({{ $idx }})" class="text-mom-gold hover:underline">{{ __('Edit') }}</button>
+                                    {{ app(\App\Services\SiteArchitect\PageSectionCatalog::class)->displayNameForSlug($part['slug']) }}
+                                @else
+                                    {{ ucfirst($part['type']) }} · {{ $part['slug'] }}
+                                @endif
+                                @if ($canUseDeveloperBlockTools ?? false)
+                                    <span class="mt-0.5 block font-mono text-[10px] text-[var(--text-muted)]">{{ '{' . '{' . $part['type'] . ':' . $part['slug'] . '}' . '}' }}</span>
+                                @endif
+                            </span>
+                            <span class="flex flex-wrap gap-1 text-xs">
+                                @if ($part['type'] === 'block')
+                                    <a href="{{ route('site-architect.block-studio.index', ['block' => $part['slug']]) }}" class="text-mom-gold hover:underline" target="_blank" rel="noopener">{{ __('Edit section content') }}</a>
                                 @endif
                                 <button type="button" wire:click="movePartUp({{ $idx }})" class="hover:text-[var(--text-primary)]">{{ __('Up') }}</button>
                                 <button type="button" wire:click="movePartDown({{ $idx }})" class="hover:text-[var(--text-primary)]">{{ __('Down') }}</button>
@@ -529,6 +619,8 @@
                 </div>
             </section>
 
+            @include('livewire.site-architect.partials.architect-save-approvals')
+
             <div class="flex flex-wrap gap-3">
                 <button type="button" wire:click="savePage" class="rounded-mom-chrome bg-[var(--accent-gold)] px-5 py-2.5 text-sm font-semibold text-[#120f0d]">{{ __('Save page') }}</button>
                 <button type="button" wire:click="cancelForm" class="rounded-mom-chrome border border-[var(--border-panel-soft)] px-5 py-2.5 text-sm text-[var(--text-secondary)]">{{ __('Cancel') }}</button>
@@ -536,10 +628,19 @@
         </div>
     @endif
 
+    @if ($sectionPickerOpen)
+        @include('livewire.site-architect.partials.section-picker-modal', [
+            'sectionPickerGroups' => $sectionPickerGroups,
+            'sectionPickerCategories' => $sectionPickerCategories,
+            'canUseDeveloperBlockTools' => $canUseDeveloperBlockTools,
+        ])
+    @endif
+
     @if ($blockModalOpen)
         <div class="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4" wire:click.self="closeBlockModal">
             <div class="mom-card max-h-[90vh] w-full max-w-2xl overflow-y-auto p-6" @click.stop>
-                <h4 class="mom-section-title">{{ $blockEditingSlug ? __('Edit block') : __('New block') }}</h4>
+                <h4 class="mom-section-title">{{ __('Add section to this page') }}</h4>
+                <p class="mom-subtext mt-2 max-w-xl text-sm">{{ __('Pick an existing block slug (recommended). Marketing copy is edited in Blocks Studio. Use Blocks Factory only when a developer needs new HTML/Blade.') }}</p>
                 <div class="mt-4 space-y-4">
                     <div>
                         <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Block name') }}</label>
@@ -567,8 +668,9 @@
                         'appendAction' => 'appendModuleTokenToBlock',
                     ])
                     <div>
-                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Code (HTML / Blade / Alpine)') }}</label>
-                        <textarea wire:model="block_code" rows="14" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 font-mono text-xs"></textarea>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Developer code (optional)') }}</label>
+                        <p class="mom-subtext mt-1 text-xs">{{ __('Leave empty for managed blocks. If you see a “use Blocks Studio” error, open Blocks Studio instead of pasting code here.') }}</p>
+                        <textarea wire:model="block_code" rows="10" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 font-mono text-xs" placeholder="@include('blocks.home.hero-home')"></textarea>
                         @error('block_code') <p class="mt-1 text-xs text-[var(--danger)]">{{ $message }}</p> @enderror
                     </div>
                     @include('livewire.site-architect.partials.block-custom-css-field', ['wireModel' => 'block_custom_css'])

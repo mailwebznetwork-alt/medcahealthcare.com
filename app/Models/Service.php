@@ -178,6 +178,38 @@ class Service extends Model
             ->withTimestamps();
     }
 
+    /**
+     * Organizational taxonomy — not an SEO entity; service SEO remains canonical.
+     *
+     * @return BelongsToMany<ServiceCategory, $this>
+     */
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(ServiceCategory::class, 'service_category_map', 'service_id', 'service_category_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * @param  Builder<Service>  $query
+     * @param  list<int|string>  $categoryIds
+     * @return Builder<Service>
+     */
+    public function scopeInCategories(Builder $query, array $categoryIds): Builder
+    {
+        $ids = array_values(array_unique(array_filter(array_map(
+            static fn (mixed $id): int => (int) $id,
+            $categoryIds
+        ), static fn (int $id): bool => $id > 0)));
+
+        if ($ids === []) {
+            return $query;
+        }
+
+        return $query->whereHas('categories', function (Builder $categoryQuery) use ($ids): void {
+            $categoryQuery->whereIn('service_categories.id', $ids);
+        });
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);

@@ -9,9 +9,22 @@ return [
     |
     | Comma-separated lists (case-insensitive). Matching users cannot be edited,
     | activated/deactivated, or deleted from User Management, and are omitted from
-    | the User Management directory for every viewer. The configured root super
-    | administrator is always listed and never treated as read-only here; root
-    | rules apply separately via RootAccount.
+    | the User Management directory for every viewer. Root super-admin rules
+    | (edit protection, full access) still apply via RootAccount.
+    |
+    | hide_root_account_in_directory — when true, the root account is omitted
+    | from the User Management table (default: true).
+    |
+    */
+    'hide_root_account_in_directory' => filter_var(
+        env('USER_MANAGEMENT_HIDE_ROOT_ACCOUNT', true),
+        FILTER_VALIDATE_BOOLEAN
+    ),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Profile read-only in User Management (continued)
+    |--------------------------------------------------------------------------
     |
     */
     'profile_readonly_emails' => array_values(array_filter(array_unique(array_map(

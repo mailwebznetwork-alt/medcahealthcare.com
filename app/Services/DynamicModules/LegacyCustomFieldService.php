@@ -48,6 +48,26 @@ class LegacyCustomFieldService
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    public function validatedValuesForServiceForm(Request $request, Module $module): array
+    {
+        $module->loadMissing('fieldDefinitions');
+
+        if ($module->fieldDefinitions->isEmpty()) {
+            return [];
+        }
+
+        $validated = $request->validate(
+            $this->validator->rulesForServiceForm($module),
+            [],
+            $this->validator->attributesFor($module, 'custom_fields')
+        );
+
+        return $this->normalizePayload($module, $validated['custom_fields'] ?? []);
+    }
+
+    /**
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */

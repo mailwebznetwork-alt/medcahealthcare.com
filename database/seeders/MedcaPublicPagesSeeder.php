@@ -111,6 +111,7 @@ class MedcaPublicPagesSeeder extends Seeder
                 'blocks' => [
                     'hero-home',
                     'services-overview-home',
+                    'near-you-home',
                     'locations-overview-home',
                     'cta-home',
                 ],
@@ -146,6 +147,7 @@ class MedcaPublicPagesSeeder extends Seeder
                 'h1' => 'Where Medca cares — across Bangalore.',
                 'blocks' => [
                     'hero-locations',
+                    'near-you-locations',
                     'locations-coverage',
                 ],
             ],
@@ -158,6 +160,7 @@ class MedcaPublicPagesSeeder extends Seeder
                 'blocks' => [
                     'hero-contact',
                     'contact-info',
+                    'form-callback',
                 ],
             ],
         ];
@@ -175,6 +178,7 @@ class MedcaPublicPagesSeeder extends Seeder
             'about-us' => 'About Us',
             'services' => 'Services',
             'locations' => 'Locations',
+            'careers' => 'Careers',
             'contact' => 'Contact Us',
         ];
     }

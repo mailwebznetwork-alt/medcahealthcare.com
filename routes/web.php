@@ -7,7 +7,9 @@ use App\Http\Controllers\Growth\CompetitorPageController;
 use App\Http\Controllers\Growth\GeoController;
 use App\Http\Controllers\Growth\SeoController;
 use App\Http\Controllers\Growth\WarRoomController;
+use App\Http\Controllers\Marketing\MarketingReportController;
 use App\Http\Controllers\MarketingEmailOpenController;
+use App\Http\Controllers\MarketingTrackingController;
 use App\Http\Controllers\ModuleSurfaceController;
 use App\Http\Controllers\Operations\JobPortal\ApplicationController;
 use App\Http\Controllers\Operations\JobPortal\JobPortalDashboardController;
@@ -16,9 +18,12 @@ use App\Http\Controllers\Operations\LegacyModuleFieldsController;
 use App\Http\Controllers\Operations\OperationsHubController;
 use App\Http\Controllers\Operations\PinCodes\PinCodeController;
 use App\Http\Controllers\Operations\PinCodes\PinCodeImportController;
+use App\Http\Controllers\Operations\ServiceCategories\ServiceCategoryController;
 use App\Http\Controllers\Operations\Services\ServiceController;
+use App\Http\Controllers\Public\ServiceCategoryPublicController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\CmsPageController;
+use App\Http\Controllers\Public\LeadCaptureController;
 use App\Http\Controllers\Public\LocationController;
 use App\Http\Controllers\Public\ServicePublicController;
 use App\Http\Controllers\Settings\IntegrationController;
@@ -26,6 +31,8 @@ use App\Http\Controllers\Settings\SystemOperationsController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SiteArchitect\DynamicRecordController;
 use App\Http\Controllers\SiteArchitect\ModuleManagerController;
+use App\Http\Controllers\System\SystemOverviewController;
+use App\Http\Controllers\ThemePreviewController;
 use App\Http\Controllers\UserManagement\UserController;
 use App\Http\Controllers\WorkspaceSearchController;
 use App\Models\Blog;
@@ -33,8 +40,8 @@ use App\Models\Lead;
 use App\Models\Page;
 use App\Models\SiteSlugRedirect;
 use App\Services\ActivityLogService;
-use App\Services\Content\ContentRenderContext;
 use App\Services\Public\PagePublicPreviewService;
+use App\Services\Public\PageRenderContextRegistrar;
 use App\Services\Public\PublicPagePresenter;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -47,6 +54,10 @@ Route::get('/sitemap-{segment}.xml', [SeoController::class, 'sitemapSegmentXml']
 Route::get('/llm.txt', [AeoController::class, 'llmTxt'])->name('public.llm');
 Route::get('/ai-discovery', [AeoController::class, 'discovery'])->name('public.ai-discovery');
 
+Route::post('/leads', [LeadCaptureController::class, 'store'])
+    ->middleware('throttle:public_leads')
+    ->name('public.leads.store');
+
 Route::post('/location/pincode', [LocationController::class, 'storePincode'])
     ->middleware('throttle:20,1')
     ->name('location.pincode.store');
@@ -58,17 +69,20 @@ Route::get('/', function () {
     $page = Page::query()->where('slug', 'home')->where('is_active', true)->first();
 
     if ($page !== null) {
-        app(ContentRenderContext::class)->set(
-            app(PublicPagePresenter::class)->variablesFor($page)
-        );
+        app(PageRenderContextRegistrar::class)->register($page);
 
         return view('layouts.app', ['page' => $page]);
     }
 
-    return view('home', app(\App\Services\Public\PublicPagePresenter::class)->nearYouPayload());
+    return view('home', app(PublicPagePresenter::class)->nearYouPayload());
 })->name('public.home');
 
 Route::get('/services-catalog', [ServicePublicController::class, 'index'])->name('public.services.index');
+
+Route::get('/service-categories', [ServiceCategoryPublicController::class, 'index'])->name('public.service-categories.index');
+Route::get('/service-categories/{code}', [ServiceCategoryPublicController::class, 'show'])
+    ->where('code', '[a-z][a-z0-9-]*')
+    ->name('public.service-categories.show');
 
 Route::get('/t/mail/{token}/open.gif', [MarketingEmailOpenController::class, 'pixel'])
     ->middleware('throttle:120,1')
@@ -105,9 +119,7 @@ Route::get('/p/{slug}', function (string $slug) {
             return redirect($page->publicPath(), 301);
         }
 
-        app(ContentRenderContext::class)->set(
-            app(PublicPagePresenter::class)->variablesFor($page)
-        );
+        app(PageRenderContextRegistrar::class)->register($page);
 
         return view('layouts.app', ['page' => $page]);
     }
@@ -182,8 +194,10 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:site_arc
         Route::view('/blueprint-builder', 'site-architect.blueprint-builder-shell')->name('blueprint-builder.index');
 
         Route::view('/section-library', 'site-architect.section-library-shell')->name('section-library.index');
+        Route::redirect('/sections', '/site-architect/section-library', 301)->name('sections.index');
 
         Route::view('/block-presets', 'site-architect.block-presets-shell')->name('block-presets.index');
+        Route::redirect('/presets', '/site-architect/block-presets', 301)->name('presets.index');
 
         Route::view('/block-studio', 'site-architect.block-studio-shell')->name('block-studio.index');
 
@@ -229,6 +243,15 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
         Route::resource('applications', ApplicationController::class)->only(['index', 'show', 'update']);
     });
 
+    Route::prefix('operations/service-categories')->name('operations.service-categories.')->group(function () {
+        Route::get('/', [ServiceCategoryController::class, 'index'])->name('index');
+        Route::get('create', [ServiceCategoryController::class, 'create'])->name('create');
+        Route::post('/', [ServiceCategoryController::class, 'store'])->name('store');
+        Route::get('{service_category}/edit', [ServiceCategoryController::class, 'edit'])->name('edit');
+        Route::put('{service_category}', [ServiceCategoryController::class, 'update'])->name('update');
+        Route::delete('{service_category}', [ServiceCategoryController::class, 'destroy'])->name('destroy');
+    });
+
     Route::prefix('operations/services')->name('operations.services.')->group(function () {
         Route::get('/', [ServiceController::class, 'index'])->name('index');
         Route::get('create', [ServiceController::class, 'create'])->name('create');
@@ -271,13 +294,25 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
 });
 
 Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:marketing', 'role:manager,admin,super_admin'])->group(function () {
-    Route::view('/marketing', 'marketing.dashboard-shell')->name('modules.marketing');
-    Route::view('/marketing/intelligence', 'marketing.intelligence-shell')->name('modules.marketing.intelligence');
-    Route::get('/marketing/reports/leads/export', [\App\Http\Controllers\Marketing\MarketingReportController::class, 'exportLeads'])
+    Route::view('/marketing/dashboard', 'marketing.dashboard-shell')->name('marketing.dashboard');
+    Route::redirect('/marketing', '/marketing/dashboard', 301)->name('modules.marketing');
+
+    Route::view('/marketing/intelligence', 'marketing.intelligence-shell')->name('marketing.intelligence');
+
+    Route::get('/marketing/campaigns', static fn () => redirect()->to(route('marketing.dashboard').'#marketing-campaigns', 302))
+        ->name('marketing.campaigns');
+
+    Route::get('/marketing/attribution', static fn () => redirect()->route('marketing.intelligence', ['tab' => 'attribution'], 302))
+        ->name('marketing.attribution');
+
+    Route::get('/marketing/reports', static fn () => redirect()->route('modules.marketing.reports.leads.export', [], 302))
+        ->name('marketing.reports');
+
+    Route::get('/marketing/reports/leads/export', [MarketingReportController::class, 'exportLeads'])
         ->name('modules.marketing.reports.leads.export');
 });
 
-Route::post('/marketing/track', [\App\Http\Controllers\MarketingTrackingController::class, 'store'])
+Route::post('/marketing/track', [MarketingTrackingController::class, 'store'])
     ->middleware('throttle:marketing_clicks')
     ->name('marketing.track');
 
@@ -285,18 +320,22 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:growth_c
     Route::get('/growth-center', function () {
         return redirect()->route('growth-center.competitors.index');
     })->name('modules.growth-center');
-    Route::get('/growth-center/readiness', static fn () => redirect()->route('growth-center.competitors.index', ['tab' => 'readiness']))
-        ->name('growth-center.readiness');
     Route::get('/growth-center/competitors', CompetitorPageController::class)->name('growth-center.competitors.index');
+    Route::get('/growth-center/readiness', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'readiness')->name('growth-center.readiness');
+    Route::get('/growth-center/ga4', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'ga4')->name('growth-center.ga4.index');
+    Route::get('/growth-center/ai-pulse', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'ai-pulse')->name('growth-center.ai-pulse.index');
+    Route::get('/growth-center/aeo', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'seo')->name('growth-center.aeo.index');
+
+    Route::redirect('/growth-center/competitors/readiness', '/growth-center/readiness', 301);
+    Route::redirect('/growth-center/competitors/ga4', '/growth-center/ga4', 301);
+    Route::redirect('/growth-center/competitors/ai-pulse', '/growth-center/ai-pulse', 301);
 
     Route::prefix('growth-center')->group(function () {
+        Route::redirect('seo', '/growth-center/seo/entity', 301)->name('growth-center.seo.index');
+
         Route::prefix('seo')->group(function () {
             Route::get('entity', [SeoController::class, 'entity'])->name('growth-center.seo.entity');
             Route::get('technical', [SeoController::class, 'technical'])->name('growth-center.seo.technical');
-        });
-
-        Route::prefix('aeo')->group(function () {
-            Route::get('/', [AeoController::class, 'index'])->name('growth-center.aeo.index');
         });
 
         Route::prefix('geo')->group(function () {
@@ -305,10 +344,13 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:growth_c
         });
 
         Route::prefix('war-room')->group(function () {
-            Route::get('dashboard', [WarRoomController::class, 'dashboard'])->name('growth-center.war-room.dashboard');
+            Route::get('/', [WarRoomController::class, 'dashboard'])->name('growth-center.war-room');
+            Route::redirect('dashboard', '/growth-center/war-room', 301)->name('growth-center.war-room.dashboard');
             Route::get('intercepts', [WarRoomController::class, 'intercepts'])->name('growth-center.war-room.intercepts');
         });
     });
+
+    Route::redirect('/growth-center/war-room/dashboard', '/growth-center/war-room', 301);
 });
 
 Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:growth_center', 'role:editor,manager,admin,super_admin'])->group(function () {
@@ -328,9 +370,7 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:growth_c
             Route::post('technical', [SeoController::class, 'storeTechnical'])->name('growth-center.seo.technical.store');
         });
 
-        Route::prefix('aeo')->group(function () {
-            Route::post('/', [AeoController::class, 'store'])->name('growth-center.aeo.store');
-        });
+        Route::post('aeo', [AeoController::class, 'store'])->name('growth-center.aeo.store');
 
         Route::prefix('geo')->group(function () {
             Route::post('location', [GeoController::class, 'storeLocation'])->name('growth-center.geo.location.store');
@@ -371,13 +411,20 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:security
 });
 
 Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings', 'role:admin,super_admin'])->group(function () {
+    Route::get('/system', fn () => redirect()->route('system.overview', [], 301))->name('system.index');
+    Route::get('/system/overview', [SystemOverviewController::class, 'index'])->name('system.overview');
+    Route::get('/system/queue', [SystemOverviewController::class, 'queue'])->name('system.queue');
+    Route::get('/system/scheduler', [SystemOverviewController::class, 'scheduler'])->name('system.scheduler');
+    Route::get('/system/health', [SystemOverviewController::class, 'health'])->name('system.health');
+    Route::redirect('/system/integrations', '/settings/integrations', 301)->name('system.integrations');
+
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::get('/settings/integrations', [SettingsController::class, 'integrations'])->name('settings.integrations');
     Route::get('/settings/webhooks', [SettingsController::class, 'webhooks'])->name('settings.webhooks');
     Route::get('/settings/appearance', [SettingsController::class, 'appearance'])->name('settings.appearance');
     Route::get('/settings/global-content', [SettingsController::class, 'globalContent'])->name('settings.global-content');
-    Route::post('/settings/appearance/preview/enable', [\App\Http\Controllers\ThemePreviewController::class, 'enable'])->name('settings.appearance.preview.enable');
-    Route::post('/settings/appearance/preview/disable', [\App\Http\Controllers\ThemePreviewController::class, 'disable'])->name('settings.appearance.preview.disable');
+    Route::post('/settings/appearance/preview/enable', [ThemePreviewController::class, 'enable'])->name('settings.appearance.preview.enable');
+    Route::post('/settings/appearance/preview/disable', [ThemePreviewController::class, 'disable'])->name('settings.appearance.preview.disable');
 });
 
 Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings', 'role:super_admin', 'backup.operator'])->group(function () {
@@ -398,7 +445,7 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings
     Route::post('maintenance', [SystemOperationsController::class, 'maintenance'])->name('maintenance');
 });
 
-Route::middleware(['auth', 'admin', 'throttle:60,1'])->prefix('/admin/settings/integrations')->name('admin.settings.integrations.')->group(function () {
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings', 'role:admin,super_admin', 'throttle:60,1'])->prefix('/admin/settings/integrations')->name('admin.settings.integrations.')->group(function () {
     Route::get('/', [IntegrationController::class, 'index'])->name('index');
     Route::post('/', [IntegrationController::class, 'store'])->name('store');
     Route::get('/{name}', [IntegrationController::class, 'show'])->name('show');
@@ -408,6 +455,7 @@ Route::middleware(['auth', 'admin', 'throttle:60,1'])->prefix('/admin/settings/i
     Route::post('/{name}/test', [IntegrationController::class, 'testConnection'])->name('test');
     Route::delete('/{name}', [IntegrationController::class, 'destroy'])->name('destroy');
     Route::post('/google-business-profile/reviews/sync', [IntegrationController::class, 'syncGoogleReviews'])->name('google-business-profile.sync-reviews');
+    Route::post('/whatsapp/click-to-chat', [IntegrationController::class, 'updateClickToChat'])->name('whatsapp.click-to-chat');
 });
 
 Route::middleware(['auth', 'active', 'verified', 'auto.logout'])->group(function () {

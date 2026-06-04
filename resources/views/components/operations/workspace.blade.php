@@ -8,6 +8,7 @@
     if ($resolvedPageTitle === null) {
         $resolvedPageTitle = match (true) {
             request()->routeIs('operations.services.*') => __('Enterprise Services'),
+            request()->routeIs('operations.service-categories.*') => __('Service Categories'),
             request()->routeIs('operations.bookings.*') => __('Bookings'),
             default => __('Operations'),
         };
@@ -17,7 +18,12 @@
         request()->routeIs('operations.bookings.*') => __('Lead intake and conversion — simple queues, no CRM overhead.'),
         default => __('Run-state, hiring, coverage, and operational management workspace.'),
     };
-    $showToolbar = request()->routeIs('operations.job-portal.*', 'operations.pin-codes.*', 'operations.services.*');
+    $showToolbar = request()->routeIs(
+        'operations.job-portal.*',
+        'operations.pin-codes.*',
+        'operations.services.*',
+        'operations.service-categories.*',
+    );
 @endphp
 
 <x-admin.workspace
@@ -34,6 +40,8 @@
                 @include('operations.job-portal.partials.toolbar')
             @elseif (request()->routeIs('operations.pin-codes.*'))
                 @include('operations.pin-codes.partials.toolbar')
+            @elseif (request()->routeIs('operations.service-categories.*'))
+                @include('operations.service-categories.partials.toolbar')
             @else
                 @include('operations.services.partials.toolbar')
             @endif

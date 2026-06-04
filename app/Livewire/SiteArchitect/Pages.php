@@ -5,6 +5,7 @@ namespace App\Livewire\SiteArchitect;
 use App\Enums\PageLayoutMode;
 use App\Models\Block;
 use App\Models\Page;
+use App\Models\Service;
 use App\Models\PageFaq;
 use App\Models\PageRevision;
 use App\Models\PinCode;
@@ -14,7 +15,12 @@ use App\Services\Growth\HijackContentBridgeService;
 use App\Services\Growth\HijackStrategyReader;
 use App\Services\Integrations\OutboundWebhookDispatcher;
 use App\Services\DynamicModules\DynamicModuleInsertCatalog;
+use App\Support\BlockContent;
+use App\Livewire\Concerns\HandlesArchitectFlexibleSave;
+use App\Livewire\SiteArchitect\Concerns\InteractsWithPageSectionPicker;
+use App\Services\Operations\ServiceDetailPageProvisioner;
 use App\Services\SiteArchitect\ServiceInsertCatalog;
+use App\Support\ArchitectSaveBypass;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +32,8 @@ use Livewire\WithPagination;
 class Pages extends Component
 {
     use AuthorizesRequests;
+    use HandlesArchitectFlexibleSave;
+    use InteractsWithPageSectionPicker;
     use WithPagination;
 
     public function mount(): void
@@ -125,6 +133,8 @@ class Pages extends Component
 
     public bool $blockModalOpen = false;
 
+    public int $previewRefreshNonce = 0;
+
     public ?string $blockEditingSlug = null;
 
     public string $block_name = '';
@@ -143,9 +153,48 @@ class Pages extends Component
 
     public int $serviceCatalogNonce = 0;
 
+    public string $pageSearch = '';
+
+    public function updatingPageSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function syncServiceDetailPages(): void
+    {
+        $this->authorize('viewAny', Page::class);
+
+        $result = app(ServiceDetailPageProvisioner::class)->provisionAll(onlyWithoutLinkedPage: false);
+
+        session()->flash(
+            'status',
+            __('Service detail pages synced. :created new, :linked linked/updated, :skipped skipped (already linked only).', [
+                'created' => $result['created'],
+                'linked' => $result['linked'],
+                'skipped' => $result['skipped'],
+            ])
+        );
+    }
+
     public function render()
     {
-        $pages = Page::query()->latest()->paginate(12);
+        $pagesQuery = Page::query()->latest();
+
+        if (trim($this->pageSearch) !== '') {
+            $term = '%'.trim($this->pageSearch).'%';
+            $pagesQuery->where(function ($q) use ($term): void {
+                $q->where('title', 'like', $term)
+                    ->orWhere('slug', 'like', $term);
+            });
+        }
+
+        $pages = $pagesQuery->paginate(20);
+
+        /** @var array<int, string> $serviceCodesByPageId */
+        $serviceCodesByPageId = Service::query()
+            ->whereNotNull('detail_page_id')
+            ->pluck('service_code', 'detail_page_id')
+            ->all();
 
         $pinCodes = PinCode::query()
             ->where('is_active', true)
@@ -178,21 +227,46 @@ class Pages extends Component
             }
         }
 
+        $productionPreviewUrl = null;
+        if ($this->mode === 'form' && $this->editingId !== null) {
+            $editingPage = Page::query()->find($this->editingId);
+            if ($editingPage !== null) {
+                $productionPreviewUrl = route('site-architect.pages.preview', $editingPage);
+            }
+        }
+
+        $hasSectionTokens = collect($this->contentParts)
+            ->contains(fn (array $part): bool => ($part['type'] ?? '') === 'section');
+
         return view('livewire.site-architect.pages', [
             'pages' => $pages,
+            'serviceCodesByPageId' => $serviceCodesByPageId,
             'pinCodes' => $pinCodes,
             'moduleOptions' => $moduleOptions,
             'servicesForInsert' => $servicesForInsert,
             'serviceCatalogNonce' => $this->serviceCatalogNonce,
             'otherPagesForLinks' => $otherPagesForLinks,
             'revisions' => $revisions,
+            'productionPreviewUrl' => $productionPreviewUrl,
+            'hasSectionTokens' => $hasSectionTokens,
+            'sectionLibraryDeprecated' => (bool) config('platform_composition.section_library_deprecated', true),
             'readabilityHint' => $this->mode === 'form' ? $this->computeReadabilityHint() : null,
             'llmReadiness' => $this->mode === 'form' ? $this->computeLlmReadiness() : null,
             'onPageSeo' => $this->mode === 'form' ? $this->computeOnPageSeoChecklist() : null,
             'hijackStrategiesForPage' => $this->mode === 'form'
                 ? app(HijackStrategyReader::class)->forPageKeywords($this->pageFocusKeywords())
                 : [],
+            'sectionPickerGroups' => $this->sectionPickerOpen ? $this->sectionPickerGroups() : [],
+            'sectionPickerCategories' => config('page_builder_sections.picker_categories', []),
+            'canUseDeveloperBlockTools' => $this->canUseDeveloperBlockTools(),
         ]);
+    }
+
+    protected function currentPageSlugForPicker(): ?string
+    {
+        $slug = trim($this->slug);
+
+        return $slug !== '' ? $slug : null;
     }
 
     public function startCreate(): void
@@ -488,8 +562,32 @@ class Pages extends Component
         session()->flash('status', __('Revision loaded into the form — review and click Save page.'));
     }
 
+    public function confirmArchitectOverwriteSave(): void
+    {
+        $this->architectOverwriteApproved = true;
+        $this->savePage();
+    }
+
+    public function confirmArchitectIncompleteSave(): void
+    {
+        $this->architectIncompleteSaveApproved = true;
+        $this->savePage();
+    }
+
     public function savePage(): void
     {
+        if ($this->architectSaveBypassEligible() && $this->architectIncompleteSaveApproved) {
+            if (trim($this->title) === '') {
+                $this->title = __('Untitled page');
+            }
+            if (trim($this->slug) === '') {
+                $this->slug = ArchitectSaveBypass::defaultBlockSlug($this->title, 'page-'.Str::lower(Str::random(8)));
+            }
+            if (trim((string) $this->layout_mode) === '') {
+                $this->layout_mode = PageLayoutMode::Contained->value;
+            }
+        }
+
         $schemaDecoded = null;
         if (trim($this->schema_json_input) !== '') {
             $decoded = json_decode($this->schema_json_input, true);
@@ -534,7 +632,6 @@ class Pages extends Component
                 'string',
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('pages', 'slug')->ignore($this->editingId),
             ],
             'is_active' => ['boolean'],
             'layout_mode' => ['required', Rule::in(array_column(PageLayoutMode::cases(), 'value'))],
@@ -570,7 +667,13 @@ class Pages extends Component
             'faqRows.*.answer' => ['nullable', 'string'],
         ];
 
-        $this->validate($rules);
+        if (! $this->validateArchitectForm($rules, ['title', 'slug', 'layout_mode'])) {
+            return;
+        }
+
+        if (! $this->assertArchitectUniqueAvailable(Page::class, 'slug', $this->slug, $this->editingId, 'title')) {
+            return;
+        }
 
         $focusKeywords = array_values(array_filter($this->focusKeywords, fn ($v) => is_string($v) && trim($v) !== ''));
         $headingH2 = array_values(array_filter($this->headingH2, fn ($v) => is_string($v) && trim($v) !== ''));
@@ -698,10 +801,22 @@ class Pages extends Component
         }
 
         session()->flash('status', __('Page saved.'));
-        $this->mode = 'list';
-        $this->editingId = null;
-        $this->resetForm();
-        $this->resetPage();
+        $this->resetArchitectSaveFlags();
+
+        if ($wasCreating) {
+            $this->mode = 'list';
+            $this->editingId = null;
+            $this->resetForm();
+            $this->resetPage();
+        } elseif ($savedPageId !== null) {
+            $this->previewRefreshNonce++;
+            $this->startEdit($savedPageId);
+        } else {
+            $this->mode = 'list';
+            $this->editingId = null;
+            $this->resetForm();
+            $this->resetPage();
+        }
     }
 
     public function deletePage(int $id): void
@@ -781,8 +896,19 @@ class Pages extends Component
     /**
      * Opens the block modal for a new block (no Livewire `null` argument — wire passes strings badly).
      */
+    public function addSection(): void
+    {
+        $this->openSectionPicker();
+    }
+
     public function addBlock(): void
     {
+        $this->addSection();
+    }
+
+    public function openDeveloperBlockModal(): void
+    {
+        $this->closeSectionPicker();
         $this->openBlockModal(null);
     }
 
@@ -826,20 +952,46 @@ class Pages extends Component
 
     public function saveBlockInModal(): void
     {
+        if ($this->blockEditingSlug !== null) {
+            $existing = Block::query()->where('block_slug', $this->blockEditingSlug)->first();
+            if ($existing?->is_managed) {
+                $this->addError('block_code', __('Managed blocks cannot be edited here. Use Blocks Studio for content/media or run blocks:sync for Git templates.'));
+
+                return;
+            }
+        }
+
         $blockId = Block::query()->where('block_slug', $this->block_slug)->value('id');
 
-        $this->validate([
+        if ($this->architectSaveBypassEligible() && $this->architectIncompleteSaveApproved) {
+            if (trim($this->block_name) === '') {
+                $this->block_name = ArchitectSaveBypass::defaultBlockName();
+            }
+            if (trim($this->block_slug) === '') {
+                $this->block_slug = ArchitectSaveBypass::defaultBlockSlug($this->block_name);
+            }
+            if (trim($this->block_code) === '') {
+                $this->block_code = '<!-- -->';
+            }
+        }
+
+        if (! $this->validateArchitectForm([
             'block_name' => ['required', 'string', 'max:255'],
             'block_slug' => [
                 'required',
                 'string',
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('blocks', 'block_slug')->ignore($blockId),
             ],
             'block_code' => ['required', 'string'],
             'block_custom_css' => ['nullable', 'string'],
-        ]);
+        ], ['block_name', 'block_slug', 'block_code'])) {
+            return;
+        }
+
+        if (! $this->assertArchitectUniqueAvailable(Block::class, 'block_slug', $this->block_slug, $blockId ? (int) $blockId : null)) {
+            return;
+        }
 
         if ($this->blockEditingSlug !== null && $this->blockEditingSlug !== $this->block_slug) {
             foreach ($this->contentParts as $i => $part) {
@@ -973,7 +1125,20 @@ class Pages extends Component
         if (($part['type'] ?? '') !== 'block') {
             return;
         }
-        $this->openBlockModal($part['slug']);
+
+        $slug = (string) ($part['slug'] ?? '');
+        if ($slug === '') {
+            return;
+        }
+
+        $block = Block::query()->where('block_slug', $slug)->first();
+        if ($block !== null && ($block->is_managed || BlockContent::hasSchema($slug))) {
+            $this->redirect(route('site-architect.block-studio.index', ['block' => $slug]));
+
+            return;
+        }
+
+        $this->openBlockModal($slug);
     }
 
     public function updatedSelectedPinIds(): void

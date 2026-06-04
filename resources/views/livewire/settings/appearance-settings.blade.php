@@ -130,8 +130,15 @@
         @endif
 
         @if ($activeTab === 'typography')
+            <x-admin.card :title="__('Appearance & Typography System')">
+                <p class="mb-2 text-sm text-[var(--text-secondary)]">
+                    {{ __('You control every size, weight, and line height. Values are stored in your theme draft — not auto-decided by the platform.') }}
+                </p>
+                <p class="text-sm text-[var(--text-secondary)]">{{ __('Save typography draft, then Publish to apply on medcahealthcare.in.') }}</p>
+            </x-admin.card>
             <x-admin.card :title="__('Typography')">
-                <form wire:submit="saveTypography" class="grid gap-4 md:grid-cols-2">
+                <form wire:submit="saveTypography" class="space-y-6">
+                <div class="grid gap-4 md:grid-cols-2">
                     <label class="block">
                         <span class="mom-label">{{ __('Heading font') }}</span>
                         <select wire:model.live="heading_font_mode" class="mom-input mb-2 w-full">
@@ -166,12 +173,13 @@
                         @endif
                     </label>
                     <label class="block">
-                        <span class="mom-label">{{ __('Font scale') }}</span>
+                        <span class="mom-label">{{ __('Base body scale') }}</span>
                         <select wire:model="typography.scale" class="mom-input w-full">
                             @foreach ($fontScales as $scaleKey => $scale)
                                 <option value="{{ $scaleKey }}">{{ $scale['label'] ?? ucfirst($scaleKey) }}</option>
                             @endforeach
                         </select>
+                        <p class="mom-micro mt-1 text-[var(--text-secondary)]">{{ __('Affects root body size only. Element sizes below are yours to edit.') }}</p>
                     </label>
                     <label class="block">
                         <span class="mom-label">{{ __('Line height') }}</span>
@@ -181,9 +189,35 @@
                         <span class="mom-label">{{ __('Letter spacing') }}</span>
                         <input type="text" wire:model="typography.letter_spacing" class="mom-input w-full" placeholder="normal" />
                     </label>
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-2 flex flex-wrap gap-2">
                         <button type="submit" class="mom-cta-compact mom-cta-primary">{{ __('Save typography draft') }}</button>
+                        <button type="button" wire:click="resetTypeScaleToDefaults" wire:confirm="{{ __('Reset all element sizes to platform defaults? Unsaved changes will be lost.') }}" class="mom-cta-compact mom-cta-ghost">{{ __('Reset sizes to defaults') }}</button>
                     </div>
+                </div>
+
+                <div class="border-t border-[var(--border-panel-soft)] pt-6">
+                    <h3 class="mb-1 text-sm font-semibold text-[var(--text-primary)]">{{ __('Type scale — your sizes') }}</h3>
+                    <p class="mb-4 text-xs text-[var(--text-secondary)]">
+                        {{ __('Headings use :heading · Body & UI use :body', ['heading' => $resolvedHeadingFont ?? '', 'body' => $resolvedBodyFont ?? '']) }}
+                    </p>
+                    <div class="space-y-6">
+                        @include('livewire.settings.partials.typography-type-scale-editor', [
+                            'breakpoint' => 'desktop',
+                            'title' => __('Desktop typography'),
+                            'labels' => $typeScaleLabels,
+                        ])
+                        @include('livewire.settings.partials.typography-type-scale-editor', [
+                            'breakpoint' => 'tablet',
+                            'title' => __('Tablet typography') . ' (≤ ' . config('typography.breakpoints.tablet_max', '1023px') . ')',
+                            'labels' => $typeScaleLabels,
+                        ])
+                        @include('livewire.settings.partials.typography-type-scale-editor', [
+                            'breakpoint' => 'mobile',
+                            'title' => __('Mobile typography') . ' (≤ ' . config('typography.breakpoints.mobile_max', '767px') . ')',
+                            'labels' => $typeScaleLabels,
+                        ])
+                    </div>
+                </div>
                 </form>
             </x-admin.card>
         @endif

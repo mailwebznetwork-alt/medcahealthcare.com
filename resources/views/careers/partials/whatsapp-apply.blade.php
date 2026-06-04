@@ -17,8 +17,9 @@
                 href="{{ $whatsAppUrl }}"
                 target="_blank"
                 rel="noopener noreferrer"
-                onclick="if(typeof gtag==='function'){gtag('event','whatsapp_click');}"
                 class="mc-wa-apply-btn"
+                data-whatsapp-track="1"
+                data-whatsapp-button="{{ __('Apply on WhatsApp') }}"
             >{{ __('Apply on WhatsApp') }}</a>
         </div>
     </div>

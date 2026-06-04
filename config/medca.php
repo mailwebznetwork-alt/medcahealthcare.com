@@ -50,6 +50,8 @@ return [
         'markonmindsplus.test',
         'markonminds.test',
         'medcahealthcare.test',
+        'medcaeducation.in',
+        'www.medcaeducation.in',
         'localhost',
         '127.0.0.1',
     ],

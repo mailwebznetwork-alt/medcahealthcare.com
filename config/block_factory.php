@@ -9,20 +9,40 @@ return [
     'types_by_group' => [
         'Marketing' => [
             'Hero',
-            'Testimonials',
             'CTA',
+            'Testimonials',
+            'Statistics',
+            'Trust Bar',
+            'Logos',
+            'Lead Magnet',
         ],
         'Content' => [
             'Text',
             'FAQ',
+            'Features',
+            'Process',
+            'Callout',
+            'Timeline',
+            'Before/After',
         ],
         'Services' => [
             'Service Grid',
+            'Pricing',
+            'Comparison',
+        ],
+        'Media' => [
+            'Gallery',
+            'Video',
+            'Team',
+        ],
+        'Conversion' => [
+            'Forms',
         ],
         'Layout' => [
             'Columns',
             'Sections',
             'Footer',
+            'Cards',
         ],
         'Custom' => [
             'Custom',

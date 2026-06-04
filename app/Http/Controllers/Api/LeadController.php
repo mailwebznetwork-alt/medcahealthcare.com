@@ -2,121 +2,21 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\LeadStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreLeadRequest;
-use App\Jobs\ScoreLeadPayloadJob;
-use App\Models\Lead;
-use App\Services\Integrations\OutboundWebhookDispatcher;
-use App\Services\LeadSourceResolver;
+use App\Services\Leads\LeadIngestionService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Str;
 
 class LeadController extends Controller
 {
     public function __construct(
-        private LeadSourceResolver $sourceResolver,
-        private \App\Services\Marketing\Attribution\LeadAttributionService $attributionService,
+        private readonly LeadIngestionService $ingestion,
     ) {}
 
     public function store(StoreLeadRequest $request): JsonResponse
     {
-        $data = $request->validated();
+        $result = $this->ingestion->ingest($request->validated(), $request);
 
-        $name = Str::of(strip_tags($data['name']))->trim()->toString();
-        $phone = Str::of($data['phone'])->trim()->toString();
-        if ($phone === '') {
-            return response()->json(['message' => 'Phone is required.'], 422);
-        }
-
-        $service = Str::of(strip_tags($data['service']))->trim()->toString();
-        $message = isset($data['message']) ? Str::of(strip_tags($data['message']))->trim()->toString() : null;
-        if ($message === '') {
-            $message = null;
-        }
-
-        $email = $data['email'] ?? null;
-        if (is_string($email) && $email !== '') {
-            $email = Str::lower(trim($email));
-        } else {
-            $email = null;
-        }
-
-        $source = $this->sourceResolver->resolve(
-            isset($data['source']) ? trim((string) $data['source']) : null,
-            isset($data['utm_source']) ? trim((string) $data['utm_source']) : null,
-        );
-
-        $campaign = $data['campaign'] ?? $data['utm_campaign'] ?? null;
-        if (is_string($campaign)) {
-            $campaign = Str::of(strip_tags($campaign))->trim()->toString();
-        }
-        if ($campaign === '') {
-            $campaign = null;
-        }
-
-        $norm = Lead::normalizePhone($phone);
-        if ($norm !== '') {
-            $duplicate = Lead::query()
-                ->where('phone_normalized', $norm)
-                ->where('service', $service)
-                ->where('created_at', '>', now()->subHours(2))
-                ->first();
-
-            if ($duplicate !== null) {
-                return response()->json([
-                    'message' => 'Lead recently captured.',
-                    'duplicate' => true,
-                    'data' => [
-                        'id' => $duplicate->id,
-                        'uuid' => $duplicate->uuid,
-                    ],
-                ], 200);
-            }
-        }
-
-        $lead = new Lead;
-        $lead->fill([
-            'name' => $name,
-            'phone' => $phone,
-            'email' => $email,
-            'service' => $service,
-            'message' => $message,
-            'source' => $source,
-            'campaign' => $campaign,
-            'pin_code_id' => $data['pin_code_id'] ?? null,
-            'status' => LeadStatus::New,
-        ]);
-        $this->attributionService->applyToLead($lead, $data, $request);
-        $lead->save();
-
-        ScoreLeadPayloadJob::dispatch($lead);
-
-        app(OutboundWebhookDispatcher::class)->dispatch('lead.created', [
-            'lead_id' => $lead->id,
-            'uuid' => $lead->uuid,
-            'source' => $lead->source instanceof \BackedEnum ? $lead->source->value : (string) $lead->source,
-            'service' => $lead->service,
-        ]);
-
-        $submissionContext = isset($data['submission_context']) ? trim((string) $data['submission_context']) : '';
-        if ($submissionContext === 'contact_form') {
-            app(OutboundWebhookDispatcher::class)->dispatch('contact.form.submitted', [
-                'lead_id' => $lead->id,
-                'uuid' => $lead->uuid,
-                'source' => $lead->source instanceof \BackedEnum ? $lead->source->value : (string) $lead->source,
-                'service' => $lead->service,
-                'submission_context' => $submissionContext,
-            ]);
-        }
-
-        return response()->json([
-            'message' => 'Lead created.',
-            'duplicate' => false,
-            'data' => [
-                'id' => $lead->id,
-                'uuid' => $lead->uuid,
-            ],
-        ], 201);
+        return response()->json($result['body'], $result['status']);
     }
 }

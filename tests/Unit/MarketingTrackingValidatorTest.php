@@ -33,6 +33,31 @@ class MarketingTrackingValidatorTest extends TestCase
         $validator->validate($request);
     }
 
+    public function test_accepts_tel_destination_urls(): void
+    {
+        $validator = app(MarketingTrackingValidator::class);
+
+        foreach (['tel:+918884999002', 'tel:918884999002'] as $tel) {
+            $data = $validator->validate(Request::create('/', 'POST', [
+                'event_type' => 'phone_click',
+                'destination_url' => $tel,
+            ]));
+            $this->assertSame($tel, $data['destination_url']);
+        }
+    }
+
+    public function test_rejects_malformed_tel_destination_urls(): void
+    {
+        $validator = app(MarketingTrackingValidator::class);
+        $request = Request::create('/', 'POST', [
+            'event_type' => 'phone_click',
+            'destination_url' => 'tel:12',
+        ]);
+
+        $this->expectException(ValidationException::class);
+        $validator->validate($request);
+    }
+
     public function test_device_context_detects_mobile(): void
     {
         $resolver = app(DeviceContextResolver::class);

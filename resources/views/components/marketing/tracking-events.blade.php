@@ -9,20 +9,77 @@
     var fingerprint = localStorage.getItem('medca_fp') || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
     localStorage.setItem('medca_fp', fingerprint);
 
+    function utmFromUrl() {
+        var params = new URLSearchParams(location.search);
+        return {
+            source: params.get('utm_source') || '',
+            medium: params.get('utm_medium') || '',
+            campaign: params.get('utm_campaign') || ''
+        };
+    }
+
+    function trackWhatsAppClick(el, href) {
+        var utm = utmFromUrl();
+        var buttonName = el.getAttribute('data-whatsapp-button')
+            || (el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 120)
+            || 'whatsapp';
+        var phone = el.getAttribute('data-whatsapp-phone') || '';
+        if (!phone && href.indexOf('wa.me/') !== -1) {
+            var match = href.match(/wa\.me\/(\d+)/);
+            if (match) phone = match[1];
+        }
+
+        if (typeof gtag === 'function') {
+            gtag('event', 'whatsapp_click', {
+                button_name: buttonName,
+                phone_number: phone,
+                page: location.pathname,
+                source: utm.source,
+                campaign: utm.campaign,
+                medium: utm.medium
+            });
+        }
+
+        if (typeof fbq === 'function') {
+            fbq('track', 'Contact');
+        }
+
+        window.medcaTrack('whatsapp_click', {
+            element_label: buttonName,
+            destination_url: href,
+            phone_number: phone,
+            button_name: buttonName,
+            source: utm.source,
+            medium: utm.medium,
+            campaign: utm.campaign,
+            page_path: location.pathname,
+            meta: {
+                phone_number: phone,
+                button_name: buttonName,
+                page: location.pathname
+            }
+        });
+    }
+
     window.medcaTrack = function (eventType, meta) {
         try {
-            var body = JSON.stringify(Object.assign({
+            var utm = utmFromUrl();
+            var payload = Object.assign({
                 event_type: eventType,
                 page_path: location.pathname,
                 page_title: document.title,
                 session_fingerprint: fingerprint,
-                meta: meta || {}
-            }, meta || {}));
+                source: utm.source,
+                medium: utm.medium,
+                campaign: utm.campaign,
+                meta: meta && meta.meta ? meta.meta : (meta || {})
+            }, meta || {});
+
+            var body = JSON.stringify(payload);
 
             if (navigator.sendBeacon) {
                 var blob = new Blob([body], { type: 'application/json' });
-                var sent = navigator.sendBeacon(endpoint, blob);
-                if (sent) return;
+                if (navigator.sendBeacon(endpoint, blob)) return;
             }
 
             fetch(endpoint, {
@@ -43,9 +100,11 @@
         var el = e.target.closest('a,button');
         if (!el) return;
         var href = el.getAttribute('href') || '';
-        if (href.indexOf('wa.me') !== -1 || href.indexOf('whatsapp') !== -1) {
-            window.medcaTrack('whatsapp_click', { destination_url: href, element_label: (el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 120) });
-        } else if (href.indexOf('tel:') === 0) {
+        if (el.getAttribute('data-whatsapp-track') === '1' || href.indexOf('wa.me') !== -1 || href.indexOf('whatsapp') !== -1) {
+            trackWhatsAppClick(el, href);
+            return;
+        }
+        if (href.indexOf('tel:') === 0) {
             window.medcaTrack('phone_click', { destination_url: href, element_label: (el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 120) });
         } else if (el.classList.contains('btn-premium') || el.classList.contains('medca-cta-solid') || el.dataset.medcaCta !== undefined) {
             window.medcaTrack('cta_click', { destination_url: href || null, element_label: (el.textContent || '').trim().slice(0, 120) });

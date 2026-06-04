@@ -1,6 +1,9 @@
 <div class="space-y-8">
     <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
-        <h2 class="text-lg font-semibold text-[var(--text-primary)]">{{ __('Media library') }}</h2>
+        <div>
+            <h2 class="text-lg font-semibold text-[var(--text-primary)]">{{ __('Media library') }}</h2>
+            <p class="mom-subtext mt-1 max-w-2xl text-sm">{{ __('Upload images here, then pick them in Blocks Studio → Media for each section.') }}</p>
+        </div>
     </div>
 
     @if (session('status'))

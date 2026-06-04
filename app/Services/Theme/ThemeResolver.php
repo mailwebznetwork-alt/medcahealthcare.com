@@ -2,6 +2,8 @@
 
 namespace App\Services\Theme;
 
+use App\Services\Integrations\WhatsAppClickToChatService;
+use App\Support\TypographyTypeScale;
 use Illuminate\Support\Facades\Session;
 
 class ThemeResolver
@@ -45,11 +47,13 @@ class ThemeResolver
      */
     public function branding(): array
     {
-        if ($this->previewModeActive()) {
-            return $this->repository->draftBranding();
-        }
+        $branding = $this->previewModeActive()
+            ? $this->repository->draftBranding()
+            : $this->repository->publishedBranding();
 
-        return $this->repository->publishedBranding();
+        $branding['whatsapp_url'] = app(WhatsAppClickToChatService::class)->primaryUrl();
+
+        return $branding;
     }
 
     public function brandingValue(string $key, mixed $fallback = null): mixed
@@ -122,13 +126,14 @@ class ThemeResolver
             ? $this->repository->draftTypography()
             : $this->repository->publishedTypography();
 
-        return [
+        return TypographyTypeScale::mergeIntoTypography([
             'heading_font' => (string) ($typography['heading_font'] ?? 'Plus Jakarta Sans'),
-            'body_font' => (string) ($typography['body_font'] ?? 'Plus Jakarta Sans'),
+            'body_font' => (string) ($typography['body_font'] ?? 'Noto Sans'),
             'scale' => (string) ($typography['scale'] ?? 'default'),
             'line_height' => (string) ($typography['line_height'] ?? '1.5'),
             'letter_spacing' => (string) ($typography['letter_spacing'] ?? 'normal'),
-        ];
+            'type_scale' => is_array($typography['type_scale'] ?? null) ? $typography['type_scale'] : null,
+        ]);
     }
 
     public function googleFontsHref(): string
@@ -149,28 +154,6 @@ class ThemeResolver
 
     public function typographyCssBlock(): string
     {
-        $typography = $this->typography();
-        $heading = e($typography['heading_font']);
-        $body = e($typography['body_font']);
-        $lineHeight = e($typography['line_height']);
-        $letterSpacing = e($typography['letter_spacing']);
-        $scale = config('theme_management.font_scales.'.$typography['scale'].'.base_size', '16px');
-
-        return <<<CSS
-body.medca-public-surface {
-    font-family: "{$body}", ui-sans-serif, system-ui, sans-serif;
-    font-size: {$scale};
-    line-height: {$lineHeight};
-    letter-spacing: {$letterSpacing};
-}
-body.medca-public-surface h1,
-body.medca-public-surface h2,
-body.medca-public-surface h3,
-body.medca-public-surface h4,
-body.medca-public-surface h5,
-body.medca-public-surface h6 {
-    font-family: "{$heading}", ui-sans-serif, system-ui, sans-serif;
-}
-CSS;
+        return app(TypographyScaleResolver::class)->cssBlock($this->typography());
     }
 }

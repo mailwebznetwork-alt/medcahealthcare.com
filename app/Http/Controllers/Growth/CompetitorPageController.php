@@ -36,8 +36,28 @@ class CompetitorPageController extends Controller
         private readonly GeoService $geoService
     ) {}
 
+    public function hubTab(Request $request, string $tab): View|SymfonyResponse
+    {
+        $request->query->set('tab', $tab);
+
+        return $this($request);
+    }
+
     public function __invoke(Request $request): View|SymfonyResponse
     {
+        if ($request->routeIs('growth-center.competitors.index')) {
+            $canonicalTabRoutes = [
+                'readiness' => 'growth-center.readiness',
+                'ga4' => 'growth-center.ga4.index',
+                'ai-pulse' => 'growth-center.ai-pulse.index',
+                'war-room' => 'growth-center.war-room',
+            ];
+            $tab = (string) $request->query('tab', '');
+            if (isset($canonicalTabRoutes[$tab])) {
+                return redirect()->route($canonicalTabRoutes[$tab], status: 301);
+            }
+        }
+
         if (in_array($request->query('tab'), ['geo', 'aeo'], true)) {
             return redirect()->route('growth-center.competitors.index', array_merge(
                 $request->except('tab'),

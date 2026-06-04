@@ -1,10 +1,13 @@
-<x-layouts.markonminds
-    page-title="{{ __('Marketing Intelligence Platform') }}"
+<x-admin.workspace
+    page-title="{{ __('Marketing Intelligence') }}"
     :welcome-line="__('Attribution, conversion tracking, WhatsApp/call analytics, and executive reporting.')"
+    :breadcrumbs="[
+        ['label' => __('Marketing'), 'url' => route('marketing.dashboard')],
+        ['label' => __('Intelligence'), 'url' => null],
+    ]"
 >
-    <div class="mb-6 flex flex-wrap gap-3">
-        <a href="{{ route('modules.marketing') }}" class="mom-cta-compact mom-cta-ghost">{{ __('Campaign dashboard') }}</a>
-        <a href="{{ route('modules.marketing.intelligence') }}" class="mom-cta-compact mom-cta-primary">{{ __('Intelligence platform') }}</a>
-    </div>
+    <x-slot:tabs>
+        @include('marketing.partials.primary-tabs', ['activeSection' => 'intelligence'])
+    </x-slot:tabs>
     @livewire('marketing.intelligence-dashboard')
-</x-layouts.markonminds>
+</x-admin.workspace>

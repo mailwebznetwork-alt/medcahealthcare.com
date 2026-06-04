@@ -8,6 +8,7 @@ use App\Models\MarketingEmailTracker;
 use App\Models\MarketingSetting;
 use App\Services\Marketing\Ga4DataApiService;
 use App\Services\Marketing\GoogleAdsReportService;
+use App\Services\Marketing\LeadIntent\LeadIntentDashboardService;
 use App\Services\Marketing\MarketingInsightsService;
 use App\Services\Marketing\MetaAdsReportService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -69,6 +70,9 @@ class Dashboard extends Component
 
     /** @var array<string, mixed> */
     public array $metaAds = [];
+
+    /** @var array<string, mixed> */
+    public array $leadIntentReport = [];
 
     /** @var list<array{type: string, message: string}> */
     public array $insights = [];
@@ -230,5 +234,10 @@ class Dashboard extends Component
         );
 
         $this->geminiNarrative = $insightService->geminiNarrative($this->insights, $this->ga4Bundle);
+
+        $this->leadIntentReport = app(LeadIntentDashboardService::class)->report(
+            now()->subDays(28)->startOfDay(),
+            now()->endOfDay()
+        );
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Block;
 use App\Models\Page;
 use App\Models\User;
 use App\ModuleAccess;
@@ -38,13 +39,13 @@ it('generates standard pages with block tokens from blueprint', function () {
 
     $home = Page::query()->where('slug', 'home')->first();
     expect($home)->not->toBeNull()
-        ->and($home->content)->toContain('{{block:hero-home}}')
-        ->and($home->block_overrides_json)->toHaveKey('hero-home')
+        ->and($home->content)->toContain('{{block:hero-healthcare}}')
+        ->and($home->block_overrides_json)->toHaveKey('hero-healthcare')
         ->and($result['generation']->blueprint_slug)->toBe('home_healthcare');
 });
 
 it('resolves block style variant from style pack', function () {
-    \App\Models\Block::query()->create([
+    Block::query()->create([
         'block_slug' => 'hero-home',
         'block_name' => 'Hero Home',
         'block_type' => 'Hero',

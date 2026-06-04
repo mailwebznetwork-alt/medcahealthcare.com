@@ -21,7 +21,7 @@ class SettingsController extends Controller
 
     public function index(): RedirectResponse
     {
-        return redirect()->route('settings.integrations');
+        return redirect()->route('settings.appearance');
     }
 
     public function integrations(): View
@@ -94,6 +94,7 @@ class SettingsController extends Controller
 
             $addedNames = $integrations->pluck('name')->all();
             $availableIntegrations = collect($definitions)
+                ->reject(fn (array $definition): bool => ! empty($definition['hidden_from_add_list']))
                 ->map(fn (array $definition, string $name): array => [
                     'name' => $name,
                     'label' => (string) ($definition['label'] ?? $name),

@@ -3,7 +3,9 @@
     :welcome-line="__('Operational workspace for this module.')"
 >
     @if ($moduleKey === \App\ModuleAccess::SECURITY)
-        <section class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+        @include('security.partials.nav')
+
+        <section id="security-overview" class="scroll-mt-32 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
             <article class="mom-card px-5 py-4">
                 <p class="mom-micro">{{ __('Failed Logins') }}</p>
                 <p class="mom-metric mt-2 leading-none">{{ number_format((int) ($securityMetrics['failed_login_attempts'] ?? 0)) }}</p>
@@ -26,7 +28,7 @@
             </article>
         </section>
 
-        <section class="mom-card mt-8 p-6">
+        <section id="security-firewall" class="mom-card mt-8 scroll-mt-32 p-6">
             <h2 class="mom-section-title">{{ __('Firewall & edge posture') }}</h2>
             <p class="mom-subtext mt-1 mb-4">{{ __('Declarative rules mapped to middleware and infrastructure (see config/security.php).') }}</p>
             <div class="mt-4 overflow-x-auto">
@@ -57,7 +59,7 @@
             </div>
         </section>
 
-        <section class="mom-card mt-8 p-6">
+        <section id="security-audit" class="mom-card mt-8 scroll-mt-32 p-6">
             <h2 class="mom-section-title">{{ __('Audit trail preview') }}</h2>
             <p class="mom-subtext mt-1 mb-4">{{ __('Latest rows from activity_logs (operations and authentication signals).') }}</p>
             <div class="mt-4 overflow-x-auto">
@@ -92,7 +94,7 @@
             </div>
         </section>
 
-        <section class="mom-card mt-8 p-6">
+        <section id="security-failed-logins" class="mom-card mt-8 scroll-mt-32 p-6">
             <h2 class="mom-section-title">{{ __('Failed Login Attempts by IP') }}</h2>
             <div class="mt-4 overflow-x-auto">
                 <table class="w-full min-w-[24rem] text-left text-[13px]">
@@ -118,8 +120,9 @@
             </div>
         </section>
 
-        <section class="mom-card mt-8 p-6">
+        <section id="security-activity" class="mom-card mt-8 scroll-mt-32 p-6">
             <h2 class="mom-section-title">{{ __('Recent Security Events') }}</h2>
+            <p id="security-access-events" class="sr-only">{{ __('Access events') }}</p>
             <div class="mt-4 overflow-x-auto">
                 <table class="w-full min-w-[42rem] text-left text-[13px]">
                     <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">

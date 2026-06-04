@@ -4,15 +4,13 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Page;
-use App\Services\Content\ContentRenderContext;
-use App\Services\Public\PublicPagePresenter;
+use App\Services\Public\PageRenderContextRegistrar;
 use Illuminate\View\View;
 
 class CmsPageController extends Controller
 {
     public function __construct(
-        private readonly PublicPagePresenter $presenter,
-        private readonly ContentRenderContext $renderContext,
+        private readonly PageRenderContextRegistrar $pageRenderContext,
     ) {}
 
     public function show(string $slug): View
@@ -22,11 +20,7 @@ class CmsPageController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
-        $this->renderContext->set(array_merge(
-            $this->presenter->variablesFor($page),
-            app(\App\Services\Deployment\StylePackResolver::class)->contextVariables($page),
-            ['currentPage' => $page],
-        ));
+        $this->pageRenderContext->register($page);
 
         return view('layouts.app', ['page' => $page]);
     }

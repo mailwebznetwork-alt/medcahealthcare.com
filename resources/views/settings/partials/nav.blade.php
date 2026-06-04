@@ -1,26 +1,10 @@
 @php
-    $active = $activeSection ?? 'integrations';
+    $active = $activeSection ?? 'appearance';
     $isSuperAdmin = auth()->check() && strtolower((string) auth()->user()?->role) === 'super_admin';
     $isBackupOperator = auth()->check() && \App\Support\BackupOperator::allows(auth()->user());
 @endphp
 
 <nav class="flex flex-wrap gap-0" aria-label="{{ __('Settings sections') }}">
-    <a
-        href="{{ route('settings.integrations') }}"
-        @class([
-            'inline-flex items-center border-b px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
-            'border-mom-gold text-mom-gold' => $active === 'integrations',
-            'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => $active !== 'integrations',
-        ])
-    >{{ __('Integrations') }}</a>
-    <a
-        href="{{ route('settings.webhooks') }}"
-        @class([
-            'inline-flex items-center border-b px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
-            'border-mom-gold text-mom-gold' => $active === 'webhooks',
-            'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => $active !== 'webhooks',
-        ])
-    >{{ __('Webhooks') }}</a>
     <a
         href="{{ route('settings.appearance') }}"
         @class([
@@ -57,4 +41,8 @@
             ])
         >{{ __('Maintenance') }}</a>
     @endif
+    <a
+        href="{{ route('system.integrations') }}"
+        class="inline-flex items-center border-b border-transparent px-5 py-3.5 text-sm font-semibold tracking-wide text-[var(--text-muted)] transition-colors duration-320 ease-premium hover:text-[var(--text-secondary)]"
+    >{{ __('Integrations → System') }}</a>
 </nav>

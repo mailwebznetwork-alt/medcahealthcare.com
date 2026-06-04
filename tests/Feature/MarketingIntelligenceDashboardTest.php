@@ -10,9 +10,9 @@ it('allows marketing users to open intelligence dashboard', function () {
     ]);
 
     $this->actingAs($user)
-        ->get(route('modules.marketing.intelligence'))
+        ->get(route('marketing.intelligence'))
         ->assertSuccessful()
-        ->assertSee(__('Marketing Intelligence Platform'));
+        ->assertSee(__('Marketing Intelligence'));
 });
 
 it('blocks users without marketing module', function () {
@@ -25,6 +25,6 @@ it('blocks users without marketing module', function () {
     ]);
 
     $this->actingAs($user)
-        ->get(route('modules.marketing.intelligence'))
+        ->get(route('marketing.intelligence'))
         ->assertForbidden();
 });

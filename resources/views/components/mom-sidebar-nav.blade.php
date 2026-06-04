@@ -4,31 +4,11 @@
 
 @php
     /** @var \App\Models\User $user */
-    use App\ModuleAccess;
+    use App\Support\AdminNavigation;
 
     $nodes = $user->visibleSidebarNodes();
     $nodesByKey = collect($nodes)->keyBy('key');
-
-    /** Logical order for flat nav + future keys: add rows here — separators appear between every adjacent pair. */
-    $sectionKeys = [
-        [
-            ModuleAccess::DASHBOARD,
-            ModuleAccess::SITE_ARCHITECT,
-            ModuleAccess::OPERATIONS,
-        ],
-        [
-            ModuleAccess::MARKETING,
-            ModuleAccess::GROWTH_CENTER,
-        ],
-        [
-            ModuleAccess::USER_MANAGEMENT,
-            ModuleAccess::SECURITY,
-        ],
-        [
-            ModuleAccess::SETTINGS,
-        ],
-    ];
-
+    $sectionKeys = AdminNavigation::sidebarSections();
     $assignedKeys = collect($sectionKeys)->flatten()->all();
 
     $orderedLinks = [];
@@ -49,7 +29,7 @@
 @endphp
 
 <nav
-    class="mom-sidebar-nav-scroll flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-6"
+    class="mom-sidebar-nav-scroll flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-6 custom-scrollbar"
     role="navigation"
     aria-label="{{ __('Application') }}"
     data-mom-nav-root
@@ -61,9 +41,7 @@
         >
             @foreach ($orderedLinks as $navNode)
                 @php
-                    $active = $navNode['key'] === ModuleAccess::OPERATIONS
-                        ? request()->routeIs('modules.operations', 'operations.job-portal.*', 'operations.pin-codes.*', 'operations.services.*')
-                        : request()->routeIs($navNode['route']);
+                    $active = AdminNavigation::isNavActive($navNode['key']);
                 @endphp
                 <li class="list-none py-3 first:pt-0 last:pb-0">
                     <a

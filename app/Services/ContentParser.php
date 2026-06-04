@@ -8,13 +8,15 @@ use App\Models\Block;
 use App\Models\Page;
 use App\Models\Service;
 use App\Services\Content\ContentRenderContext;
+use App\Services\Content\ServiceBindingRegistry;
+use App\Services\Deployment\BlockSectionWrapperBuilder;
 use App\Services\Deployment\BlockSettingsResolver;
 use App\Services\Deployment\GlobalContentInterpolator;
 use App\Services\Deployment\SectionLibraryRepository;
-use App\Services\Content\ServiceBindingRegistry;
 use App\Services\DynamicModules\DynamicModuleRenderer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\ViewErrorBag;
 use Livewire\Livewire;
 
 class ContentParser
@@ -38,6 +40,9 @@ class ContentParser
      * text to the rendered page.
      */
     private const string SERVICE_TOKEN_PATTERN = '/\{\{\s*service\s*:\s*([^}]+?)\s*\}\}/';
+
+    /** @var array<string, Block|null> */
+    private static array $blockCache = [];
 
     public static function parse(?string $content): string
     {
@@ -115,6 +120,10 @@ class ContentParser
 
     private static function parseInternal(?string $content, int $depth): string
     {
+        if ($depth === 0) {
+            self::$blockCache = [];
+        }
+
         if ($content === null || trim($content) === '') {
             return '';
         }
@@ -283,6 +292,11 @@ class ContentParser
      */
     private static function blockRenderDefaults(): array
     {
+        $errors = session()->get('errors');
+        if (! $errors instanceof ViewErrorBag) {
+            $errors = new ViewErrorBag;
+        }
+
         return [
             'vacancies' => Collection::make(),
             'publishedServices' => Collection::make(),
@@ -291,6 +305,7 @@ class ContentParser
             'sectionTitle' => null,
             'vacancy' => null,
             'service' => null,
+            'errors' => $errors,
         ];
     }
 
@@ -300,10 +315,14 @@ class ContentParser
             return '';
         }
 
-        $block = Block::query()
-            ->where('block_slug', $slug)
-            ->where('is_active', true)
-            ->first();
+        if (! array_key_exists($slug, self::$blockCache)) {
+            self::$blockCache[$slug] = Block::query()
+                ->where('block_slug', $slug)
+                ->where('is_active', true)
+                ->first();
+        }
+
+        $block = self::$blockCache[$slug];
 
         if ($block === null) {
             return '';
@@ -370,11 +389,22 @@ class ContentParser
             return $inner;
         }
 
-        $wrapperClass = trim(
-            'medca-block '.(string) ($extraVariables['blockStyleClass'] ?? '')
-        );
+        $section = is_array($extraVariables['blockSection'] ?? null)
+            ? $extraVariables['blockSection']
+            : [];
+        $wrapperAttrs = app(BlockSectionWrapperBuilder::class)->attributes($section);
 
-        return '<div class="'.e($wrapperClass).'" data-block-slug="'.e((string) $blockSlug).'">'.$inner.'</div>';
+        $wrapperClass = trim(implode(' ', array_filter([
+            'medca-block',
+            (string) ($extraVariables['blockStyleClass'] ?? ''),
+            $wrapperAttrs['class'],
+        ])));
+
+        $styleAttr = $wrapperAttrs['style'] !== ''
+            ? ' style="'.e($wrapperAttrs['style']).'"'
+            : '';
+
+        return '<div class="'.e($wrapperClass).'"'.$styleAttr.' data-block-slug="'.e((string) $blockSlug).'">'.$inner.'</div>';
     }
 
     /**

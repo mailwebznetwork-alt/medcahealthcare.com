@@ -1,62 +1,39 @@
 @php
-    $t = $activeTab ?? 'competitors';
+    $t = $activeTab ?? (string) request()->query('tab', 'competitors');
+    $tabItems = [
+        'readiness' => [__('Readiness'), 'growth-center.readiness', []],
+        'competitors' => [__('Competitors'), 'growth-center.competitors.index', ['tab' => 'competitors']],
+        'war-room' => [__('War Room'), 'growth-center.war-room', []],
+        'hijack-opportunities' => [__('Hijack Ops'), 'growth-center.competitors.index', ['tab' => 'hijack-opportunities']],
+        'seo' => [__('SEO'), 'growth-center.seo.index', []],
+        'aeo' => [__('AEO'), 'growth-center.aeo.index', []],
+        'geo' => [__('GEO'), 'growth-center.geo.location', []],
+        'ga4' => [__('GA4'), 'growth-center.ga4.index', []],
+        'ai-pulse' => [__('AI Pulse'), 'growth-center.ai-pulse.index', []],
+    ];
 @endphp
 
-<nav class="flex flex-wrap gap-0" aria-label="{{ __('Growth Center workspaces') }}">
-    <a
-        href="{{ route('growth-center.competitors.index', ['tab' => 'readiness']) }}"
-        @class([
-            'inline-flex items-center border-b px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
-            'border-mom-gold text-mom-gold' => $t === 'readiness',
-            'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => $t !== 'readiness',
-        ])
-    >{{ __('Readiness') }}</a>
-    <a
-        href="{{ route('growth-center.competitors.index', ['tab' => 'war-room']) }}"
-        @class([
-            'inline-flex items-center border-b px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
-            'border-mom-gold text-mom-gold' => $t === 'war-room',
-            'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => $t !== 'war-room',
-        ])
-    >{{ __('War Room') }}</a>
-    <a
-        href="{{ route('growth-center.competitors.index', ['tab' => 'hijack-opportunities']) }}"
-        @class([
-            'inline-flex items-center border-b px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
-            'border-mom-gold text-mom-gold' => $t === 'hijack-opportunities',
-            'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => $t !== 'hijack-opportunities',
-        ])
-    >{{ __('Hijack Ops') }}</a>
-    <a
-        href="{{ route('growth-center.competitors.index', ['tab' => 'seo']) }}"
-        @class([
-            'inline-flex items-center border-b px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
-            'border-mom-gold text-mom-gold' => $t === 'seo',
-            'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => $t !== 'seo',
-        ])
-    >{{ __('SEO') }}</a>
-    <a
-        href="{{ route('growth-center.competitors.index', ['tab' => 'ga4']) }}"
-        @class([
-            'inline-flex items-center border-b px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
-            'border-mom-gold text-mom-gold' => $t === 'ga4',
-            'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => $t !== 'ga4',
-        ])
-    >{{ __('GA4') }}</a>
-    <a
-        href="{{ route('growth-center.competitors.index', ['tab' => 'ai-pulse']) }}"
-        @class([
-            'inline-flex items-center border-b px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
-            'border-mom-gold text-mom-gold' => $t === 'ai-pulse',
-            'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => $t !== 'ai-pulse',
-        ])
-    >{{ __('AI Pulse') }}</a>
-    <a
-        href="{{ route('growth-center.competitors.index', ['tab' => 'competitors']) }}"
-        @class([
-            'inline-flex items-center border-b px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
-            'border-mom-gold text-mom-gold' => $t === 'competitors',
-            'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => $t !== 'competitors',
-        ])
-    >{{ __('Competitors') }}</a>
+<nav class="space-y-3" aria-label="{{ __('Growth Center workspaces') }}">
+    <div class="flex flex-wrap gap-0">
+        @foreach ($tabItems as $key => [$label, $route, $params])
+            @php
+                $isActive = $key === $t
+                    || ($key === 'war-room' && request()->routeIs('growth-center.war-room', 'growth-center.war-room.*'))
+                    || ($key === 'seo' && request()->routeIs('growth-center.seo.*'))
+                    || ($key === 'aeo' && request()->routeIs('growth-center.aeo.*'))
+                    || ($key === 'geo' && request()->routeIs('growth-center.geo.*'))
+                    || ($key === 'readiness' && request()->routeIs('growth-center.readiness'))
+                    || ($key === 'ga4' && request()->routeIs('growth-center.ga4.*'))
+                    || ($key === 'ai-pulse' && request()->routeIs('growth-center.ai-pulse.*'));
+            @endphp
+            <a
+                href="{{ route($route, $params) }}"
+                @class([
+                    'inline-flex items-center border-b px-4 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
+                    'border-mom-gold text-mom-gold' => $isActive,
+                    'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => ! $isActive,
+                ])
+            >{{ $label }}</a>
+        @endforeach
+    </div>
 </nav>

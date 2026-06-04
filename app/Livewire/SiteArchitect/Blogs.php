@@ -5,6 +5,10 @@ namespace App\Livewire\SiteArchitect;
 use App\Models\Block;
 use App\Models\Blog;
 use App\Models\Page;
+use App\Support\BlockContent;
+use App\Livewire\Concerns\HandlesArchitectFlexibleSave;
+use App\Livewire\SiteArchitect\Concerns\InteractsWithPageSectionPicker;
+use App\Support\ArchitectSaveBypass;
 use App\Services\DynamicModules\DynamicModuleInsertCatalog;
 use App\Services\Integrations\OutboundWebhookDispatcher;
 use Carbon\Carbon;
@@ -20,6 +24,8 @@ use Livewire\WithPagination;
 class Blogs extends Component
 {
     use AuthorizesRequests;
+    use HandlesArchitectFlexibleSave;
+    use InteractsWithPageSectionPicker;
     use WithFileUploads;
     use WithPagination;
 
@@ -75,6 +81,8 @@ class Blogs extends Component
 
     public bool $blockModalOpen = false;
 
+    public int $previewRefreshNonce = 0;
+
     public ?string $blockEditingSlug = null;
 
     public string $block_name = '';
@@ -111,10 +119,22 @@ class Blogs extends Component
             }
         }
 
+        $productionPreviewUrl = null;
+        if ($this->mode === 'form' && $this->editingId !== null) {
+            $editingBlog = Blog::query()->find($this->editingId);
+            if ($editingBlog !== null) {
+                $productionPreviewUrl = route('site-architect.blogs.preview', $editingBlog);
+            }
+        }
+
         return view('livewire.site-architect.blogs', [
             'blogs' => $blogs,
             'moduleOptions' => $moduleOptions,
             'blockNameMap' => $blockNameMap,
+            'productionPreviewUrl' => $productionPreviewUrl,
+            'sectionPickerGroups' => $this->sectionPickerOpen ? $this->sectionPickerGroups() : [],
+            'sectionPickerCategories' => config('page_builder_sections.picker_categories', []),
+            'canUseDeveloperBlockTools' => $this->canUseDeveloperBlockTools(),
         ]);
     }
 
@@ -177,8 +197,31 @@ class Blogs extends Component
         }
     }
 
+    public function confirmArchitectOverwriteSave(): void
+    {
+        $this->architectOverwriteApproved = true;
+        $this->saveBlog();
+    }
+
+    public function confirmArchitectIncompleteSave(): void
+    {
+        $this->architectIncompleteSaveApproved = true;
+        $this->saveBlog();
+    }
+
     public function saveBlog(): void
     {
+        $wasCreating = $this->editingId === null;
+
+        if ($this->architectSaveBypassEligible() && $this->architectIncompleteSaveApproved) {
+            if (trim($this->title) === '') {
+                $this->title = __('Untitled blog post');
+            }
+            if (trim($this->slug) === '') {
+                $this->slug = ArchitectSaveBypass::defaultBlockSlug($this->title, 'blog-'.Str::lower(Str::random(8)));
+            }
+        }
+
         $schemaDecoded = null;
         if (trim($this->schema_json_input) !== '') {
             $decoded = json_decode($this->schema_json_input, true);
@@ -190,14 +233,13 @@ class Blogs extends Component
             $schemaDecoded = $decoded;
         }
 
-        $this->validate([
+        if (! $this->validateArchitectForm([
             'title' => ['required', 'string', 'max:255'],
             'slug' => [
                 'required',
                 'string',
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('blogs', 'slug')->ignore($this->editingId),
             ],
             'excerpt' => ['nullable', 'string'],
             'author_name' => ['nullable', 'string', 'max:255'],
@@ -215,7 +257,13 @@ class Blogs extends Component
             'aeo_question' => ['nullable', 'string'],
             'aeo_answer' => ['nullable', 'string'],
             'featured_image_upload' => ['nullable', 'image', 'max:4096'],
-        ]);
+        ], ['title', 'slug'])) {
+            return;
+        }
+
+        if (! $this->assertArchitectUniqueAvailable(Blog::class, 'slug', $this->slug, $this->editingId, 'title')) {
+            return;
+        }
 
         $publishedAt = null;
         if ($this->published_at_input !== null && trim((string) $this->published_at_input) !== '') {
@@ -291,10 +339,22 @@ class Blogs extends Component
         $this->featured_image_upload = null;
 
         session()->flash('status', __('Blog saved.'));
-        $this->mode = 'list';
-        $this->editingId = null;
-        $this->resetForm();
-        $this->resetPage();
+        $this->resetArchitectSaveFlags();
+
+        if ($wasCreating) {
+            $this->mode = 'list';
+            $this->editingId = null;
+            $this->resetForm();
+            $this->resetPage();
+        } elseif ($savedBlogId !== null) {
+            $this->previewRefreshNonce++;
+            $this->startEdit($savedBlogId);
+        } else {
+            $this->mode = 'list';
+            $this->editingId = null;
+            $this->resetForm();
+            $this->resetPage();
+        }
     }
 
     public function deleteBlog(int $id): void
@@ -361,8 +421,19 @@ class Blogs extends Component
         }
     }
 
+    public function addSection(): void
+    {
+        $this->openSectionPicker();
+    }
+
     public function addBlock(): void
     {
+        $this->addSection();
+    }
+
+    public function openDeveloperBlockModal(): void
+    {
+        $this->closeSectionPicker();
         $this->openBlockModal(null);
     }
 
@@ -405,20 +476,46 @@ class Blogs extends Component
 
     public function saveBlockInModal(): void
     {
+        if ($this->blockEditingSlug !== null) {
+            $existing = Block::query()->where('block_slug', $this->blockEditingSlug)->first();
+            if ($existing?->is_managed) {
+                $this->addError('block_code', __('Managed blocks cannot be edited here. Use Blocks Studio.'));
+
+                return;
+            }
+        }
+
         $blockId = Block::query()->where('block_slug', $this->block_slug)->value('id');
 
-        $this->validate([
+        if ($this->architectSaveBypassEligible() && $this->architectIncompleteSaveApproved) {
+            if (trim($this->block_name) === '') {
+                $this->block_name = ArchitectSaveBypass::defaultBlockName();
+            }
+            if (trim($this->block_slug) === '') {
+                $this->block_slug = ArchitectSaveBypass::defaultBlockSlug($this->block_name);
+            }
+            if (trim($this->block_code) === '') {
+                $this->block_code = '<!-- -->';
+            }
+        }
+
+        if (! $this->validateArchitectForm([
             'block_name' => ['required', 'string', 'max:255'],
             'block_slug' => [
                 'required',
                 'string',
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('blocks', 'block_slug')->ignore($blockId),
             ],
             'block_code' => ['required', 'string'],
             'block_custom_css' => ['nullable', 'string'],
-        ]);
+        ], ['block_name', 'block_slug', 'block_code'])) {
+            return;
+        }
+
+        if (! $this->assertArchitectUniqueAvailable(Block::class, 'block_slug', $this->block_slug, $blockId ? (int) $blockId : null)) {
+            return;
+        }
 
         if ($this->blockEditingSlug !== null && $this->blockEditingSlug !== $this->block_slug) {
             foreach ($this->contentParts as $i => $part) {
@@ -492,7 +589,20 @@ class Blogs extends Component
         if (($part['type'] ?? '') !== 'block') {
             return;
         }
-        $this->openBlockModal($part['slug']);
+
+        $slug = (string) ($part['slug'] ?? '');
+        if ($slug === '') {
+            return;
+        }
+
+        $block = Block::query()->where('block_slug', $slug)->first();
+        if ($block !== null && ($block->is_managed || BlockContent::hasSchema($slug))) {
+            $this->redirect(route('site-architect.block-studio.index', ['block' => $slug]));
+
+            return;
+        }
+
+        $this->openBlockModal($slug);
     }
 
     public function removeFeaturedImage(): void

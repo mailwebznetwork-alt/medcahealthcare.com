@@ -2,6 +2,7 @@
     $jobActive = request()->routeIs('operations.job-portal.*');
     $pinActive = request()->routeIs('operations.pin-codes.*');
     $servicesActive = request()->routeIs('operations.services.*');
+    $categoriesActive = request()->routeIs('operations.service-categories.*');
     $bookingsActive = request()->routeIs('operations.bookings.*');
 @endphp
 
@@ -30,6 +31,14 @@
             'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => ! $servicesActive,
         ])
     >{{ __('Services') }}</a>
+    <a
+        href="{{ route('operations.service-categories.index') }}"
+        @class([
+            'inline-flex items-center border-b px-5 py-3.5 text-sm font-semibold tracking-wide transition-colors duration-320 ease-premium',
+            'border-mom-gold text-mom-gold' => $categoriesActive,
+            'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => ! $categoriesActive,
+        ])
+    >{{ __('Categories') }}</a>
     <a
         href="{{ route('operations.bookings.index') }}"
         @class([

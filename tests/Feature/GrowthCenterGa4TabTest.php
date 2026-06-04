@@ -15,7 +15,7 @@ it('shows ga4 tab in growth center for authorized users', function () {
     ]);
 
     $this->actingAs($user)
-        ->get(route('growth-center.competitors.index', ['tab' => 'ga4']))
+        ->get(route('growth-center.ga4.index'))
         ->assertOk()
         ->assertSeeLivewire('growth.ga4-dashboard');
 });
