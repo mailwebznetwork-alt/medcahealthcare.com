@@ -38,6 +38,12 @@
         'suggestedDetailPageSlug' => $suggestedDetailPageSlug,
     ])
 
+    @if (Route::has('operations.services.gemini-suggest'))
+        <form id="service-gemini-suggest-form" method="post" action="{{ route('operations.services.gemini-suggest', $service) }}" class="hidden" aria-hidden="true" tabindex="-1">
+            @csrf
+        </form>
+    @endif
+
     <form action="{{ route('operations.services.update', $service) }}" method="post" enctype="multipart/form-data" class="space-y-8">
         @csrf
         @method('PUT')
@@ -53,6 +59,7 @@
             'serviceCatalog' => $serviceCatalog ?? collect(),
             'selectedRelatedCodes' => $selectedRelatedCodes ?? [],
             'serviceReviews' => $serviceReviews ?? collect(),
+            'subServices' => $subServices ?? collect(),
             'managedModule' => $managedModule ?? null,
             'customFieldValues' => $customFieldValues ?? new stdClass(),
         ])

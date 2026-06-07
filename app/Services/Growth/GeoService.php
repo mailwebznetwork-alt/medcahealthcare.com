@@ -5,6 +5,7 @@ namespace App\Services\Growth;
 use App\Models\BusinessProfile;
 use App\Models\GeoLocation;
 use App\Models\PinCode;
+use App\Services\Seo\LocalityContextResolver;
 use Illuminate\Support\Facades\Schema;
 
 class GeoService
@@ -22,12 +23,14 @@ class GeoService
 
     public function saveLocation(array $data): GeoLocation
     {
-        $label = trim((string) ($data['label'] ?? 'Arekere service radius'));
+        $resolver = app(LocalityContextResolver::class);
+        $defaultLabel = $resolver->primaryAreaLabel() ?? $resolver->primaryCity() ?? __('Service area');
+        $label = trim((string) ($data['label'] ?? $defaultLabel));
 
         return GeoLocation::query()->updateOrCreate(
             ['business_profile_id' => $this->resolveBusinessProfileId()],
             [
-                'label' => $label !== '' ? $label : 'Arekere service radius',
+                'label' => $label !== '' ? $label : $defaultLabel,
                 'latitude' => $data['latitude'],
                 'longitude' => $data['longitude'],
                 'radius_km' => $data['radius_km'],
@@ -46,7 +49,7 @@ class GeoService
                 'business_profile_id' => $this->resolveBusinessProfileId(),
                 'geo_location_id' => $data['geo_location_id'] ?? null,
                 'area_name' => trim((string) ($data['area_name'] ?? 'Area '.$pincode)),
-                'city' => trim((string) ($data['city'] ?? 'Bangalore')),
+                'city' => trim((string) ($data['city'] ?? app(LocalityContextResolver::class)->primaryCity() ?? '')),
                 'is_serviceable' => (bool) ($data['serviceable'] ?? true),
                 'landing_page' => $data['landing_page'] ?? null,
                 'priority' => $data['priority'] ?? 'medium',

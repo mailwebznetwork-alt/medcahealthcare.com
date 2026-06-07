@@ -11,7 +11,7 @@
         <p class="text-sm font-semibold text-slate-900">{{ $headline }}</p>
         <div class="mt-3 flex flex-wrap gap-2">
             <a href="{{ $tel }}" class="medca-cta-solid text-sm">{{ $callLabel }}</a>
-            <x-whatsapp.link class="inline-flex rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold" :label="$waLabel">{{ $waLabel }}</x-whatsapp.link>
+            <x-whatsapp.link class="px-4 py-2" :label="__('WhatsApp Us')">{{ __('WhatsApp Us') }}</x-whatsapp.link>
         </div>
     </div>
 </x-blocks.element-wrap>

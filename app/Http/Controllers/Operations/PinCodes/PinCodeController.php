@@ -9,6 +9,7 @@ use App\Http\Requests\Operations\PinCodes\UpdatePinCodeRequest;
 use App\Models\PinCode;
 use App\Models\PinCodeImportLog;
 use App\Services\DynamicModules\LegacyManagedModuleRegistry;
+use App\Services\Operations\PinCodeGeoDataSyncService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -83,8 +84,9 @@ class PinCodeController extends Controller
             $data['slug'] = null;
         }
 
-        $pinCode = PinCode::query()->create($data);
+        $pinCode = PinCode::query()->create(collect($data)->except(['landmarks', 'hospitals', 'location_faqs', 'nearby_areas'])->all());
 
+        app(PinCodeGeoDataSyncService::class)->sync($pinCode, $data);
         $this->persistLegacyCustomFields($request, LegacyManagedModuleRegistry::PIN_CODES, $pinCode);
 
         return redirect()->route('operations.pin-codes.directory')->with('status', 'pin-code-created');
@@ -93,6 +95,8 @@ class PinCodeController extends Controller
     public function edit(PinCode $pin_code): View
     {
         $this->authorize('update', $pin_code);
+
+        $pin_code->load(['landmarks', 'hospitals', 'locationFaqs', 'nearbyAreas']);
 
         return view('operations.pin-codes.edit', array_merge(
             ['pinCode' => $pin_code],
@@ -107,8 +111,9 @@ class PinCodeController extends Controller
             $data['slug'] = null;
         }
 
-        $pin_code->update($data);
+        $pin_code->update(collect($data)->except(['landmarks', 'hospitals', 'location_faqs', 'nearby_areas'])->all());
 
+        app(PinCodeGeoDataSyncService::class)->sync($pin_code, $data);
         $this->persistLegacyCustomFields($request, LegacyManagedModuleRegistry::PIN_CODES, $pin_code);
 
         return redirect()->route('operations.pin-codes.directory')->with('status', 'pin-code-updated');

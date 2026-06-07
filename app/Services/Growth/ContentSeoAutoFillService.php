@@ -11,6 +11,7 @@ use App\Models\SeoAiSignal;
 use App\Models\SeoEntity;
 use App\Models\Service;
 use App\Models\ServiceSeo;
+use App\Services\Seo\SeoOwnershipGuard;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -242,6 +243,10 @@ class ContentSeoAutoFillService
         }
 
         $service->refresh('seo');
+
+        if (! SeoOwnershipGuard::shouldMirrorServiceToGrowthLayer()) {
+            return;
+        }
 
         $slugPath = 'services/'.ltrim((string) $service->service_code, '/');
 

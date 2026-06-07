@@ -5,6 +5,7 @@ namespace App\Services\Deployment;
 use App\Models\Block;
 use App\Models\Page;
 use App\Services\Content\ContentRenderContext;
+use App\Services\Media\MediaReferenceResolver;
 
 class BlockSettingsResolver
 {
@@ -59,12 +60,17 @@ class BlockSettingsResolver
         $variant = (string) ($settings['style_variant'] ?? 'style_1');
         $variantClasses = config('design_system.variant_classes', []);
         $modifier = $variantClasses[$variant] ?? 'medca-block--style-1';
+        $mediaRefs = is_array($settings['media_refs'] ?? null) ? $settings['media_refs'] : [];
+        $mediaPaths = is_array($settings['media'] ?? null) ? $settings['media'] : [];
+        $resolver = app(MediaReferenceResolver::class);
+        $blockMedia = $resolver->mergeMediaPaths($mediaPaths, $mediaRefs);
 
         return [
             'blockSettings' => $settings,
             'blockStyleVariant' => $variant,
             'blockStyleClass' => $modifier,
-            'blockMedia' => is_array($settings['media'] ?? null) ? $settings['media'] : [],
+            'blockMedia' => $blockMedia,
+            'blockMediaRefs' => $mediaRefs,
             'blockSection' => is_array($settings['section'] ?? null) ? $settings['section'] : [],
             'blockSlug' => $blockSlug,
         ];

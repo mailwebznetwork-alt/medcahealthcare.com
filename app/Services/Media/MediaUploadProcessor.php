@@ -13,8 +13,10 @@ use Throwable;
 
 class MediaUploadProcessor
 {
-    public function process(UploadedFile $file, ?int $userId = null): Media
+    public function process(UploadedFile $file, ?int $userId = null, ?string $sourceModule = null): Media
     {
+        $this->validateUpload($file);
+
         $uuid = (string) Str::uuid();
         $baseDir = 'media/'.$uuid;
         $disk = Storage::disk('public');
@@ -43,10 +45,12 @@ class MediaUploadProcessor
             'file_url' => $publicUrl,
             'file_type' => $fileType,
             'file_size' => $size,
+            'mime_type' => $mime !== '' ? $mime : null,
             'title' => null,
             'alt_text' => $fileType === 'image' ? '' : null,
             'description' => null,
             'uploaded_by' => $userId,
+            'source_module' => $sourceModule,
         ];
 
         if ($fileType === 'image' && $this->isProcessableImage($mime, $ext)) {
@@ -54,7 +58,80 @@ class MediaUploadProcessor
             $data = array_merge($data, $derived);
         }
 
-        return Media::query()->create($data);
+        $media = Media::query()->create($data);
+        app(MediaImageSeoScorer::class)->persist($media);
+
+        return $media->fresh();
+    }
+
+    /**
+     * Import an existing file from disk into the centralized library.
+     */
+    public function importFromDiskPath(string $relativePath, ?int $userId = null, ?string $sourceModule = 'legacy'): Media
+    {
+        $relativePath = ltrim($relativePath, '/');
+        $disk = Storage::disk('public');
+        if (! $disk->exists($relativePath)) {
+            throw new \InvalidArgumentException(__('File not found: :path', ['path' => $relativePath]));
+        }
+
+        $absolute = $disk->path($relativePath);
+        $hash = hash_file('sha256', $absolute);
+        $existing = Media::query()->where('file_hash', $hash)->first();
+        if ($existing) {
+            return $existing;
+        }
+
+        $uuid = (string) Str::uuid();
+        $baseDir = 'media/'.$uuid;
+        $ext = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION) ?: 'bin');
+        $fileName = basename($relativePath);
+        $dest = $baseDir.'/original.'.$ext;
+        $disk->copy($relativePath, $dest);
+
+        $mime = mime_content_type($disk->path($dest)) ?: '';
+        $fileType = $this->resolveFileType($mime);
+        $data = [
+            'uuid' => $uuid,
+            'file_name' => $fileName,
+            'file_path' => $dest,
+            'file_url' => MediaPublicUrl::forPath($dest),
+            'file_type' => $fileType,
+            'file_size' => $disk->size($dest),
+            'file_hash' => $hash,
+            'legacy_path' => $relativePath,
+            'mime_type' => $mime !== '' ? $mime : null,
+            'title' => null,
+            'alt_text' => $fileType === 'image' ? '' : null,
+            'description' => null,
+            'uploaded_by' => $userId,
+            'source_module' => $sourceModule,
+        ];
+
+        if ($fileType === 'image' && $this->isProcessableImage($mime, $ext)) {
+            $data = array_merge($data, $this->generateImageDerivatives($disk->path($dest), $baseDir));
+        }
+
+        $media = Media::query()->create($data);
+        app(MediaImageSeoScorer::class)->persist($media);
+
+        return $media->fresh();
+    }
+
+    public function validateUpload(UploadedFile $file): void
+    {
+        $maxKb = (int) config('media.max_upload_kb', 51200);
+        if ($file->getSize() !== false && $file->getSize() > $maxKb * 1024) {
+            throw new \InvalidArgumentException(__('File exceeds maximum upload size.'));
+        }
+
+        $mime = $file->getMimeType() ?? '';
+        if (str_starts_with($mime, 'image/')) {
+            $allowed = config('media.allowed_image_mimes', []);
+            if (is_array($allowed) && $allowed !== [] && ! in_array($mime, $allowed, true)) {
+                throw new \InvalidArgumentException(__('Unsupported image type.'));
+            }
+        }
     }
 
     /**
@@ -69,10 +146,18 @@ class MediaUploadProcessor
             'medium_path' => null,
             'large_path' => null,
             'blur_path' => null,
+            'thumbnail_path' => null,
+            'avif_path' => null,
+            'width' => null,
+            'height' => null,
         ];
 
         try {
             $manager = new ImageManager(new GdDriver);
+            $source = $manager->read($absoluteOriginal);
+            $out['width'] = $source->width();
+            $out['height'] = $source->height();
+
             $maxW = (int) config('media.max_width', 1200);
             $jpegQ = (int) config('media.jpeg_quality', 85);
             $webpQ = (int) config('media.webp_quality', 82);
@@ -148,6 +233,27 @@ class MediaUploadProcessor
             $blurRel = $baseDir.'/blur.jpg';
             $blur->toJpeg(quality: 45)->save($disk->path($blurRel));
             $out['blur_path'] = $blurRel;
+
+            $thumbW = (int) config('media.thumbnail_width', 160);
+            try {
+                $thumb = $manager->read($optimizedAbs);
+                $thumb->scaleDown(width: $thumbW);
+                $thumbRel = $baseDir.'/thumb.webp';
+                $thumb->toWebp(quality: $webpQ)->save($disk->path($thumbRel));
+                $out['thumbnail_path'] = $thumbRel;
+            } catch (Throwable $e) {
+                Log::notice('Media thumbnail WebP failed', ['error' => $e->getMessage()]);
+            }
+
+            if (config('media.generate_avif', false) && method_exists($manager->read($optimizedAbs), 'toAvif')) {
+                try {
+                    $avifRel = $baseDir.'/full.avif';
+                    $manager->read($optimizedAbs)->toAvif(quality: 70)->save($disk->path($avifRel));
+                    $out['avif_path'] = $avifRel;
+                } catch (Throwable $e) {
+                    Log::notice('Media AVIF encode skipped', ['error' => $e->getMessage()]);
+                }
+            }
         } catch (Throwable $e) {
             Log::warning('Media image derivatives failed', ['error' => $e->getMessage()]);
         }

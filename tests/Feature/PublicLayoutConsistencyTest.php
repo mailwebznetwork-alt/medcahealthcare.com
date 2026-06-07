@@ -118,16 +118,3 @@ it('aligns the near-you partial with the public content shell', function () {
     expect($html)->toContain('max-w-6xl');
 });
 
-it('renders the near-you partial with admin backend styling on the dashboard', function () {
-    $html = view('public.partials.near-you-services', [
-        'services' => collect(),
-        'pincode' => '560078',
-        'pinCodeRecord' => null,
-        'locationRequired' => false,
-        'variant' => 'admin',
-    ])->render();
-
-    expect($html)->toContain('mom-section-title')
-        ->and($html)->toContain('Services in 560078')
-        ->and($html)->not->toContain('bg-white');
-});

@@ -544,6 +544,8 @@ class AiPulseService
             'published_blogs' => data_get($snapshot, 'totals.blogs'),
         ], JSON_UNESCAPED_UNICODE) ?: '{}';
 
+        $market = app(\App\Services\Seo\LocalityContextResolver::class)->primaryCity() ?: 'healthcare service area';
+
         $prompt = <<<TXT
 You are MarkOnMinds — AI Pulse narrative brief for the Medca Health Care public site.
 
@@ -552,7 +554,7 @@ Return ONLY valid JSON with keys:
 
 Rules:
 - Each value is ONE string of 2 to 4 sentences.
-- Audience: healthcare leadership in Bengaluru; practical, no hype.
+- Audience: healthcare leadership in {$market}; practical, no hype.
 - Ground insights in this context JSON when possible:
 {$ctx}
 

@@ -32,4 +32,15 @@ return [
         'max_export_rows' => (int) env('MARKETING_REPORT_MAX_ROWS', 10000),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | GA4 conversion event names (mark as conversions in GA4 Admin → Events)
+    |--------------------------------------------------------------------------
+    */
+    'ga4_conversion_events' => [
+        'phone_click',
+        'whatsapp_click',
+        'form_submit',
+    ],
+
 ];

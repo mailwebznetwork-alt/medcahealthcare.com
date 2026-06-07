@@ -1,4 +1,6 @@
 @php
+    use App\Services\Import\ImportSupport;
+
     /** @var \App\Models\Service $service */
     /** @var \Illuminate\Support\Collection<int, \App\Models\PinCode> $pinCodes */
     /** @var \Illuminate\Support\Collection<int, \App\Models\Page> $detailPages */
@@ -11,12 +13,13 @@
     $seo = $service->seo;
     $schema = $service->schema;
 
-    $arrayLines = static function (?array $items): string {
-        if (! is_array($items) || $items === []) {
+    $arrayLines = static function (mixed $items): string {
+        $items = ImportSupport::normalizeLineArray($items);
+        if ($items === []) {
             return '';
         }
 
-        return implode("\n", array_map(static fn (mixed $line): string => (string) $line, $items));
+        return implode("\n", $items);
     };
 
     $faqSeed = old('faqs');
@@ -53,8 +56,18 @@
         'activeTab' => $activeTab,
         'service' => $service,
         'serviceReviews' => $serviceReviews ?? collect(),
+        'subServices' => $subServices ?? collect(),
         'managedModule' => $managedModule ?? null,
     ])
+
+    @if ($mode === 'edit')
+        @include('operations.services.partials.optimization-hub', [
+            'service' => $service,
+            'optimizationScores' => $optimizationScores ?? [],
+            'seoRecommendations' => $seoRecommendations ?? [],
+            'locationPageCount' => $locationPageCount ?? 0,
+        ])
+    @endif
 
     <div x-show="tab === 'basic'" x-cloak class="space-y-8">
         <section class="mom-card p-6">
@@ -130,27 +143,26 @@
                     <p class="mom-subtext mt-1">{{ __('Shown on service detail layouts that include the procedures carousel block.') }}</p>
                     <x-input-error class="mt-2" :messages="$errors->get('procedures_lines')" />
                 </div>
+                @include('operations.services.partials.master-content-fields', ['service' => $service, 'arrayLines' => $arrayLines])
             </div>
         </section>
+    </div>
+
+    <div x-show="tab === 'images'" x-cloak class="space-y-8">
+        @include('operations.services.partials.image-seo-tab', ['service' => $service])
     </div>
 
     <div x-show="tab === 'media'" x-cloak class="space-y-8">
         <section class="mom-card p-6">
             <h3 class="mom-section-title mb-4">{{ __('Media') }}</h3>
             <div class="grid gap-6 md:grid-cols-2">
-                <div class="md:col-span-2">
-                    <x-input-label for="featured_image" :value="__('Featured image')" variant="mom" />
-                    @if ($service->exists && filled($service->featured_image))
-                        @php
-                            $featuredPreview = \Illuminate\Support\Str::startsWith($service->featured_image, ['http://', 'https://'])
-                                ? $service->featured_image
-                                : asset('storage/'.$service->featured_image);
-                        @endphp
-                        <div class="mt-2 flex items-start gap-4">
-                            <img src="{{ $featuredPreview }}" alt="" class="h-24 w-32 rounded-mom-chrome border border-[rgba(255,255,255,0.08)] object-cover" />
-                            <p class="mom-subtext break-all">{{ $service->featured_image }}</p>
-                        </div>
-                    @endif
+                <div class="md:col-span-2 space-y-3">
+                    @livewire('media.media-picker-field', [
+                        'fieldName' => 'featured_media_id',
+                        'value' => old('featured_media_id', $service->featured_media_id),
+                        'label' => __('Featured image (library)'),
+                    ], key('svc-featured-media-'.$service->id))
+                    <x-input-label for="featured_image" :value="__('Or upload featured image')" variant="mom" />
                     <input id="featured_image" name="featured_image" type="file" accept="image/*" class="mt-2 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-chrome file:border-0 file:bg-[rgba(197,160,89,0.15)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[var(--text-primary)]" />
                     <x-input-error class="mt-2" :messages="$errors->get('featured_image')" />
                 </div>
@@ -159,24 +171,19 @@
                     <x-text-input id="image_alt" name="image_alt" type="text" class="mt-2 block w-full" :value="old('image_alt', $service->image_alt)" variant="mom" />
                     <x-input-error class="mt-2" :messages="$errors->get('image_alt')" />
                 </div>
-                <div>
-                    <x-input-label for="icon" :value="__('Icon image')" variant="mom" />
-                    @if ($service->exists && filled($service->icon))
-                        @php
-                            $iconPreview = \Illuminate\Support\Str::startsWith($service->icon, ['http://', 'https://'])
-                                ? $service->icon
-                                : asset('storage/'.$service->icon);
-                        @endphp
-                        <div class="mt-2 flex items-center gap-3">
-                            <img src="{{ $iconPreview }}" alt="" class="h-12 w-12 rounded object-cover" />
-                            <p class="mom-subtext break-all text-xs">{{ $service->icon }}</p>
-                        </div>
-                    @endif
+                <div class="space-y-3">
+                    @livewire('media.media-picker-field', [
+                        'fieldName' => 'icon_media_id',
+                        'value' => old('icon_media_id', $service->icon_media_id),
+                        'label' => __('Icon (library)'),
+                    ], key('svc-icon-media-'.$service->id))
+                    <x-input-label for="icon" :value="__('Or upload icon')" variant="mom" />
                     <input id="icon" name="icon" type="file" accept="image/*" class="mt-2 block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded-mom-chrome file:border-0 file:bg-[rgba(197,160,89,0.15)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[var(--text-primary)]" />
                     <x-input-error class="mt-2" :messages="$errors->get('icon')" />
                 </div>
-                <div class="md:col-span-2">
-                    <x-input-label for="gallery_files" :value="__('Gallery images')" variant="mom" />
+                <div class="md:col-span-2 space-y-3">
+                    @livewire('media.media-gallery-picker-field', [], key('svc-gallery-pick-'.$service->id))
+                    <x-input-label for="gallery_files" :value="__('Or upload gallery images')" variant="mom" />
                     @php $galleryItems = is_array($service->gallery) ? array_values(array_filter($service->gallery)) : []; @endphp
                     @if ($galleryItems !== [])
                         <ul class="mt-3 space-y-2">
@@ -274,7 +281,12 @@
                     <x-input-error class="mt-2" :messages="$errors->get('target_keywords')" />
                 </div>
             </div>
+            @include('operations.services.partials.master-seo-social', ['service' => $service])
         </section>
+    </div>
+
+    <div x-show="tab === 'trust'" x-cloak class="space-y-8">
+        @include('operations.services.partials.trust-tab', ['service' => $service])
     </div>
 
     <div x-show="tab === 'aeo'" x-cloak class="space-y-8">
@@ -472,6 +484,13 @@
     </div>
 
     @if ($mode === 'edit')
+        <div x-show="tab === 'sub_services'" x-cloak class="space-y-8">
+            @include('operations.services.partials.tab-sub-services', [
+                'service' => $service,
+                'subServices' => $subServices ?? collect(),
+            ])
+        </div>
+
         <div x-show="tab === 'reviews'" x-cloak class="space-y-8">
             @include('operations.services.partials.tab-reviews', ['serviceReviews' => $serviceReviews ?? collect()])
         </div>

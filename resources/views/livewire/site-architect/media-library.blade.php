@@ -2,7 +2,7 @@
     <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
         <div>
             <h2 class="text-lg font-semibold text-[var(--text-primary)]">{{ __('Media library') }}</h2>
-            <p class="mom-subtext mt-1 max-w-2xl text-sm">{{ __('Upload images here, then pick them in Blocks Studio → Media for each section.') }}</p>
+            <p class="mom-subtext mt-1 max-w-2xl text-sm">{{ __('Single source of truth for all images. Uploads are optimized to WebP with responsive variants. Modules store references only.') }}</p>
         </div>
     </div>
 
@@ -95,6 +95,9 @@
                         </div>
                         <p class="mt-2 truncate text-xs font-medium text-[var(--text-primary)]">{{ $item->file_name }}</p>
                         <p class="truncate text-[11px] uppercase tracking-wide text-[var(--text-muted)]">{{ $item->file_type }}</p>
+                        @if ($item->file_type === 'image' && $item->image_seo_score !== null)
+                            <p class="mt-1 text-[10px] text-mom-gold">{{ __('Image SEO') }} {{ $item->image_seo_score }}%</p>
+                        @endif
                     </button>
                 @empty
                     <p class="col-span-full py-10 text-center text-sm text-[var(--text-muted)]">{{ __('No media found.') }}</p>
@@ -128,6 +131,30 @@
                     </div>
 
                     <p class="break-all font-mono text-xs text-[var(--text-secondary)]" title="{{ __('Primary asset URL') }}">{{ $selected->preferredImageUrl() }}</p>
+                    @if ($selected->width && $selected->height)
+                        <p class="text-xs text-[var(--text-muted)]">{{ $selected->width }}×{{ $selected->height }} · {{ number_format((int) $selected->file_size / 1024) }} KB</p>
+                    @endif
+                    @if ($selected->file_type === 'image' && $selected->image_seo_score !== null)
+                        <p class="text-sm text-mom-gold">{{ __('Image SEO score') }}: {{ $selected->image_seo_score }}%</p>
+                    @endif
+                    @if ($seoRecommendations !== [])
+                        <ul class="list-inside list-disc text-xs text-[var(--warning)]">
+                            @foreach ($seoRecommendations as $tip)
+                                <li>{{ $tip }}</li>
+                            @endforeach
+                        </ul>
+                    @endif
+
+                    @if ($usageReferences !== [])
+                        <div class="rounded-mom-chrome border border-[rgba(239,180,80,0.35)] bg-[rgba(239,180,80,0.06)] px-3 py-2 text-xs">
+                            <p class="font-semibold text-[var(--text-primary)]">{{ __('Used in') }}</p>
+                            <ul class="mt-1 space-y-1 text-[var(--text-secondary)]">
+                                @foreach ($usageReferences as $ref)
+                                    <li>{{ $ref['label'] }} <span class="text-[var(--text-muted)]">({{ $ref['type'] }})</span></li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
                     <div class="space-y-3">
                         <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Title') }}</label>
@@ -135,17 +162,29 @@
                         <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Alt text') }} @if ($selected->file_type === 'image')<span class="text-[var(--danger)]">*</span>@endif</label>
                         <input type="text" wire:model="edit_alt_text" class="w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" />
                         @error('edit_alt_text') <p class="text-xs text-[var(--danger)]">{{ $message }}</p> @enderror
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Caption') }}</label>
+                        <input type="text" wire:model="edit_caption" class="w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" />
                         <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Description') }}</label>
                         <textarea wire:model="edit_description" rows="3" class="w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm"></textarea>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Category') }}</label>
+                        <input type="text" wire:model="edit_category" class="w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" placeholder="service-featured, hero, gallery…" />
+                        <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Tags (comma-separated)') }}</label>
+                        <input type="text" wire:model="edit_tags" class="w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" />
                     </div>
 
                     <div class="flex flex-wrap gap-2">
                         <button type="button" wire:click="saveMetadata" class="rounded-mom-chrome bg-[var(--accent-gold)] px-4 py-2 text-sm font-semibold text-[#120f0d]">{{ __('Save metadata') }}</button>
+                        @if ($selected->file_type === 'image')
+                            <button type="button" wire:click="suggestWithGemini" class="rounded-mom-chrome border border-[var(--border-panel-soft)] px-4 py-2 text-sm">{{ __('AI suggest') }}</button>
+                        @endif
                         <button
                             type="button"
                             wire:click="deleteMedia({{ $selected->id }})"
-                            wire:confirm="{{ __('Delete this media and all generated files?') }}"
-                            class="rounded-mom-chrome border border-[var(--border-panel-soft)] px-4 py-2 text-sm text-[var(--danger)]"
+                            wire:confirm="{{ $usageReferences !== [] ? __('This asset is in use. Delete anyway?') : __('Delete this media and all generated files?') }}"
+                            @class([
+                                'rounded-mom-chrome border px-4 py-2 text-sm',
+                                'border-[rgba(239,68,68,0.5)] text-[var(--danger)]' => true,
+                            ])
                         >{{ __('Delete') }}</button>
                     </div>
 

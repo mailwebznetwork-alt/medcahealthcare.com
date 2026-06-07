@@ -16,10 +16,11 @@ use App\Http\Controllers\Operations\JobPortal\JobPortalDashboardController;
 use App\Http\Controllers\Operations\JobPortal\VacancyController;
 use App\Http\Controllers\Operations\LegacyModuleFieldsController;
 use App\Http\Controllers\Operations\OperationsHubController;
+use App\Http\Controllers\Operations\BulkImportController;
 use App\Http\Controllers\Operations\PinCodes\PinCodeController;
-use App\Http\Controllers\Operations\PinCodes\PinCodeImportController;
 use App\Http\Controllers\Operations\ServiceCategories\ServiceCategoryController;
 use App\Http\Controllers\Operations\Services\ServiceController;
+use App\Http\Controllers\Operations\Services\SubServiceController;
 use App\Http\Controllers\Public\ServiceCategoryPublicController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\CmsPageController;
@@ -47,6 +48,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/robots.txt', [SeoController::class, 'robotsTxt'])->name('public.robots');
+Route::get('/sitemap', [\App\Http\Controllers\Public\HtmlSitemapController::class, 'index'])->name('public.sitemap.html');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemapXml'])->name('public.sitemap');
 Route::get('/sitemap-{segment}.xml', [SeoController::class, 'sitemapSegmentXml'])
     ->where('segment', 'pages|blogs|services|images')
@@ -58,6 +60,10 @@ Route::post('/leads', [LeadCaptureController::class, 'store'])
     ->middleware('throttle:public_leads')
     ->name('public.leads.store');
 
+Route::get('/location/pincode/{pincode}', [LocationController::class, 'selectPincode'])
+    ->where('pincode', '\d{6}')
+    ->middleware('throttle:60,1')
+    ->name('location.pincode.select');
 Route::post('/location/pincode', [LocationController::class, 'storePincode'])
     ->middleware('throttle:20,1')
     ->name('location.pincode.store');
@@ -100,6 +106,22 @@ foreach (config('public_pages.root_slugs', []) as $cmsSlug) {
         ->name($routeName);
 }
 
+Route::get('/services/{code}/{city}/{pincode}', [ServicePublicController::class, 'showLocationPincode'])
+    ->where('code', '[A-Za-z][A-Za-z0-9_-]*')
+    ->where('city', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->where('pincode', '\d{6}')
+    ->name('public.services.location.pincode');
+
+Route::get('/services/{code}/sub/{subCode}', [ServicePublicController::class, 'showSubService'])
+    ->where('code', '[A-Za-z][A-Za-z0-9_-]*')
+    ->where('subCode', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->name('public.services.sub');
+
+Route::get('/services/{code}/{locationSlug}', [ServicePublicController::class, 'showLocation'])
+    ->where('code', '[A-Za-z][A-Za-z0-9_-]*')
+    ->where('locationSlug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->name('public.services.location');
+
 Route::get('/services/{code}', [ServicePublicController::class, 'show'])
     ->where('code', '[A-Za-z][A-Za-z0-9_-]*')
     ->name('public.services.show');
@@ -112,6 +134,11 @@ Route::post('/careers/{slug}/apply', [CareersController::class, 'storeApplicatio
     ->name('careers.apply');
 
 Route::get('/p/{slug}', function (string $slug) {
+    $legacyTarget = app(\App\Services\Operations\ServicePublicUrlBuilder::class)->legacyRedirectForPageSlug($slug);
+    if ($legacyTarget !== null) {
+        return redirect($legacyTarget, 301);
+    }
+
     $page = Page::query()->where('slug', $slug)->first();
 
     if ($page !== null && $page->is_active) {
@@ -135,6 +162,10 @@ Route::get('/p/{slug}', function (string $slug) {
     }
 
     if ($target !== $slug) {
+        if (str_starts_with($target, 'services/')) {
+            return redirect('/'.$target, 301);
+        }
+
         if (Page::usesRootPublicPath($target)) {
             return redirect(Page::publicPathForSlug($target), 301);
         }
@@ -253,17 +284,37 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
     });
 
     Route::prefix('operations/services')->name('operations.services.')->group(function () {
+        Route::get('bulk-import', [BulkImportController::class, 'servicesWorkbook'])->name('bulk-import');
+        Route::post('bulk-import/preview', [BulkImportController::class, 'preview'])->name('bulk-import.preview');
+        Route::post('bulk-import/confirm', [BulkImportController::class, 'confirm'])->name('bulk-import.confirm');
+        Route::post('bulk-import/cancel', [BulkImportController::class, 'cancel'])->name('bulk-import.cancel');
         Route::get('/', [ServiceController::class, 'index'])->name('index');
         Route::get('create', [ServiceController::class, 'create'])->name('create');
         Route::post('/', [ServiceController::class, 'store'])->name('store');
         Route::get('{service}/duplicate', [ServiceController::class, 'duplicate'])->name('duplicate');
         Route::get('{service}/preview', [ServiceController::class, 'preview'])->name('preview');
+        Route::get('{service}/sub-services', [SubServiceController::class, 'index'])->name('sub-services.index');
+        Route::get('{service}/sub-services/create', [SubServiceController::class, 'create'])->name('sub-services.create');
+        Route::post('{service}/sub-services', [SubServiceController::class, 'store'])->name('sub-services.store');
+        Route::get('{service}/sub-services/{sub_service}/edit', [SubServiceController::class, 'edit'])->name('sub-services.edit');
+        Route::put('{service}/sub-services/{sub_service}', [SubServiceController::class, 'update'])->name('sub-services.update');
+        Route::delete('{service}/sub-services/{sub_service}', [SubServiceController::class, 'destroy'])->name('sub-services.destroy');
         Route::get('{service}/edit', [ServiceController::class, 'edit'])->name('edit');
         Route::get('{service}/detail-page/create', [ServiceController::class, 'createDetailPage'])->name('detail-page.create');
         Route::post('{service}/detail-page', [ServiceController::class, 'storeDetailPage'])->name('detail-page.store');
         Route::get('{service}/detail-page/edit', [ServiceController::class, 'editDetailPage'])->name('detail-page.edit');
         Route::put('{service}', [ServiceController::class, 'update'])->name('update');
+        Route::post('{service}/gemini-suggest', [ServiceController::class, 'geminiSuggest'])->name('gemini-suggest');
         Route::delete('{service}', [ServiceController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('operations/bulk-import')->name('operations.bulk-import.')->group(function () {
+        Route::get('/', [BulkImportController::class, 'index'])->name('index');
+        Route::get('templates/{workbook}', [BulkImportController::class, 'downloadTemplate'])->name('templates.download');
+        Route::post('preview', [BulkImportController::class, 'preview'])->name('preview');
+        Route::post('confirm', [BulkImportController::class, 'confirm'])->name('confirm');
+        Route::post('cancel', [BulkImportController::class, 'cancel'])->name('cancel');
+        Route::post('rollback/{batch}', [BulkImportController::class, 'rollback'])->name('rollback');
     });
 
     Route::prefix('operations/pin-codes')->name('operations.pin-codes.')->group(function () {
@@ -272,10 +323,10 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
         })->name('index');
         Route::get('overview', [PinCodeController::class, 'overview'])->name('overview');
         Route::get('directory', [PinCodeController::class, 'directory'])->name('directory');
-        Route::get('bulk-import', [PinCodeImportController::class, 'create'])->name('bulk-import');
-        Route::post('bulk-import/preview', [PinCodeImportController::class, 'preview'])->name('bulk-import.preview');
-        Route::post('bulk-import/confirm', [PinCodeImportController::class, 'confirm'])->name('bulk-import.confirm');
-        Route::post('bulk-import/cancel', [PinCodeImportController::class, 'cancel'])->name('bulk-import.cancel');
+        Route::get('bulk-import', [BulkImportController::class, 'pincodesWorkbook'])->name('bulk-import');
+        Route::post('bulk-import/preview', [BulkImportController::class, 'preview'])->name('bulk-import.preview');
+        Route::post('bulk-import/confirm', [BulkImportController::class, 'confirm'])->name('bulk-import.confirm');
+        Route::post('bulk-import/cancel', [BulkImportController::class, 'cancel'])->name('bulk-import.cancel');
         Route::get('create', [PinCodeController::class, 'create'])->name('create');
         Route::post('/', [PinCodeController::class, 'store'])->name('store');
         Route::get('{pin_code}/edit', [PinCodeController::class, 'edit'])->name('edit');

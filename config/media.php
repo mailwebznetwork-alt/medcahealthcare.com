@@ -36,4 +36,28 @@ return [
 
     'webp_quality' => 82,
 
+    'thumbnail_width' => 160,
+
+    'max_upload_kb' => 51200,
+
+    'allowed_image_mimes' => [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'image/gif',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | AVIF (future — generated when GD/Imagick supports toAvif)
+    |--------------------------------------------------------------------------
+    */
+
+    'generate_avif' => env('MEDIA_GENERATE_AVIF', false),
+
+    'legacy_scan_dirs' => [
+        'services',
+        'deployment/block-media',
+    ],
+
 ];

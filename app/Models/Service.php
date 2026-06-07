@@ -20,20 +20,37 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'service_code',
     'short_summary',
     'description',
+    'key_benefits',
+    'eligibility',
+    'process_steps',
+    'ai_summary',
     'procedures',
     'specialized_care',
     'shifts',
     'price_range',
     'featured_image',
+    'featured_media_id',
     'icon',
+    'icon_media_id',
     'detail_page_id',
     'gallery',
+    'gallery_media_ids',
+    'gallery_meta',
+    'trust_signals',
+    'optimization_snapshot',
+    'internal_links_snapshot',
     'image_alt',
+    'featured_image_meta',
     'target_keywords',
     'ai_keywords',
     'quality_score',
     'is_active',
     'is_featured',
+    'is_top_rated',
+    'avg_rating_cache',
+    'show_on_homepage',
+    'show_on_about',
+    'show_on_contact',
     'publish_status',
     'visibility',
     'sort_order',
@@ -126,6 +143,17 @@ class Service extends Model
     {
         return [
             'gallery' => 'array',
+            'gallery_media_ids' => 'array',
+            'gallery_meta' => 'array',
+            'featured_media_id' => 'integer',
+            'icon_media_id' => 'integer',
+            'trust_signals' => 'array',
+            'optimization_snapshot' => 'array',
+            'featured_image_meta' => 'array',
+            'internal_links_snapshot' => 'array',
+            'key_benefits' => 'array',
+            'eligibility' => 'array',
+            'process_steps' => 'array',
             'procedures' => 'array',
             'specialized_care' => 'array',
             'shifts' => 'array',
@@ -134,12 +162,33 @@ class Service extends Model
             'quality_score' => 'integer',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
+            'is_top_rated' => 'boolean',
+            'avg_rating_cache' => 'decimal:1',
+            'show_on_homepage' => 'boolean',
+            'show_on_about' => 'boolean',
+            'show_on_contact' => 'boolean',
             'publish_status' => PublishStatus::class,
             'visibility' => ServiceVisibility::class,
             'sort_order' => 'integer',
             'detail_page_id' => 'integer',
             'custom_fields' => 'array',
         ];
+    }
+
+    /**
+     * @return BelongsTo<Media, $this>
+     */
+    public function featuredMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'featured_media_id');
+    }
+
+    /**
+     * @return BelongsTo<Media, $this>
+     */
+    public function iconMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'icon_media_id');
     }
 
     public function seo(): HasOne
@@ -152,9 +201,37 @@ class Service extends Model
         return $this->hasMany(ServiceFaq::class);
     }
 
+    /**
+     * Child offerings under this service (e.g. Medical Lab → Blood Test, ECG).
+     *
+     * @return HasMany<SubService, $this>
+     */
+    public function subServices(): HasMany
+    {
+        return $this->hasMany(SubService::class)->orderBy('sort_order')->orderBy('title');
+    }
+
+    /**
+     * Sub-services promoted to standalone service records.
+     *
+     * @return HasMany<SubService, $this>
+     */
+    public function promotedSubServices(): HasMany
+    {
+        return $this->hasMany(SubService::class, 'standalone_service_id');
+    }
+
     public function schema(): HasOne
     {
         return $this->hasOne(ServiceSchema::class);
+    }
+
+    /**
+     * @return HasMany<ServiceLocationPage, $this>
+     */
+    public function locationPages(): HasMany
+    {
+        return $this->hasMany(ServiceLocationPage::class);
     }
 
     /**
@@ -175,7 +252,18 @@ class Service extends Model
     public function pincodes(): BelongsToMany
     {
         return $this->belongsToMany(PinCode::class, 'service_pincodes', 'service_id', 'pincode_id')
-            ->withTimestamps();
+            ->using(ServicePincode::class)
+            ->withPivot([
+                'priority',
+                'is_visible',
+                'is_featured',
+                'coverage_notes',
+                'category_filter_ids',
+                'effective_from',
+                'effective_until',
+            ])
+            ->withTimestamps()
+            ->orderByPivot('priority', 'desc');
     }
 
     /**
@@ -241,7 +329,14 @@ class Service extends Model
         $normalized = preg_replace('/\D/', '', $pincode) ?? '';
 
         return $query->whereHas('pincodes', function (Builder $pinQuery) use ($normalized): void {
-            $pinQuery->where('pincode', $normalized)->where('is_active', true);
+            $pinQuery
+                ->where('pincode', $normalized)
+                ->where('is_active', true)
+                ->where(function (Builder $pivotQuery): void {
+                    $pivotQuery
+                        ->where('service_pincodes.is_visible', true)
+                        ->orWhereNull('service_pincodes.is_visible');
+                });
         });
     }
 
@@ -279,7 +374,12 @@ class Service extends Model
      */
     public function publicUrl(): string
     {
-        return url('/services/'.$this->service_code);
+        return app(\App\Services\Operations\ServicePublicUrlBuilder::class)->serviceUrl($this);
+    }
+
+    public function publicCanonicalUrl(): string
+    {
+        return $this->seo?->canonical_url ?: $this->publicUrl();
     }
 
     /**
@@ -305,8 +405,17 @@ class Service extends Model
             $node['description'] = $description;
         }
 
-        if (is_string($this->featured_image) && $this->featured_image !== '') {
-            $node['image'] = $this->absoluteMediaUrl($this->featured_image);
+        $imagePath = $this->featured_image;
+        if ($this->relationLoaded('featuredMedia') && $this->featuredMedia) {
+            $imagePath = $this->featuredMedia->referencePath();
+        } elseif ($this->featured_media_id && ! $this->relationLoaded('featuredMedia')) {
+            $this->loadMissing('featuredMedia');
+            if ($this->featuredMedia) {
+                $imagePath = $this->featuredMedia->referencePath();
+            }
+        }
+        if (is_string($imagePath) && $imagePath !== '') {
+            $node['image'] = $this->absoluteMediaUrl($imagePath);
         }
 
         if (is_string($this->price_range) && $this->price_range !== '') {

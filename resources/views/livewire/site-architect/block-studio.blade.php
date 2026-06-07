@@ -61,9 +61,15 @@
                         @if (! empty($media[$slot]))
                             <p class="mt-1 truncate text-xs text-[var(--text-secondary)]">{{ $media[$slot] }}</p>
                         @endif
+                        @if (! empty($media_refs[$slot]))
+                            <p class="mt-1 text-xs text-mom-gold">{{ __('Library ref #') }}{{ $media_refs[$slot] }}</p>
+                        @endif
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <button type="button" wire:click="openMediaPicker('{{ $slot }}')" class="mom-cta-compact mom-cta-ghost text-xs">{{ __('Choose from library') }}</button>
+                            <button type="button" wire:click="removeMedia('{{ $slot }}')" class="mom-cta-compact mom-cta-ghost text-xs">{{ __('Remove') }}</button>
+                        </div>
                         <input type="file" wire:model="uploads.{{ $slot }}" class="mom-input mt-2 w-full text-xs" />
-                        <input type="text" wire:model="media.{{ $slot }}" placeholder="{{ __('Path or URL') }}" class="mom-input mt-2 w-full text-xs" />
-                        <button type="button" wire:click="removeMedia('{{ $slot }}')" class="mom-cta-compact mom-cta-ghost mt-2 text-xs">{{ __('Remove') }}</button>
+                        <p class="mom-subtext mt-1 text-[10px]">{{ __('Or upload — stored in Media Library.') }}</p>
                     </div>
                 @endforeach
             </div>

@@ -13,11 +13,21 @@
     $headerConfig = $themeResolver->headerConfiguration();
     $layoutShellClass = $themeResolver->layoutShellClass();
 
-    $navLinkBase = 'medca-primary-nav-link inline-flex items-center py-2 text-base font-semibold uppercase tracking-[0.06em] transition-colors duration-200 md:text-lg focus-visible:outline-none';
+    $navLinkBase = 'medca-primary-nav-link inline-flex items-center whitespace-nowrap py-2 font-semibold uppercase transition-colors duration-200 focus-visible:outline-none';
     $navLinkDefault = 'text-medca-primary hover:text-medca-primary-hover focus-visible:text-medca-primary-hover';
     $navLinkActive = 'text-[#581c87] hover:text-[#3b0764] focus-visible:text-[#3b0764]';
     $navDrawerTriggerClass = 'inline-flex items-center justify-center rounded-lg border border-clinical-200 bg-white p-2 text-medca-primary shadow-sm transition-colors duration-200 hover:border-clinical-300 hover:bg-clinical-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-clinical-500/40';
 @endphp
+
+{{-- Desktop nav 15px — inline so it applies without waiting on Vite rebuild --}}
+<style>
+    @media (min-width: 768px) {
+        body.medca-public-surface .medca-site-header .medca-primary-nav-link {
+            font-size: 15px !important;
+            line-height: 1.3125rem !important;
+        }
+    }
+</style>
 
 {{-- Sticky stack: slim topbar (~32–36px) + navbar row (~78–90px min). Approximate total px: config('medca.marketing_sticky_header_approx_px'). --}}
 <header class="medca-site-header sticky top-0 z-40 w-full font-sans {{ $headerPresetClass }}" data-header-preset="{{ $themeResolver->headerPreset() }}">
@@ -56,13 +66,13 @@
             </a>
 
             {{-- Desktop Navigation --}}
-            <div class="hidden min-w-0 flex-1 items-center justify-end md:flex">
-                <nav class="flex min-w-0 flex-1 items-center justify-end" aria-label="{{ __('Primary') }}">
-                    <ul class="flex flex-wrap items-center justify-end">
+            <div class="hidden shrink-0 items-center justify-end gap-1 md:flex">
+                <nav class="flex shrink-0 items-center justify-end" aria-label="{{ __('Primary') }}">
+                    <ul class="flex flex-nowrap items-center justify-end">
                         @foreach($navItems as $item)
                             @php($isNavCurrent = \App\Support\PublicNav::isCurrent($item['href']))
                             <li @class([
-                                'flex items-center px-3 md:px-4 lg:px-5',
+                                'flex shrink-0 items-center px-2 lg:px-2.5',
                                 'border-l border-solid border-slate-300' => ! $loop->first,
                             ])>
                                 <a
@@ -78,20 +88,20 @@
                 </nav>
 
                 @if ($themeResolver->headerConfigEnabled('show_search') && Route::has('public.services.index'))
-                    <a href="{{ route('public.services.index') }}" class="{{ $navLinkBase }} {{ $navLinkDefault }} ml-4 shrink-0">
+                    <a href="{{ route('public.services.index') }}" class="{{ $navLinkBase }} {{ $navLinkDefault }} ml-2 shrink-0">
                         {{ __('Search') }}
                     </a>
                 @endif
 
                 @if ($themeResolver->headerConfigEnabled('show_secondary_menu'))
-                    <div class="ml-4 hidden shrink-0 items-center gap-2 lg:flex">
+                    <div class="ml-2 hidden shrink-0 items-center gap-2 lg:flex">
                         <a href="tel:{{ $medcaPhoneTel }}" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-medca-primary hover:bg-slate-50">{{ __('Call') }}</a>
-                        <a href="{{ $medcaWhatsAppUrl }}" target="_blank" rel="noopener noreferrer" class="rounded-xl bg-emerald-700 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-800">{{ __('WhatsApp') }}</a>
+                        <a href="{{ $medcaWhatsAppUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-500">{{ __('WhatsApp Us') }}</a>
                     </div>
                 @endif
 
                 @if($isSuperAdmin && Route::has('admin.site-architect.live-edit.toggle'))
-                    <form method="POST" action="{{ route('admin.site-architect.live-edit.toggle') }}" class="ml-4 shrink-0 md:ml-6">
+                    <form method="POST" action="{{ route('admin.site-architect.live-edit.toggle') }}" class="ml-2 shrink-0">
                         @csrf
                         <button type="submit" class="rounded-xl border border-[#E2E8F0]/60 bg-[#0A1128] px-3 py-2 text-[11px] font-semibold uppercase tracking-widest text-[#E2E8F0] shadow-md">
                             {{ session('live_edit_enabled') ? 'Disable Live Edit' : 'Live Edit' }}
@@ -222,9 +232,9 @@
                                         href="{{ $medcaWhatsAppUrl }}"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        class="flex min-h-[52px] items-center justify-center rounded-xl border border-emerald-700/40 bg-emerald-700 px-3 text-sm font-bold text-white transition-colors duration-200 hover:bg-emerald-800"
+                                        class="flex min-h-[52px] items-center justify-center rounded-xl bg-emerald-600 px-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-500"
                                     >
-                                        {{ __('WhatsApp') }}
+                                        {{ __('WhatsApp Us') }}
                                     </a>
                                     @endif
                                 </div>

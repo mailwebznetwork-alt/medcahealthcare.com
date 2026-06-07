@@ -7,6 +7,7 @@ use App\Models\PageSeo;
 use App\Models\Service;
 use App\Services\Growth\AiPulseService;
 use App\Services\Growth\ContentSeoAutoFillService;
+use App\Services\Operations\InternalLinkRefreshDispatcher;
 use Illuminate\Support\Facades\Schema;
 
 class ServiceObserver
@@ -14,6 +15,7 @@ class ServiceObserver
     public function __construct(
         private readonly ContentSeoAutoFillService $contentSeoAutoFill,
         private readonly AiPulseService $aiPulseService,
+        private readonly InternalLinkRefreshDispatcher $linkRefreshDispatcher,
     ) {}
 
     public function saved(Service $service): void
@@ -21,10 +23,12 @@ class ServiceObserver
         $this->contentSeoAutoFill->applyAndSyncService($service);
         $this->contentSeoAutoFill->refreshAggregateSignals();
         $this->aiPulseService->triggerAuditAfterPublish();
+        $this->linkRefreshDispatcher->dispatchForService($service->id);
     }
 
     public function deleted(Service $service): void
     {
+        $this->linkRefreshDispatcher->dispatchForService($service->id, includePeers: true);
         $slugPath = 'services/'.ltrim((string) $service->service_code, '/');
 
         if (Schema::hasTable('page_seo')) {

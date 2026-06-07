@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PageCategory;
 use App\Enums\PageLayoutMode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -24,8 +25,15 @@ class Page extends Model
         'focus_keywords',
         'canonical_url',
         'robots_meta',
+        'page_category',
+        'page_source',
+        'registry_owner',
+        'visibility_flags',
         'og_image',
         'og_image_alt',
+        'og_title',
+        'og_description',
+        'twitter_card',
         'hreflang_json',
         'entity_tags',
         'fact_check_verified',
@@ -66,6 +74,8 @@ class Page extends Model
             'entity_tags' => 'array',
             'fact_check_verified' => 'boolean',
             'is_active' => 'boolean',
+            'page_category' => PageCategory::class,
+            'visibility_flags' => 'array',
             'layout_mode' => PageLayoutMode::class,
             'block_overrides_json' => 'array',
             'deployment_meta_json' => 'array',

@@ -179,7 +179,7 @@ return [
             'block_name' => 'Services — detail fallback',
             'description' => 'Composed layout for /services/{code} Site Architect pages.',
             'block_type' => 'Layout',
-            'code' => "{{block:service-detail-hero}}\n{{block:service-detail-areas}}\n{{block:service-detail-related}}",
+            'code' => "{{block:service-detail-hero}}\n{{block:service-detail-areas}}",
         ],
 
         // ── Locations ─────────────────────────────────────────────────────

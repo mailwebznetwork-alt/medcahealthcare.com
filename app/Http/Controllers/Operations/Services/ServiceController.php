@@ -18,6 +18,8 @@ use App\Repositories\Operations\ServiceCategoryRepository;
 use App\Services\Operations\ServiceCategoryService;
 use App\Services\Operations\ServiceDetailPageProvisioner;
 use App\Services\Operations\ServiceDetailPageSeoSync;
+use App\Services\Operations\ServiceGeminiAssistant;
+use App\Services\Operations\ServiceMasterOrchestrator;
 use App\Services\Operations\ServiceRelatedPageTokens;
 use App\Services\Operations\ServiceSeoOwnership;
 use App\Services\Public\PagePublicPreviewService;
@@ -45,6 +47,8 @@ class ServiceController extends Controller
         private readonly ServiceInsertCatalog $serviceInsertCatalog,
         private readonly ServiceCategoryRepository $categoryRepository,
         private readonly ServiceCategoryService $categoryService,
+        private readonly ServiceMasterOrchestrator $serviceMasterOrchestrator,
+        private readonly ServiceGeminiAssistant $serviceGeminiAssistant,
     ) {}
 
     public function index(Request $request): View
@@ -159,7 +163,7 @@ class ServiceController extends Controller
             $this->persistLegacyCustomFields($request, LegacyManagedModuleRegistry::SERVICES, $service);
 
             $service = $service->fresh(['pincodes', 'seo', 'faqs', 'schema']);
-            $this->detailPageProvisioner->syncFromService($service);
+            $this->serviceMasterOrchestrator->sync($service);
 
             if ($request->boolean('apply_related_to_page')) {
                 $this->relatedPageTokens->applyToDetailPage(
@@ -178,7 +182,7 @@ class ServiceController extends Controller
     {
         $this->authorize('update', $service);
 
-        $service->load(['pincodes', 'categories', 'seo', 'faqs', 'schema', 'reviews.user', 'detailPage']);
+        $service->load(['pincodes', 'categories', 'seo', 'faqs', 'schema', 'reviews.user', 'detailPage', 'subServices']);
         $pinCodes = $this->pinCodesForForm();
         $detailPages = $this->detailPagesForForm();
 
@@ -277,8 +281,8 @@ class ServiceController extends Controller
             $this->syncFaqs($service, is_array($data['faqs'] ?? null) ? $data['faqs'] : []);
             $this->syncSchema($service, $data['schema_type'] ?? null, $data['schema_json'] ?? null);
 
-            $service = $service->fresh(['seo', 'faqs', 'schema']);
-            $this->detailPageProvisioner->syncFromService($service, $previousServiceCode);
+            $service = $service->fresh(['pincodes', 'seo', 'faqs', 'schema']);
+            $this->serviceMasterOrchestrator->sync($service, $previousServiceCode);
 
             $this->syncReviewModeration($request, $service);
             $this->persistLegacyCustomFields($request, LegacyManagedModuleRegistry::SERVICES, $service);
@@ -294,6 +298,51 @@ class ServiceController extends Controller
         return $this->redirectAfterServiceSave($request, $service, __('Service updated.'));
     }
 
+    public function geminiSuggest(Service $service): RedirectResponse
+    {
+        $this->authorize('update', $service);
+
+        $suggestions = $this->serviceGeminiAssistant->suggest($service);
+
+        if ($suggestions === null) {
+            return $this->redirectAfterServiceSave(
+                request(),
+                $service,
+                __('Gemini suggestions unavailable — check API key or try again.')
+            );
+        }
+
+        if (filled($suggestions['ai_summary'] ?? null) && ! filled($service->ai_summary)) {
+            $service->forceFill(['ai_summary' => $suggestions['ai_summary']])->save();
+        }
+
+        $faqRows = $suggestions['faq_suggestions'] ?? [];
+        if (is_array($faqRows) && $service->faqs()->count() === 0) {
+            foreach ($faqRows as $row) {
+                if (! is_array($row)) {
+                    continue;
+                }
+                $q = trim((string) ($row['question'] ?? ''));
+                $a = trim((string) ($row['answer'] ?? ''));
+                if ($q === '' && $a === '') {
+                    continue;
+                }
+                $service->faqs()->create([
+                    'question' => $q !== '' ? $q : __('Question'),
+                    'answer' => $a,
+                ]);
+            }
+        }
+
+        $this->serviceMasterOrchestrator->sync($service->fresh(['pincodes', 'seo', 'faqs', 'schema']));
+
+        return $this->redirectAfterServiceSave(
+            request(),
+            $service->fresh(),
+            __('Gemini suggestions applied where fields were empty. Scores and pages refreshed.')
+        );
+    }
+
     public function destroy(Service $service): RedirectResponse
     {
         $this->authorize('delete', $service);
@@ -307,7 +356,7 @@ class ServiceController extends Controller
                 }
             }
 
-            $this->detailPageProvisioner->deleteOwnedPage($service);
+            $this->serviceMasterOrchestrator->teardown($service);
             $service->delete();
         });
 
@@ -353,8 +402,8 @@ class ServiceController extends Controller
             $new->pincodes()->sync($service->pincodes->pluck('id')->all());
             $new->categories()->sync($service->categories->pluck('id')->all());
 
-            $new = $new->fresh(['seo', 'faqs', 'schema']);
-            $this->detailPageProvisioner->syncFromService($new);
+            $new = $new->fresh(['pincodes', 'seo', 'faqs', 'schema']);
+            $this->serviceMasterOrchestrator->sync($new);
 
             return $new;
         });
@@ -438,13 +487,26 @@ class ServiceController extends Controller
             'search_intent' => $seoInput['search_intent'] ?? null,
         ];
 
+        $secondary = array_values(array_filter($seoInput['secondary_keywords'] ?? [], fn ($v) => is_string($v) && $v !== ''));
+
         if (! $pageSeoCanonical) {
             $payload['meta_title'] = $seoInput['meta_title'] ?? null;
             $payload['meta_description'] = $seoInput['meta_description'] ?? null;
             $payload['focus_keywords'] = $focus !== [] ? $focus : null;
+            $payload['secondary_keywords'] = $secondary !== [] ? $secondary : null;
             $payload['h1'] = $seoInput['h1'] ?? null;
             $payload['h2'] = $h2 !== [] ? $h2 : null;
             $payload['h3'] = $h3 !== [] ? $h3 : null;
+            $payload['canonical_url'] = $seoInput['canonical_url'] ?? $service->publicUrl();
+            $payload['robots_index'] = array_key_exists('robots_index', $seoInput)
+                ? (bool) $seoInput['robots_index']
+                : true;
+            $payload['og_title'] = $seoInput['og_title'] ?? null;
+            $payload['og_description'] = $seoInput['og_description'] ?? null;
+            $payload['og_image'] = $seoInput['og_image'] ?? null;
+            $payload['twitter_card'] = $seoInput['twitter_card'] ?? 'summary_large_image';
+            $payload['entity_tags'] = $this->nullableKeywordArray($seoInput['entity_tags'] ?? null);
+            $payload['geo_entities'] = $this->nullableKeywordArray($seoInput['geo_entities'] ?? null);
         }
 
         $service->seo()->updateOrCreate(
@@ -522,13 +584,38 @@ class ServiceController extends Controller
         return [
             'short_summary' => $data['short_summary'] ?? null,
             'description' => $data['description'] ?? null,
+            'key_benefits' => $this->nullableLinesArray($data['key_benefits'] ?? null),
+            'eligibility' => $this->nullableLinesArray($data['eligibility'] ?? null),
+            'process_steps' => $this->nullableLinesArray($data['process_steps'] ?? null),
+            'ai_summary' => $data['ai_summary'] ?? null,
             'procedures' => $data['procedures'] ?? null,
             'specialized_care' => $data['specialized_care'] ?? null,
             'shifts' => $data['shifts'] ?? null,
-            'image_alt' => $data['image_alt'] ?? null,
+            'image_alt' => $data['image_alt'] ?? ($data['featured_image_meta']['alt'] ?? null),
+            'featured_image_meta' => is_array($data['featured_image_meta'] ?? null) ? $data['featured_image_meta'] : null,
+            'gallery_meta' => is_array($data['gallery_meta'] ?? null) ? $data['gallery_meta'] : null,
+            'trust_signals' => is_array($data['trust_signals'] ?? null) ? $data['trust_signals'] : null,
             'target_keywords' => $this->nullableKeywordArray($data['target_keywords'] ?? null),
             'ai_keywords' => $this->nullableKeywordArray($data['ai_keywords'] ?? null),
         ];
+    }
+
+    /**
+     * @param  mixed  $value
+     * @return list<string>|null
+     */
+    private function nullableLinesArray(mixed $value): ?array
+    {
+        if (! is_array($value)) {
+            return null;
+        }
+
+        $items = array_values(array_filter(array_map(
+            static fn (mixed $item): string => trim((string) $item),
+            $value
+        ), static fn (string $item): bool => $item !== ''));
+
+        return $items === [] ? null : $items;
     }
 
     /**
@@ -551,43 +638,70 @@ class ServiceController extends Controller
 
     private function syncMedia(Request $request, Service $service): void
     {
-        $dir = 'services/'.$service->id;
+        $attacher = app(\App\Services\Media\ServiceMediaAttacher::class);
+        $userId = $request->user()?->id;
 
         $removeGallery = $request->input('remove_gallery', []);
         if (is_array($removeGallery) && $removeGallery !== []) {
-            $currentGallery = is_array($service->gallery) ? $service->gallery : [];
             foreach ($removeGallery as $path) {
                 if (! is_string($path) || $path === '') {
                     continue;
                 }
-                $this->deletePublicPath($path);
-                $currentGallery = array_values(array_filter(
-                    $currentGallery,
-                    static fn (mixed $item): bool => (string) $item !== $path
-                ));
+                if (str_starts_with($path, 'services/')) {
+                    $this->deletePublicPath($path);
+                }
+                $attacher->removeGalleryPath($service, $path);
             }
-            $service->gallery = $currentGallery === [] ? null : $currentGallery;
         }
 
         if ($request->hasFile('featured_image')) {
-            $this->deletePublicPath($service->featured_image);
-            $service->featured_image = $request->file('featured_image')->store($dir, 'public');
+            if (is_string($service->featured_image) && str_starts_with($service->featured_image, 'services/')) {
+                $this->deletePublicPath($service->featured_image);
+            }
+            $attacher->attachFeatured($service, $request->file('featured_image'), $userId);
+        } elseif ($request->filled('featured_media_id') && ! $request->hasFile('featured_image')) {
+            $attacher->attachFeaturedById($service, (int) $request->input('featured_media_id'));
         }
 
         if ($request->hasFile('icon')) {
-            $this->deletePublicPath($service->icon);
-            $service->icon = $request->file('icon')->store($dir, 'public');
+            if (is_string($service->icon) && str_starts_with($service->icon, 'services/')) {
+                $this->deletePublicPath($service->icon);
+            }
+            $attacher->attachIcon($service, $request->file('icon'), $userId);
+        } elseif ($request->filled('icon_media_id') && ! $request->hasFile('icon')) {
+            $attacher->attachIconById($service, (int) $request->input('icon_media_id'));
+        }
+
+        $pickerGallery = $request->input('picker_gallery_media_ids', []);
+        if (is_array($pickerGallery)) {
+            foreach ($pickerGallery as $mediaId) {
+                if (is_numeric($mediaId) && (int) $mediaId > 0) {
+                    $attacher->attachGalleryById($service, (int) $mediaId);
+                }
+            }
         }
 
         if ($request->hasFile('gallery_files')) {
-            $gallery = is_array($service->gallery) ? $service->gallery : [];
             foreach ($request->file('gallery_files') as $file) {
                 if ($file === null) {
                     continue;
                 }
-                $gallery[] = $file->store($dir, 'public');
+                $attacher->attachGalleryItem($service, $file, $userId);
             }
-            $service->gallery = $gallery === [] ? null : $gallery;
+        }
+
+        if ($service->featured_media_id) {
+            $media = \App\Models\Media::query()->find($service->featured_media_id);
+            if ($media) {
+                $meta = is_array($service->featured_image_meta) ? $service->featured_image_meta : [];
+                $media->update(array_filter([
+                    'alt_text' => $meta['alt'] ?? $service->image_alt,
+                    'title' => $meta['title'] ?? null,
+                    'caption' => $meta['caption'] ?? null,
+                    'description' => $meta['description'] ?? null,
+                ], static fn (mixed $v): bool => $v !== null && $v !== ''));
+                app(\App\Services\Media\MediaImageSeoScorer::class)->persist($media);
+            }
         }
     }
 
@@ -614,8 +728,25 @@ class ServiceController extends Controller
 
         $selectedRelated = old('related_service_codes', $relatedFromPage);
 
+        $service->loadMissing(['seo', 'locationPages']);
+        $optimization = $service->optimization_snapshot['scores'] ?? [
+            'seo' => $service->seo?->seo_score ?? 0,
+            'aeo' => $service->seo?->aeo_score ?? 0,
+            'geo' => $service->seo?->geo_score ?? 0,
+            'schema' => $service->seo?->schema_health_score ?? 0,
+            'content' => $service->seo?->content_quality_score ?? 0,
+            'local' => $service->seo?->local_seo_score ?? 0,
+            'image' => $service->seo?->image_seo_score ?? 0,
+            'ai_discovery' => $service->seo?->ai_discovery_score ?? 0,
+        ];
+        $recommendations = $service->seo?->seo_recommendations
+            ?? ($service->optimization_snapshot['recommendations'] ?? []);
+
         return [
             'linkedDetailPage' => $linkedDetailPage,
+            'optimizationScores' => $optimization,
+            'seoRecommendations' => is_array($recommendations) ? $recommendations : [],
+            'locationPageCount' => $service->locationPages()->count(),
             'activeTab' => (string) $request->query('tab', old('active_tab', 'basic')),
             'categoryOptions' => $this->categoryRepository->activeForPicker(),
             'serviceCatalog' => $this->serviceInsertCatalog->forDropdown()
@@ -624,6 +755,9 @@ class ServiceController extends Controller
             'selectedRelatedCodes' => is_array($selectedRelated) ? $selectedRelated : [],
             'serviceReviews' => $service->exists
                 ? $service->reviews()->with('user:id,name,email')->latest()->get()
+                : collect(),
+            'subServices' => $service->exists
+                ? $service->subServices()->ordered()->get()
                 : collect(),
         ];
     }

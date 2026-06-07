@@ -12,6 +12,7 @@ use App\Models\PageSeo;
 use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
 use App\Models\Service;
+use App\Models\ServiceLocationPage;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -294,7 +295,7 @@ class SeoService
      */
     protected function collectPagesSegmentPaths(): Collection
     {
-        return collect(['/', '/about', '/contact'])
+        return collect(['/', '/about-us', '/contact', '/services-catalog'])
             ->merge($this->pageLevelUrlsExcludingServicesPrefix())
             ->merge($this->cmsPageUrls())
             ->merge($this->geoLevelUrls());
@@ -323,6 +324,28 @@ class SeoService
                 ->where('visibility', ServiceVisibility::Public)
                 ->pluck('service_code')
                 ->map(fn (string $code): string => '/services/'.$code);
+
+            if (Schema::hasTable('service_location_pages')) {
+                $locationPaths = ServiceLocationPage::query()
+                    ->whereNotNull('location_slug')
+                    ->where('is_indexable', true)
+                    ->with(['service', 'page'])
+                    ->get()
+                    ->filter(fn (ServiceLocationPage $row): bool => $row->isPubliclyIndexable())
+                    ->map(function (ServiceLocationPage $row): string {
+                        $row->loadMissing(['service', 'pincode']);
+
+                        if (config('services_master.public_url_include_pincode', false) && $row->pincode !== null) {
+                            $city = $row->city_slug ?: app(\App\Services\Operations\ServicePublicUrlBuilder::class)->citySlugForPin($row->pincode);
+
+                            return '/services/'.$row->service->service_code.'/'.$city.'/'.$row->pincode->pincode;
+                        }
+
+                        return '/services/'.$row->service->service_code.'/'.$row->location_slug;
+                    });
+
+                $servicePaths = $servicePaths->merge($locationPaths);
+            }
         }
 
         return $growthPaths
@@ -375,6 +398,8 @@ class SeoService
         return Page::query()
             ->where('is_active', true)
             ->pluck('slug')
+            ->reject(fn (string $slug): bool => \App\Services\Operations\ServiceDetailPageProvisioner::serviceCodeFromPageSlug($slug) !== null
+                || str_contains($slug, '-loc-'))
             ->map(fn (string $slug): string => Page::publicPathForSlug($slug));
     }
 

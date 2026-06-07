@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\PageCategory;
 use App\Enums\PageLayoutMode;
 use App\Models\Page;
 use App\Models\SiteNavigationItem;
@@ -49,6 +50,7 @@ class MedcaCareersPageSeeder extends Seeder
                 'h1' => 'Careers at Medca Health Care',
                 'is_active' => true,
                 'layout_mode' => PageLayoutMode::Canvas,
+                'page_category' => PageCategory::Web,
             ]
         );
     }

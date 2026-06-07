@@ -2,11 +2,13 @@
     $activeTab = $activeTab ?? 'basic';
     $hasCustomFields = isset($managedModule) && ($managedModule->fieldDefinitions->isNotEmpty() || (auth()->user()?->canManageDynamicModuleSchema() ?? false));
     $reviewCount = isset($serviceReviews) ? $serviceReviews->count() : 0;
+    $subServiceCount = isset($subServices) ? $subServices->count() : 0;
 
     $tabs = [
         'basic' => __('Basic'),
         'content' => __('Content'),
         'media' => __('Media'),
+        'images' => __('Image SEO'),
         'clinical' => __('Clinical'),
         'seo' => __('SEO'),
         'aeo' => __('AEO'),
@@ -14,10 +16,14 @@
         'schema' => __('Schema'),
         'related' => __('Related'),
         'geo' => __('GEO'),
+        'trust' => __('Trust'),
         'publishing' => __('Publishing'),
     ];
 
     if (($mode ?? 'create') === 'edit') {
+        $tabs['sub_services'] = $subServiceCount > 0
+            ? __('Sub-services').' ('.$subServiceCount.')'
+            : __('Sub-services');
         $tabs['reviews'] = $reviewCount > 0
             ? __('Reviews').' ('.$reviewCount.')'
             : __('Reviews');

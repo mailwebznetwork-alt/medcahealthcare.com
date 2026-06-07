@@ -28,18 +28,36 @@
             </div>
         </div>
 
-        <p class="mom-subtext mb-4 max-w-3xl text-sm">{{ __('Marketing pages (home, about, …) and service detail pages (slug service-your-code) live here. Public service URLs use /services/CODE and pull blocks from the matching page.') }}</p>
+        <p class="mom-subtext mb-4 max-w-3xl text-sm">{{ __('Pages are grouped: Web, Service, Location, Blog, Landing. Public service URLs use /services/{code} — not /p/.') }}</p>
+        @if (! empty($pageCategoryCounts))
+            <p class="mb-4 flex flex-wrap gap-2 text-xs text-[var(--text-muted)]">
+                @foreach (\App\Enums\PageCategory::cases() as $cat)
+                    <span class="rounded-full border border-[var(--border-panel-soft)] px-2 py-0.5">{{ $cat->label() }}: {{ $pageCategoryCounts[$cat->value] ?? 0 }}</span>
+                @endforeach
+            </p>
+        @endif
 
-        <div class="mb-4 max-w-md">
-            <label for="pages-search" class="mom-micro text-[var(--text-muted)]">{{ __('Search pages') }}</label>
-            <input
-                id="pages-search"
-                type="search"
-                wire:model.live.debounce.300ms="pageSearch"
-                placeholder="{{ __('Title or slug — e.g. service-medical-lab') }}"
-                class="mom-input mt-1 w-full text-sm"
-                autocomplete="off"
-            />
+        <div class="mb-4 flex flex-wrap gap-4">
+            <div class="max-w-md flex-1 min-w-[12rem]">
+                <label for="pages-search" class="mom-micro text-[var(--text-muted)]">{{ __('Search pages') }}</label>
+                <input
+                    id="pages-search"
+                    type="search"
+                    wire:model.live.debounce.300ms="pageSearch"
+                    placeholder="{{ __('Title or slug — e.g. service-medical-lab') }}"
+                    class="mom-input mt-1 w-full text-sm"
+                    autocomplete="off"
+                />
+            </div>
+            <div class="w-48">
+                <label for="pages-category" class="mom-micro text-[var(--text-muted)]">{{ __('Category') }}</label>
+                <select id="pages-category" wire:model.live="pageCategoryFilter" class="mom-input mt-1 w-full text-sm">
+                    <option value="all">{{ __('All categories') }}</option>
+                    @foreach (\App\Enums\PageCategory::cases() as $cat)
+                        <option value="{{ $cat->value }}">{{ $cat->label() }}</option>
+                    @endforeach
+                </select>
+            </div>
         </div>
 
         <div class="mom-card overflow-x-auto p-0">
@@ -56,13 +74,22 @@
                 <tbody>
                     @forelse ($pages as $page)
                         @php
-                            $serviceCode = $serviceCodesByPageId[$page->id] ?? \App\Services\Operations\ServiceDetailPageProvisioner::serviceCodeFromPageSlug($page->slug);
+                            $pageCategory = $page->page_category ?? app(\App\Services\Operations\PageCategoryResolver::class)->resolve($page);
+                            $locRow = $pageCategory === \App\Enums\PageCategory::Location
+                                ? \App\Models\ServiceLocationPage::query()->where('page_id', $page->id)->first()
+                                : null;
+                            $serviceCode = $serviceCodesByPageId[$page->id]
+                                ?? ($locRow?->service?->service_code)
+                                ?? \App\Services\Operations\ServiceDetailPageProvisioner::serviceCodeFromPageSlug($page->slug);
+                            $locationPublicUrl = ($locRow !== null && $page->is_active) ? $locRow->publicUrl() : null;
+                            $previewUrl = $locationPublicUrl ?? route('site-architect.pages.preview', $page);
                         @endphp
                         <tr wire:key="page-row-{{ $page->id }}">
                             <td class="px-4 py-3 font-medium text-[var(--text-primary)]">
                                 {{ $page->title }}
-                                @if ($serviceCode !== null)
-                                    <span class="ml-2 rounded-full bg-[rgba(197,160,89,0.15)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-mom-gold">{{ __('Service') }}</span>
+                                <span class="ml-2 rounded-full bg-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">{{ $pageCategory->label() }}</span>
+                                @if ($serviceCode !== null && $pageCategory === \App\Enums\PageCategory::Service)
+                                    <span class="ml-1 rounded-full bg-[rgba(197,160,89,0.15)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-mom-gold">{{ __('Detail') }}</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 font-mono text-xs text-[var(--text-muted)]">{{ $page->slug }}</td>
@@ -77,14 +104,16 @@
                             </td>
                             <td class="px-4 py-3">
                                 <a
-                                    href="{{ route('site-architect.pages.preview', $page) }}"
+                                    href="{{ $previewUrl }}"
                                     target="_blank"
                                     rel="noopener"
                                     class="text-mom-gold hover:underline"
                                 >{{ __('Preview') }}</a>
                                 @if ($page->is_active)
                                     <span class="text-[var(--text-muted)]">·</span>
-                                    @if ($serviceCode !== null && Route::has('public.services.show'))
+                                    @if ($locationPublicUrl !== null && Route::has('public.services.location'))
+                                        <a href="{{ $locationPublicUrl }}" target="_blank" rel="noopener" class="text-mom-gold hover:underline">{{ __('Location URL') }}</a>
+                                    @elseif ($serviceCode !== null && Route::has('public.services.show'))
                                         <a
                                             href="{{ route('public.services.show', $serviceCode) }}"
                                             target="_blank"

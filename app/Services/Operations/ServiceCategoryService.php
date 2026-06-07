@@ -82,10 +82,17 @@ class ServiceCategoryService
         $payload = [
             'name' => trim((string) ($data['name'] ?? '')),
             'code' => $code,
+            'slug' => isset($data['slug']) ? ServiceCategory::normalizeCode((string) $data['slug']) : null,
             'description' => isset($data['description']) ? trim((string) $data['description']) : null,
             'parent_id' => $this->normalizeParentId($data['parent_id'] ?? null),
             'sort_order' => (int) ($data['sort_order'] ?? 0),
             'is_active' => (bool) ($data['is_active'] ?? true),
+            'is_featured' => (bool) ($data['is_featured'] ?? false),
+            'visibility' => (string) ($data['visibility'] ?? 'public'),
+            'show_on_homepage' => (bool) ($data['show_on_homepage'] ?? false),
+            'show_on_about' => (bool) ($data['show_on_about'] ?? false),
+            'show_on_contact' => (bool) ($data['show_on_contact'] ?? false),
+            'page_id' => filled($data['page_id'] ?? null) ? (int) $data['page_id'] : null,
         ];
 
         if ($payload['description'] === '') {

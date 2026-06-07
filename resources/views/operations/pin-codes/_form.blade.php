@@ -90,6 +90,8 @@
         </div>
     </div>
 
+    @include('operations.pin-codes.partials.geo-enrichment')
+
     @isset($managedModule)
         <x-dynamic-fields.unified-table :module="$managedModule" :values="$customFieldValues ?? new stdClass()" />
     @endisset

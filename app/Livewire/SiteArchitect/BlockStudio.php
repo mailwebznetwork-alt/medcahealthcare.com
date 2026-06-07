@@ -3,7 +3,11 @@
 namespace App\Livewire\SiteArchitect;
 
 use App\Models\Block;
+use App\Models\Media;
 use App\Policies\DeploymentEnginePolicy;
+use App\Services\Media\MediaUploadProcessor;
+use App\Services\Media\MediaUsageTracker;
+use Livewire\Attributes\On;
 use App\Support\BlockContent;
 use App\Services\Deployment\BlockSettingsEditor;
 use App\Services\SiteArchitect\PageSectionCatalog;
@@ -26,6 +30,9 @@ class BlockStudio extends Component
 
     /** @var array<string, string> */
     public array $media = [];
+
+    /** @var array<string, int|string> */
+    public array $media_refs = [];
 
     /** @var array<string, mixed> */
     public array $section = [];
@@ -76,6 +83,7 @@ class BlockStudio extends Component
         $settings = app(BlockSettingsEditor::class)->settings($block);
         $this->style_variant = (string) ($settings['style_variant'] ?? 'style_1');
         $this->media = is_array($settings['media'] ?? null) ? array_map('strval', $settings['media']) : [];
+        $this->media_refs = is_array($settings['media_refs'] ?? null) ? $settings['media_refs'] : [];
         $this->section = is_array($settings['section'] ?? null) ? $settings['section'] : [];
         $storedContent = is_array($settings['content'] ?? null) ? $settings['content'] : [];
         $this->content = [];
@@ -88,6 +96,9 @@ class BlockStudio extends Component
         foreach (app(BlockSettingsEditor::class)->mediaSlotsForBlock($block) as $slot) {
             if (! array_key_exists($slot, $this->media)) {
                 $this->media[$slot] = '';
+            }
+            if (! array_key_exists($slot, $this->media_refs)) {
+                $this->media_refs[$slot] = '';
             }
         }
 
@@ -107,17 +118,21 @@ class BlockStudio extends Component
             return;
         }
 
+        $processor = app(MediaUploadProcessor::class);
+        $tracker = app(MediaUsageTracker::class);
         foreach ($this->uploads as $slot => $file) {
             if ($file === null) {
                 continue;
             }
-            $path = $file->store('deployment/block-media', 'public');
-            $this->media[$slot] = $path;
+            $media = $processor->process($file, auth()->id(), 'blocks');
+            $this->media[$slot] = $media->referencePath();
+            $tracker->attach($media, $block, (string) $slot, $block->block_slug.' · '.$slot);
         }
 
         $editor->save($block, [
             'style_variant' => $this->style_variant,
             'media' => $this->media,
+            'media_refs' => $this->media_refs,
             'section' => $this->section,
             'content' => $this->content,
         ]);
@@ -137,6 +152,7 @@ class BlockStudio extends Component
         $editor->save($block, [
             'style_variant' => $this->style_variant,
             'media' => $this->media,
+            'media_refs' => $this->media_refs,
             'section' => $this->section,
             'content' => $this->content,
         ]);
@@ -147,7 +163,36 @@ class BlockStudio extends Component
     public function removeMedia(string $slot): void
     {
         $this->media[$slot] = '';
+        $this->media_refs[$slot] = '';
         unset($this->uploads[$slot]);
+    }
+
+    public function openMediaPicker(string $slot): void
+    {
+        $block = $this->selectedBlock();
+        if ($block === null) {
+            return;
+        }
+        $key = 'block-'.$block->block_slug.'-'.$slot;
+        $selected = is_numeric($this->media_refs[$slot] ?? null) ? (int) $this->media_refs[$slot] : null;
+        $this->dispatch('open-media-picker', key: $key, selectedId: $selected);
+    }
+
+    #[On('media-selected')]
+    public function onMediaSelected(string $key, int $mediaId): void
+    {
+        $block = $this->selectedBlock();
+        if ($block === null || ! str_starts_with($key, 'block-'.$block->block_slug.'-')) {
+            return;
+        }
+        $slot = substr($key, strlen('block-'.$block->block_slug.'-'));
+        $media = Media::query()->find($mediaId);
+        if ($media === null) {
+            return;
+        }
+        $this->media_refs[$slot] = $media->id;
+        $this->media[$slot] = $media->referencePath();
+        app(MediaUsageTracker::class)->attach($media, $block, $slot, $block->block_slug.' · '.$slot);
     }
 
     public function render(BlockSettingsEditor $editor): View

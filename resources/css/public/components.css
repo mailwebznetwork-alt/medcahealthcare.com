@@ -27,6 +27,10 @@
         @apply text-xs font-semibold uppercase tracking-[0.18em] text-medca-primary;
     }
 
+    .medca-page-hero {
+        @apply w-full;
+    }
+
     .medca-link-primary {
         @apply text-sm font-semibold text-medca-primary hover:underline;
     }
@@ -37,6 +41,40 @@
 
     .medca-cta-on-hero {
         @apply inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-medca-navy shadow hover:bg-slate-100;
+    }
+
+    .medca-whatsapp-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border-radius: 0.75rem;
+        background-color: #16a34a;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        line-height: 1.25rem;
+        color: #fff;
+        box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.06);
+        transition: background-color 0.15s ease;
+    }
+
+    .medca-whatsapp-btn:hover {
+        background-color: #15803d;
+        color: #fff;
+    }
+
+    .medca-floating-whatsapp {
+        position: fixed;
+        right: 1.5rem;
+        bottom: 1.5rem;
+        z-index: 50;
+    }
+
+    @media (max-width: 767px) {
+        .medca-floating-whatsapp {
+            display: none !important;
+        }
     }
 
     /** Medca public primary CTA — prefer <x-primary-button variant="public"> */
@@ -611,17 +649,20 @@ body.medca-public-surface .medca-header-top-bar p {
     text-align: left;
 }
 
-/* Primary nav — largest sizes used on site (16px mobile / 18px desktop readability peak) */
+/* Primary nav — compact single-line desktop (14px / 600 / 0.5px tracking) */
 @layer components {
     body.medca-public-surface .medca-site-header .medca-primary-nav-link {
-        font-size: 1rem !important;
-        line-height: 1.35rem;
+        font-size: 0.875rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.5px;
+        line-height: 1.25rem;
+        white-space: nowrap;
     }
 
     @media (min-width: 768px) {
         body.medca-public-surface .medca-site-header .medca-primary-nav-link {
-            font-size: 1.125rem !important;
-            line-height: 1.4rem;
+            font-size: 15px !important;
+            line-height: 1.3125rem;
         }
     }
 }

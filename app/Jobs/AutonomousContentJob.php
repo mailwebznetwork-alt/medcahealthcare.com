@@ -96,9 +96,10 @@ class AutonomousContentJob implements ShouldQueue
     private function buildPrompt(array $strategy): string
     {
         $payload = json_encode($strategy, JSON_UNESCAPED_UNICODE) ?: '{}';
+        $market = app(\App\Services\Seo\LocalityContextResolver::class)->aiMarketContext() ?: 'service area';
 
         return <<<TXT
-You are an SEO content architect for Medca Health Care (premium home healthcare, Bengaluru / Arekere corridor).
+You are an SEO content architect for Medca Health Care (premium home healthcare, {$market}).
 
 Using the hijack opportunity JSON below, produce ONLY valid JSON with keys:
 "meta_title","meta_description","h1"

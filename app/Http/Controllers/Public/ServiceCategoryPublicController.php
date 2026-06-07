@@ -7,6 +7,9 @@ use App\Enums\ServiceVisibility;
 use App\Http\Controllers\Controller;
 use App\Models\Service;
 use App\Models\ServiceCategory;
+use App\Services\Discovery\RelatedContentEngine;
+use App\Services\Operations\CategoryPageProvisioner;
+use App\Services\Public\PageRenderContextRegistrar;
 use App\Services\UserLocationService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -15,6 +18,9 @@ class ServiceCategoryPublicController extends Controller
 {
     public function __construct(
         private readonly UserLocationService $location,
+        private readonly PageRenderContextRegistrar $pageRenderContext,
+        private readonly CategoryPageProvisioner $categoryPageProvisioner,
+        private readonly RelatedContentEngine $relatedContent,
     ) {}
 
     public function index(): View
@@ -42,10 +48,36 @@ class ServiceCategoryPublicController extends Controller
 
         abort_if($category === null, 404);
 
-        $category->loadMissing(['parent', 'children' => fn ($q) => $q->active()->ordered()]);
+        $category->loadMissing(['parent', 'children' => fn ($q) => $q->active()->ordered(), 'seo', 'faqs', 'schema']);
 
         $pincode = $this->location->currentPincode();
         $locationRequired = $pincode === null || $request->attributes->get('services_blocked_until_pincode') === true;
+
+        $page = $category->linkedPage;
+        if ($page === null && config('phase2_discovery.auto_sync_category_pages', true)) {
+            try {
+                $page = $this->categoryPageProvisioner->syncFromCategory($category->fresh());
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        if ($page !== null && $page->is_active) {
+            $internalLinks = $category->internal_links_snapshot
+                ?: $this->relatedContent->buildForCategory($category, $pincode);
+
+            $this->pageRenderContext->registerCategoryDetail($page, $category, [
+                'breadcrumbs' => $this->categoryBreadcrumbs($category),
+                'internalLinks' => $internalLinks,
+                'pincode' => $pincode,
+                'locationRequired' => $locationRequired,
+            ]);
+
+            return view('layouts.app', [
+                'page' => $page,
+                'category' => $category,
+            ]);
+        }
 
         $servicesQuery = Service::query()
             ->publicListing()
@@ -80,5 +112,17 @@ class ServiceCategoryPublicController extends Controller
             'locationRequired' => $locationRequired,
             'siblingCategories' => $siblingCategories,
         ]);
+    }
+
+    /**
+     * @return list<array{label: string, url: string}>
+     */
+    private function categoryBreadcrumbs(ServiceCategory $category): array
+    {
+        return [
+            ['label' => __('Home'), 'url' => url('/')],
+            ['label' => __('Categories'), 'url' => url('/service-categories')],
+            ['label' => $category->name, 'url' => $category->publicUrl()],
+        ];
     }
 }

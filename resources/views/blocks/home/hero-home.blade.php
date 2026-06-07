@@ -16,6 +16,6 @@
     <p class="mt-5 max-w-2xl text-base leading-relaxed text-white/85 md:text-lg">{{ $subheadline }}</p>
     <div class="mt-8 flex flex-wrap gap-3">
         <a href="{{ $tel }}" class="medca-cta-on-hero">{{ $primaryCta }} {{ $phone }}</a>
-        <x-whatsapp.link class="inline-flex items-center justify-center rounded-xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-white hover:bg-white/20" :label="$secondaryCta">{{ $secondaryCta }}</x-whatsapp.link>
+        <x-whatsapp.link :label="__('WhatsApp Us')">{{ __('WhatsApp Us') }}</x-whatsapp.link>
     </div>
 </x-public.hero>

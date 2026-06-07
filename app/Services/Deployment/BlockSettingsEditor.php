@@ -26,7 +26,7 @@ class BlockSettingsEditor
     {
         $current = is_array($block->settings_json) ? $block->settings_json : [];
 
-        foreach (['style_variant', 'media', 'section', 'content'] as $key) {
+        foreach (['style_variant', 'media', 'media_refs', 'section', 'content'] as $key) {
             if (! array_key_exists($key, $partial)) {
                 continue;
             }

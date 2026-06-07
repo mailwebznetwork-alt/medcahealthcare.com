@@ -2,6 +2,7 @@
 
 namespace App\Services\Operations;
 
+use App\Enums\PageCategory;
 use App\Enums\PageLayoutMode;
 use App\Enums\PublishStatus;
 use App\Models\Block;
@@ -10,7 +11,7 @@ use App\Models\Service;
 
 class ServiceDetailPageProvisioner
 {
-    public const string DEFAULT_PAGE_CONTENT = "{{block:service-detail-hero}}\n{{block:service-detail-areas}}\n{{block:service-detail-related}}";
+    public const string DEFAULT_PAGE_CONTENT = "{{block:service-detail-hero}}\n{{block:service-detail-areas}}";
 
     public function __construct(
         private readonly ServiceDetailPageSeoSync $seoSync,
@@ -62,6 +63,9 @@ class ServiceDetailPageProvisioner
                 'content' => self::DEFAULT_PAGE_CONTENT,
                 'is_active' => true,
                 'layout_mode' => PageLayoutMode::Canvas,
+                'page_category' => PageCategory::Service,
+                'page_source' => 'generated',
+                'registry_owner' => 'operations_service',
                 'meta_title' => $service->seo?->meta_title ?: $service->title,
             ]);
         } elseif (trim((string) $page->content) === '' || ! str_contains((string) $page->content, 'service-detail-hero')) {
@@ -100,11 +104,12 @@ class ServiceDetailPageProvisioner
         $page->update([
             'title' => $service->title,
             'slug' => $targetSlug,
+            'page_category' => PageCategory::Service,
             'is_active' => $service->is_active && $service->publish_status === PublishStatus::Published,
             'meta_title' => $service->seo?->meta_title ?: $service->title,
             'meta_description' => $service->seo?->meta_description,
             'h1' => $service->seo?->h1 ?: $service->title,
-            'canonical_url' => $service->publicUrl(),
+            'canonical_url' => $service->seo?->canonical_url ?: $service->publicUrl(),
         ]);
 
         if ($service->detail_page_id !== $page->id) {
@@ -248,6 +253,17 @@ class ServiceDetailPageProvisioner
                 'block_name' => 'Service detail — related services (Insert service tokens)',
                 'code' => "@include('blocks.services.service-detail-related')",
                 'block_type' => 'Service Grid',
+                'is_active' => true,
+                'is_managed' => true,
+            ]
+        );
+
+        Block::query()->updateOrCreate(
+            ['block_slug' => 'location-geo-enrichment'],
+            [
+                'block_name' => 'Location page — geo enrichment (pincode dataset)',
+                'code' => "@include('blocks.locations.location-geo-enrichment')",
+                'block_type' => 'Location',
                 'is_active' => true,
                 'is_managed' => true,
             ]

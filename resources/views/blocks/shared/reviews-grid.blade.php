@@ -2,10 +2,17 @@
     use App\Support\BlockContent;
     $settings = is_array($blockSettings ?? null) ? $blockSettings : [];
     $slug = 'reviews-grid';
+    use App\Models\Review;
     $reviews = collect();
     if (isset($service) && $service !== null) {
         $service->loadMissing('approvedReviews');
         $reviews = $service->approvedReviews->take(3);
+    } else {
+        $reviews = Review::query()
+            ->where('status', Review::STATUS_APPROVED)
+            ->latest()
+            ->limit(3)
+            ->get();
     }
 @endphp
 <x-blocks.element-wrap tone="light">

@@ -7,7 +7,6 @@ use App\Models\Application;
 use App\Models\User;
 use App\Models\Vacancy;
 use App\ModuleAccess;
-use App\Services\Public\PublicPagePresenter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
@@ -35,7 +34,6 @@ class DashboardController extends Controller
         return view('dashboard', [
             'dashboardWidgets' => $dashboardWidgets,
             'metrics' => $metrics,
-            'nearYouPayload' => app(PublicPagePresenter::class)->nearYouPayload(),
         ]);
     }
 

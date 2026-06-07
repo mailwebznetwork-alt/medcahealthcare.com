@@ -106,9 +106,15 @@
 
 @php
     $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT;
+    $pageUsesUnifiedGraph = isset($page)
+        && is_array($page->schema_json ?? null)
+        && isset($page->schema_json['@graph']);
+    $pageCategoryValue = isset($page->page_category) ? $page->page_category->value ?? $page->page_category : null;
+    $suppressDuplicateSchema = $pageUsesUnifiedGraph
+        || in_array($pageCategoryValue, ['service', 'location'], true);
 @endphp
 
-@if ($gEntity !== null || $gBusiness !== null)
+@if (! $suppressDuplicateSchema && ($gEntity !== null || $gBusiness !== null))
     @php
         $address = [];
         if ($gBusiness !== null) {
@@ -173,7 +179,7 @@
     @endif
 @endif
 
-@if (isset($page) && $page->relationLoaded('faqs') && $page->faqs->isNotEmpty())
+@if (! $suppressDuplicateSchema && isset($page) && $page->relationLoaded('faqs') && $page->faqs->isNotEmpty())
     @php
         $pageFaqMain = [];
         foreach ($page->faqs as $pageFaq) {
@@ -200,7 +206,7 @@
     @endif
 @endif
 
-@if ($gEntity !== null && is_array($gEntity->entity_faqs) && count($gEntity->entity_faqs) > 0)
+@if (! $suppressDuplicateSchema && $gEntity !== null && is_array($gEntity->entity_faqs) && count($gEntity->entity_faqs) > 0)
     @php
         $faqMain = [];
         foreach ($gEntity->entity_faqs as $row) {
@@ -249,7 +255,7 @@
     $collectedServices = $serviceContextCollector->collected();
 @endphp
 
-@if ($collectedServices->isNotEmpty())
+@if (! $suppressDuplicateSchema && $collectedServices->isNotEmpty())
     @foreach ($collectedServices as $serviceItem)
         @php
             $serviceLd = array_merge(['@context' => 'https://schema.org'], $serviceItem->toServiceSchema());

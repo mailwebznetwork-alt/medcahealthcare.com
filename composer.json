@@ -17,6 +17,7 @@
         "laravel/tinker": "^3.0",
         "livewire/livewire": "^4.3",
         "openai-php/client": "^0.19.2",
+        "phpoffice/phpspreadsheet": "^5.7",
         "predis/predis": "^3.4"
     },
     "require-dev": {

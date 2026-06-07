@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\PageCategory;
 use App\Enums\PageLayoutMode;
 use App\Models\Block;
 use App\Models\Page;
@@ -56,6 +57,7 @@ class MedcaLaunchPagesSeeder extends Seeder
                     'h1' => $definition['h1'],
                     'is_active' => true,
                     'layout_mode' => PageLayoutMode::Canvas,
+                    'page_category' => PageCategory::Web,
                 ]
             );
         }

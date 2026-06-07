@@ -18,6 +18,23 @@
         };
     }
 
+    function persistUtmFromUrl() {
+        var params = new URLSearchParams(location.search);
+        ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'gclid', 'fbclid'].forEach(function (key) {
+            var val = params.get(key);
+            if (val) {
+                try { localStorage.setItem('medca_' + key, val); } catch (e) {}
+            }
+        });
+    }
+    persistUtmFromUrl();
+
+    function ga4Event(name, params) {
+        if (typeof gtag !== 'function') return;
+        var payload = Object.assign({ page_path: location.pathname }, params || {});
+        gtag('event', name, payload);
+    }
+
     function trackWhatsAppClick(el, href) {
         var utm = utmFromUrl();
         var buttonName = el.getAttribute('data-whatsapp-button')
@@ -29,16 +46,14 @@
             if (match) phone = match[1];
         }
 
-        if (typeof gtag === 'function') {
-            gtag('event', 'whatsapp_click', {
-                button_name: buttonName,
-                phone_number: phone,
-                page: location.pathname,
-                source: utm.source,
-                campaign: utm.campaign,
-                medium: utm.medium
-            });
-        }
+        ga4Event('whatsapp_click', {
+            button_name: buttonName,
+            phone_number: phone,
+            source: utm.source,
+            campaign: utm.campaign,
+            medium: utm.medium
+        });
+        ga4Event('generate_lead', { method: 'whatsapp' });
 
         if (typeof fbq === 'function') {
             fbq('track', 'Contact');
@@ -69,9 +84,9 @@
                 page_path: location.pathname,
                 page_title: document.title,
                 session_fingerprint: fingerprint,
-                source: utm.source,
-                medium: utm.medium,
-                campaign: utm.campaign,
+                source: utm.source || localStorage.getItem('medca_utm_source') || '',
+                medium: utm.medium || localStorage.getItem('medca_utm_medium') || '',
+                campaign: utm.campaign || localStorage.getItem('medca_utm_campaign') || '',
                 meta: meta && meta.meta ? meta.meta : (meta || {})
             }, meta || {});
 
@@ -105,10 +120,20 @@
             return;
         }
         if (href.indexOf('tel:') === 0) {
-            window.medcaTrack('phone_click', { destination_url: href, element_label: (el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 120) });
-        } else if (el.classList.contains('btn-premium') || el.classList.contains('medca-cta-solid') || el.dataset.medcaCta !== undefined) {
-            window.medcaTrack('cta_click', { destination_url: href || null, element_label: (el.textContent || '').trim().slice(0, 120) });
-        } else if (href.indexOf('mailto:') === 0) {
+            var label = (el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 120);
+            ga4Event('phone_click', { destination_url: href, element_label: label });
+            ga4Event('generate_lead', { method: 'phone' });
+            window.medcaTrack('phone_click', { destination_url: href, element_label: label });
+            return;
+        }
+        if (el.classList.contains('btn-premium') || el.classList.contains('medca-cta-solid')
+            || el.classList.contains('medca-cta-on-hero') || el.dataset.medcaCta !== undefined) {
+            var ctaLabel = (el.textContent || '').trim().slice(0, 120);
+            ga4Event('cta_click', { destination_url: href || null, element_label: ctaLabel });
+            window.medcaTrack('cta_click', { destination_url: href || null, element_label: ctaLabel });
+            return;
+        }
+        if (href.indexOf('mailto:') === 0) {
             window.medcaTrack('email_click', { destination_url: href });
         }
     }, true);
@@ -119,14 +144,18 @@
             var form = e.target.closest('form');
             if (form && !form.dataset.medcaFormStarted) {
                 form.dataset.medcaFormStarted = '1';
-                window.medcaTrack('form_start', { element_label: form.getAttribute('name') || form.id || 'form' });
+                var formName = form.getAttribute('name') || form.id || 'form';
+                ga4Event('form_start', { form_name: formName });
+                window.medcaTrack('form_start', { element_label: formName });
             }
         }
     }, true);
 
     document.addEventListener('submit', function (e) {
         if (e.target && e.target.tagName === 'FORM') {
-            window.medcaTrack('form_submit', { element_label: e.target.getAttribute('name') || e.target.id || 'form' });
+            var formName = e.target.getAttribute('name') || e.target.id || 'form';
+            ga4Event('form_submit', { form_name: formName });
+            window.medcaTrack('form_submit', { element_label: formName });
         }
     }, true);
 })();

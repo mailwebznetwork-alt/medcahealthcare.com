@@ -102,9 +102,10 @@ class ScoreLeadPayloadJob implements ShouldQueue
     private function buildPrompt(array $payload): string
     {
         $ctx = json_encode($payload, JSON_UNESCAPED_UNICODE) ?: '{}';
+        $city = app(\App\Services\Seo\LocalityContextResolver::class)->primaryCity() ?: 'service area';
 
         return <<<TXT
-You are a healthcare lead triage analyst for Medca Health Care in Bengaluru.
+You are a healthcare lead triage analyst for Medca Health Care in {$city}.
 
 Analyze the lead payload and return ONLY valid JSON with exactly these keys:
 "ai_priority_score","ai_intent_category"

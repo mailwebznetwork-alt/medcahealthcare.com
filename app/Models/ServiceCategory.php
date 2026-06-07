@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ServiceVisibility;
 use Database\Factories\ServiceCategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -10,16 +11,25 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 #[Fillable([
     'name',
     'code',
+    'slug',
     'description',
     'parent_id',
     'sort_order',
     'is_active',
+    'is_featured',
+    'visibility',
+    'show_on_homepage',
+    'show_on_about',
+    'show_on_contact',
+    'page_id',
+    'internal_links_snapshot',
 ])]
 class ServiceCategory extends Model
 {
@@ -31,6 +41,9 @@ class ServiceCategory extends Model
     {
         static::saving(function (ServiceCategory $category): void {
             $category->code = self::normalizeCode((string) $category->code);
+            if (blank($category->slug)) {
+                $category->slug = $category->code;
+            }
         });
     }
 
@@ -62,8 +75,15 @@ class ServiceCategory extends Model
     {
         return [
             'is_active' => 'boolean',
+            'is_featured' => 'boolean',
+            'show_on_homepage' => 'boolean',
+            'show_on_about' => 'boolean',
+            'show_on_contact' => 'boolean',
             'sort_order' => 'integer',
             'parent_id' => 'integer',
+            'page_id' => 'integer',
+            'visibility' => ServiceVisibility::class,
+            'internal_links_snapshot' => 'array',
         ];
     }
 
@@ -119,9 +139,42 @@ class ServiceCategory extends Model
         return $query->whereNull('parent_id');
     }
 
+    public function seo(): HasOne
+    {
+        return $this->hasOne(ServiceCategorySeo::class, 'service_category_id');
+    }
+
+    public function schema(): HasOne
+    {
+        return $this->hasOne(ServiceCategorySchema::class, 'service_category_id');
+    }
+
+    public function faqs(): HasMany
+    {
+        return $this->hasMany(ServiceCategoryFaq::class, 'service_category_id')->orderBy('sort_order');
+    }
+
+    public function linkedPage(): BelongsTo
+    {
+        return $this->belongsTo(Page::class, 'page_id');
+    }
+
+    public function isListedPublicly(): bool
+    {
+        return $this->is_active
+            && ($this->visibility === null || $this->visibility === ServiceVisibility::Public);
+    }
+
     public function publicUrl(): string
     {
-        return url('/service-categories/'.$this->code);
+        $slug = $this->slug ?: $this->code;
+
+        return url('/service-categories/'.$slug);
+    }
+
+    public function publicSlug(): string
+    {
+        return $this->slug ?: $this->code;
     }
 
     public function breadcrumbLabel(): string

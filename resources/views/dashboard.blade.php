@@ -65,16 +65,6 @@
             @php $sep = true; @endphp
         @endif
 
-        @if (! empty($nearYouPayload))
-            @if ($sep)
-                <hr class="mom-section-separator" aria-hidden="true" />
-            @endif
-            <section class="mom-card overflow-hidden p-0">
-                @include('public.partials.near-you-services', array_merge($nearYouPayload, ['variant' => 'admin']))
-            </section>
-            @php $sep = true; @endphp
-        @endif
-
         @if ($w['growth_center'] || $w['operations'])
             @if ($sep)
                 <hr class="mom-section-separator" aria-hidden="true" />

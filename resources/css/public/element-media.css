@@ -1,0 +1,126 @@
+/* Element-level media presets (config/element_media.php) */
+
+.medca-element-media {
+    display: block;
+    max-width: 100%;
+    opacity: var(--medca-image-opacity, 1);
+}
+
+.medca-element-media__img,
+.medca-responsive-media__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--medca-radius, 0);
+}
+
+.medca-element-media--fit-cover .medca-responsive-media__img,
+.medca-element-media--fit-cover img {
+    object-fit: cover;
+    height: 100%;
+}
+
+.medca-element-media--fit-contain .medca-responsive-media__img,
+.medca-element-media--fit-contain img {
+    object-fit: contain;
+}
+
+.medca-element-media--style-rounded .medca-responsive-media__img,
+.medca-element-media--style-rounded img {
+    border-radius: 0.75rem;
+}
+
+.medca-element-media--style-circle .medca-responsive-media__img,
+.medca-element-media--style-circle img {
+    border-radius: 9999px;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+}
+
+.medca-element-media--style-card .medca-responsive-media__img,
+.medca-element-media--style-card img {
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
+.medca-element-media--style-shadow .medca-responsive-media__img,
+.medca-element-media--style-shadow img {
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
+}
+
+.medca-element-media--style-hero .medca-responsive-media__img,
+.medca-element-media--style-hero img {
+    border-radius: 1.25rem;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+}
+
+.medca-element-media--style-glass {
+    backdrop-filter: blur(6px);
+}
+
+.medca-layout-left-image-right-content,
+.medca-layout-right-image-left-content {
+    display: grid;
+    gap: 2rem;
+    align-items: center;
+}
+
+@media (min-width: 1024px) {
+    .medca-layout-left-image-right-content {
+        grid-template-columns: minmax(240px, 42%) 1fr;
+    }
+    .medca-layout-right-image-left-content {
+        grid-template-columns: 1fr minmax(240px, 42%);
+    }
+    .medca-layout-right-image-left-content picture,
+    .medca-layout-right-image-left-content img {
+        order: 2;
+    }
+}
+
+.medca-layout-gallery-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+
+.medca-layout-hero-banner,
+.medca-layout-full-width-healthcare-banner {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+}
+
+.medca-layout-hero-banner::before,
+.medca-layout-full-width-healthcare-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--medca-overlay-color, rgba(10, 15, 28, 0.55));
+    opacity: var(--medca-overlay-opacity, 0.55);
+    pointer-events: none;
+}
+
+.medca-element-media--parallax {
+    background-attachment: fixed;
+}
+
+.medca-element-media--fixed-bg {
+    background-attachment: fixed;
+}
+
+.medca-element-media--align-desktop-left { text-align: left; }
+.medca-element-media--align-desktop-center { text-align: center; }
+.medca-element-media--align-desktop-right { text-align: right; }
+
+@media (max-width: 1023px) {
+    .medca-element-media--align-tablet-left { text-align: left; }
+    .medca-element-media--align-tablet-center { text-align: center; }
+    .medca-element-media--align-tablet-right { text-align: right; }
+}
+
+@media (max-width: 767px) {
+    .medca-element-media--align-mobile-left { text-align: left; }
+    .medca-element-media--align-mobile-center { text-align: center; }
+    .medca-element-media--align-mobile-right { text-align: right; }
+}

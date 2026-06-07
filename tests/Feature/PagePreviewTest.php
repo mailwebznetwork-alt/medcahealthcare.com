@@ -3,8 +3,11 @@
 use App\Enums\PageLayoutMode;
 use App\Models\Block;
 use App\Models\Page;
+use App\Models\PinCode;
 use App\Models\Service;
+use App\Models\ServiceLocationPage;
 use App\Models\User;
+use App\Services\Operations\ServiceMasterOrchestrator;
 use App\ModuleAccess;
 
 function siteArchitectPreviewUser(): User
@@ -49,4 +52,26 @@ it('previews a service detail page without error when blocks use $service', func
         ->assertSuccessful()
         ->assertSee('data-preview-hero', false)
         ->assertSee('Home Nursing Services', false);
+});
+
+it('previews a service location page with the same public url context', function () {
+    $user = siteArchitectPreviewUser();
+
+    $service = Service::factory()->create(['service_code' => 'medical-lab', 'title' => 'Medical Lab']);
+    $pin = PinCode::factory()->create(['pincode' => '560102', 'area_name' => 'HSR Layout', 'is_active' => true]);
+    $service->pincodes()->attach($pin->id);
+
+    app(ServiceMasterOrchestrator::class)->sync($service->fresh(['pincodes']));
+
+    $mapping = ServiceLocationPage::query()->where('service_id', $service->id)->first();
+    expect($mapping)->not->toBeNull();
+
+    $publicUrl = $mapping->publicUrl();
+    expect($publicUrl)->toEndWith('/services/medical-lab/'.$mapping->location_slug);
+
+    $this->actingAs($user)
+        ->get(route('site-architect.pages.preview', $mapping->page))
+        ->assertSuccessful();
+
+    $this->get($publicUrl)->assertOk();
 });

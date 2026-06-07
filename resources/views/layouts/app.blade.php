@@ -38,11 +38,10 @@
         @php
             $themeResolver = app(\App\Services\Theme\ThemeResolver::class);
             $themeBranding = $themeResolver->branding();
-            $faviconUrl = app(\App\Services\Theme\ThemeConfigRepository::class)->assetUrl($themeBranding['favicon_path'] ?? null);
+            $faviconUrl = app(\App\Services\Theme\ThemeConfigRepository::class)->assetUrl($themeBranding['favicon_path'] ?? null)
+                ?: asset('favicon.ico');
         @endphp
-        @if ($faviconUrl)
-            <link rel="icon" href="{{ $faviconUrl }}">
-        @endif
+        <link rel="icon" href="{{ $faviconUrl }}">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="{{ $themeResolver->googleFontsHref() }}" rel="stylesheet">
@@ -93,6 +92,22 @@
             ])
         >
             @isset($page)
+                @php
+                    $renderCtx = app(\App\Services\Content\ContentRenderContext::class)->all();
+                    $hideVisualBreadcrumbs = isset($service)
+                        || isset($serviceLocation)
+                        || (isset($page) && $page->slug === 'locations');
+                    $showGrowthChrome = ! $hideVisualBreadcrumbs
+                        && (
+                            ! empty($breadcrumbs ?? null)
+                            || ! empty($renderCtx['breadcrumbs'] ?? null)
+                        );
+                @endphp
+                @if ($showGrowthChrome)
+                    <div @class(['w-full', 'pt-6 md:pt-8' => ! $page->usesCanvasLayout()])>
+                        @include('public.partials.growth-chrome')
+                    </div>
+                @endif
                 <div @class(['w-full', 'py-6 md:py-8' => ! $page->usesCanvasLayout()])>
                     {!! \App\Services\ContentParser::parse($page->content ?? '') !!}
                 </div>
@@ -111,6 +126,16 @@
                         ['contentSlug' => $nearYouFallback['block']]
                     ))
                 @endif
+                @if ($page->slug === 'home')
+                    @php
+                        $pageContent = (string) ($page->content ?? '');
+                        $reviewsTokenMissing = ! preg_match('/\{\{\s*block\s*:\s*reviews[\w-]*\s*\}\}/', $pageContent);
+                    @endphp
+                    @if ($reviewsTokenMissing)
+                        @include('public.partials.home-trust-reviews')
+                    @endif
+                @endif
+                @include('public.partials.page-related-bottom')
             @elseif(isset($blog))
                 <article class="w-full">
                     @if ($blog->featured_image)

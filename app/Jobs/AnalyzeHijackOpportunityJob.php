@@ -105,9 +105,10 @@ class AnalyzeHijackOpportunityJob implements ShouldQueue
     private function buildPrompt(array $context): string
     {
         $payload = json_encode($context, JSON_UNESCAPED_UNICODE) ?: '{}';
+        $market = app(\App\Services\Seo\LocalityContextResolver::class)->aiMarketContext() ?: 'service area';
 
         return <<<TXT
-You are an SEO growth strategist for Medca Health Care (premium healthcare, Bengaluru / Arekere corridor).
+You are an SEO growth strategist for Medca Health Care (premium healthcare, {$market}).
 
 A competitor outranks us on a high-intent keyword. Return ONLY valid JSON with these keys:
 "meta_title","meta_description","h1_suggestion","content_changes","schema_hint"

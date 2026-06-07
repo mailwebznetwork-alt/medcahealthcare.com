@@ -21,6 +21,8 @@ use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
 use App\Models\Service;
 use App\Models\ServiceCategory;
+use App\Models\SubService;
+use App\Models\ServiceLocationPage;
 use App\Models\SiteKeywordRanking;
 use App\Models\ThemeConfiguration;
 use App\Models\User;
@@ -28,6 +30,10 @@ use App\Observers\BlogObserver;
 use App\Observers\CompetitorTrackingObserver;
 use App\Observers\LeadObserver;
 use App\Observers\PageObserver;
+use App\Observers\PinCodeObserver;
+use App\Observers\ServiceCategoryObserver;
+use App\Observers\SubServiceObserver;
+use App\Observers\ServiceLocationPageObserver;
 use App\Observers\ServiceObserver;
 use App\Observers\SiteKeywordRankingObserver;
 use App\Policies\BlockPolicy;
@@ -43,11 +49,14 @@ use App\Policies\PinCodePolicy;
 use App\Policies\ReviewPolicy;
 use App\Policies\ServiceCategoryPolicy;
 use App\Policies\ServicePolicy;
+use App\Policies\SubServicePolicy;
 use App\Policies\ThemeConfigurationPolicy;
 use App\Policies\UserPolicy;
 use App\Services\Content\ContentRenderContext;
 use App\Services\Content\ServiceBindingRegistry;
 use App\Services\Deployment\NullAiDeploymentAdvisory;
+use App\Services\Import\ImportRegistry;
+use App\Services\Import\PinCodeEntityImporter;
 use App\Services\Integrations\WhatsAppClickToChatService;
 use App\Services\ServiceContextCollector;
 use App\Services\Theme\ThemeResolver;
@@ -82,6 +91,21 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton(WhatsAppClickToChatService::class);
+
+        $this->app->singleton(\App\Services\Import\ImportBatchRecorder::class);
+        $this->app->singleton(\App\Services\Import\ServiceImportDefaults::class);
+
+        $this->app->singleton(ImportRegistry::class, function (): ImportRegistry {
+            $registry = new ImportRegistry;
+            $registry->register('categories', \App\Services\Import\CategoryEntityImporter::class);
+            $registry->register('services', \App\Services\Import\ServiceEntityImporter::class);
+            $registry->register('sub_services', \App\Services\Import\SubServiceEntityImporter::class);
+            $registry->register('pincodes', \App\Services\Import\PinCodeEntityImporter::class);
+            $registry->register('geo', \App\Services\Import\GeoEnrichmentEntityImporter::class);
+            $registry->register('mappings', \App\Services\Import\MappingEntityImporter::class);
+
+            return $registry;
+        });
     }
 
     /**
@@ -123,6 +147,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(PinCode::class, PinCodePolicy::class);
         Gate::policy(Service::class, ServicePolicy::class);
+        Gate::policy(SubService::class, SubServicePolicy::class);
         Gate::policy(ServiceCategory::class, ServiceCategoryPolicy::class);
         Gate::policy(Block::class, BlockPolicy::class);
         Gate::policy(Blog::class, BlogPolicy::class);
@@ -139,6 +164,10 @@ class AppServiceProvider extends ServiceProvider
         Page::observe(PageObserver::class);
         Blog::observe(BlogObserver::class);
         Service::observe(ServiceObserver::class);
+        ServiceCategory::observe(ServiceCategoryObserver::class);
+        SubService::observe(SubServiceObserver::class);
+        PinCode::observe(PinCodeObserver::class);
+        ServiceLocationPage::observe(ServiceLocationPageObserver::class);
         CompetitorTracking::observe(CompetitorTrackingObserver::class);
         SiteKeywordRanking::observe(SiteKeywordRankingObserver::class);
         Lead::observe(LeadObserver::class);

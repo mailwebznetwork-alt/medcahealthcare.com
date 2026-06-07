@@ -35,24 +35,14 @@
 @endpush
 
 @section('content')
-    <article class="medca-service-detail space-y-10">
-        <header class="space-y-4 border-b border-slate-200 pb-8">
-            <p class="medca-eyebrow text-slate-500">{{ __('Service') }}</p>
-            <h1 class="text-3xl font-semibold leading-tight tracking-tight text-slate-900 md:text-4xl">{{ $heading }}</h1>
-            @if (filled($service->short_summary))
-                <p class="medca-text-body-lg max-w-3xl text-slate-600">{{ $service->short_summary }}</p>
-            @endif
-            @if (($averageRating ?? null) !== null && ($reviewsCount ?? 0) > 0)
-                <p class="text-sm font-medium text-amber-700 md:text-base">
-                    {{ __(':rating / 5 · :count reviews', ['rating' => number_format((float) $averageRating, 1), 'count' => (int) $reviewsCount]) }}
-                </p>
-            @endif
-            @if ($service->hasPriceRange())
-                <p class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-1.5 text-sm font-medium text-slate-700 ring-1 ring-slate-200 md:text-base">
-                    <span class="font-semibold">{{ __('Pricing') }}:</span> {{ $service->price_range }}
-                </p>
-            @endif
-        </header>
+    <x-public.service-page-hero :service="$service" tone="brand" data-service-detail-hero />
+
+    <article class="medca-service-detail mx-auto w-full max-w-6xl space-y-10 px-4 sm:px-6 lg:px-8">
+        @if (($averageRating ?? null) !== null && ($reviewsCount ?? 0) > 0)
+            <p class="text-sm font-medium text-amber-700 md:text-base">
+                {{ __(':rating / 5 · :count reviews', ['rating' => number_format((float) $averageRating, 1), 'count' => (int) $reviewsCount]) }}
+            </p>
+        @endif
 
         @if ($featuredSrc !== null)
             <figure class="overflow-hidden rounded-xl border border-slate-200 shadow-sm">
@@ -65,10 +55,21 @@
             </figure>
         @endif
 
-        @if (filled($service->description))
-            <div class="medca-service-prose prose prose-slate max-w-none prose-headings:text-slate-900 prose-p:text-slate-700">
-                {!! $service->description !!}
-            </div>
+        @php
+            $approvedReviews = $service->approvedReviews()->latest()->limit(3)->get();
+        @endphp
+        @if ($approvedReviews->isNotEmpty())
+            <section class="space-y-4">
+                <h2 class="text-2xl font-semibold text-slate-900 md:text-3xl">{{ __('Patient reviews') }}</h2>
+                <div class="grid gap-4 md:grid-cols-3">
+                    @foreach ($approvedReviews as $review)
+                        <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                            <p class="text-amber-500">{{ str_repeat('★', min(5, (int) $review->rating)) }}</p>
+                            <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ \Illuminate\Support\Str::limit((string) $review->comment, 200) }}</p>
+                        </article>
+                    @endforeach
+                </div>
+            </section>
         @endif
 
         @if ($service->faqs->isNotEmpty())
@@ -88,27 +89,13 @@
         @endif
 
         @if ($service->pincodes->isNotEmpty())
-            <section class="medca-service-areas space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-5 md:p-6">
-                <div>
-                    <h2 class="text-lg font-semibold text-slate-900 md:text-xl">{{ __('Areas served') }}</h2>
-                    <p class="mt-1 text-sm text-slate-600 md:text-base">{{ __('Bangalore neighbourhoods where this service is available.') }}</p>
-                </div>
-                <ul class="medca-service-areas__grid">
-                    @foreach ($service->pincodes as $pc)
-                        <li class="medca-service-areas__item">
-                            <span class="font-mono text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $pc->pincode }}</span>
-                            <span class="text-sm font-medium leading-snug text-slate-900 md:text-base">{{ $pc->area_name }}</span>
-                            @if (filled($pc->city))
-                                <span class="text-xs text-slate-500 md:text-sm">{{ $pc->city }}</span>
-                            @endif
-                        </li>
-                    @endforeach
-                </ul>
-            </section>
+            <x-public.areas-served-grid :areas="$service->pincodes" :service="$service" class="rounded-xl border border-slate-200 bg-slate-50 p-5 md:p-6" />
         @endif
 
         <section>
             @livewire('reviews.review-form', ['serviceId' => $service->id], key('review-form-'.$service->id))
         </section>
+
+        <x-public.service-internal-links :links="$internalLinks ?? []" />
     </article>
 @endsection

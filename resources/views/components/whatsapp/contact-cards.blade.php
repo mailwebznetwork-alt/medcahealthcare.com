@@ -17,9 +17,10 @@
                 @endif
                 <x-whatsapp.link
                     :number="$waNumber"
-                    class="mom-cta-primary mom-cta-compact mt-4 w-fit"
+                    class="mt-4 w-fit px-4 py-2"
+                    :label="__('WhatsApp Us')"
                 >
-                    {{ __('Chat on WhatsApp') }}
+                    {{ __('WhatsApp Us') }}
                 </x-whatsapp.link>
             </article>
         @endforeach

@@ -3,38 +3,56 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Services\Discovery\ChangePincodeEngine;
+use App\Services\Seo\LocalityContextResolver;
 use App\Services\UserLocationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-
 class LocationController extends Controller
 {
-    public function storePincode(Request $request, UserLocationService $location): JsonResponse|RedirectResponse
+    public function selectPincode(string $pincode, ChangePincodeEngine $pincodeEngine): RedirectResponse
+    {
+        $normalized = preg_replace('/\D/', '', $pincode) ?? '';
+        abort_if(strlen($normalized) !== 6, 404);
+
+        $result = $pincodeEngine->switch($normalized);
+
+        $redirect = redirect()->to(url('/locations').'#near-you');
+
+        if (! $result['success']) {
+            return $redirect->withErrors(['pincode' => $result['message']]);
+        }
+
+        return $redirect->with('status', $result['message']);
+    }
+
+    public function storePincode(Request $request, ChangePincodeEngine $pincodeEngine): JsonResponse|RedirectResponse
     {
         $validated = $request->validate([
             'pincode' => ['required', 'string', 'regex:/^\d{6}$/'],
         ]);
 
-        $resolved = $location->setManualPincode($validated['pincode']);
-        if ($resolved === null) {
+        $result = $pincodeEngine->switch($validated['pincode']);
+        if (! $result['success']) {
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => __('We do not service that pincode yet. Try another Bangalore pincode.'),
+                    'message' => $result['message'],
                 ], 422);
             }
 
-            return back()->withErrors(['pincode' => __('We do not service that pincode yet.')]);
+            return back()->withErrors(['pincode' => $result['message']]);
         }
 
         if ($request->expectsJson()) {
             return response()->json([
-                'pincode' => $resolved,
-                'message' => __('Location updated.'),
+                'pincode' => $result['pincode'],
+                'message' => $result['message'],
+                'discovery' => $result['discovery'],
             ]);
         }
 
-        return back()->with('status', __('Location set to pincode :pin.', ['pin' => $resolved]));
+        return back()->with('status', $result['message']);
     }
 
     public function storeGeolocation(Request $request, UserLocationService $location): JsonResponse

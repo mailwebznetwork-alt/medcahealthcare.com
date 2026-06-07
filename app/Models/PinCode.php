@@ -9,13 +9,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 #[Fillable([
     'pincode',
     'area_name',
     'city',
+    'state',
     'locality',
+    'coverage_text',
+    'emergency_coverage_text',
     'is_serviceable',
     'is_active',
     'delivery_charge',
@@ -106,10 +110,41 @@ class PinCode extends Model
     /**
      * @return BelongsToMany<Service, $this>
      */
+    public function landmarks(): HasMany
+    {
+        return $this->hasMany(PinCodeLandmark::class, 'pincode_id')->orderBy('sort_order');
+    }
+
+    public function hospitals(): HasMany
+    {
+        return $this->hasMany(PinCodeHospital::class, 'pincode_id')->orderBy('sort_order');
+    }
+
+    public function locationFaqs(): HasMany
+    {
+        return $this->hasMany(PinCodeLocationFaq::class, 'pincode_id')->orderBy('sort_order');
+    }
+
+    public function nearbyAreas(): HasMany
+    {
+        return $this->hasMany(PinCodeNearbyArea::class, 'pincode_id')->orderBy('sort_order');
+    }
+
     public function services(): BelongsToMany
     {
         return $this->belongsToMany(Service::class, 'service_pincodes', 'pincode_id', 'service_id')
-            ->withTimestamps();
+            ->using(ServicePincode::class)
+            ->withPivot([
+                'priority',
+                'is_visible',
+                'is_featured',
+                'coverage_notes',
+                'category_filter_ids',
+                'effective_from',
+                'effective_until',
+            ])
+            ->withTimestamps()
+            ->orderByPivot('priority', 'desc');
     }
 
     /**

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Services\Media\MediaPublicUrl;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -19,6 +20,8 @@ class Media extends Model
         'file_url',
         'file_type',
         'file_size',
+        'file_hash',
+        'legacy_path',
         'title',
         'alt_text',
         'description',
@@ -28,6 +31,16 @@ class Media extends Model
         'medium_path',
         'large_path',
         'blur_path',
+        'thumbnail_path',
+        'avif_path',
+        'width',
+        'height',
+        'mime_type',
+        'caption',
+        'tags',
+        'category',
+        'image_seo_score',
+        'source_module',
         'uploaded_by',
     ];
 
@@ -38,6 +51,10 @@ class Media extends Model
     {
         return [
             'file_size' => 'integer',
+            'width' => 'integer',
+            'height' => 'integer',
+            'tags' => 'array',
+            'image_seo_score' => 'integer',
         ];
     }
 
@@ -64,6 +81,28 @@ class Media extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    /**
+     * @return HasMany<MediaUsage, $this>
+     */
+    public function usages(): HasMany
+    {
+        return $this->hasMany(MediaUsage::class);
+    }
+
+    /**
+     * Relative storage path used for references (WebP preferred).
+     */
+    public function referencePath(): string
+    {
+        foreach ([$this->webp_path, $this->large_path, $this->optimized_path, $this->file_path] as $path) {
+            if (is_string($path) && $path !== '') {
+                return $path;
+            }
+        }
+
+        return (string) $this->file_path;
     }
 
     public function publicUrlFor(?string $relativePath): string

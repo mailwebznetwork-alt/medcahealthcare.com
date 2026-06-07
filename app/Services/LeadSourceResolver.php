@@ -6,7 +6,7 @@ use App\Enums\LeadSource;
 
 class LeadSourceResolver
 {
-    public function resolve(?string $explicitSource, ?string $utmSource): LeadSource
+    public function resolve(?string $explicitSource, ?string $utmSource, ?string $gclid = null, ?string $fbclid = null): LeadSource
     {
         if ($explicitSource !== null && $explicitSource !== '') {
             $ex = trim($explicitSource);
@@ -16,6 +16,14 @@ class LeadSourceResolver
             if ($try !== null) {
                 return $try;
             }
+        }
+
+        if ($gclid !== null && trim($gclid) !== '') {
+            return LeadSource::GoogleAds;
+        }
+
+        if ($fbclid !== null && trim($fbclid) !== '') {
+            return LeadSource::MetaAds;
         }
 
         $utm = $utmSource !== null && $utmSource !== '' ? mb_strtolower(trim($utmSource)) : '';

@@ -49,6 +49,8 @@ class LeadIngestionService
         $source = $this->sourceResolver->resolve(
             isset($data['source']) ? trim((string) $data['source']) : null,
             isset($data['utm_source']) ? trim((string) $data['utm_source']) : null,
+            isset($data['gclid']) ? trim((string) $data['gclid']) : null,
+            isset($data['fbclid']) ? trim((string) $data['fbclid']) : null,
         );
 
         $campaign = $data['campaign'] ?? $data['utm_campaign'] ?? null;

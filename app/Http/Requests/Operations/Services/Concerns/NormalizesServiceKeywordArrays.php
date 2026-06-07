@@ -36,7 +36,32 @@ trait NormalizesServiceKeywordArrays
             $seo['h3'] = $this->flattenStringList($seo['h3'] ?? null);
         }
 
-        unset($seo['focus_keywords_lines'], $seo['h2_lines'], $seo['h3_lines']);
+        if ($this->has('seo.secondary_keywords_lines')) {
+            $seo['secondary_keywords'] = $this->linesToStringList($seo['secondary_keywords_lines'] ?? '');
+        } else {
+            $seo['secondary_keywords'] = $this->flattenStringList($seo['secondary_keywords'] ?? null);
+        }
+
+        if ($this->has('seo.entity_tags_lines')) {
+            $seo['entity_tags'] = $this->linesToStringList($seo['entity_tags_lines'] ?? '');
+        } else {
+            $seo['entity_tags'] = $this->flattenStringList($seo['entity_tags'] ?? null);
+        }
+
+        if ($this->has('seo.geo_entities_lines')) {
+            $seo['geo_entities'] = $this->linesToStringList($seo['geo_entities_lines'] ?? '');
+        } else {
+            $seo['geo_entities'] = $this->flattenStringList($seo['geo_entities'] ?? null);
+        }
+
+        unset(
+            $seo['focus_keywords_lines'],
+            $seo['h2_lines'],
+            $seo['h3_lines'],
+            $seo['secondary_keywords_lines'],
+            $seo['entity_tags_lines'],
+            $seo['geo_entities_lines'],
+        );
 
         $targetKeywords = $this->has('target_keywords_lines')
             ? $this->linesToStringList($this->input('target_keywords_lines'))

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\SiteArchitect;
 
+use App\Enums\PageCategory;
 use App\Enums\PageLayoutMode;
 use App\Models\Block;
 use App\Models\Page;
@@ -155,7 +156,14 @@ class Pages extends Component
 
     public string $pageSearch = '';
 
+    public string $pageCategoryFilter = 'all';
+
     public function updatingPageSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPageCategoryFilter(): void
     {
         $this->resetPage();
     }
@@ -164,14 +172,16 @@ class Pages extends Component
     {
         $this->authorize('viewAny', Page::class);
 
-        $result = app(ServiceDetailPageProvisioner::class)->provisionAll(onlyWithoutLinkedPage: false);
+        $count = 0;
+        Service::query()->orderBy('id')->each(function (Service $service) use (&$count): void {
+            app(\App\Services\Operations\ServiceMasterOrchestrator::class)->sync($service);
+            $count++;
+        });
 
         session()->flash(
             'status',
-            __('Service detail pages synced. :created new, :linked linked/updated, :skipped skipped (already linked only).', [
-                'created' => $result['created'],
-                'linked' => $result['linked'],
-                'skipped' => $result['skipped'],
+            __('Services master sync complete for :count service(s) — detail + location pages, schema, and scores.', [
+                'count' => $count,
             ])
         );
     }
@@ -186,6 +196,13 @@ class Pages extends Component
                 $q->where('title', 'like', $term)
                     ->orWhere('slug', 'like', $term);
             });
+        }
+
+        if ($this->pageCategoryFilter !== '' && $this->pageCategoryFilter !== 'all') {
+            $category = PageCategory::tryFrom($this->pageCategoryFilter);
+            if ($category !== null) {
+                $pagesQuery->where('page_category', $category->value);
+            }
         }
 
         $pages = $pagesQuery->paginate(20);
@@ -231,15 +248,28 @@ class Pages extends Component
         if ($this->mode === 'form' && $this->editingId !== null) {
             $editingPage = Page::query()->find($this->editingId);
             if ($editingPage !== null) {
-                $productionPreviewUrl = route('site-architect.pages.preview', $editingPage);
+                $locRow = \App\Models\ServiceLocationPage::query()
+                    ->where('page_id', $editingPage->id)
+                    ->first();
+                $productionPreviewUrl = ($locRow !== null && $editingPage->is_active)
+                    ? $locRow->publicUrl()
+                    : route('site-architect.pages.preview', $editingPage);
             }
         }
 
         $hasSectionTokens = collect($this->contentParts)
             ->contains(fn (array $part): bool => ($part['type'] ?? '') === 'section');
 
+        $pageCategoryCounts = [];
+        foreach (PageCategory::cases() as $category) {
+            $pageCategoryCounts[$category->value] = Page::query()
+                ->where('page_category', $category->value)
+                ->count();
+        }
+
         return view('livewire.site-architect.pages', [
             'pages' => $pages,
+            'pageCategoryCounts' => $pageCategoryCounts,
             'serviceCodesByPageId' => $serviceCodesByPageId,
             'pinCodes' => $pinCodes,
             'moduleOptions' => $moduleOptions,

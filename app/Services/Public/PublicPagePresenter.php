@@ -5,13 +5,17 @@ namespace App\Services\Public;
 use App\Models\Page;
 use App\Models\PinCode;
 use App\Models\Service;
+use App\Models\ServiceCategory;
+use App\Models\SubService;
 use App\Models\Vacancy;
+use App\Services\Discovery\CategoryDisplayEngine;
 use App\Services\UserLocationService;
 
 class PublicPagePresenter
 {
     public function __construct(
         private readonly UserLocationService $location,
+        private readonly CategoryDisplayEngine $categoryDisplay,
     ) {}
 
     /**
@@ -22,10 +26,13 @@ class PublicPagePresenter
     public function variablesFor(Page $page): array
     {
         return match ($page->slug) {
-            'home' => [
-                'nearYouServices' => $this->localizedServices(limit: 6),
-                'nearYouPayload' => $this->nearYouPayload(),
-            ],
+            'home' => array_merge(
+                $this->categoryDisplay->forSurface('homepage', $this->location->currentPincode()),
+                [
+                    'nearYouServices' => $this->localizedServices(limit: 6),
+                    'nearYouPayload' => $this->nearYouPayload(),
+                ]
+            ),
             'careers' => [
                 'vacancies' => Vacancy::query()->careersListing()->get(),
             ],
@@ -35,8 +42,8 @@ class PublicPagePresenter
                     ->orderBy('city')
                     ->orderBy('pincode')
                     ->get(),
-                'nearYouServices' => $this->localizedServices(limit: 6),
-                'nearYouPayload' => $this->nearYouPayload(),
+                'nearYouServices' => $this->localizedServices(),
+                'nearYouPayload' => $this->nearYouPayload(limit: 0),
             ],
             'services' => [
                 'publishedServices' => $this->localizedServices(),
@@ -58,7 +65,7 @@ class PublicPagePresenter
 
         $query = Service::query()
             ->localizedListing($pincode)
-            ->with(['seo', 'pincodes']);
+            ->with(['seo', 'pincodes', 'categories', 'faqs']);
 
         if ($limit > 0) {
             $query->limit($limit);
@@ -70,7 +77,7 @@ class PublicPagePresenter
     /**
      * @return array<string, mixed>
      */
-    public function nearYouPayload(): array
+    public function nearYouPayload(int $limit = 6): array
     {
         $pincode = $this->location->currentPincode();
         $record = $this->location->currentPinCodeRecord();
@@ -78,7 +85,7 @@ class PublicPagePresenter
         return [
             'pincode' => $pincode,
             'pinCodeRecord' => $record,
-            'services' => $this->localizedServices($pincode, 6),
+            'services' => $this->localizedServices($pincode, $limit),
             'locationRequired' => $pincode === null,
         ];
     }
@@ -90,11 +97,42 @@ class PublicPagePresenter
      */
     public function variablesForServiceDetail(Service $service): array
     {
-        $service->loadMissing(['seo', 'faqs', 'pincodes']);
+        $service->loadMissing(['seo', 'faqs', 'pincodes', 'subServices' => fn ($q) => $q->publicListing()]);
 
         return [
             'service' => $service,
             $service->bladeVariableName() => $service,
+            'subServices' => $service->subServices,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function variablesForCategoryDetail(ServiceCategory $category, ?string $pincode = null): array
+    {
+        $category->loadMissing(['seo', 'faqs', 'schema']);
+        $display = $this->categoryDisplay->forSurface('category', $pincode, [$category->id]);
+
+        return array_merge($display, [
+            'category' => $category,
+            'serviceCategory' => $category,
+            'categoryServices' => $display['services'],
+            'internalLinks' => $category->internal_links_snapshot ?? [],
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function variablesForSubServiceDetail(SubService $sub): array
+    {
+        $sub->loadMissing(['seo', 'faqs', 'service']);
+
+        return [
+            'subService' => $sub,
+            'service' => $sub->service,
+            'internalLinks' => $sub->internal_links_snapshot ?? [],
         ];
     }
 

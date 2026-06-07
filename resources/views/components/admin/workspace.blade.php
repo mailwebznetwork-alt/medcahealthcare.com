@@ -35,4 +35,5 @@
             {{ $slot }}
         </div>
     </div>
+    @livewire('media.media-picker-modal')
 </x-app-layout>

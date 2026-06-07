@@ -42,3 +42,8 @@ if (config('marketing_automation.enabled', true)) {
         ->name('marketing-analytics-retention')
         ->withoutOverlapping();
 }
+
+Schedule::command('medca:post-launch-ops')
+    ->monthlyOn(1, '06:00')
+    ->name('medca-post-launch-ops-monthly')
+    ->withoutOverlapping();
