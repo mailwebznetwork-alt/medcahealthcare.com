@@ -6,6 +6,8 @@ use App\Models\PinCode;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\ServicePincode;
+use App\Services\Governance\MappingProtectionService;
+use App\Services\Governance\MasterDataProtection;
 
 final class MappingEntityImporter extends AbstractSpreadsheetImporter
 {
@@ -60,6 +62,14 @@ final class MappingEntityImporter extends AbstractSpreadsheetImporter
 
         if ($service === null || $pin === null) {
             return ['action' => 'failed', 'error' => __('Service or pincode not found.')];
+        }
+
+        if (! app(MasterDataProtection::class)->allowsWrite('import')) {
+            return ['action' => 'skipped', 'error' => __('Import blocked by master data protection.')];
+        }
+
+        if (! app(MappingProtectionService::class)->canAttachServicePincode($serviceCode, $pincode, 'import')) {
+            return ['action' => 'skipped', 'error' => __('Mapping was removed by admin; import skipped.')];
         }
 
         $existing = ServicePincode::query()

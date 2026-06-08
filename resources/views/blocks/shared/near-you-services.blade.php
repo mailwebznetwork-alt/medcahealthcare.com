@@ -6,6 +6,7 @@
     $slug = is_string($blockSlug ?? null) && $blockSlug !== ''
         ? $blockSlug
         : 'near-you-home';
+    $contentSlug = $slug === 'near-you-locations' ? 'near-you-home' : $slug;
 
     $payload = is_array($nearYouPayload ?? null)
         ? $nearYouPayload
@@ -13,5 +14,5 @@
 @endphp
 @include('public.partials.near-you-services', array_merge($payload, [
     'blockSettings' => $settings,
-    'contentSlug' => BlockContent::hasSchema($slug) ? $slug : null,
+    'contentSlug' => BlockContent::hasSchema($contentSlug) ? $contentSlug : null,
 ]))

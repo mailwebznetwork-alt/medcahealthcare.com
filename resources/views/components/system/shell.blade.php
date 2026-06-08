@@ -8,10 +8,6 @@
     :welcome-line="$welcomeLine ?? __('Integrations, webhooks, queues, and platform health.')"
     content-class="mt-10 w-full max-w-full"
 >
-    <x-slot:tabs>
-        @include('system.partials.nav', ['activeSection' => $activeSection])
-    </x-slot:tabs>
-
     @if (session('status'))
         <p class="mom-body-text mb-6 text-[var(--success)]" role="status">{{ session('status') }}</p>
     @endif

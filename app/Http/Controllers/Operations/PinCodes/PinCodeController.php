@@ -9,11 +9,11 @@ use App\Http\Requests\Operations\PinCodes\UpdatePinCodeRequest;
 use App\Models\PinCode;
 use App\Models\PinCodeImportLog;
 use App\Services\DynamicModules\LegacyManagedModuleRegistry;
+use App\Services\Governance\PinCodeCreationGuard;
+use App\Services\Governance\PinCodeMasterDataAudit;
+use App\Services\Operations\PinCodeDeletionService;
 use App\Services\Operations\PinCodeGeoDataSyncService;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PinCodeController extends Controller
@@ -42,23 +42,11 @@ class PinCodeController extends Controller
         return view('operations.pin-codes.overview', compact('metrics', 'seo', 'importLogs'));
     }
 
-    public function directory(Request $request): View
+    public function directory(): View
     {
         $this->authorize('viewAny', PinCode::class);
 
-        $query = $this->filteredPinCodeQuery($request);
-
-        /** @var LengthAwarePaginator<int, PinCode> $pinCodes */
-        $pinCodes = $query->paginate(20)->withQueryString();
-
-        $cities = PinCode::query()
-            ->whereNotNull('city')
-            ->where('city', '!=', '')
-            ->distinct()
-            ->orderBy('city')
-            ->pluck('city');
-
-        return view('operations.pin-codes.directory', compact('pinCodes', 'cities'));
+        return view('operations.pin-codes.directory');
     }
 
     public function create(): View
@@ -84,10 +72,17 @@ class PinCodeController extends Controller
             $data['slug'] = null;
         }
 
+        $guard = app(PinCodeCreationGuard::class);
+        $pincode = $guard->normalizePincode($data['pincode'] ?? null);
+        if ($pincode === null || ! $guard->canCreatePincode($pincode, 'ui')) {
+            return redirect()->back()->withInput()->with('error', __('This pincode cannot be created.'));
+        }
+
         $pinCode = PinCode::query()->create(collect($data)->except(['landmarks', 'hospitals', 'location_faqs', 'nearby_areas'])->all());
 
         app(PinCodeGeoDataSyncService::class)->sync($pinCode, $data);
         $this->persistLegacyCustomFields($request, LegacyManagedModuleRegistry::PIN_CODES, $pinCode);
+        app(PinCodeMasterDataAudit::class)->created($pinCode, 'ui');
 
         return redirect()->route('operations.pin-codes.directory')->with('status', 'pin-code-created');
     }
@@ -115,6 +110,7 @@ class PinCodeController extends Controller
 
         app(PinCodeGeoDataSyncService::class)->sync($pin_code, $data);
         $this->persistLegacyCustomFields($request, LegacyManagedModuleRegistry::PIN_CODES, $pin_code);
+        app(PinCodeMasterDataAudit::class)->updated($pin_code, 'ui');
 
         return redirect()->route('operations.pin-codes.directory')->with('status', 'pin-code-updated');
     }
@@ -123,7 +119,7 @@ class PinCodeController extends Controller
     {
         $this->authorize('delete', $pin_code);
 
-        $pin_code->delete();
+        app(PinCodeDeletionService::class)->delete($pin_code, 'ui');
 
         return redirect()->route('operations.pin-codes.directory')->with('status', 'pin-code-deleted');
     }
@@ -159,38 +155,4 @@ class PinCodeController extends Controller
         ];
     }
 
-    private function filteredPinCodeQuery(Request $request): Builder
-    {
-        $query = PinCode::query()->orderBy('city')->orderBy('pincode');
-
-        if ($q = trim((string) $request->query('q', ''))) {
-            $like = '%'.$q.'%';
-            $query->where(function ($sub) use ($like): void {
-                $sub->where('pincode', 'like', $like)
-                    ->orWhere('area_name', 'like', $like)
-                    ->orWhere('locality', 'like', $like)
-                    ->orWhere('city', 'like', $like);
-            });
-        }
-
-        if ($city = trim((string) $request->query('city', ''))) {
-            $query->where('city', $city);
-        }
-
-        $serviceable = (string) $request->query('serviceable', '');
-        if ($serviceable === '1') {
-            $query->where('is_serviceable', true);
-        } elseif ($serviceable === '0') {
-            $query->where('is_serviceable', false);
-        }
-
-        $active = (string) $request->query('active', '');
-        if ($active === '1') {
-            $query->where('is_active', true);
-        } elseif ($active === '0') {
-            $query->where('is_active', false);
-        }
-
-        return $query;
-    }
 }

@@ -85,4 +85,31 @@ trait InteractsWithBulkActions
         $this->cancelBulkAction();
         $this->resetPage();
     }
+
+    public function openBulkModify(): void
+    {
+        $ids = $this->resolvedBulkSelectedIds();
+        if (count($ids) !== 1) {
+            session()->flash('error', __('Select exactly one row to modify.'));
+
+            return;
+        }
+
+        $config = config('bulk_actions.resources')[$this->bulkResourceKey()] ?? null;
+        if (is_array($config) && ($config['inline_modify'] ?? false) && method_exists($this, 'startEdit')) {
+            $this->startEdit($ids[0]);
+            $this->deselectAllRows();
+
+            return;
+        }
+
+        $route = is_array($config) ? ($config['edit_route'] ?? null) : null;
+        if (! is_string($route) || $route === '') {
+            session()->flash('error', __('Modify is not available for this list.'));
+
+            return;
+        }
+
+        $this->redirect(route($route, $ids[0]));
+    }
 }

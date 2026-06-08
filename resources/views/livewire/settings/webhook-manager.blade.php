@@ -133,7 +133,7 @@
                         <th class="px-4 py-3 font-medium">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                     @forelse ($hooks as $hook)
                         <tr wire:key="hook-{{ $hook->id }}">
                             <td class="px-4 py-3">{{ $hook->name }}</td>
@@ -175,7 +175,7 @@
                         <th class="px-4 py-3 font-medium">{{ __('When it fires') }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                     @foreach ($catalogEvents as $row)
                         <tr>
                             <td class="px-4 py-3 font-mono text-[12px]">{{ $row['key'] }}</td>
@@ -221,7 +221,7 @@
                         <th class="px-4 py-3 font-medium">{{ __('ms') }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                     @forelse ($deliveries as $delivery)
                         <tr wire:key="delivery-{{ $delivery->id }}">
                             <td class="px-4 py-3 whitespace-nowrap">{{ $delivery->created_at?->timezone(config('app.timezone'))->format('Y-m-d H:i:s') }}</td>

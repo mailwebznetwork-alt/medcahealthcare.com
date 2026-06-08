@@ -9,6 +9,9 @@ use App\Models\SubService;
 use App\Models\SubServiceFaq;
 use App\Models\SubServiceSchema;
 use App\Models\SubServiceSeo;
+use App\Services\Governance\MasterDataAudit;
+use App\Services\Governance\MasterDataProtection;
+use App\Services\Governance\SubServiceCreationGuard;
 
 final class SubServiceEntityImporter extends AbstractSpreadsheetImporter
 {
@@ -73,10 +76,24 @@ final class SubServiceEntityImporter extends AbstractSpreadsheetImporter
             return ['action' => 'failed', 'error' => __('Missing sub_service_code or title.')];
         }
 
+        if (! app(MasterDataProtection::class)->allowsWrite('import')) {
+            app(MasterDataAudit::class)->subServiceRecreationBlocked(
+                SubServiceCreationGuard::naturalKey($parentCode, $subCode),
+                'import',
+                'Master data protection is enabled.',
+            );
+
+            return ['action' => 'skipped', 'error' => __('Import blocked by master data protection.')];
+        }
+
         $existing = SubService::query()
             ->where('service_id', $parent->id)
             ->where('sub_service_code', $subCode)
             ->first();
+
+        if ($existing === null && ! app(SubServiceCreationGuard::class)->canCreateSubService($parentCode, $subCode, 'import')) {
+            return ['action' => 'skipped', 'error' => __('Sub-service permanently deleted; import skipped.')];
+        }
 
         $previous = $existing?->toArray();
 
@@ -101,11 +118,13 @@ final class SubServiceEntityImporter extends AbstractSpreadsheetImporter
         if ($existing === null) {
             $sub = SubService::query()->create($attrs);
             $this->recorder->record('created', 'sub_service', $sub->id, null, $line);
+            app(MasterDataAudit::class)->subServiceCreated($sub, 'import');
             $action = 'created';
         } else {
             $existing->update($attrs);
             $sub = $existing->fresh();
             $this->recorder->record('updated', 'sub_service', $sub->id, $previous, $line);
+            app(MasterDataAudit::class)->subServiceUpdated($sub, 'import');
             $action = 'updated';
         }
 

@@ -19,10 +19,6 @@
     @endif
 
     @if ($mode === 'list')
-        <p class="mom-card mb-6 border border-[var(--border-panel-soft)] px-4 py-3 text-sm text-[var(--text-secondary)]">
-            <span class="font-semibold text-[var(--text-primary)]">{{ __('For developers') }}</span>
-            — {{ __('Registers block slugs and Blade code. Eyebrow, headlines, and media can be edited here when the block has a content schema, or in Section Content.') }}
-        </p>
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-lg font-semibold text-[var(--text-primary)]">{{ __('Blocks Factory') }}</h2>
             <a
@@ -47,7 +43,7 @@
             />
         </div>
 
-        <x-bulk.selection-toolbar :count="$this->bulkSelectedCount()" :actions="['delete', 'publish', 'unpublish', 'export', 'sync']" />
+        <x-bulk.selection-toolbar :count="$this->bulkSelectedCount()" :actions="['modify', 'duplicate', 'delete', 'publish', 'unpublish', 'export', 'sync']" />
 
         <div class="mom-card overflow-x-auto p-0">
             <table class="mom-table w-full min-w-[960px] text-left text-sm">
@@ -222,7 +218,7 @@
                     </div>
                 </div>
 
-                <div class="mt-8 flex flex-wrap items-center gap-6 border-t border-[var(--border-panel-soft)] pt-6">
+                <div class="mt-8 flex flex-wrap items-center gap-6 border-t border-[color:var(--border-tabstrip-divider)] pt-6">
                     <label class="flex cursor-pointer items-center gap-3 text-sm text-[var(--text-secondary)]">
                         <input type="checkbox" wire:model="is_active" class="rounded border-[rgba(255,255,255,0.15)]" />
                         {{ __('Active') }}
@@ -247,7 +243,7 @@
     @if ($previewOpen)
         <div class="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4" wire:click.self="closePreview">
             <div class="mom-card max-h-[90vh] w-full max-w-4xl overflow-hidden p-0" @click.stop>
-                <div class="flex items-center justify-between border-b border-[var(--border-panel-soft)] px-6 py-4">
+                <div class="flex items-center justify-between border-b border-[color:var(--border-tabstrip-divider)] px-6 py-4">
                     <h4 class="mom-section-title">{{ __('Live preview') }}</h4>
                     <button type="button" wire:click="closePreview" class="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">{{ __('Close') }}</button>
                 </div>

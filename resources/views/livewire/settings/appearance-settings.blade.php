@@ -195,7 +195,7 @@
                     </div>
                 </div>
 
-                <div class="border-t border-[var(--border-panel-soft)] pt-6">
+                <div class="border-t border-[color:var(--border-tabstrip-divider)] pt-6">
                     <h3 class="mb-1 text-sm font-semibold text-[var(--text-primary)]">{{ __('Type scale — your sizes') }}</h3>
                     <p class="mb-4 text-xs text-[var(--text-secondary)]">
                         {{ __('Headings use :heading · Body & UI use :body', ['heading' => $resolvedHeadingFont ?? '', 'body' => $resolvedBodyFont ?? '']) }}
@@ -268,7 +268,7 @@
                         @endforeach
                     </div>
 
-                    <div class="border-t border-[var(--border-panel-soft)] pt-6">
+                    <div class="border-t border-[color:var(--border-tabstrip-divider)] pt-6">
                         <h3 class="mb-3 text-sm font-semibold text-[var(--text-primary)]">{{ __('Header configuration') }}</h3>
                         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                             @foreach ($headerConfigKeys as $configKey)

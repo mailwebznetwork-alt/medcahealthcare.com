@@ -6,8 +6,5 @@
         ['label' => __('Intelligence'), 'url' => null],
     ]"
 >
-    <x-slot:tabs>
-        @include('marketing.partials.primary-tabs', ['activeSection' => 'intelligence'])
-    </x-slot:tabs>
     @livewire('marketing.intelligence-dashboard')
 </x-admin.workspace>

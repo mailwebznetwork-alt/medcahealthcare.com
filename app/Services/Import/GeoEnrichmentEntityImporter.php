@@ -7,6 +7,9 @@ use App\Models\PinCodeHospital;
 use App\Models\PinCodeLandmark;
 use App\Models\PinCodeLocationFaq;
 use App\Models\PinCodeNearbyArea;
+use App\Services\Governance\MasterDataProtection;
+use App\Services\Governance\PinCodeCreationGuard;
+use App\Services\Governance\PinCodeMasterDataAudit;
 
 final class GeoEnrichmentEntityImporter extends AbstractSpreadsheetImporter
 {
@@ -53,7 +56,19 @@ final class GeoEnrichmentEntityImporter extends AbstractSpreadsheetImporter
             return ['action' => 'failed', 'error' => __('Missing pincode.')];
         }
 
-        $existing = PinCode::query()->where('pincode', $pincode)->first();
+        if (! app(MasterDataProtection::class)->allowsWrite('import')) {
+            app(PinCodeMasterDataAudit::class)->recreationBlocked($pincode, 'import', 'Master data protection is enabled.');
+
+            return ['action' => 'skipped', 'error' => __('Import blocked by master data protection.')];
+        }
+
+        $guard = app(PinCodeCreationGuard::class);
+        $normalized = $guard->normalizePincode($pincode) ?? $pincode;
+        $existing = PinCode::query()->where('pincode', $normalized)->first();
+
+        if ($existing === null && ! $guard->canCreatePincode($normalized, 'import')) {
+            return ['action' => 'skipped', 'error' => __('Pincode permanently deleted; geo import skipped.')];
+        }
         $previous = $existing?->toArray();
 
         $attrs = array_filter([
@@ -72,11 +87,13 @@ final class GeoEnrichmentEntityImporter extends AbstractSpreadsheetImporter
         if ($existing === null) {
             $pin = PinCode::query()->create($attrs);
             $this->recorder->record('created', 'pin_code', $pin->id, null, $line);
+            app(PinCodeMasterDataAudit::class)->created($pin, 'import');
             $action = 'created';
         } else {
             $existing->update($attrs);
             $pin = $existing->fresh();
             $this->recorder->record('updated', 'pin_code', $pin->id, $previous, $line);
+            app(PinCodeMasterDataAudit::class)->updated($pin, 'import');
             $action = 'updated';
         }
 

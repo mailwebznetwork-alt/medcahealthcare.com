@@ -66,7 +66,7 @@
             <button type="button" wire:click="deselectAllRows" class="text-[var(--text-muted)] hover:underline">{{ __('Deselect all') }}</button>
         </div>
 
-        <x-bulk.selection-toolbar :count="$this->bulkSelectedCount()" :actions="['delete', 'publish', 'unpublish', 'export']" />
+        <x-bulk.selection-toolbar :count="$this->bulkSelectedCount()" :actions="['modify', 'duplicate', 'delete', 'publish', 'unpublish', 'export']" />
 
         <div class="mom-card overflow-x-auto p-0">
             <table class="mom-table w-full min-w-[640px] text-left text-sm">
@@ -195,7 +195,7 @@
         <div class="space-y-8">
             @if ($productionPreviewUrl)
                 <section class="mom-card overflow-hidden p-0" aria-label="{{ __('Production preview') }}">
-                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-panel-soft)] px-4 py-3">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[color:var(--border-tabstrip-divider)] px-4 py-3">
                         <div>
                             <h3 class="mom-section-title">{{ __('Preview (production path)') }}</h3>
                             <p class="mom-subtext mt-1 max-w-2xl">{{ __('Same render as public: ContentParser + layouts.app. Save the page, then refresh preview if you changed structure or SEO.') }}</p>
@@ -603,7 +603,7 @@
                 <p class="mom-subtext mb-4">{{ __('Select coverage PINs; area and city are read-only from the directory.') }}</p>
                 <div class="custom-scrollbar max-h-64 overflow-y-auto rounded-mom-chrome border border-[var(--border-panel-soft)] p-3">
                     @foreach ($pinCodes as $pc)
-                        <label class="flex cursor-pointer gap-3 border-b border-[var(--border-panel-soft)] py-2 last:border-0">
+                        <label class="flex cursor-pointer gap-3 border-b border-[color:var(--border-tabstrip-divider)] py-2 last:border-0">
                             <input type="checkbox" wire:model.live="selectedPinIds" value="{{ $pc->id }}" class="mt-1 rounded border-[rgba(255,255,255,0.15)]" />
                             <span class="text-sm">
                                 <span class="font-mono text-[var(--text-primary)]">{{ $pc->pincode }}</span>
@@ -650,7 +650,7 @@
                     <p class="mom-subtext mb-4">{{ __('Snapshots are stored when you save (latest 40 kept). Restore loads values into this form — save to publish.') }}</p>
                     <div class="custom-scrollbar max-h-72 space-y-2 overflow-y-auto rounded-mom-chrome border border-[var(--border-panel-soft)] p-3">
                         @forelse ($revisions as $rev)
-                            <div wire:key="rev-{{ $rev->id }}" class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-panel-soft)] py-2 text-sm last:border-0">
+                            <div wire:key="rev-{{ $rev->id }}" class="flex flex-wrap items-center justify-between gap-2 border-b border-[color:var(--border-tabstrip-divider)] py-2 text-sm last:border-0">
                                 <span class="text-[var(--text-secondary)]">
                                     {{ $rev->created_at?->timezone(config('app.timezone'))->format('Y-m-d H:i') }}
                                     @if ($rev->user)

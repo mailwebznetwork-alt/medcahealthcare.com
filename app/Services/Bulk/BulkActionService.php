@@ -5,12 +5,19 @@ namespace App\Services\Bulk;
 use App\Models\Block;
 use App\Models\Blog;
 use App\Models\Page;
+use App\Models\PinCode;
 use App\Models\SectionLibraryItem;
+use App\Models\Service;
+use App\Models\ServiceCategory;
 use App\Models\User;
+use App\Models\Vacancy;
 use App\Services\ActivityLogService;
 use App\Services\Blocks\BlockTemplateSyncService;
 use App\Services\Governance\AdminAuthorityGuard;
 use App\Services\Governance\DownstreamArtifactPurger;
+use App\Services\Operations\PinCodeDeletionService;
+use App\Services\Operations\ServiceCategoryService;
+use App\Services\Operations\ServiceLifecycle;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -22,6 +29,10 @@ class BulkActionService
         private readonly ActivityLogService $activityLog,
         private readonly AdminAuthorityGuard $authorityGuard,
         private readonly DownstreamArtifactPurger $purger,
+        private readonly BulkDuplicateService $duplicateService,
+        private readonly ServiceLifecycle $serviceLifecycle,
+        private readonly ServiceCategoryService $categoryService,
+        private readonly PinCodeDeletionService $pinCodeDeletionService,
     ) {}
 
     /**
@@ -43,7 +54,7 @@ class BulkActionService
                 'affected_location_pages' => [],
                 'affected_service_pages' => [],
                 'cascading_deletions' => [__('Bulk action will apply to :count selected row(s).', ['count' => count($ids)])],
-                'requires_delete_confirmation' => $action === 'delete',
+                'requires_delete_confirmation' => in_array($action, ['delete'], true),
             ],
         };
     }
@@ -54,7 +65,7 @@ class BulkActionService
      */
     public function execute(string $resourceKey, array $ids, string $action, User $user): array
     {
-        $config = config("bulk_actions.resources.{$resourceKey}");
+        $config = config('bulk_actions.resources')[$resourceKey] ?? null;
         if (! is_array($config)) {
             return ['processed' => 0, 'skipped' => count($ids), 'message' => __('Unknown bulk resource.')];
         }
@@ -78,10 +89,14 @@ class BulkActionService
             }
 
             $ok = match ($resourceKey) {
-                'site_architect.pages' => $this->executePageAction($model, $action, $user),
-                'site_architect.blogs' => $this->executeBlogAction($model, $action, $user),
-                'site_architect.blocks' => $this->executeBlockAction($model, $action, $user),
+                'site_architect.pages' => $this->executePageAction($model, $action, $user, $resourceKey),
+                'site_architect.blogs' => $this->executeBlogAction($model, $action, $user, $resourceKey),
+                'site_architect.blocks' => $this->executeBlockAction($model, $action, $user, $resourceKey),
                 'site_architect.sections' => $this->executeSectionAction($model, $action, $user),
+                'operations.pin_codes' => $this->executePinCodeAction($model, $action, $user),
+                'operations.services' => $this->executeServiceAction($model, $action, $user, $resourceKey),
+                'operations.service_categories' => $this->executeServiceCategoryAction($model, $action, $user, $resourceKey),
+                'operations.vacancies' => $this->executeVacancyAction($model, $action, $user, $resourceKey),
                 default => false,
             };
 
@@ -92,9 +107,11 @@ class BulkActionService
             }
         }
 
+        $module = is_string($config['module'] ?? null) ? $config['module'] : 'site_architect';
+
         $this->activityLog->log(
             'bulk_'.$action,
-            'site_architect',
+            $module,
             strtoupper($resourceKey).' bulk '.$action.': processed='.$processed.', skipped='.$skipped.' by user '.$user->id,
         );
 
@@ -114,7 +131,7 @@ class BulkActionService
      */
     public function export(string $resourceKey, array $ids, string $format = 'json'): StreamedResponse
     {
-        $config = config("bulk_actions.resources.{$resourceKey}");
+        $config = config('bulk_actions.resources')[$resourceKey] ?? null;
         /** @var class-string<Model> $modelClass */
         $modelClass = is_array($config) ? $config['model'] : Model::class;
         $rows = $modelClass::query()->whereIn('id', $ids)->get();
@@ -140,14 +157,15 @@ class BulkActionService
         );
     }
 
-    private function executePageAction(Page $page, string $action, User $user): bool
+    private function executePageAction(Page $page, string $action, User $user, string $resourceKey): bool
     {
-        if (! $user->can('update', $page) && $action !== 'delete') {
+        if (! $user->can('update', $page) && ! in_array($action, ['delete', 'duplicate'], true)) {
             return false;
         }
 
         return match ($action) {
             'delete' => $this->deletePage($page, $user),
+            'duplicate' => $this->duplicateService->duplicate($resourceKey, $page, $user),
             'publish' => (bool) $page->forceFill(['is_active' => true])->save(),
             'unpublish' => (bool) $page->forceFill(['is_active' => false])->save(),
             'export' => true,
@@ -169,10 +187,11 @@ class BulkActionService
         return true;
     }
 
-    private function executeBlogAction(Blog $blog, string $action, User $user): bool
+    private function executeBlogAction(Blog $blog, string $action, User $user, string $resourceKey): bool
     {
         return match ($action) {
             'delete' => (bool) tap($blog, fn (Blog $b) => $b->delete()),
+            'duplicate' => $this->duplicateService->duplicate($resourceKey, $blog, $user),
             'publish' => (bool) $blog->forceFill(['is_published' => true, 'published_at' => $blog->published_at ?? now()])->save(),
             'unpublish' => (bool) $blog->forceFill(['is_published' => false])->save(),
             'export' => true,
@@ -180,10 +199,11 @@ class BulkActionService
         };
     }
 
-    private function executeBlockAction(Block $block, string $action, User $user): bool
+    private function executeBlockAction(Block $block, string $action, User $user, string $resourceKey): bool
     {
         return match ($action) {
             'delete' => $this->deleteBlock($block),
+            'duplicate' => $this->duplicateService->duplicate($resourceKey, $block, $user),
             'publish' => (bool) $block->forceFill(['is_active' => true])->save(),
             'unpublish' => (bool) $block->forceFill(['is_active' => false])->save(),
             'sync' => $this->syncBlock($block),
@@ -218,5 +238,86 @@ class BulkActionService
             'export' => true,
             default => false,
         };
+    }
+
+    private function executePinCodeAction(PinCode $pinCode, string $action, User $user): bool
+    {
+        return match ($action) {
+            'delete' => $this->deletePinCode($pinCode, $user),
+            'publish' => $user->can('changeActiveState', $pinCode) && (bool) $pinCode->forceFill(['is_active' => true])->save(),
+            'unpublish' => $user->can('changeActiveState', $pinCode) && (bool) $pinCode->forceFill(['is_active' => false])->save(),
+            default => false,
+        };
+    }
+
+    private function deletePinCode(PinCode $pinCode, User $user): bool
+    {
+        if (! $user->can('delete', $pinCode)) {
+            return false;
+        }
+
+        $this->pinCodeDeletionService->delete($pinCode, 'bulk');
+
+        return true;
+    }
+
+    private function executeServiceAction(Service $service, string $action, User $user, string $resourceKey): bool
+    {
+        return match ($action) {
+            'delete' => $this->deleteService($service, $user),
+            'duplicate' => $this->duplicateService->duplicate($resourceKey, $service, $user),
+            default => false,
+        };
+    }
+
+    private function executeServiceCategoryAction(ServiceCategory $category, string $action, User $user, string $resourceKey): bool
+    {
+        return match ($action) {
+            'delete' => $this->deleteServiceCategory($category, $user),
+            'duplicate' => $this->duplicateService->duplicate($resourceKey, $category, $user),
+            default => false,
+        };
+    }
+
+    private function executeVacancyAction(Vacancy $vacancy, string $action, User $user, string $resourceKey): bool
+    {
+        return match ($action) {
+            'delete' => $this->deleteVacancy($vacancy, $user),
+            'duplicate' => $this->duplicateService->duplicate($resourceKey, $vacancy, $user),
+            default => false,
+        };
+    }
+
+    private function deleteService(Service $service, User $user): bool
+    {
+        if (! $user->can('delete', $service)) {
+            return false;
+        }
+
+        $this->serviceLifecycle->delete($service);
+
+        return true;
+    }
+
+    private function deleteServiceCategory(ServiceCategory $category, User $user): bool
+    {
+        if (! $user->can('delete', $category)) {
+            return false;
+        }
+
+        $this->categoryService->delete($category);
+
+        return true;
+    }
+
+    private function deleteVacancy(Vacancy $vacancy, User $user): bool
+    {
+        if (! $user->can('delete', $vacancy)) {
+            return false;
+        }
+
+        $vacancy->delete();
+
+        return true;
     }
 }

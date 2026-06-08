@@ -9,7 +9,6 @@ use App\Models\ServiceCategory;
 use App\Repositories\Operations\ServiceCategoryRepository;
 use App\Services\Operations\ServiceCategoryService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ServiceCategoryController extends Controller
@@ -19,18 +18,11 @@ class ServiceCategoryController extends Controller
         private readonly ServiceCategoryService $categoryService,
     ) {}
 
-    public function index(Request $request): View
+    public function index(): View
     {
         $this->authorize('viewAny', ServiceCategory::class);
 
-        $categories = $this->repository->paginateFiltered($request);
-        $parentOptions = $this->repository->parentOptions();
-
-        return view('operations.service-categories.index', [
-            'categories' => $categories,
-            'parentOptions' => $parentOptions,
-            'filters' => $request->only(['q', 'active', 'parent_id']),
-        ]);
+        return view('operations.service-categories.index');
     }
 
     public function create(): View

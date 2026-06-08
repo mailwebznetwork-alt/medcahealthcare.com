@@ -4,6 +4,8 @@ namespace App\Services\Operations;
 
 use App\Models\ServiceCategory;
 use App\Services\ActivityLogService;
+use App\Services\Governance\AdminDeletionGuard;
+use App\Services\Governance\MasterDataAudit;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -11,6 +13,8 @@ class ServiceCategoryService
 {
     public function __construct(
         private readonly ActivityLogService $activityLog,
+        private readonly AdminDeletionGuard $deletionGuard,
+        private readonly MasterDataAudit $audit,
     ) {}
 
     /**
@@ -49,8 +53,9 @@ class ServiceCategoryService
         DB::transaction(function () use ($category): void {
             $category->services()->detach();
             $category->children()->update(['parent_id' => $category->parent_id]);
+            $this->deletionGuard->recordCategoryDeletion($category, 'ui');
             $category->delete();
-
+            $this->audit->categoryDeleted($category, 'ui');
             $this->activityLog->log('service_category.deleted', 'operations', $category->name.' ('.$category->code.')');
         });
     }

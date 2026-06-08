@@ -37,7 +37,7 @@
 
     @php $galleryItems = is_array($service->gallery) ? array_values(array_filter($service->gallery)) : []; @endphp
     @if ($galleryItems !== [])
-        <div class="mt-8 border-t border-[var(--border-panel-soft)] pt-8">
+        <div class="mt-8 border-t border-[color:var(--border-tabstrip-divider)] pt-8">
             <h4 class="text-sm font-semibold text-mom-gold">{{ __('Gallery image SEO') }}</h4>
             <div class="mt-4 space-y-6">
                 @foreach ($galleryItems as $index => $path)

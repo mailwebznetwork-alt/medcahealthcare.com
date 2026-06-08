@@ -124,7 +124,7 @@
                 <button type="submit" class="mom-cta-primary mom-cta-compact">{{ __('Save Keyword') }}</button>
             </form>
 
-            <div class="mt-6 border-t border-[rgba(255,255,255,0.06)] pt-4">
+            <div class="mt-6 border-t border-[color:var(--border-tabstrip-divider)] pt-4">
                 <p class="mom-micro">{{ __('Bulk Keywords') }}</p>
                 <p class="mom-subtext mt-2">{{ __('One line: keyword|intent(brand/service/local)|search_volume|difficulty') }}</p>
                 <form method="post" action="{{ route('growth-center.competitors.keywords.bulk-store') }}" class="mt-3 space-y-3">
@@ -268,7 +268,7 @@
                             <th class="px-4 py-3 font-medium text-right">{{ __('Conversion Rate') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                    <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                         @foreach ($comparison as $row)
                             <tr>
                                 <td class="px-4 py-3 text-[var(--text-primary)]">{{ $row['name'] }}</td>
@@ -295,7 +295,7 @@
                             <th class="px-4 py-3 font-medium text-right">{{ __('Competitor Count') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                    <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                         @foreach ($keywordOverlap as $overlapRow)
                             <tr>
                                 <td class="px-4 py-3 text-[var(--text-primary)]">{{ $overlapRow->keyword }}</td>
@@ -322,7 +322,7 @@
                         <th class="px-4 py-3 font-medium text-right">{{ __('Action') }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                     @forelse ($competitors as $competitor)
                         <tr>
                             <td class="px-4 py-3 text-[var(--text-primary)]">{{ $competitor->name }}</td>

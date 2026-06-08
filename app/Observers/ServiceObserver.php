@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\PageElement;
 use App\Models\PageSeo;
 use App\Models\Service;
+use App\Services\Governance\AdminDeletionGuard;
 use App\Services\Growth\AiPulseService;
 use App\Services\Growth\ContentSeoAutoFillService;
 use App\Services\Operations\InternalLinkRefreshDispatcher;
@@ -16,10 +17,15 @@ class ServiceObserver
         private readonly ContentSeoAutoFillService $contentSeoAutoFill,
         private readonly AiPulseService $aiPulseService,
         private readonly InternalLinkRefreshDispatcher $linkRefreshDispatcher,
+        private readonly AdminDeletionGuard $deletionGuard,
     ) {}
 
     public function saved(Service $service): void
     {
+        if ($this->deletionGuard->isServicePermanentlyDeleted($service->service_code)) {
+            return;
+        }
+
         $this->contentSeoAutoFill->applyAndSyncService($service);
         $this->contentSeoAutoFill->refreshAggregateSignals();
         $this->aiPulseService->triggerAuditAfterPublish();

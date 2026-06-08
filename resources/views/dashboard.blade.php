@@ -203,16 +203,18 @@
                                         <th class="px-4 py-3 font-medium text-right">{{ __('Status') }}</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-[rgba(255,255,255,0.045)]">
+                                <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)]">
                                     @forelse ($m['recent_users'] as $ru)
                                         <tr class="text-[var(--text-secondary)]">
-                                            <td class="px-4 py-3 font-medium text-[var(--text-primary)]">{{ $ru->name }}</td>
+                                            <td class="px-4 py-3 font-medium text-[var(--text-primary)]">
+                                                <a href="{{ \App\Support\AdminMetricLinks::userManagement($ru) }}" class="text-[var(--text-primary)] hover:text-mom-gold hover:underline">{{ $ru->name }}</a>
+                                            </td>
                                             <td class="px-4 py-3">{{ $ru->role_label ?: '?' }}</td>
                                             <td class="px-4 py-3 text-right">
-                                                <span class="inline-flex items-center gap-2 justify-end">
+                                                <a href="{{ \App\Support\AdminMetricLinks::userManagement($ru) }}" class="inline-flex items-center gap-2 justify-end hover:text-mom-gold">
                                                     <span class="h-1.5 w-1.5 rounded-full {{ $ru->is_active ? 'bg-[var(--success)]' : 'bg-[var(--danger)]' }}"></span>
                                                     <span>{{ $ru->is_active ? __('Active') : __('Inactive') }}</span>
-                                                </span>
+                                                </a>
                                             </td>
                                         </tr>
                                     @empty

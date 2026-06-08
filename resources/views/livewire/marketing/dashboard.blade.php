@@ -5,28 +5,11 @@
         </div>
     @endif
 
-    <div class="flex flex-wrap gap-2 border-b border-[var(--border-panel-soft)] pb-4">
-        @foreach ([
-            'overview' => __('Overview'),
-            'google-ads' => __('Google Ads'),
-            'meta' => __('Meta Ads'),
-            'communication' => __('Communication'),
-            'campaigns' => __('Campaigns'),
-            'insights' => __('Insights'),
-            'lead-intent' => __('Lead Intent'),
-        ] as $key => $label)
-            <button
-                type="button"
-                wire:click="$set('tab', '{{ $key }}')"
-                class="rounded-lg px-3 py-1.5 text-sm font-medium transition duration-320 ease-premium {{ $tab === $key ? 'bg-[rgba(197,160,89,0.15)] text-mom-gold ring-1 ring-[rgba(197,160,89,0.35)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]' }}"
-            >
-                {{ $label }}
-            </button>
-        @endforeach
+    <div class="flex justify-end">
         <button
             type="button"
             wire:click="refreshData"
-            class="ml-auto rounded-lg border border-[var(--border-panel-soft)] px-3 py-1.5 text-sm text-[var(--text-muted)] hover:border-[rgba(197,160,89,0.25)] hover:text-[var(--text-primary)]"
+            class="rounded-lg border border-[var(--border-panel-soft)] px-3 py-1.5 text-sm text-[var(--text-muted)] hover:border-[rgba(197,160,89,0.25)] hover:text-[var(--text-primary)]"
         >
             {{ __('Refresh data') }}
         </button>
@@ -59,22 +42,22 @@
         </div>
 
         <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('Active users') }}</p>
                 <p class="mom-metric mt-2">{{ number_format((int) ($sum['users'] ?? 0)) }}</p>
                 <p class="mom-subtext mt-1">{{ __('GA4') }}</p>
             </a>
-            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('New users') }}</p>
                 <p class="mom-metric mt-2">{{ number_format((int) ($sum['new_users'] ?? 0)) }}</p>
                 <p class="mom-subtext mt-1">{{ __('Acquisition') }}</p>
             </a>
-            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('Sessions') }}</p>
                 <p class="mom-metric mt-2">{{ number_format((int) ($sum['sessions'] ?? 0)) }}</p>
                 <p class="mom-subtext mt-1">{{ __('Traffic depth') }}</p>
             </a>
-            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('Engaged sessions') }}</p>
                 <p class="mom-metric mt-2">{{ number_format((int) ($sum['engaged_sessions'] ?? 0)) }}</p>
                 <p class="mom-subtext mt-1">{{ __('GA4 engagedSessions') }}</p>
@@ -82,22 +65,22 @@
         </section>
 
         <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('Engagement rate') }}</p>
                 <p class="mom-metric mt-2">{{ isset($sum['engagement_rate']) ? number_format((float) $sum['engagement_rate'], 2).'%' : '—' }}</p>
                 <p class="mom-subtext mt-1">{{ __('Engaged sessions ratio') }}</p>
             </a>
-            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('Avg. session') }}</p>
                 <p class="mom-metric mt-2">{{ isset($sum['avg_session_duration_sec']) ? number_format((float) $sum['avg_session_duration_sec'], 1).'s' : '—' }}</p>
                 <p class="mom-subtext mt-1">{{ __('Site mean') }}</p>
             </a>
-            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('Conversions') }}</p>
                 <p class="mom-metric mt-2">{{ number_format((int) ($sum['conversions'] ?? 0)) }}</p>
                 <p class="mom-subtext mt-1">{{ __('Attributed in GA4') }}</p>
             </a>
-            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block px-5 py-4 no-underline">
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline">
                 <p class="mom-micro">{{ __('Conversion rate') }}</p>
                 <p class="mom-metric mt-2">{{ isset($sum['conversion_rate']) ? number_format((float) $sum['conversion_rate'], 2).'%' : '—' }}</p>
                 <p class="mom-subtext mt-1">{{ __('Conversions / sessions') }}</p>
@@ -105,7 +88,7 @@
         </section>
 
         <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <a href="{{ $hrefGrowthGa4 }}" class="mom-card block p-5 no-underline">
+            <a href="{{ $hrefGrowthGa4 }}" class="mom-card mom-card-interactive block p-5 no-underline">
                 <h3 class="mom-section-title text-base">{{ __('GA4') }}</h3>
                 <p class="mom-body-text mt-2 text-[var(--text-secondary)]">
                     {{ $ga4Err ? __('API: :msg', ['msg' => $ga4Err]) : __('Measurement + Data API reports linked.') }}
@@ -166,7 +149,7 @@
                     </thead>
                     <tbody>
                         @forelse ($googleAds['campaigns'] ?? [] as $c)
-                            <tr class="border-t border-[var(--border-panel-soft)]">
+                            <tr class="border-t border-[color:var(--border-tabstrip-divider)]">
                                 <td class="px-4 py-2">{{ $c['name'] ?? '—' }}</td>
                                 <td class="px-4 py-2">{{ number_format((int) ($c['clicks'] ?? 0)) }}</td>
                                 <td class="px-4 py-2">{{ isset($c['cost']) ? number_format((float) $c['cost'], 2) : '—' }}</td>
@@ -198,7 +181,7 @@
                     </thead>
                     <tbody>
                         @forelse ($metaAds['campaigns'] ?? [] as $c)
-                            <tr class="border-t border-[var(--border-panel-soft)]">
+                            <tr class="border-t border-[color:var(--border-tabstrip-divider)]">
                                 <td class="px-4 py-2">{{ $c['name'] ?? '—' }}</td>
                                 <td class="px-4 py-2">{{ number_format((int) ($c['reach'] ?? 0)) }}</td>
                                 <td class="px-4 py-2">{{ number_format((int) ($c['clicks'] ?? 0)) }}</td>
@@ -303,14 +286,14 @@
             </div>
         </section>
         <div class="mom-card overflow-hidden p-0">
-            <h3 class="border-b border-[var(--border-panel-soft)] px-4 py-3 text-sm font-semibold">{{ __('Recent snapshots') }}</h3>
+            <h3 class="border-b border-[color:var(--border-tabstrip-divider)] px-4 py-3 text-sm font-semibold">{{ __('Recent snapshots') }}</h3>
             <table class="min-w-full text-sm">
                 <thead class="bg-[rgba(255,255,255,0.02)] text-left mom-micro">
                     <tr><th class="px-4 py-2">{{ __('Channel') }}</th><th class="px-4 py-2">{{ __('Period') }}</th><th class="px-4 py-2">{{ __('Metrics') }}</th></tr>
                 </thead>
                 <tbody>
                     @foreach ($snapshots as $s)
-                        <tr class="border-t border-[var(--border-panel-soft)]">
+                        <tr class="border-t border-[color:var(--border-tabstrip-divider)]">
                             <td class="px-4 py-2">{{ strtoupper($s->channel) }}</td>
                             <td class="px-4 py-2">{{ $s->period_start?->format('Y-m-d') }} — {{ $s->period_end?->format('Y-m-d') }}</td>
                             <td class="max-w-xl px-4 py-2 font-mono text-xs">{{ json_encode($s->metrics) }}</td>
@@ -357,7 +340,7 @@
                 </thead>
                 <tbody>
                     @foreach ($campaigns as $c)
-                        <tr class="border-t border-[var(--border-panel-soft)]">
+                        <tr class="border-t border-[color:var(--border-tabstrip-divider)]">
                             <td class="px-4 py-2">{{ $c->name }}</td>
                             <td class="px-4 py-2">{{ $c->platform }}</td>
                             <td class="px-4 py-2">{{ $c->budget !== null ? number_format((float) $c->budget, 2) : '—' }}</td>
@@ -403,28 +386,32 @@
         <p class="mom-micro text-[var(--text-muted)]">{{ __('Lead Intent layer — :period. GA4/Meta/UTM tracking unchanged; intents are stored separately for management reporting.', ['period' => $periodLabel]) }}</p>
 
         <section class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <div class="mom-card px-5 py-4">
-                <p class="mom-micro">{{ __('Total lead intents') }}</p>
-                <p class="mom-metric mt-2">{{ number_format((int) ($totals['total'] ?? 0)) }}</p>
-            </div>
-            <div class="mom-card px-5 py-4">
-                <p class="mom-micro">{{ __('Calls') }}</p>
-                <p class="mom-metric mt-2">{{ number_format((int) ($totals['calls'] ?? 0)) }}</p>
-                <p class="mom-subtext mt-1">{{ __('tel: clicks & GBP call intents') }}</p>
-            </div>
-            <div class="mom-card px-5 py-4">
-                <p class="mom-micro">{{ __('WhatsApp') }}</p>
-                <p class="mom-metric mt-2">{{ number_format((int) ($totals['whatsapp'] ?? 0)) }}</p>
-                <p class="mom-subtext mt-1">{{ __('wa.me / GBP WhatsApp intents') }}</p>
-            </div>
-            <div class="mom-card px-5 py-4">
-                <p class="mom-micro">{{ __('Forms') }}</p>
-                <p class="mom-metric mt-2">{{ number_format((int) ($totals['forms'] ?? 0)) }}</p>
-                <p class="mom-subtext mt-1">{{ __('Leads captured: :n', ['n' => number_format((int) ($li['leads_captured'] ?? 0))]) }}</p>
-            </div>
+            <x-admin.metric-card
+                :label="__('Total lead intents')"
+                :value="number_format((int) ($totals['total'] ?? 0))"
+                :href="\App\Support\AdminMetricLinks::marketingIntelligence('executive')"
+            />
+            <x-admin.metric-card
+                :label="__('Calls')"
+                :value="number_format((int) ($totals['calls'] ?? 0))"
+                :hint="__('tel: clicks & GBP call intents')"
+                :href="\App\Support\AdminMetricLinks::marketingIntelligence('calls')"
+            />
+            <x-admin.metric-card
+                :label="__('WhatsApp')"
+                :value="number_format((int) ($totals['whatsapp'] ?? 0))"
+                :hint="__('wa.me / GBP WhatsApp intents')"
+                :href="\App\Support\AdminMetricLinks::marketingIntelligence('whatsapp')"
+            />
+            <x-admin.metric-card
+                :label="__('Forms')"
+                :value="number_format((int) ($totals['forms'] ?? 0))"
+                :hint="__('Leads captured: :n', ['n' => number_format((int) ($li['leads_captured'] ?? 0))])"
+                :href="\App\Support\AdminMetricLinks::marketingIntelligence('conversions')"
+            />
         </section>
 
-        <section class="mom-card mt-8 p-6">
+        <a href="{{ \App\Support\AdminMetricLinks::marketingIntelligence('attribution') }}" class="mom-card mom-card-interactive mt-8 block p-6 no-underline">
             <h3 class="mom-section-title">{{ __('Source breakdown') }}</h3>
             <p class="mom-subtext mt-1">{{ __('Organic, Google Ads, Meta Ads, GBP, Direct, Referral') }}</p>
             <div class="mt-4 overflow-x-auto">
@@ -438,7 +425,7 @@
                             <th class="px-4 py-3">{{ __('Total') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                    <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                         @forelse ($li['source_breakdown'] ?? [] as $row)
                             @if (($row['total'] ?? 0) > 0)
                                 <tr>
@@ -455,21 +442,21 @@
                     </tbody>
                 </table>
             </div>
-        </section>
+        </a>
 
         <section class="mt-8 grid gap-8 lg:grid-cols-2">
-            <div class="mom-card p-6">
+            <a href="{{ \App\Support\AdminMetricLinks::marketingIntelligence('attribution') }}" class="mom-card mom-card-interactive block p-6 no-underline">
                 <h3 class="mom-section-title">{{ __('Channel breakdown') }}</h3>
                 <ul class="mt-4 space-y-3">
                     @foreach ($li['channel_breakdown'] ?? [] as $row)
-                        <li class="flex justify-between border-b border-[var(--border-panel-soft)] pb-2">
+                        <li class="flex justify-between border-b border-[color:var(--border-tabstrip-divider)] pb-2">
                             <span>{{ $row['label'] }}</span>
                             <span class="font-semibold text-[var(--text-primary)]">{{ number_format($row['total']) }}</span>
                         </li>
                     @endforeach
                 </ul>
-            </div>
-            <div class="mom-card p-6">
+            </a>
+            <a href="{{ \App\Support\AdminMetricLinks::marketingDashboard('campaigns') }}" class="mom-card mom-card-interactive block p-6 no-underline">
                 <h3 class="mom-section-title">{{ __('Campaign breakdown') }}</h3>
                 <div class="mt-4 overflow-x-auto">
                     <table class="w-full text-left text-[13px]">
@@ -484,7 +471,7 @@
                         </thead>
                         <tbody class="text-[var(--text-secondary)]">
                             @forelse ($li['campaign_breakdown'] ?? [] as $row)
-                                <tr class="border-t border-[var(--border-panel-soft)]">
+                                <tr class="border-t border-[color:var(--border-tabstrip-divider)]">
                                     <td class="py-2 pr-2">{{ $row['campaign'] }}</td>
                                     <td class="py-2">{{ $row['calls'] }}</td>
                                     <td class="py-2">{{ $row['whatsapp'] }}</td>
@@ -497,7 +484,7 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </a>
         </section>
     @endif
 </div>

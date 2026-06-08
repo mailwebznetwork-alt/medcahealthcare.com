@@ -1,1 +1,1 @@
-@include('blocks.shared.near-you-services')
+@include('blocks.home.near-you-home')

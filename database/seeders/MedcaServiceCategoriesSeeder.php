@@ -4,12 +4,20 @@ namespace Database\Seeders;
 
 use App\Models\Service;
 use App\Models\ServiceCategory;
+use App\Services\Governance\CategoryCreationGuard;
+use App\Services\Governance\MasterDataProtection;
 use Illuminate\Database\Seeder;
 
 class MedcaServiceCategoriesSeeder extends Seeder
 {
     public function run(): void
     {
+        if (! app(MasterDataProtection::class)->allowsWrite('seeder')) {
+            return;
+        }
+
+        $guard = app(CategoryCreationGuard::class);
+
         $definitions = [
             ['name' => 'Home Care', 'code' => 'home-care', 'sort_order' => 10],
             ['name' => 'Nursing Services', 'code' => 'nursing-services', 'sort_order' => 20],
@@ -21,6 +29,11 @@ class MedcaServiceCategoriesSeeder extends Seeder
 
         $ids = [];
         foreach ($definitions as $row) {
+            $exists = ServiceCategory::query()->where('code', $row['code'])->exists();
+            if (! $exists && ! $guard->canCreateCategory($row['code'], 'seeder')) {
+                continue;
+            }
+
             $category = ServiceCategory::query()->updateOrCreate(
                 ['code' => $row['code']],
                 [

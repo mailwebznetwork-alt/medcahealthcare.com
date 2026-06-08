@@ -5,6 +5,8 @@ namespace App\Services\Launch;
 use App\Models\PinCode;
 use App\Models\Service;
 use App\Models\ServiceCategory;
+use App\Services\Governance\MappingProtectionService;
+use App\Services\Governance\MasterDataProtection;
 use App\Services\Import\ImportPipeline;
 use App\Services\Operations\CategoryMasterOrchestrator;
 use App\Services\Operations\ServiceMasterOrchestrator;
@@ -27,6 +29,14 @@ class ProductionPopulationService
      */
     public function populate(bool $enrichMedia = true): array
     {
+        if (! app(MasterDataProtection::class)->allowsWrite('populate')) {
+            return [
+                'steps' => ['blocked:master_data_protection'],
+                'imports' => [],
+                'blocked' => true,
+            ];
+        }
+
         $path = (string) config('medca_launch.imports_path');
         $log = ['steps' => [], 'imports' => []];
 
@@ -106,9 +116,7 @@ class ProductionPopulationService
 
     private function syncServiceLocationMatrix(): void
     {
-        $pinIds = PinCode::query()
-            ->where('is_active', true)
-            ->where('is_serviceable', true)
+        $pinIds = PinCode::eligibleForCoverage()
             ->pluck('id')
             ->all();
 
@@ -116,9 +124,11 @@ class ProductionPopulationService
             return;
         }
 
+        $mappingProtection = app(MappingProtectionService::class);
+
         Service::query()
             ->where('is_active', true)
-            ->each(function (Service $service) use ($pinIds): void {
+            ->each(function (Service $service) use ($pinIds, $mappingProtection): void {
                 $sync = [];
                 foreach ($pinIds as $pinId) {
                     $sync[$pinId] = [
@@ -128,7 +138,10 @@ class ProductionPopulationService
                         'coverage_notes' => 'Medca home healthcare coverage',
                     ];
                 }
-                $service->pincodes()->sync($sync);
+                $sync = $mappingProtection->filterSyncPayload($service, $sync, 'populate');
+                if ($sync !== []) {
+                    $service->pincodes()->sync($sync);
+                }
             });
     }
 
@@ -138,9 +151,7 @@ class ProductionPopulationService
 
         $city = app(LocalityContextResolver::class)->primaryCity() ?? 'service area';
 
-        PinCode::query()
-            ->where('is_active', true)
-            ->where('is_serviceable', true)
+        PinCode::eligibleForCoverage()
             ->whereDoesntHave('landmarks')
             ->each(function (PinCode $pin) use (&$count, $city): void {
                 $area = $pin->area_name ?: $city;

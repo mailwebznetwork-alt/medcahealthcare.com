@@ -10,7 +10,7 @@
             @if (! empty($groupHints[$group['key'] ?? ''] ?? null))
                 <p class="mb-2 px-1 text-[11px] leading-snug text-[var(--text-muted)]">{{ $groupHints[$group['key']] }}</p>
             @endif
-            <div class="flex flex-wrap gap-0 border-b border-[var(--border-panel-soft)]">
+            <div class="flex flex-wrap gap-0 border-b border-[color:var(--border-tabstrip-divider)]">
                 @foreach ($group['items'] as $item)
                     <a
                         href="{{ route($item['route']) }}"

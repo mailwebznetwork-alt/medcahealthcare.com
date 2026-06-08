@@ -92,7 +92,7 @@
                         <th class="px-4 py-3">{{ __('Names') }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[rgba(255,255,255,0.045)]">
+                <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)]">
                     @forelse ($backlinkSummary['top_gaps'] ?? [] as $gap)
                         <tr>
                             <td class="px-4 py-3 font-medium text-[var(--text-primary)]">{{ $gap['domain'] ?? '—' }}</td>
@@ -161,7 +161,7 @@
                     <th class="px-4 py-3 font-medium">{{ __('Status') }}</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+            <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                 @forelse ($intercepts as $intercept)
                     <tr>
                         <td class="px-4 py-3 text-[var(--text-primary)]">{{ $intercept->keyword }}</td>

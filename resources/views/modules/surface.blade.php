@@ -3,29 +3,31 @@
     :welcome-line="__('Operational workspace for this module.')"
 >
     @if ($moduleKey === \App\ModuleAccess::SECURITY)
-        @include('security.partials.nav')
-
         <section id="security-overview" class="scroll-mt-32 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-            <article class="mom-card px-5 py-4">
-                <p class="mom-micro">{{ __('Failed Logins') }}</p>
-                <p class="mom-metric mt-2 leading-none">{{ number_format((int) ($securityMetrics['failed_login_attempts'] ?? 0)) }}</p>
-                <p class="mom-subtext mt-2">{{ __('Total failed login attempts recorded.') }}</p>
-            </article>
-            <article class="mom-card px-5 py-4">
-                <p class="mom-micro">{{ __('Role Denials') }}</p>
-                <p class="mom-metric mt-2 leading-none">{{ number_format((int) ($securityMetrics['role_denials'] ?? 0)) }}</p>
-                <p class="mom-subtext mt-2">{{ __('Role-based access violations blocked.') }}</p>
-            </article>
-            <article class="mom-card px-5 py-4">
-                <p class="mom-micro">{{ __('Session Timeouts') }}</p>
-                <p class="mom-metric mt-2 leading-none">{{ number_format((int) ($securityMetrics['session_timeouts'] ?? 0)) }}</p>
-                <p class="mom-subtext mt-2">{{ __('Auto-logout timeout events triggered.') }}</p>
-            </article>
-            <article class="mom-card px-5 py-4">
-                <p class="mom-micro">{{ __('Upload Rejections') }}</p>
-                <p class="mom-metric mt-2 leading-none">{{ number_format((int) ($securityMetrics['upload_validation_failures'] ?? 0)) }}</p>
-                <p class="mom-subtext mt-2">{{ __('Invalid uploads blocked by validation.') }}</p>
-            </article>
+            <x-admin.metric-card
+                :label="__('Failed Logins')"
+                :value="number_format((int) ($securityMetrics['failed_login_attempts'] ?? 0))"
+                :hint="__('Total failed login attempts recorded.')"
+                :href="\App\Support\AdminMetricLinks::security('security-failed-logins')"
+            />
+            <x-admin.metric-card
+                :label="__('Role Denials')"
+                :value="number_format((int) ($securityMetrics['role_denials'] ?? 0))"
+                :hint="__('Role-based access violations blocked.')"
+                :href="\App\Support\AdminMetricLinks::security('security-audit')"
+            />
+            <x-admin.metric-card
+                :label="__('Session Timeouts')"
+                :value="number_format((int) ($securityMetrics['session_timeouts'] ?? 0))"
+                :hint="__('Auto-logout timeout events triggered.')"
+                :href="\App\Support\AdminMetricLinks::security('security-activity')"
+            />
+            <x-admin.metric-card
+                :label="__('Upload Rejections')"
+                :value="number_format((int) ($securityMetrics['upload_validation_failures'] ?? 0))"
+                :hint="__('Invalid uploads blocked by validation.')"
+                :href="\App\Support\AdminMetricLinks::security('security-audit')"
+            />
         </section>
 
         <section id="security-firewall" class="mom-card mt-8 scroll-mt-32 p-6">
@@ -41,7 +43,7 @@
                             <th class="px-4 py-3 font-medium">{{ __('Status') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                    <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                         @forelse ($firewallRules as $rule)
                             <tr>
                                 <td class="px-4 py-3 font-medium text-[var(--text-primary)]">{{ $rule['name'] ?? '—' }}</td>
@@ -74,7 +76,7 @@
                             <th class="px-4 py-3 font-medium">{{ __('Timestamp') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                    <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                         @forelse ($auditLogPreview as $row)
                             <tr>
                                 <td class="px-4 py-3 font-mono">{{ $row->id ?? '—' }}</td>
@@ -104,7 +106,7 @@
                             <th class="px-4 py-3 font-medium text-right">{{ __('Failures') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                    <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                         @forelse ($failedLoginByIp as $row)
                             <tr>
                                 <td class="px-4 py-3 font-mono">{{ $row->ip_address }}</td>
@@ -134,7 +136,7 @@
                             <th class="px-4 py-3 font-medium">{{ __('Timestamp') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                    <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                         @forelse ($recentSecurityEvents as $event)
                             <tr>
                                 <td class="px-4 py-3 font-mono text-[var(--text-primary)]">{{ $event->action }}</td>

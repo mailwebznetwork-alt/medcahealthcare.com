@@ -20,7 +20,7 @@ it('loads all localized services for the locations page payload', function () {
     expect($payload['services'])->toHaveCount(8);
 });
 
-it('renders detailed service content on the locations near-you partial', function () {
+it('renders the home-style service grid on the locations near-you partial', function () {
     $pin = PinCode::factory()->create([
         'pincode' => '560078',
         'area_name' => 'JP Nagar',
@@ -51,10 +51,10 @@ it('renders detailed service content on the locations near-you partial', functio
     expect($html)
         ->toContain('data-section="near-you"')
         ->not->toContain('medca-hero-gradient')
-        ->toContain('data-location-services-detail')
+        ->not->toContain('data-location-services-detail')
         ->toContain('Home Nursing Care')
-        ->toContain('Comprehensive bedside nursing')
-        ->toContain('How quickly can a nurse arrive?');
+        ->toContain('Doctor-supervised nursing at home.')
+        ->not->toContain('How quickly can a nurse arrive?');
 });
 
 it('renders detailed service content on service location geo enrichment', function () {

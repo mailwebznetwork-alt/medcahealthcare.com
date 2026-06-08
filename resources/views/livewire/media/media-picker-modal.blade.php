@@ -3,7 +3,7 @@
         <div class="fixed inset-0 z-[99995] flex items-center justify-center p-4" role="dialog" aria-modal="true">
             <div class="absolute inset-0 bg-black/60" wire:click="close"></div>
             <div class="relative z-10 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] shadow-2xl">
-                <div class="flex items-center justify-between border-b border-[var(--border-panel-soft)] px-5 py-4">
+                <div class="flex items-center justify-between border-b border-[color:var(--border-tabstrip-divider)] px-5 py-4">
                     <h3 class="text-lg font-semibold text-[var(--text-primary)]">{{ __('Media Library') }}</h3>
                     <button type="button" wire:click="close" class="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">{{ __('Close') }}</button>
                 </div>

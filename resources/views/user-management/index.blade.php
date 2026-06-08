@@ -79,7 +79,7 @@
                             <th class="w-[1%] whitespace-nowrap px-4 py-3 font-medium text-right">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                    <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                         @forelse ($users as $row)
                             @php
                                 $accessIcons = $row->enabledModuleAccessIcons();

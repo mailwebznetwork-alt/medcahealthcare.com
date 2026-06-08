@@ -102,7 +102,7 @@
             <div class="mt-6 overflow-x-auto">
                 <table class="min-w-full text-left text-sm">
                     <thead>
-                        <tr class="border-b border-[rgba(255,255,255,0.08)] text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                        <tr class="border-b border-[color:var(--border-tabstrip-divider)] text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
                             <th class="px-3 py-2">{{ __('Label') }}</th>
                             <th class="px-3 py-2">{{ __('Field name (column)') }}</th>
                             <th class="px-3 py-2">{{ __('Type') }}</th>
@@ -110,7 +110,7 @@
                             <th class="px-3 py-2">{{ __('Value') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[rgba(255,255,255,0.06)]">
+                    <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)]">
                         @foreach ($module->fieldDefinitions as $field)
                             @php
                                 $cellValue = old('custom_fields.'.$field->field_name, $values->{$field->field_name} ?? null);

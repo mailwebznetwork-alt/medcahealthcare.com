@@ -7,7 +7,7 @@ use App\ModuleAccess;
 use App\Policies\DeploymentEnginePolicy;
 
 /**
- * Site Architect in-module IA (tabs, labels, role visibility).
+ * Site Architect in-module IA (sidebar groups, labels, role visibility).
  *
  * Routes and backend capabilities are unchanged — this only controls discoverability.
  */
@@ -21,7 +21,9 @@ final class SiteArchitectNavigation
 
     public const string LABEL_TEMPLATES = 'Style Templates';
 
-    public const string LABEL_NAV_GROUP_SECTIONS = 'Sections';
+    public const string LABEL_NAV_GROUP_BUILDING = 'Building';
+
+    public const string LABEL_NAV_GROUP_DEPLOYMENT = 'Deployment';
 
     public const string LABEL_LEGACY_SECTIONS = 'Legacy Sections';
 
@@ -61,12 +63,12 @@ final class SiteArchitectNavigation
     }
 
     /**
-     * Persistent left sidebar groups (replaces horizontal tab strip in workspace).
+     * Nested sidebar groups for the primary application sidebar.
      *
      * @return list<array{
      *     key: string,
      *     label: string,
-     *     items: list<array{route: string, label: string, active: bool, legacy?: bool, external?: bool, query?: array<string, string>}>
+     *     items: list<array{route: string, label: string, active: bool, legacy?: bool, query?: array<string, string>, fragment?: string}>
      * }>
      */
     public static function sidebarGroups(?User $user = null): array
@@ -86,16 +88,16 @@ final class SiteArchitectNavigation
                 ],
             ],
             [
-                'key' => 'sections',
-                'label' => __(self::LABEL_NAV_GROUP_SECTIONS),
+                'key' => 'building',
+                'label' => __(self::LABEL_NAV_GROUP_BUILDING),
                 'items' => self::sectionNavItems(),
             ],
         ];
 
         if ($full) {
             $groups[] = [
-                'key' => 'deploy',
-                'label' => __('Deploy'),
+                'key' => 'deployment',
+                'label' => __(self::LABEL_NAV_GROUP_DEPLOYMENT),
                 'items' => [
                     self::item('site-architect.blueprint-builder.index', __('Blueprint Builder'), request()->routeIs('site-architect.blueprint-builder.*')),
                     self::item('site-architect.deployment-packages.index', __('Packages'), request()->routeIs('site-architect.deployment-packages.*')),
@@ -104,126 +106,46 @@ final class SiteArchitectNavigation
             $groups[] = [
                 'key' => 'advanced',
                 'label' => __('Advanced'),
-                'items' => [
-                    self::item('site-architect.modules.index', __('Module Builder'), request()->routeIs('site-architect.modules.*')),
-                    self::item('site-architect.sections.index', __(self::LABEL_LEGACY_SECTIONS), request()->routeIs('site-architect.section-library.*', 'site-architect.sections.*'), legacy: true),
-                ],
-            ];
-        }
-
-        $operationsItems = self::operationsSidebarItems($user);
-        if ($operationsItems !== []) {
-            $groups[] = [
-                'key' => 'operations',
-                'label' => __('Operations'),
-                'items' => $operationsItems,
+                'items' => self::advancedNavItems($user),
             ];
         }
 
         return $groups;
-    }
-
-    /**
-     * @return list<array{route: string, label: string, active: bool, legacy?: bool, external?: bool, query?: array<string, string>}>
-     */
-    private static function operationsSidebarItems(?User $user): array
-    {
-        if (! $user instanceof User) {
-            return [];
-        }
-
-        $items = [];
-
-        if ($user->hasModuleAccess(ModuleAccess::SITE_ARCHITECT)) {
-            $items[] = self::sidebarItem(
-                'site-architect.pages.index',
-                __('Locations'),
-                request()->fullUrlIs('*pageCategoryFilter=location*') || (request()->routeIs('site-architect.pages.*') && request()->query('pageCategoryFilter') === 'location'),
-                query: ['pageCategoryFilter' => 'location'],
-            );
-        }
-
-        if ($user->hasModuleAccess(ModuleAccess::OPERATIONS)) {
-            $items[] = self::sidebarItem('operations.pin-codes.directory', __('Pincodes'), request()->routeIs('operations.pin-codes.*'));
-            $items[] = self::sidebarItem(
-                'site-architect.pages.index',
-                __('Service Locations'),
-                request()->query('pageCategoryFilter') === 'location' && request()->routeIs('site-architect.pages.*'),
-                query: ['pageCategoryFilter' => 'location'],
-            );
-            $items[] = self::sidebarItem('operations.services.index', __('Services'), request()->routeIs('operations.services.*'));
-            $items[] = self::sidebarItem('operations.service-categories.index', __('Categories'), request()->routeIs('operations.service-categories.*'));
-            $items[] = self::sidebarItem('operations.services.index', __('Sub Services'), request()->routeIs('operations.services.sub-services.*'));
-        }
-
-        if ($user->hasModuleAccess(ModuleAccess::SETTINGS)) {
-            $items[] = self::sidebarItem('system.source-of-truth', __('Source of Truth'), request()->routeIs('system.source-of-truth'));
-            $items[] = self::sidebarItem('settings.global-content', __('Content Safety'), request()->routeIs('settings.global-content'));
-            $items[] = self::sidebarItem('settings.appearance', __('Theme Status'), request()->routeIs('settings.appearance*'));
-        }
-
-        if ($user->hasModuleAccess(ModuleAccess::SECURITY)) {
-            $items[] = [
-                'route' => 'modules.security',
-                'label' => __('Audit Logs'),
-                'active' => request()->routeIs('modules.security'),
-                'fragment' => 'security-audit',
-            ];
-        }
-
-        return $items;
     }
 
     /**
      * @return list<array{
      *     key: string,
      *     label: string,
-     *     items: list<array{route: string, label: string, active: bool, legacy?: bool}>
+     *     items: list<array{route: string, label: string, active: bool, legacy?: bool, query?: array<string, string>, fragment?: string}>
      * }>
      */
     public static function tabGroups(?User $user = null): array
     {
-        $user ??= auth()->user();
-        $full = self::showsFullWorkspaceNav($user);
+        return self::sidebarGroups($user);
+    }
 
-        $groups = [
-            [
-                'key' => 'content',
-                'label' => __('Content'),
-                'items' => [
-                    self::item('site-architect.pages.index', __('Pages'), request()->routeIs('site-architect.pages.*')),
-                    self::item('site-architect.blogs.index', __('Blogs'), request()->routeIs('site-architect.blogs.*')),
-                    self::item('site-architect.navigation.index', __('Navigation'), request()->routeIs('site-architect.navigation.*')),
-                    self::item('site-architect.media.index', __('Media'), request()->routeIs('site-architect.media.*')),
-                ],
-            ],
-            [
-                'key' => 'sections',
-                'label' => __(self::LABEL_NAV_GROUP_SECTIONS),
-                'items' => self::sectionNavItems(),
-            ],
+    /**
+     * @return list<array{route: string, label: string, active: bool, legacy?: bool, query?: array<string, string>}>
+     */
+    private static function advancedNavItems(?User $user): array
+    {
+        $items = [
+            self::item('site-architect.modules.index', __('Module Builder'), request()->routeIs('site-architect.modules.*')),
+            self::item('site-architect.sections.index', __(self::LABEL_LEGACY_SECTIONS), request()->routeIs('site-architect.section-library.*', 'site-architect.sections.*'), legacy: true),
         ];
 
-        if ($full) {
-            $groups[] = [
-                'key' => 'deploy',
-                'label' => __('Deploy'),
-                'items' => [
-                    self::item('site-architect.blueprint-builder.index', __('Blueprint Builder'), request()->routeIs('site-architect.blueprint-builder.*')),
-                    self::item('site-architect.deployment-packages.index', __('Packages'), request()->routeIs('site-architect.deployment-packages.*')),
-                ],
-            ];
-            $groups[] = [
-                'key' => 'advanced',
-                'label' => __('Advanced'),
-                'items' => [
-                    self::item('site-architect.modules.index', __('Module Builder'), request()->routeIs('site-architect.modules.*')),
-                    self::item('site-architect.sections.index', __(self::LABEL_LEGACY_SECTIONS), request()->routeIs('site-architect.section-library.*', 'site-architect.sections.*'), legacy: true),
-                ],
-            ];
+        if ($user instanceof User && $user->hasModuleAccess(ModuleAccess::SITE_ARCHITECT)) {
+            $items[] = self::item(
+                'site-architect.pages.index',
+                __('Locations'),
+                request()->fullUrlIs('*pageCategoryFilter=location*')
+                    || (request()->routeIs('site-architect.pages.*') && request()->query('pageCategoryFilter') === 'location'),
+                query: ['pageCategoryFilter' => 'location'],
+            );
         }
 
-        return $groups;
+        return $items;
     }
 
     /**
@@ -284,9 +206,6 @@ final class SiteArchitectNavigation
     }
 
     /**
-     * @return array{route: string, label: string, active: bool, legacy?: bool}
-     */
-    /**
      * @param  array<string, string>  $query
      * @return array{route: string, label: string, active: bool, legacy?: bool, query?: array<string, string>, fragment?: string}
      */
@@ -301,29 +220,6 @@ final class SiteArchitectNavigation
 
         if ($query !== []) {
             $item['query'] = $query;
-        }
-
-        return $item;
-    }
-
-    /**
-     * @param  array<string, string>  $query
-     * @return array{route: string, label: string, active: bool, query?: array<string, string>, fragment?: string}
-     */
-    private static function sidebarItem(string $route, string $label, bool $active, array $query = [], ?string $fragment = null): array
-    {
-        $item = [
-            'route' => $route,
-            'label' => $label,
-            'active' => $active,
-        ];
-
-        if ($query !== []) {
-            $item['query'] = $query;
-        }
-
-        if ($fragment !== null) {
-            $item['fragment'] = $fragment;
         }
 
         return $item;

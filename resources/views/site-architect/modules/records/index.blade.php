@@ -42,7 +42,7 @@
             </div>
         @else
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-[rgba(255,255,255,0.06)]">
+                <table class="min-w-full divide-y divide-[color:var(--border-tabstrip-divider)]">
                     <thead class="bg-[rgba(255,255,255,0.02)]">
                         <tr>
                             <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">ID</th>
@@ -52,7 +52,7 @@
                             <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[rgba(255,255,255,0.04)]">
+                    <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)]">
                         @foreach ($recordRows as $row)
                             <tr>
                                 <td class="px-5 py-4 text-sm text-[var(--text-secondary)]">{{ $row->id }}</td>
@@ -82,7 +82,7 @@
                 </table>
             </div>
             @if ($recordRows->hasPages())
-                <div class="border-t border-[rgba(255,255,255,0.06)] px-5 py-4">
+                <div class="border-t border-[color:var(--border-tabstrip-divider)] px-5 py-4">
                     {{ $recordRows->links() }}
                 </div>
             @endif

@@ -3,6 +3,7 @@
 use App\Livewire\SiteArchitect\Pages;
 use App\Models\Page;
 use App\Models\User;
+use App\ModuleAccess;
 use App\Support\SiteArchitectNavigation;
 use App\Support\SiteArchitectSidebarState;
 use Database\Seeders\MedcaLaunchSeeder;
@@ -16,21 +17,43 @@ beforeEach(function () {
     $this->actingAs(User::factory()->create(['role' => 'admin']));
 });
 
-it('exposes sidebar groups with original screen names', function () {
+it('exposes sidebar groups with approved screen names', function () {
     $labels = collect(SiteArchitectNavigation::sidebarGroups())
         ->flatMap(fn (array $g) => collect($g['items'])->pluck('label'))
         ->all();
 
     expect($labels)->toContain('Pages', 'Blogs', 'Navigation', 'Media')
-        ->and($labels)->toContain('Section Content', 'Blocks Factory', 'Style Templates');
+        ->and($labels)->toContain('Section Content', 'Blocks Factory', 'Style Templates')
+        ->and($labels)->toContain('Blueprint Builder', 'Packages', 'Module Builder', 'Legacy Sections', 'Locations');
 });
 
-it('renders site architect workspace with left sidebar navigation', function () {
+it('does not expose duplicate operations links in site architect navigation', function () {
+    $labels = collect(SiteArchitectNavigation::sidebarGroups())
+        ->flatMap(fn (array $g) => collect($g['items'])->pluck('label'))
+        ->all();
+
+    expect($labels)->not->toContain('Pincodes', 'Services', 'Categories', 'Sub Services')
+        ->and($labels)->not->toContain('Source of Truth', 'Content Safety', 'Theme Status', 'Audit Logs', 'Service Locations');
+
+    $keys = collect(SiteArchitectNavigation::sidebarGroups())->pluck('key')->all();
+
+    expect($keys)->not->toContain('operations');
+});
+
+it('renders site architect workspace without a second sidebar', function () {
     $this->get(route('site-architect.pages.index'))
         ->assertSuccessful()
-        ->assertSee('Site Architect')
-        ->assertSee('Content')
-        ->assertSee('id="site-architect-sidebar"', false);
+        ->assertDontSee('id="site-architect-sidebar"', false)
+        ->assertDontSee('aria-controls="site-architect-sidebar"', false);
+});
+
+it('renders site architect nested navigation in the primary sidebar', function () {
+    $this->get(route('site-architect.pages.index'))
+        ->assertSuccessful()
+        ->assertSee('data-sidebar-module="site_architect"', false)
+        ->assertSee(__('Content'), false)
+        ->assertSee(__('Building'), false)
+        ->assertSee(__('Pages'), false);
 });
 
 it('tracks bulk row selection on pages list', function () {
@@ -73,17 +96,70 @@ it('reorders page content parts via drag sync method', function () {
         ->assertSet('contentParts.0', $before[1]);
 });
 
-it('includes operations links in sidebar when module access allows', function () {
-    $operations = collect(SiteArchitectSidebarState::groups())
-        ->firstWhere('key', 'operations');
-
-    expect($operations)->not->toBeNull();
-
-    $names = collect($operations['items'])->pluck('label')->all();
-
-    expect($names)->toContain('Source of Truth');
+it('sidebar default expanded groups include content and building', function () {
+    expect(SiteArchitectSidebarState::defaultExpanded())->toContain('content', 'building');
 });
 
-it('sidebar default expanded groups include content and sections', function () {
-    expect(SiteArchitectSidebarState::defaultExpanded())->toContain('content', 'sections');
-});
+it('preserves route access for site architect features across roles', function (string $role, array $routes, array $forbiddenLabels) {
+    $user = User::factory()->create([
+        'role' => $role,
+        'module_access' => ModuleAccess::defaultGrants(),
+    ]);
+
+    $this->actingAs($user);
+
+    foreach ($routes as $route) {
+        $this->followingRedirects()->get(route($route))->assertSuccessful();
+    }
+
+    $labels = collect(SiteArchitectNavigation::sidebarGroups($user))
+        ->flatMap(fn (array $g) => collect($g['items'])->pluck('label'))
+        ->all();
+
+    foreach ($forbiddenLabels as $label) {
+        expect($labels)->not->toContain($label);
+    }
+})->with([
+    'editor' => [
+        'editor',
+        [
+            'site-architect.pages.index',
+            'site-architect.blogs.index',
+            'site-architect.navigation.index',
+            'site-architect.media.index',
+            'site-architect.block-studio.index',
+            'site-architect.presets.index',
+        ],
+        ['Blueprint Builder', 'Packages', 'Module Builder', 'Legacy Sections', 'Locations', 'Blocks Factory'],
+    ],
+    'manager' => [
+        'manager',
+        [
+            'site-architect.pages.index',
+            'site-architect.blogs.index',
+            'site-architect.navigation.index',
+            'site-architect.media.index',
+            'site-architect.block-studio.index',
+            'site-architect.block-factory.index',
+            'site-architect.presets.index',
+        ],
+        ['Blueprint Builder', 'Packages', 'Module Builder', 'Legacy Sections', 'Locations'],
+    ],
+    'admin' => [
+        'admin',
+        [
+            'site-architect.pages.index',
+            'site-architect.blogs.index',
+            'site-architect.navigation.index',
+            'site-architect.media.index',
+            'site-architect.block-studio.index',
+            'site-architect.block-factory.index',
+            'site-architect.presets.index',
+            'site-architect.blueprint-builder.index',
+            'site-architect.deployment-packages.index',
+            'site-architect.modules.index',
+            'site-architect.sections.index',
+        ],
+        [],
+    ],
+]);

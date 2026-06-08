@@ -22,21 +22,22 @@
 
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
         @foreach ([
-            ['label' => __('Total pincodes'), 'value' => number_format($metrics['total']), 'hint' => __('All records in the directory')],
-            ['label' => __('Serviceable areas'), 'value' => number_format($metrics['serviceable']), 'hint' => __('Eligible for operational coverage')],
-            ['label' => __('Non-serviceable'), 'value' => number_format($metrics['non_serviceable']), 'hint' => __('Explicitly excluded from service')],
-            ['label' => __('Active locations'), 'value' => number_format($metrics['active']), 'hint' => __('Records currently enabled')],
+            ['label' => __('Total pincodes'), 'value' => number_format($metrics['total']), 'hint' => __('All records in the directory'), 'href' => \App\Support\AdminMetricLinks::pinCodesDirectory()],
+            ['label' => __('Serviceable areas'), 'value' => number_format($metrics['serviceable']), 'hint' => __('Eligible for operational coverage'), 'href' => \App\Support\AdminMetricLinks::pinCodesDirectory(['serviceable' => '1'])],
+            ['label' => __('Non-serviceable'), 'value' => number_format($metrics['non_serviceable']), 'hint' => __('Explicitly excluded from service'), 'href' => \App\Support\AdminMetricLinks::pinCodesDirectory(['serviceable' => '0'])],
+            ['label' => __('Active locations'), 'value' => number_format($metrics['active']), 'hint' => __('Records currently enabled'), 'href' => \App\Support\AdminMetricLinks::pinCodesDirectory(['active' => '1'])],
         ] as $card)
-            <article class="mom-card px-5 py-4">
-                <p class="mom-micro">{{ $card['label'] }}</p>
-                <p class="mom-metric mt-2 leading-none">{{ $card['value'] }}</p>
-                <p class="mom-subtext mt-2">{{ $card['hint'] }}</p>
-            </article>
+            <x-admin.metric-card
+                :label="$card['label']"
+                :value="$card['value']"
+                :hint="$card['hint']"
+                :href="$card['href']"
+            />
         @endforeach
     </div>
 
     <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <article class="mom-card px-5 py-4">
+        <a href="{{ \App\Support\AdminMetricLinks::growthCenter('geo') }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('Local SEO readiness') }}</p>
             <p class="mom-metric mt-2 leading-none">{{ number_format($seo['geo_page_ready']) }}</p>
             <p class="mom-subtext mt-2">{{ __('Locations flagged for future geo landing pages') }}</p>
@@ -54,8 +55,8 @@
                     <dd class="font-medium text-[var(--text-primary)]">{{ number_format($seo['with_seo_keywords']) }}</dd>
                 </div>
             </dl>
-        </article>
-        <article class="mom-card px-5 py-4">
+        </a>
+        <a href="{{ \App\Support\AdminMetricLinks::pinCodesDirectory(['serviceable' => '1']) }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('Operational coverage') }}</p>
             <p class="mom-metric mt-2 leading-none">
                 @if ($metrics['total'] > 0)
@@ -65,7 +66,7 @@
                 @endif
             </p>
             <p class="mom-subtext mt-2">{{ __('Share of directory marked serviceable (planning signal, not routing logic).') }}</p>
-        </article>
+        </a>
     </div>
 
     <div class="mom-card mt-12 overflow-hidden p-0">

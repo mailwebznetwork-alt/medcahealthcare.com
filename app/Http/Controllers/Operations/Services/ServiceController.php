@@ -19,6 +19,7 @@ use App\Services\Operations\ServiceCategoryService;
 use App\Services\Operations\ServiceDetailPageProvisioner;
 use App\Services\Operations\ServiceDetailPageSeoSync;
 use App\Services\Operations\ServiceGeminiAssistant;
+use App\Services\Operations\ServiceLifecycle;
 use App\Services\Operations\ServiceMasterOrchestrator;
 use App\Services\Operations\ServiceRelatedPageTokens;
 use App\Services\Operations\ServiceSeoOwnership;
@@ -49,57 +50,14 @@ class ServiceController extends Controller
         private readonly ServiceCategoryService $categoryService,
         private readonly ServiceMasterOrchestrator $serviceMasterOrchestrator,
         private readonly ServiceGeminiAssistant $serviceGeminiAssistant,
+        private readonly ServiceLifecycle $serviceLifecycle,
     ) {}
 
-    public function index(Request $request): View
+    public function index(): View
     {
         $this->authorize('viewAny', Service::class);
 
-        $validated = $request->validate([
-            'q' => ['nullable', 'string', 'max:200'],
-            'publish_status' => ['nullable', 'in:draft,published'],
-            'active' => ['nullable', 'in:0,1'],
-            'featured' => ['nullable', 'in:0,1'],
-            'category_ids' => ['nullable', 'array'],
-            'category_ids.*' => ['integer', 'exists:service_categories,id'],
-        ]);
-
-        $query = Service::query()
-            ->with('categories')
-            ->orderByDesc('updated_at');
-
-        if (! empty($validated['q'])) {
-            $term = $validated['q'];
-            $query->where(function ($q) use ($term): void {
-                $q->where('title', 'like', '%'.$term.'%')
-                    ->orWhere('service_code', 'like', '%'.$term.'%');
-            });
-        }
-
-        if (! empty($validated['publish_status'])) {
-            $query->where('publish_status', $validated['publish_status']);
-        }
-
-        if (isset($validated['active']) && $validated['active'] !== '') {
-            $query->where('is_active', $validated['active'] === '1');
-        }
-
-        if (isset($validated['featured']) && $validated['featured'] !== '') {
-            $query->where('is_featured', $validated['featured'] === '1');
-        }
-
-        if (! empty($validated['category_ids'])) {
-            $query->inCategories($validated['category_ids']);
-        }
-
-        /** @var LengthAwarePaginator<int, Service> $services */
-        $services = $query->paginate(20)->withQueryString();
-
-        return view('operations.services.index', [
-            'services' => $services,
-            'filters' => $validated,
-            'categoryOptions' => $this->categoryRepository->activeForPicker(),
-        ]);
+        return view('operations.services.index');
     }
 
     public function create(Request $request): View
@@ -347,20 +305,7 @@ class ServiceController extends Controller
     {
         $this->authorize('delete', $service);
 
-        DB::transaction(function () use ($service): void {
-            $this->deletePublicPath($service->featured_image);
-            $this->deletePublicPath($service->icon);
-            if (is_array($service->gallery)) {
-                foreach ($service->gallery as $path) {
-                    $this->deletePublicPath($path);
-                }
-            }
-
-            app(\App\Services\Governance\AdminDeletionGuard::class)->recordServiceDeletion($service);
-            $this->serviceMasterOrchestrator->teardown($service);
-            app(\App\Services\Governance\DownstreamArtifactPurger::class)->purgeForDeletedService($service);
-            $service->delete();
-        });
+        $this->serviceLifecycle->delete($service);
 
         return redirect()
             ->route('operations.services.index')
@@ -371,44 +316,7 @@ class ServiceController extends Controller
     {
         $this->authorize('create', Service::class);
 
-        $service->loadMissing(['seo', 'faqs', 'schema', 'pincodes', 'categories']);
-
-        $copy = DB::transaction(function () use ($service) {
-            $new = $service->replicate();
-            $new->service_code = $service->service_code.'_copy_'.time();
-            $new->detail_page_id = null;
-            $new->publish_status = PublishStatus::Draft;
-            $new->featured_image = null;
-            $new->icon = null;
-            $new->gallery = [];
-            $new->save();
-
-            if ($service->seo) {
-                $seo = $service->seo->replicate();
-                $seo->service_id = $new->id;
-                $seo->save();
-            }
-
-            foreach ($service->faqs as $faq) {
-                $row = $faq->replicate();
-                $row->service_id = $new->id;
-                $row->save();
-            }
-
-            if ($service->schema) {
-                $sch = $service->schema->replicate();
-                $sch->service_id = $new->id;
-                $sch->save();
-            }
-
-            $new->pincodes()->sync($service->pincodes->pluck('id')->all());
-            $new->categories()->sync($service->categories->pluck('id')->all());
-
-            $new = $new->fresh(['pincodes', 'seo', 'faqs', 'schema']);
-            $this->serviceMasterOrchestrator->sync($new);
-
-            return $new;
-        });
+        $copy = $this->serviceLifecycle->duplicate($service);
 
         return redirect()
             ->route('operations.services.edit', $copy)
@@ -574,6 +482,13 @@ class ServiceController extends Controller
     private function syncPincodes(Service $service, array $ids): void
     {
         $ids = array_values(array_unique(array_map(static fn ($v) => (int) $v, array_filter($ids, fn ($v) => $v !== null && $v !== ''))));
+        $ids = app(\App\Services\Governance\PinCodeCreationGuard::class)->filterEligiblePinIdsForSync($ids);
+
+        $previousPinIds = $service->pincodes()->pluck('pin_codes.id')->all();
+        $mappingProtection = app(\App\Services\Governance\MappingProtectionService::class);
+        $mappingProtection->recordRemovalsFromSyncDiff($service, $previousPinIds, $ids, 'ui');
+        $ids = $mappingProtection->filterAttachablePinIds($service, $ids, 'ui');
+
         $service->pincodes()->sync($ids);
     }
 

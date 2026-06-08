@@ -9,12 +9,14 @@ use App\Services\Marketing\Analytics\MarketingConversionMetricsService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\View\View;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class IntelligenceDashboard extends Component
 {
     use AuthorizesRequests;
 
+    #[Url(as: 'tab', history: true, keep: true)]
     public string $tab = 'executive';
 
     public string $trendGranularity = 'daily';
@@ -26,6 +28,11 @@ class IntelligenceDashboard extends Component
     public function mount(): void
     {
         $this->authorize('view', MarketingSetting::current());
+
+        if (! in_array($this->tab, ['executive', 'whatsapp', 'calls', 'attribution', 'conversions', 'reporting'], true)) {
+            $this->tab = 'executive';
+        }
+
         $this->dateFrom = now()->subDays(30)->toDateString();
         $this->dateTo = now()->toDateString();
     }

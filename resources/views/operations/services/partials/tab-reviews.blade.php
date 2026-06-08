@@ -15,7 +15,7 @@
         <div class="overflow-x-auto">
             <table class="mom-table min-w-full text-left text-sm">
                 <thead>
-                    <tr class="border-b border-[rgba(255,255,255,0.08)] text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                    <tr class="border-b border-[color:var(--border-tabstrip-divider)] text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
                         <th class="px-3 py-2">{{ __('Reviewer') }}</th>
                         <th class="px-3 py-2">{{ __('Rating') }}</th>
                         <th class="px-3 py-2">{{ __('Comment') }}</th>
@@ -23,7 +23,7 @@
                         <th class="px-3 py-2">{{ __('Status') }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[rgba(255,255,255,0.06)]">
+                <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)]">
                     @foreach ($serviceReviews as $index => $review)
                         <tr class="align-top">
                             <td class="px-3 py-3 text-[var(--text-secondary)]">

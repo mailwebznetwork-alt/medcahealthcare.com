@@ -8,7 +8,7 @@
 - Mobile drawer via **Site Architect menu** button (lg breakpoint).
 - All route names, labels, and screens are unchanged.
 
-Configuration: `App\Support\SiteArchitectNavigation::sidebarGroups()`.
+Configuration: `App\Support\SiteArchitectNavigation::sidebarGroups()` (rendered in the primary sidebar via `mom-sidebar-site-architect`).
 
 ## Universal bulk selection
 

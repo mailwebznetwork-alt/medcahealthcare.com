@@ -48,9 +48,10 @@ return [
         'near-you-locations' => [
             'category' => 'locations',
             'block_name' => 'Locations — Near You (pincode services)',
-            'description' => 'Same pincode-based service grid for the Locations page. Edit labels in Blocks Studio.',
+            'description' => 'Same pincode-based service grid for the Locations page. Uses the home Near You block code.',
             'block_type' => 'Service Grid',
-            'view' => 'blocks.shared.near-you-services',
+            'view' => 'blocks.home.near-you-home',
+            'code' => "@include('blocks.home.near-you-home')",
             'is_required_on_pages' => ['locations'],
         ],
         'locations-overview-home' => [

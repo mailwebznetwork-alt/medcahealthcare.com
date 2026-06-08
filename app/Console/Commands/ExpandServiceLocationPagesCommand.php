@@ -62,7 +62,11 @@ class ExpandServiceLocationPagesCommand extends Command
                 continue;
             }
 
-            $service->pincodes()->syncWithoutDetaching($pinIds);
+            $attachable = app(\App\Services\Governance\MappingProtectionService::class)
+                ->filterAttachablePinIds($service, $pinIds, 'sync');
+            if ($attachable !== []) {
+                $service->pincodes()->syncWithoutDetaching($attachable);
+            }
             $orchestrator->sync($service->fresh(['pincodes', 'seo', 'faqs', 'schema']));
             $this->line("Synced: {$service->service_code}");
         }

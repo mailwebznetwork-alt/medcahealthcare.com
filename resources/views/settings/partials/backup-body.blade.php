@@ -6,7 +6,7 @@
         <button type="submit" class="mom-cta-primary mom-cta-compact">{{ __('Run backup now') }}</button>
     </form>
 
-    <div class="mt-8 border-t border-[var(--border-panel-soft)] pt-8">
+    <div class="mt-8 border-t border-[color:var(--border-tabstrip-divider)] pt-8">
         <h3 class="mom-micro mb-2">{{ __('Export to your computer') }}</h3>
         <p class="mom-body-text text-[var(--text-secondary)]">{{ __('Download includes node_modules and vendor so size should track server usage closely; storage/app/backups is always skipped; .git is excluded by default (override via SETTINGS_SITE_BACKUP_EXCLUDED_PREFIXES). Zip is compressed — smaller than raw du unless you compare unpacked project/. Requires file-based SQLite.') }}</p>
         <div class="mt-4">
@@ -14,7 +14,7 @@
         </div>
     </div>
 
-    <div class="mt-8 border-t border-[var(--border-panel-soft)] pt-8">
+    <div class="mt-8 border-t border-[color:var(--border-tabstrip-divider)] pt-8">
         <h3 class="mom-micro mb-2">{{ __('Restore from upload') }}</h3>
         <p class="mom-body-text text-[var(--text-secondary)]">{{ __('Upload a zip from this page. It overwrites storage/public and storage/private, copies project/ files onto the application root, then replaces the SQLite file. A safety zip of the current site is saved first. Files on disk that are not in the archive are left in place.') }}</p>
         @error('backup_file')

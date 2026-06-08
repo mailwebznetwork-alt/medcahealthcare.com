@@ -41,7 +41,7 @@
                     <thead><tr class="text-left text-[var(--text-secondary)]"><th class="py-2">{{ __('Name') }}</th><th>{{ __('Type') }}</th><th>{{ __('Target') }}</th><th></th></tr></thead>
                     <tbody>
                         @forelse ($presets as $preset)
-                            <tr class="border-t border-[var(--border-panel-soft)]">
+                            <tr class="border-t border-[color:var(--border-tabstrip-divider)]">
                                 <td class="py-2 font-medium">{{ $preset->name }}</td>
                                 <td>{{ $preset->block_type }}</td>
                                 <td><code>{{ $preset->target_block_slug ?? '—' }}</code></td>

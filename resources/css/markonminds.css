@@ -424,14 +424,7 @@ body.mom-body::after {
     margin: 2.25rem 0;
     border: 0;
     flex-shrink: 0;
-    background: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.05) 12%,
-        rgba(197, 160, 89, 0.3) 50%,
-        rgba(255, 255, 255, 0.05) 88%,
-        transparent 100%
-    );
+    background: var(--border-tabstrip-divider);
 }
 
 /**
@@ -455,13 +448,7 @@ body.mom-body::after {
     margin: 1.25rem 0 1.25rem;
     border: 0;
     flex-shrink: 0;
-    background: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(197, 160, 89, 0.2) 50%,
-        transparent 100%
-    );
-    opacity: 0.9;
+    background: var(--border-tabstrip-divider);
 }
 
 /** Tighter rhythm when nav dividers sit between <li> rows in the sidebar list */
@@ -497,9 +484,30 @@ body.mom-body::after {
     column-gap: 12px;
     padding: 10px 12px;
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.25;
     border-radius: var(--radius-chrome);
+}
+
+/** Nested module sidebar — group headers + child links */
+.mom-sidebar-module__group-label {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    color: var(--text-muted);
+}
+
+.mom-sidebar-module__child-link {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+.mom-sidebar-module__child-link.is-active {
+    font-weight: 400;
+    color: var(--accent-gold, #c5a059);
+    background: rgba(197, 160, 89, 0.12);
 }
 
 .mom-sidebar-link__icon {
@@ -638,10 +646,19 @@ body.mom-body::after {
     opacity: 0.85;
 }
 
-/* Table row hover */
+/* Table row separators + hover */
+
+.mom-table thead tr {
+    border-bottom: 1px solid var(--border-tabstrip-divider);
+}
 
 .mom-table tbody tr {
+    border-bottom: 1px solid var(--border-tabstrip-divider);
     transition: background-color var(--mom-transition);
+}
+
+.mom-table tbody tr:last-child {
+    border-bottom: none;
 }
 
 .mom-table tbody tr:hover {

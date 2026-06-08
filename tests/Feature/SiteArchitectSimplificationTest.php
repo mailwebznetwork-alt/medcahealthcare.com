@@ -78,7 +78,7 @@ it('does not show deployment hub on blocks studio', function () {
         ->assertDontSee(__('Deploy shortcuts'), false);
 });
 
-it('shows compose journey guidance on pages workspace', function () {
+it('does not show compose journey guidance on pages workspace', function () {
     $user = User::factory()->create([
         'role' => 'editor',
         'module_access' => ModuleAccess::defaultGrants(),
@@ -87,7 +87,7 @@ it('shows compose journey guidance on pages workspace', function () {
     $this->actingAs($user)
         ->get(route('site-architect.pages.index'))
         ->assertSuccessful()
-        ->assertSee(__('Quick path: Page → Section → Content → Preview → Live'), false);
+        ->assertDontSee(__('Quick path: Page → Section → Content → Preview → Live'), false);
 });
 
 it('shows deploy shortcuts only on blueprint builder', function () {

@@ -5,6 +5,8 @@ namespace App\Services\Growth;
 use App\Models\BusinessProfile;
 use App\Models\GeoLocation;
 use App\Models\PinCode;
+use App\Services\Governance\PinCodeCreationGuard;
+use App\Services\Governance\PinCodeMasterDataAudit;
 use App\Services\Seo\LocalityContextResolver;
 use Illuminate\Support\Facades\Schema;
 
@@ -39,11 +41,22 @@ class GeoService
         );
     }
 
-    public function addPincode(array $data): PinCode
+    public function addPincode(array $data): ?PinCode
     {
         $pincode = trim((string) ($data['pincode'] ?? ''));
+        $guard = app(PinCodeCreationGuard::class);
+        $normalized = $guard->normalizePincode($pincode);
 
-        return PinCode::query()->updateOrCreate(
+        if ($normalized === null) {
+            return null;
+        }
+
+        $existing = PinCode::query()->where('pincode', $normalized)->first();
+        if ($existing === null && ! $guard->canCreatePincode($normalized, 'growth')) {
+            return null;
+        }
+
+        $pinCode = PinCode::query()->updateOrCreate(
             ['pincode' => $pincode],
             [
                 'business_profile_id' => $this->resolveBusinessProfileId(),
@@ -56,6 +69,14 @@ class GeoService
                 'is_active' => true,
             ]
         );
+
+        if ($existing === null) {
+            app(PinCodeMasterDataAudit::class)->created($pinCode, 'growth');
+        } else {
+            app(PinCodeMasterDataAudit::class)->updated($pinCode, 'growth');
+        }
+
+        return $pinCode;
     }
 
     public function updatePincode(int $id, array $data): ?PinCode

@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\ModuleAccess;
+
 /**
  * Sidebar group data for Site Architect workspace (delegates to {@see SiteArchitectNavigation}).
  */
@@ -26,6 +28,6 @@ final class SiteArchitectSidebarState
      */
     public static function defaultExpanded(): array
     {
-        return ['content', 'sections'];
+        return ModuleSidebarNavigation::defaultExpanded(ModuleAccess::SITE_ARCHITECT);
     }
 }

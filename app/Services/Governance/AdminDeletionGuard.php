@@ -3,7 +3,11 @@
 namespace App\Services\Governance;
 
 use App\Models\AdminDeletionTombstone;
+use App\Models\PinCode;
 use App\Models\Service;
+use App\Models\ServiceCategory;
+use App\Models\SubService;
+use App\Services\Governance\SubServiceCreationGuard;
 use App\Services\Governance\AutomatedWriteAuditLogger;
 
 class AdminDeletionGuard
@@ -53,8 +57,80 @@ class AdminDeletionGuard
         return true;
     }
 
-    public function recordServiceDeletion(Service $service): void
+    public function recordServiceDeletion(Service $service, string $source = 'ui', ?string $reason = null): void
     {
-        AdminDeletionTombstone::record('service', $service->service_code, auth()->id());
+        AdminDeletionTombstone::record(
+            entityType: 'service',
+            naturalKey: $service->service_code,
+            userId: auth()->id(),
+            source: $source,
+            reason: $reason,
+        );
+    }
+
+    public function isCategoryPermanentlyDeleted(string $code): bool
+    {
+        return AdminDeletionTombstone::exists('category', $code);
+    }
+
+    public function recordCategoryDeletion(ServiceCategory $category, string $source = 'ui', ?string $reason = null): void
+    {
+        AdminDeletionTombstone::record(
+            entityType: 'category',
+            naturalKey: $category->code,
+            userId: auth()->id(),
+            source: $source,
+            reason: $reason,
+        );
+    }
+
+    public function isSubServicePermanentlyDeleted(string $naturalKey): bool
+    {
+        return AdminDeletionTombstone::exists('sub_service', $naturalKey);
+    }
+
+    public function recordSubServiceDeletion(SubService $sub, string $source = 'ui', ?string $reason = null): void
+    {
+        AdminDeletionTombstone::record(
+            entityType: 'sub_service',
+            naturalKey: SubServiceCreationGuard::naturalKeyFromModel($sub),
+            userId: auth()->id(),
+            source: $source,
+            reason: $reason,
+        );
+    }
+
+    public function isPinCodePermanentlyDeleted(string $pincode): bool
+    {
+        return AdminDeletionTombstone::exists('pin_code', $pincode);
+    }
+
+    public function canRecreatePinCode(string $pincode, string $process): bool
+    {
+        if (! $this->isPinCodePermanentlyDeleted($pincode)) {
+            return true;
+        }
+
+        $this->audit->blocked(
+            process: $process,
+            action: 'recreate_pin_code',
+            table: 'pin_codes',
+            recordId: null,
+            recordKey: $pincode,
+            reason: 'Pincode permanently deleted by admin; automatic recreation blocked.',
+        );
+
+        return false;
+    }
+
+    public function recordPinCodeDeletion(PinCode $pinCode, string $source = 'ui', ?string $reason = null): void
+    {
+        AdminDeletionTombstone::record(
+            entityType: 'pin_code',
+            naturalKey: $pinCode->pincode,
+            userId: auth()->id(),
+            source: $source,
+            reason: $reason,
+        );
     }
 }

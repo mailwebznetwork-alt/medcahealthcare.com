@@ -46,8 +46,13 @@ class GeoController extends Controller
 
     public function storePincode(StorePincodeRequest $request): RedirectResponse
     {
-        $this->geoService->addPincode($request->validated());
+        $pinCode = $this->geoService->addPincode($request->validated());
         GrowthReadinessReport::forget();
+
+        if ($pinCode === null) {
+            return redirect()->route('growth-center.competitors.index', ['tab' => 'seo'])
+                ->with('error', __('This pincode cannot be added. It may have been permanently removed from Operations.'));
+        }
 
         return redirect()->route('growth-center.competitors.index', ['tab' => 'seo'])
             ->with('status', __('Pincode added.'));

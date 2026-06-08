@@ -1,11 +1,6 @@
 import './bootstrap';
 import './site-architect-navigation';
 import './site-architect-sortable';
-import { siteArchitectWorkspace } from './site-architect-workspace';
-
-if (typeof window !== 'undefined' && ! window.siteArchitectWorkspace) {
-    window.siteArchitectWorkspace = siteArchitectWorkspace;
-}
 import { bootLocationDetection } from './location-detection';
 
 import Alpine from 'alpinejs';

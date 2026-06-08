@@ -36,7 +36,7 @@
 
     <div class="mom-card overflow-x-auto p-0">
         <table class="min-w-[960px] w-full text-left text-sm">
-            <thead class="border-b border-[var(--border-panel-soft)] bg-[rgba(255,255,255,0.02)] mom-micro">
+            <thead class="border-b border-[color:var(--border-tabstrip-divider)] bg-[rgba(255,255,255,0.02)] mom-micro">
                 <tr>
                     <th class="px-4 py-3 font-medium">{{ __('Name') }}</th>
                     <th class="px-4 py-3 font-medium">{{ __('Phone') }}</th>
@@ -51,7 +51,7 @@
             </thead>
             <tbody>
                 @forelse ($leads as $lead)
-                    <tr wire:key="lead-{{ $lead->id }}" class="border-b border-[var(--border-panel-soft)]">
+                    <tr wire:key="lead-{{ $lead->id }}" class="border-b border-[color:var(--border-tabstrip-divider)]">
                         <td class="px-4 py-3 font-medium text-[var(--text-primary)]">{{ $lead->name }}</td>
                         <td class="px-4 py-3 font-mono text-[var(--text-secondary)]">{{ $lead->phone }}</td>
                         <td class="max-w-[140px] truncate px-4 py-3 text-[var(--text-secondary)]" title="{{ $lead->service }}">{{ $lead->service }}</td>

@@ -29,7 +29,7 @@
         <button type="submit" class="mom-cta-primary mom-cta-compact" @disabled(! $operationsConfigured || ! $maintenanceSecretConfigured)>{{ __('Put site in maintenance') }}</button>
     </form>
 
-    <form method="post" action="{{ route('settings.system.maintenance') }}" class="mt-8 space-y-3 border-t border-[var(--border-panel-soft)] pt-6">
+    <form method="post" action="{{ route('settings.system.maintenance') }}" class="mt-8 space-y-3 border-t border-[color:var(--border-tabstrip-divider)] pt-6">
         @csrf
         <input type="hidden" name="maintenance_action" value="up">
         <label class="block max-w-md">

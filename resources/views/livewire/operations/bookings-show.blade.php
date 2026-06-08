@@ -48,7 +48,7 @@
             <button type="submit" class="shrink-0 rounded-lg bg-[rgba(197,160,89,0.12)] px-4 py-2 text-sm font-medium text-mom-gold ring-1 ring-[rgba(197,160,89,0.35)]">{{ __('Save note') }}</button>
         </form>
 
-        <ul class="mt-8 space-y-4 border-t border-[var(--border-panel-soft)] pt-6">
+        <ul class="mt-8 space-y-4 border-t border-[color:var(--border-tabstrip-divider)] pt-6">
             @forelse ($lead->notes as $n)
                 <li class="rounded-lg border border-[var(--border-panel-soft)] bg-[rgba(255,255,255,0.02)] px-4 py-3">
                     <p class="mom-micro">{{ $n->author?->name ?? __('User') }} · {{ $n->created_at->timezone(config('app.timezone'))->format('Y-m-d H:i') }}</p>

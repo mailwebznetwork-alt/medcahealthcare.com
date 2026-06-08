@@ -13,12 +13,14 @@ use App\Services\Marketing\MarketingInsightsService;
 use App\Services\Marketing\MetaAdsReportService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\View\View;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Dashboard extends Component
 {
     use AuthorizesRequests;
 
+    #[Url(as: 'tab', history: true, keep: true)]
     public string $tab = 'overview';
 
     public ?string $flash = null;
@@ -82,6 +84,10 @@ class Dashboard extends Component
     public function mount(): void
     {
         $this->authorize('view', MarketingSetting::current());
+
+        if (! in_array($this->tab, ['overview', 'google-ads', 'meta', 'communication', 'campaigns', 'insights', 'lead-intent'], true)) {
+            $this->tab = 'overview';
+        }
 
         $this->ga4RangePreset = in_array($this->ga4RangePreset, Ga4DataApiService::RANGE_PRESETS, true)
             ? $this->ga4RangePreset

@@ -23,7 +23,7 @@
         <div class="overflow-x-auto">
             <table class="mom-table min-w-full text-left text-sm">
                 <thead>
-                    <tr class="border-b border-[rgba(255,255,255,0.08)] text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                    <tr class="border-b border-[color:var(--border-tabstrip-divider)] text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
                         <th class="px-3 py-2">{{ __('Title') }}</th>
                         <th class="px-3 py-2">{{ __('Code') }}</th>
                         <th class="px-3 py-2">{{ __('Publish') }}</th>
@@ -31,7 +31,7 @@
                         <th class="px-3 py-2"></th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[rgba(255,255,255,0.06)]">
+                <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)]">
                     @foreach ($subServices as $sub)
                         <tr>
                             <td class="px-3 py-3 text-[var(--text-primary)]">{{ $sub->title }}</td>

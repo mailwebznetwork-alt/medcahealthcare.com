@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\PinCode;
+use App\Services\Governance\MasterDataProtection;
+use App\Services\Governance\PinCodeCreationGuard;
 use Illuminate\Database\Seeder;
 
 /**
@@ -14,7 +16,18 @@ class MedcaBangalorePinCodesSeeder extends Seeder
 {
     public function run(): void
     {
+        if (! app(MasterDataProtection::class)->allowsWrite('seeder')) {
+            return;
+        }
+
+        $guard = app(PinCodeCreationGuard::class);
+
         foreach ($this->definitions() as $row) {
+            $exists = PinCode::query()->where('pincode', $row['pincode'])->exists();
+            if (! $exists && ! $guard->canCreatePincode($row['pincode'], 'seeder')) {
+                continue;
+            }
+
             PinCode::query()->updateOrCreate(
                 ['pincode' => $row['pincode']],
                 [

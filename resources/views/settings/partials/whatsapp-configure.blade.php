@@ -44,7 +44,7 @@
                         <span class="mom-subtext font-normal">— {{ $slot['display_name'] }}</span>
                     @endif
                 </summary>
-                <div class="grid gap-3 border-t border-[var(--border-panel-soft)] p-3">
+                <div class="grid gap-3 border-t border-[color:var(--border-tabstrip-divider)] p-3">
                     <label class="block">
                         <span class="mom-micro mb-1 block">{{ __('Display name') }}</span>
                         <input type="text" name="click_numbers[{{ $index }}][display_name]" value="{{ old("click_numbers.$index.display_name", $slot['display_name'] ?? '') }}" class="mom-input w-full" placeholder="{{ __('Customer Care') }}">
@@ -76,7 +76,7 @@
     <button type="submit" class="mom-cta-primary mom-cta-compact">{{ __('Save') }}</button>
 </form>
 
-<details class="mt-4 border-t border-[var(--border-panel-soft)] pt-4">
+<details class="mt-4 border-t border-[color:var(--border-tabstrip-divider)] pt-4">
     <summary class="mom-micro cursor-pointer font-semibold uppercase tracking-wide">{{ __('Advanced — WhatsApp Business API') }}</summary>
     <p class="mom-subtext mt-2">{{ __('Webhooks and automation use Cloud API credentials. Not required for website click-to-chat links.') }}</p>
 

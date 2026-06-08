@@ -21,7 +21,7 @@
             </div>
         @else
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-[rgba(255,255,255,0.06)]">
+                <table class="min-w-full divide-y divide-[color:var(--border-tabstrip-divider)]">
                     <thead class="bg-[rgba(255,255,255,0.02)]">
                         <tr>
                             <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">{{ __('Module') }}</th>
@@ -31,7 +31,7 @@
                             <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[rgba(255,255,255,0.04)]">
+                    <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)]">
                         @foreach ($modules as $module)
                             <tr>
                                 <td class="px-5 py-4">

@@ -30,10 +30,6 @@
     :page-title="$resolvedPageTitle"
     :welcome-line="$resolvedWelcome"
 >
-    <x-slot:tabs>
-        @include('operations.partials.primary-tabs')
-    </x-slot:tabs>
-
     @if ($showToolbar)
         <x-slot:toolbar>
             @if (request()->routeIs('operations.job-portal.*'))

@@ -7,7 +7,9 @@ use App\Enums\ServiceVisibility;
 use App\Models\PinCode;
 use App\Models\Service;
 use App\Models\ServiceSeo;
-use App\Services\Governance\AdminDeletionGuard;
+use App\Services\Governance\MappingProtectionService;
+use App\Services\Governance\MasterDataProtection;
+use App\Services\Governance\ServiceCreationGuard;
 use App\Services\Operations\ServiceDetailPageProvisioner;
 use App\Services\Operations\ServiceRelatedPageTokens;
 use Database\Seeders\Support\MedcaLaunchMedia;
@@ -22,6 +24,10 @@ class MedcaLaunchServicesSeeder extends Seeder
 {
     public function run(): void
     {
+        if (! app(MasterDataProtection::class)->allowsWrite('seeder')) {
+            return;
+        }
+
         DB::transaction(function (): void {
             foreach ($this->definitions() as $definition) {
                 $this->upsertService($definition);
@@ -36,7 +42,7 @@ class MedcaLaunchServicesSeeder extends Seeder
     {
         $code = (string) $definition['service_code'];
 
-        if (! app(AdminDeletionGuard::class)->canSeedService($code, 'MedcaLaunchServicesSeeder')) {
+        if (! app(ServiceCreationGuard::class)->canCreateService($code, 'seeder')) {
             return;
         }
 
@@ -63,12 +69,14 @@ class MedcaLaunchServicesSeeder extends Seeder
             ]
         );
 
-        $pinIds = PinCode::query()
-            ->where('is_active', true)
+        $pinIds = PinCode::eligibleForCoverage()
             ->pluck('id')
             ->all();
         if ($pinIds !== []) {
-            $service->pincodes()->sync($pinIds);
+            $pinIds = app(MappingProtectionService::class)->filterAttachablePinIds($service, $pinIds, 'seeder');
+            if ($pinIds !== []) {
+                $service->pincodes()->sync($pinIds);
+            }
         }
 
         ServiceSeo::query()->updateOrCreate(

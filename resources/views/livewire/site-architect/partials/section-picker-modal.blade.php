@@ -3,7 +3,7 @@
 @endphp
 <div class="fixed inset-0 z-[210] flex items-center justify-center bg-black/65 p-4" wire:click.self="closeSectionPicker">
     <div class="mom-card flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden p-0" @click.stop role="dialog" aria-modal="true" aria-labelledby="section-picker-title">
-        <div class="border-b border-[var(--border-panel-soft)] px-5 py-4">
+        <div class="border-b border-[color:var(--border-tabstrip-divider)] px-5 py-4">
             <h4 id="section-picker-title" class="mom-section-title">{{ __('Add section') }}</h4>
             <p class="mom-subtext mt-1 text-sm">{{ __('Choose a section type. You can change the wording after adding it.') }}</p>
             <div class="mt-4 flex flex-wrap gap-3">
@@ -58,7 +58,7 @@
             @endforelse
         </div>
 
-        <div class="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border-panel-soft)] px-5 py-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--border-tabstrip-divider)] px-5 py-3">
             @if ($canUseDeveloperBlockTools ?? false)
                 <button type="button" wire:click="openDeveloperBlockModal" class="text-xs text-[var(--text-muted)] underline hover:text-mom-gold">
                     {{ __('Developer: create block with code') }}

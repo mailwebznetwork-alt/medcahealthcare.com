@@ -36,7 +36,7 @@
                     <th class="px-4 py-3 font-medium">{{ __('Actions') }}</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+            <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                 @forelse ($integrations as $integration)
                     @continue($integration->name === 'whatsapp_business')
                     @php
@@ -81,7 +81,7 @@
                                         </form>
 
                                         @if (!empty($definition['multi_account']) && $integration->name === 'whatsapp_business')
-                                            <div class="mt-4 border-t border-[var(--border-panel-soft)] pt-4">
+                                            <div class="mt-4 border-t border-[color:var(--border-tabstrip-divider)] pt-4">
                                                 <h4 class="mom-micro mb-2">{{ __('Add WhatsApp Number (max 5)') }}</h4>
                                                 <form method="post" action="{{ route('admin.settings.integrations.accounts.store', $integration->name) }}" class="space-y-2">
                                                     @csrf
@@ -152,7 +152,7 @@
                     <th class="px-4 py-3 font-medium">{{ __('Reviewed at') }}</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+            <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                 @forelse ($googleBusinessReviews as $review)
                     <tr>
                         <td class="px-4 py-3">{{ $review->reviewer_name ?: '—' }}</td>
@@ -182,7 +182,7 @@
                     <th class="px-4 py-3 font-medium">{{ __('Inactive') }}</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+            <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                 @forelse ($matrixSummary as $type => $row)
                     <tr>
                         <td class="px-4 py-3">{{ str_replace('_', ' ', $type) }}</td>

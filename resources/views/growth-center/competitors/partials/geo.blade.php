@@ -62,7 +62,7 @@
                     <th class="px-4 py-3 font-medium">{{ __('Serviceable') }}</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+            <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                 @forelse ($pincodes as $pincode)
                     <tr>
                         <td class="px-4 py-3 text-[var(--text-primary)]">{{ $pincode->pincode }}</td>

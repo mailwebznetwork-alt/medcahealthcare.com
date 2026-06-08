@@ -5,6 +5,7 @@
 @php
     /** @var \App\Models\User $user */
     use App\Support\AdminNavigation;
+    use App\Support\ModuleSidebarNavigation;
 
     $nodes = $user->visibleSidebarNodes();
     $nodesByKey = collect($nodes)->keyBy('key');
@@ -14,6 +15,15 @@
     $orderedLinks = [];
     foreach ($sectionKeys as $keys) {
         foreach ($keys as $key) {
+            if (ModuleSidebarNavigation::hasNestedNavigation($key) && $user->hasModuleAccess(AdminNavigation::accessModuleKey($key))) {
+                $orderedLinks[] = [
+                    'type' => 'nested_module',
+                    'key' => $key,
+                ];
+
+                continue;
+            }
+
             $node = $nodesByKey->get($key);
             if ($node !== null && $node['type'] === 'link') {
                 $orderedLinks[] = $node;
@@ -40,6 +50,14 @@
             role="list"
         >
             @foreach ($orderedLinks as $navNode)
+                @if (($navNode['type'] ?? 'link') === 'nested_module')
+                    <li class="list-none py-3 first:pt-0 last:pb-0">
+                        <x-mom-sidebar-module :user="$user" :module-key="$navNode['key']" />
+                    </li>
+
+                    @continue
+                @endif
+
                 @php
                     $active = AdminNavigation::isNavActive($navNode['key']);
                 @endphp
@@ -50,6 +68,7 @@
                             'mom-sidebar-link mom-nav-active text-mom-gold transition-all duration-320 ease-premium' => $active,
                             'mom-sidebar-link text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(197,160,89,0.06)]' => ! $active,
                         ])
+                        @click="mobileNav = false"
                     >
                         <span class="mom-sidebar-link__icon {{ $active ? '' : 'opacity-80' }}" aria-hidden="true">
                             <i data-lucide="{{ $navNode['icon'] }}"></i>
@@ -90,6 +109,7 @@
                                 'mom-sidebar-link mom-nav-active text-mom-gold transition-all duration-320 ease-premium' => $childActive,
                                 'mom-sidebar-link text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]' => ! $childActive,
                             ])
+                            @click="mobileNav = false"
                         >
                             <span class="mom-sidebar-link__icon {{ $childActive ? '' : 'opacity-80' }}" aria-hidden="true">
                                 <i data-lucide="{{ $child['icon'] }}"></i>

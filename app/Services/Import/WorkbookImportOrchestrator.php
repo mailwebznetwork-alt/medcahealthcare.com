@@ -186,7 +186,10 @@ final class WorkbookImportOrchestrator
      *     errors: list<string>, batch_ids: list<int>, post_sync: list<string>, sheets: list<array<string, mixed>>
      * }
      */
-    public function commit(string $workbookKey, mixed $source, ?int $userId = null, ?string $filename = null, bool $runPostSync = true): array
+    /**
+     * @param  array{force_upsert?: bool}  $options
+     */
+    public function commit(string $workbookKey, mixed $source, ?int $userId = null, ?string $filename = null, bool $runPostSync = true, array $options = []): array
     {
         $plan = $this->workbookPlan($workbookKey);
         if ($plan === null) {
@@ -254,13 +257,19 @@ final class WorkbookImportOrchestrator
 
             $entityKey = (string) ($sheetMeta['entity'] ?? '');
             $parsed = $this->reader->read($source, $resolvedName);
+            $upsertPincodes = false;
+            if ($workbookKey === 'pincodes' && $entityKey === 'pincodes') {
+                $upsertPincodes = app(\App\Services\Governance\MasterDataProtection::class)
+                    ->pincodeUpsertEnabled((bool) ($options['force_upsert'] ?? false));
+            }
+
             $result = $this->pipeline->commit(
                 $entityKey,
                 $parsed,
                 $userId,
                 ($filename ? $filename.'#' : '').$resolvedName,
                 false,
-                ['upsert_pincodes' => $workbookKey === 'pincodes' && $entityKey === 'pincodes']
+                ['upsert_pincodes' => $upsertPincodes]
             );
 
             $created += $result['created'];
@@ -339,10 +348,6 @@ final class WorkbookImportOrchestrator
     private function resolveImporter(string $entityKey, string $workbookKey): EntityImporter
     {
         $importer = $this->registry->resolve($entityKey);
-
-        if ($entityKey === 'pincodes' && $importer instanceof PinCodeSpreadsheetImporter) {
-            $importer->withUpsert(true);
-        }
 
         return $importer;
     }

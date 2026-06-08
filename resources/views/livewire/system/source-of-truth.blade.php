@@ -9,16 +9,16 @@
     $checks = $health['checks'] ?? [];
 
     $metricCards = [
-        ['label' => __('Registry rows'), 'value' => $metrics['registry_rows'] ?? 0],
-        ['label' => __('Pages'), 'value' => $metrics['pages'] ?? 0],
-        ['label' => __('Synced pages'), 'value' => $metrics['synced_pages'] ?? 0],
-        ['label' => __('Generated'), 'value' => $metrics['generated'] ?? 0],
-        ['label' => __('Manual'), 'value' => $metrics['manual'] ?? 0],
-        ['label' => __('Planned'), 'value' => $metrics['planned'] ?? 0],
-        ['label' => __('Orphan registry'), 'value' => $metrics['orphan_registry'] ?? 0, 'warn' => ($metrics['orphan_registry'] ?? 0) > 0],
-        ['label' => __('Tombstones'), 'value' => $metrics['tombstones'] ?? 0],
-        ['label' => __('Protected pages'), 'value' => $metrics['protected_pages'] ?? 0],
-        ['label' => __('Admin overrides'), 'value' => $metrics['admin_overrides'] ?? 0],
+        ['key' => 'registry_rows', 'label' => __('Registry rows'), 'value' => $metrics['registry_rows'] ?? 0],
+        ['key' => 'pages', 'label' => __('Pages'), 'value' => $metrics['pages'] ?? 0],
+        ['key' => 'synced_pages', 'label' => __('Synced pages'), 'value' => $metrics['synced_pages'] ?? 0],
+        ['key' => 'generated', 'label' => __('Generated'), 'value' => $metrics['generated'] ?? 0],
+        ['key' => 'manual', 'label' => __('Manual'), 'value' => $metrics['manual'] ?? 0],
+        ['key' => 'planned', 'label' => __('Planned'), 'value' => $metrics['planned'] ?? 0],
+        ['key' => 'orphan_registry', 'label' => __('Orphan registry'), 'value' => $metrics['orphan_registry'] ?? 0, 'warn' => ($metrics['orphan_registry'] ?? 0) > 0],
+        ['key' => 'tombstones', 'label' => __('Tombstones'), 'value' => $metrics['tombstones'] ?? 0],
+        ['key' => 'protected_pages', 'label' => __('Protected pages'), 'value' => $metrics['protected_pages'] ?? 0],
+        ['key' => 'admin_overrides', 'label' => __('Admin overrides'), 'value' => $metrics['admin_overrides'] ?? 0],
     ];
 @endphp
 
@@ -81,23 +81,23 @@
 
     <section class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         @foreach ($metricCards as $card)
-            <article class="mom-card px-4 py-3">
-                <p class="mom-micro">{{ $card['label'] }}</p>
-                <p @class([
-                    'mom-metric mt-2 leading-none',
-                    'text-[var(--danger)]' => ! empty($card['warn']),
-                ])>{{ number_format((int) $card['value']) }}</p>
-            </article>
+            <x-admin.metric-card
+                :label="$card['label']"
+                :value="number_format((int) $card['value'])"
+                :href="\App\Support\AdminMetricLinks::sourceOfTruthMetric($card['key'])"
+                :warn="! empty($card['warn'])"
+                class="px-4 py-3"
+            />
         @endforeach
     </section>
 
     <div class="grid gap-6 xl:grid-cols-2">
-        <article class="mom-card p-6">
+        <article id="source-of-truth-governance" class="mom-card scroll-mt-32 p-6">
             <h2 class="mom-section-title">{{ __('Governance') }}</h2>
             <div class="mt-4 overflow-x-auto">
                 <table class="min-w-full text-left text-sm">
                     <thead>
-                        <tr class="border-b border-[var(--border-panel-soft)] text-[var(--text-muted)]">
+                        <tr class="border-b border-[color:var(--border-tabstrip-divider)] text-[var(--text-muted)]">
                             <th class="py-2 pr-4 font-medium">{{ __('Component') }}</th>
                             <th class="py-2 pr-4 font-medium">{{ __('Status') }}</th>
                             <th class="py-2 font-medium">{{ __('Detail') }}</th>
@@ -105,7 +105,7 @@
                     </thead>
                     <tbody>
                         @foreach ($governance as $row)
-                            <tr class="border-b border-[var(--border-panel-soft)]/60">
+                            <tr class="border-b border-[color:var(--border-tabstrip-divider)]">
                                 <td class="py-3 pr-4 font-medium text-[var(--text-primary)]">{{ $row['component'] }}</td>
                                 <td class="py-3 pr-4">
                                     <span @class([
@@ -180,7 +180,7 @@
 
     @if ($orphanRows !== [] || $issues !== [])
         <div class="grid gap-6 xl:grid-cols-2">
-            <article class="mom-card p-6">
+            <article id="source-of-truth-orphans" class="mom-card scroll-mt-32 p-6">
                 <h2 class="mom-section-title">{{ __('Orphan registry rows') }}</h2>
                 @if ($orphanRows === [])
                     <p class="mom-subtext mt-4">{{ __('No orphan registry rows detected.') }}</p>
@@ -188,7 +188,7 @@
                     <div class="mt-4 overflow-x-auto">
                         <table class="min-w-full text-left text-sm">
                             <thead>
-                                <tr class="border-b border-[var(--border-panel-soft)] text-[var(--text-muted)]">
+                                <tr class="border-b border-[color:var(--border-tabstrip-divider)] text-[var(--text-muted)]">
                                     <th class="py-2 pr-4 font-medium">{{ __('Registry key') }}</th>
                                     <th class="py-2 pr-4 font-medium">{{ __('Type') }}</th>
                                     <th class="py-2 font-medium">{{ __('Page ID') }}</th>
@@ -196,7 +196,7 @@
                             </thead>
                             <tbody>
                                 @foreach ($orphanRows as $row)
-                                    <tr class="border-b border-[var(--border-panel-soft)]/60">
+                                    <tr class="border-b border-[color:var(--border-tabstrip-divider)]">
                                         <td class="py-2 pr-4 font-mono text-xs text-[var(--text-primary)]">{{ $row['registry_key'] }}</td>
                                         <td class="py-2 pr-4 text-[var(--text-secondary)]">{{ $row['entity_type'] }}</td>
                                         <td class="py-2 text-[var(--text-secondary)]">{{ $row['page_id'] ?? '—' }}</td>
@@ -216,7 +216,7 @@
                     <div class="mt-4 overflow-x-auto">
                         <table class="min-w-full text-left text-sm">
                             <thead>
-                                <tr class="border-b border-[var(--border-panel-soft)] text-[var(--text-muted)]">
+                                <tr class="border-b border-[color:var(--border-tabstrip-divider)] text-[var(--text-muted)]">
                                     <th class="py-2 pr-4 font-medium">{{ __('Type') }}</th>
                                     <th class="py-2 pr-4 font-medium">{{ __('Registry key') }}</th>
                                     <th class="py-2 font-medium">{{ __('Detail') }}</th>
@@ -224,7 +224,7 @@
                             </thead>
                             <tbody>
                                 @foreach ($issues as $issue)
-                                    <tr class="border-b border-[var(--border-panel-soft)]/60">
+                                    <tr class="border-b border-[color:var(--border-tabstrip-divider)]">
                                         <td class="py-2 pr-4 text-[var(--text-secondary)]">{{ $issue['type'] }}</td>
                                         <td class="py-2 pr-4 font-mono text-xs text-[var(--text-primary)]">{{ $issue['registry_key'] }}</td>
                                         <td class="py-2 text-[var(--text-secondary)]">{{ $issue['detail'] }}</td>

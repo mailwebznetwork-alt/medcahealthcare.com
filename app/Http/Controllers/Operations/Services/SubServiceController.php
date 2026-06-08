@@ -128,7 +128,7 @@ class SubServiceController extends Controller
         $this->ensureChildOfService($service, $subService);
         $this->authorize('delete', $subService);
 
-        $subService->delete();
+        app(\App\Services\Operations\SubServiceDeletionService::class)->delete($subService, 'ui');
 
         return redirect()
             ->route('operations.services.edit', ['service' => $service, 'tab' => 'sub_services'])

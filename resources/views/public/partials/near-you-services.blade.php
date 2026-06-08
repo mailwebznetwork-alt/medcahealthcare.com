@@ -41,7 +41,7 @@
         'No published services are mapped to this pincode yet.'
     );
 
-    $detailedServices = ($contentSlug ?? '') === 'near-you-locations';
+    $detailedServices = (bool) ($detailedServices ?? false);
 
 @endphp
 

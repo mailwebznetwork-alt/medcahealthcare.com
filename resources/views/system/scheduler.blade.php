@@ -11,7 +11,7 @@
                         <th class="px-4 py-3">{{ __('Notes') }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                     @foreach ($scheduledTasks as $task)
                         <tr>
                             <td class="px-4 py-3 font-mono text-[12px] text-[var(--text-primary)]">{{ $task['command'] }}</td>

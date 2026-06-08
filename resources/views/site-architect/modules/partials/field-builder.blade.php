@@ -28,7 +28,7 @@
     <div class="mt-6 overflow-x-auto" x-show="fields.length > 0" x-cloak>
         <table class="min-w-full text-left text-sm">
             <thead>
-                <tr class="border-b border-[rgba(255,255,255,0.08)] text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                <tr class="border-b border-[color:var(--border-tabstrip-divider)] text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
                     <th class="px-3 py-2">{{ __('Label') }}</th>
                     <th class="px-3 py-2">{{ __('Field name (column)') }}</th>
                     <th class="px-3 py-2">{{ __('Type') }}</th>
@@ -39,7 +39,7 @@
                     <th class="px-3 py-2 text-right">{{ __('Remove') }}</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-[rgba(255,255,255,0.06)]">
+            <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)]">
                 <template x-for="(field, index) in fields" :key="index">
                     <tr class="align-top">
                         <td class="px-3 py-3">

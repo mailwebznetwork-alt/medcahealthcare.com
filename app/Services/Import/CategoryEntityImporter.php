@@ -5,6 +5,9 @@ namespace App\Services\Import;
 use App\Enums\ServiceVisibility;
 use App\Models\ServiceCategory;
 use App\Models\ServiceCategoryFaq;
+use App\Services\Governance\CategoryCreationGuard;
+use App\Services\Governance\MasterDataAudit;
+use App\Services\Governance\MasterDataProtection;
 
 final class CategoryEntityImporter extends AbstractSpreadsheetImporter
 {
@@ -61,8 +64,18 @@ final class CategoryEntityImporter extends AbstractSpreadsheetImporter
             return ['action' => 'failed', 'error' => __('Missing code or name.')];
         }
 
+        if (! app(MasterDataProtection::class)->allowsWrite('import')) {
+            app(MasterDataAudit::class)->categoryRecreationBlocked($code, 'import', 'Master data protection is enabled.');
+
+            return ['action' => 'skipped', 'error' => __('Import blocked by master data protection.')];
+        }
+
         $existing = ServiceCategory::query()->where('code', $code)->first();
         $previous = $existing?->toArray();
+
+        if ($existing === null && ! app(CategoryCreationGuard::class)->canCreateCategory($code, 'import')) {
+            return ['action' => 'skipped', 'error' => __('Category permanently deleted; import skipped.')];
+        }
 
         $parentId = null;
         if (filled($row['parent_code'] ?? null)) {
@@ -87,11 +100,13 @@ final class CategoryEntityImporter extends AbstractSpreadsheetImporter
         if ($existing === null) {
             $category = ServiceCategory::query()->create($attrs);
             $this->recorder->record('created', 'service_category', $category->id, null, $line);
+            app(MasterDataAudit::class)->categoryCreated($category, 'import');
             $action = 'created';
         } else {
             $existing->update($attrs);
             $category = $existing->fresh();
             $this->recorder->record('updated', 'service_category', $category->id, $previous, $line);
+            app(MasterDataAudit::class)->categoryUpdated($category, 'import');
             $action = 'updated';
         }
 

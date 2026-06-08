@@ -26,7 +26,7 @@
             <div class="space-y-10">
                 @foreach ($groups as $group)
                     <section>
-                        <h2 class="mom-section-title border-b border-[var(--border-panel-soft)] pb-2">{{ $group['heading'] }}</h2>
+                        <h2 class="mom-section-title border-b border-[color:var(--border-tabstrip-divider)] pb-2">{{ $group['heading'] }}</h2>
                         <ul class="mom-card mt-4 divide-y divide-[var(--border-panel-soft)] overflow-hidden p-0">
                             @foreach ($group['items'] as $item)
                                 <li>

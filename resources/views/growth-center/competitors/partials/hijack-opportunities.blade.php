@@ -56,7 +56,7 @@
     <h3 class="mom-section-title px-6 pt-6">{{ __('Rank gap queue') }}</h3>
     <table class="mom-table mt-4 w-full min-w-[720px] text-left text-sm">
         <thead>
-            <tr class="border-b border-[rgba(255,255,255,0.06)] text-[var(--text-muted)]">
+            <tr class="border-b border-[color:var(--border-tabstrip-divider)] text-[var(--text-muted)]">
                 <th class="px-4 py-3 font-medium">{{ __('Priority') }}</th>
                 <th class="px-4 py-3 font-medium">{{ __('Keyword') }}</th>
                 <th class="px-4 py-3 font-medium">{{ __('Competitor') }}</th>
@@ -72,7 +72,7 @@
                 @php
                     $strategy = ($hijackStrategies ?? [])[(string) $opportunity['competitor_keyword_id']] ?? null;
                 @endphp
-                <tr class="border-b border-[rgba(255,255,255,0.04)]">
+                <tr class="border-b border-[color:var(--border-tabstrip-divider)]">
                     <td class="px-4 py-3">
                         <span class="inline-flex min-w-[2rem] items-center justify-center rounded-full bg-[rgba(212,175,55,0.15)] px-2 py-0.5 text-xs font-semibold text-mom-gold">
                             {{ $opportunity['hijack_priority'] }}

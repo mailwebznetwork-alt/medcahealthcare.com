@@ -1,11 +1,13 @@
 <?php
 
+use App\Livewire\Operations\PinCodes\Directory;
 use App\Models\ImportBatch;
 use App\Models\PinCode;
 use App\Models\User;
 use App\ModuleAccess;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
+use Livewire\Livewire;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -42,6 +44,50 @@ it('forbids pin codes directory when the user lacks operations access', function
         ->assertForbidden();
 });
 
+it('renders bulk selection controls on the pin codes directory', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'role' => 'manager',
+        'module_access' => collect(ModuleAccess::keys())
+            ->mapWithKeys(fn (string $k) => [$k => $k === ModuleAccess::OPERATIONS])
+            ->all(),
+    ]);
+
+    PinCode::factory()->count(2)->create(['city' => 'Bangalore']);
+
+    $this->actingAs($user)
+        ->get(route('operations.pin-codes.directory'))
+        ->assertOk()
+        ->assertSee(__('Select all visible'), false)
+        ->assertSee('aria-label="'.__('Select row').'"', false);
+});
+
+it('bulk deletes selected pin codes from the directory', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'role' => 'manager',
+        'module_access' => collect(ModuleAccess::keys())
+            ->mapWithKeys(fn (string $k) => [$k => $k === ModuleAccess::OPERATIONS])
+            ->all(),
+    ]);
+
+    $keep = PinCode::factory()->create(['pincode' => '560100', 'city' => 'Bangalore']);
+    $remove = PinCode::factory()->create(['pincode' => '560101', 'city' => 'Bangalore']);
+
+    Livewire::actingAs($user)
+        ->test(Directory::class)
+        ->call('toggleBulkRow', $remove->id)
+        ->call('openBulkAction', 'delete')
+        ->set('bulkDeleteConfirmText', 'DELETE')
+        ->call('confirmBulkAction')
+        ->assertHasNoErrors();
+
+    expect(PinCode::query()->whereKey($keep->id)->exists())->toBeTrue()
+        ->and(PinCode::query()->whereKey($remove->id)->exists())->toBeFalse()
+        ->and(PinCode::withTrashed()->whereKey($remove->id)->exists())->toBeTrue()
+        ->and(\App\Models\AdminDeletionTombstone::exists('pin_code', '560101'))->toBeTrue();
+});
+
 it('allows operations users to open pin codes overview', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
@@ -54,7 +100,7 @@ it('allows operations users to open pin codes overview', function () {
     $this->actingAs($user)
         ->get(route('operations.pin-codes.overview'))
         ->assertOk()
-        ->assertSee(__('Pin Codes'), false);
+        ->assertSee(__('Total pincodes'), false);
 });
 
 it('creates a pin code from the form', function () {

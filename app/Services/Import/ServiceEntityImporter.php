@@ -7,6 +7,9 @@ use App\Enums\ServiceVisibility;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\ServiceFaq;
+use App\Services\Governance\MasterDataProtection;
+use App\Services\Governance\MasterDataAudit;
+use App\Services\Governance\ServiceCreationGuard;
 
 final class ServiceEntityImporter extends AbstractSpreadsheetImporter
 {
@@ -80,8 +83,18 @@ final class ServiceEntityImporter extends AbstractSpreadsheetImporter
             return ['action' => 'failed', 'error' => __('Missing service_code or title.')];
         }
 
+        if (! app(MasterDataProtection::class)->allowsWrite('import')) {
+            app(MasterDataAudit::class)->serviceRecreationBlocked($code, 'import', 'Master data protection is enabled.');
+
+            return ['action' => 'skipped', 'error' => __('Import blocked by master data protection.')];
+        }
+
         $existing = Service::query()->where('service_code', $code)->first();
         $previous = $existing?->toArray();
+
+        if ($existing === null && ! app(ServiceCreationGuard::class)->canCreateService($code, 'import')) {
+            return ['action' => 'skipped', 'error' => __('Service permanently deleted; import skipped.')];
+        }
 
         $attrs = $this->fieldMapper->serviceAttributes($row);
         $attrs['title'] = $title;
@@ -105,6 +118,7 @@ final class ServiceEntityImporter extends AbstractSpreadsheetImporter
             }
             $service = Service::query()->create($attrs);
             $this->recorder->record('created', 'service', $service->id, null, $line);
+            app(MasterDataAudit::class)->serviceCreated($service, 'import');
             $action = 'created';
         } else {
             if (isset($attrs['custom_fields']) && is_array($attrs['custom_fields'])) {
@@ -113,6 +127,7 @@ final class ServiceEntityImporter extends AbstractSpreadsheetImporter
             $existing->update($attrs);
             $service = $existing->fresh();
             $this->recorder->record('updated', 'service', $service->id, $previous, $line);
+            app(MasterDataAudit::class)->serviceUpdated($service, 'import');
             $action = 'updated';
         }
 

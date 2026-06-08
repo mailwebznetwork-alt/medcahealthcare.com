@@ -3,6 +3,9 @@
 namespace App\Services\Import;
 
 use App\Models\PinCode;
+use App\Services\Governance\MasterDataProtection;
+use App\Services\Governance\PinCodeCreationGuard;
+use App\Services\Governance\PinCodeMasterDataAudit;
 
 /**
  * Pincode directory import — CSV, XLS, XLSX.
@@ -65,7 +68,19 @@ class PinCodeSpreadsheetImporter extends AbstractSpreadsheetImporter
             return ['action' => 'failed', 'error' => __('Invalid pincode or missing required fields.')];
         }
 
+        if (! app(MasterDataProtection::class)->allowsWrite('import')) {
+            app(PinCodeMasterDataAudit::class)->recreationBlocked($pin, 'import', 'Master data protection is enabled.');
+
+            return ['action' => 'skipped', 'error' => __('Import blocked by master data protection.')];
+        }
+
+        $guard = app(PinCodeCreationGuard::class);
         $existing = PinCode::query()->where('pincode', $pin)->first();
+
+        if ($existing === null && ! $guard->canCreatePincode($pin, 'import')) {
+            return ['action' => 'skipped', 'error' => __('Pincode permanently deleted; import skipped.')];
+        }
+
         if ($existing !== null && ! $this->upsertExisting) {
             return ['action' => 'skipped', 'error' => null];
         }
@@ -94,6 +109,7 @@ class PinCodeSpreadsheetImporter extends AbstractSpreadsheetImporter
         if ($existing === null) {
             $pinCode = PinCode::query()->create($attrs);
             $this->recorder->record('created', 'pin_code', $pinCode->id, null, $line);
+            app(PinCodeMasterDataAudit::class)->created($pinCode, 'import');
 
             return ['action' => 'created', 'error' => null];
         }
@@ -101,6 +117,7 @@ class PinCodeSpreadsheetImporter extends AbstractSpreadsheetImporter
         $previous = $existing->toArray();
         $existing->update($attrs);
         $this->recorder->record('updated', 'pin_code', $existing->id, $previous, $line);
+        app(PinCodeMasterDataAudit::class)->updated($existing, 'import');
 
         return ['action' => 'updated', 'error' => null];
     }

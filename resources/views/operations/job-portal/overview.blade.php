@@ -1,17 +1,18 @@
 <x-operations.workspace>
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-5">
         @foreach ([
-            ['label' => __('Total vacancies'), 'value' => number_format($metrics['total_vacancies']), 'hint' => __('All records in the system')],
-            ['label' => __('Active vacancies'), 'value' => number_format($metrics['active_vacancies']), 'hint' => __('Published, active, within closing window')],
-            ['label' => __('New applications'), 'value' => number_format($metrics['new_applications']), 'hint' => __('Last 7 days')],
-            ['label' => __('WhatsApp applies'), 'value' => number_format($metrics['whatsapp_applies']), 'hint' => __('Attributed or click-tracked')],
-            ['label' => __('Published jobs'), 'value' => number_format($metrics['published_jobs']), 'hint' => __('All published postings')],
+            ['label' => __('Total vacancies'), 'value' => number_format($metrics['total_vacancies']), 'hint' => __('All records in the system'), 'href' => \App\Support\AdminMetricLinks::jobPortalVacancies()],
+            ['label' => __('Active vacancies'), 'value' => number_format($metrics['active_vacancies']), 'hint' => __('Published, active, within closing window'), 'href' => \App\Support\AdminMetricLinks::jobPortalVacancies('published')],
+            ['label' => __('New applications'), 'value' => number_format($metrics['new_applications']), 'hint' => __('Last 7 days'), 'href' => \App\Support\AdminMetricLinks::jobPortalApplications()],
+            ['label' => __('WhatsApp applies'), 'value' => number_format($metrics['whatsapp_applies']), 'hint' => __('Attributed or click-tracked'), 'href' => \App\Support\AdminMetricLinks::jobPortalApplications()],
+            ['label' => __('Published jobs'), 'value' => number_format($metrics['published_jobs']), 'hint' => __('All published postings'), 'href' => \App\Support\AdminMetricLinks::jobPortalVacancies('published')],
         ] as $card)
-            <article class="mom-card px-5 py-4">
-                <p class="mom-micro">{{ $card['label'] }}</p>
-                <p class="mom-metric mt-2 leading-none">{{ $card['value'] }}</p>
-                <p class="mom-subtext mt-2">{{ $card['hint'] }}</p>
-            </article>
+            <x-admin.metric-card
+                :label="$card['label']"
+                :value="$card['value']"
+                :hint="$card['hint']"
+                :href="$card['href']"
+            />
         @endforeach
     </div>
 

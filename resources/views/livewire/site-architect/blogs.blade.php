@@ -18,7 +18,7 @@
             </a>
         </div>
 
-        <x-bulk.selection-toolbar :count="$this->bulkSelectedCount()" :actions="['delete', 'publish', 'unpublish', 'export']" />
+        <x-bulk.selection-toolbar :count="$this->bulkSelectedCount()" :actions="['modify', 'duplicate', 'delete', 'publish', 'unpublish', 'export']" />
 
         <div class="mom-card overflow-x-auto p-0">
             <table class="mom-table w-full min-w-[800px] text-left text-sm">
@@ -104,7 +104,7 @@
         <div class="space-y-8">
             @if ($productionPreviewUrl)
                 <section class="mom-card overflow-hidden p-0" aria-label="{{ __('Production preview') }}">
-                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-panel-soft)] px-4 py-3">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[color:var(--border-tabstrip-divider)] px-4 py-3">
                         <div>
                             <h3 class="mom-section-title">{{ __('Preview (production path)') }}</h3>
                             <p class="mom-subtext mt-1 max-w-2xl">{{ __('Same render as public: ContentParser + layouts.app. Save the blog, then refresh preview if you changed structure or SEO.') }}</p>

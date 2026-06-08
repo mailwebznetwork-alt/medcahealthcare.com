@@ -154,7 +154,7 @@
     </section>
 
     <section class="mom-card overflow-hidden p-0">
-        <h3 class="border-b border-[var(--border-panel-soft)] px-4 py-3 mom-section-title">{{ __('Broken / risky links') }}</h3>
+        <h3 class="border-b border-[color:var(--border-tabstrip-divider)] px-4 py-3 mom-section-title">{{ __('Broken / risky links') }}</h3>
         <div class="overflow-x-auto">
             <table class="min-w-full text-left text-[13px]">
                 <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
@@ -166,7 +166,7 @@
                         <th class="px-4 py-3 font-medium"></th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[rgba(255,255,255,0.045)] text-[var(--text-secondary)]">
+                <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
                     @forelse (($snapshot['broken_links'] ?? []) as $row)
                         <tr>
                             <td class="px-4 py-3 uppercase text-mom-gold">{{ $row['scope'] }}</td>

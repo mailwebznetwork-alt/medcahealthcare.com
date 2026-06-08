@@ -26,35 +26,9 @@ class VacancyController extends Controller
         $this->authorizeResource(Vacancy::class, 'vacancy');
     }
 
-    public function index(Request $request): View
+    public function index(): View
     {
-        $query = Vacancy::query()->orderBy('sort_order')->orderByDesc('updated_at');
-
-        if ($request->filled('q')) {
-            $term = '%'.$request->string('q')->trim().'%';
-            $query->where(function ($q) use ($term): void {
-                $q->where('title', 'like', $term)
-                    ->orWhere('department', 'like', $term)
-                    ->orWhere('city', 'like', $term)
-                    ->orWhere('pin_code', 'like', $term);
-            });
-        }
-
-        if ($request->filled('workflow_status')) {
-            $query->where('workflow_status', $request->string('workflow_status'));
-        }
-
-        if ($request->filled('visibility')) {
-            $query->where('visibility', $request->string('visibility'));
-        }
-
-        if ($request->filled('employment_type')) {
-            $query->where('employment_type', $request->string('employment_type'));
-        }
-
-        $vacancies = $query->paginate(15)->withQueryString();
-
-        return view('operations.job-portal.vacancies.index', compact('vacancies'));
+        return view('operations.job-portal.vacancies.index');
     }
 
     public function create(): View

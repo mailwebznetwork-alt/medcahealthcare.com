@@ -28,9 +28,5 @@
     :welcome-line="$resolvedWelcome"
     :breadcrumbs="$breadcrumbs"
 >
-    <x-slot:tabs>
-        @include('growth-center.partials.primary-tabs', ['activeTab' => $tab])
-    </x-slot:tabs>
-
     {{ $slot }}
 </x-admin.workspace>

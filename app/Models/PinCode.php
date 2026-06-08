@@ -6,8 +6,10 @@ use Database\Factories\PinCodeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
@@ -38,6 +40,19 @@ class PinCode extends Model
 {
     /** @use HasFactory<PinCodeFactory> */
     use HasFactory;
+    use SoftDeletes;
+
+    /**
+     * Active, serviceable pins eligible for coverage sync (excludes soft-deleted).
+     *
+     * @return Builder<self>
+     */
+    public static function eligibleForCoverage(): Builder
+    {
+        return static::query()
+            ->where('is_active', true)
+            ->where('is_serviceable', true);
+    }
 
     /**
      * @return array<string, string>

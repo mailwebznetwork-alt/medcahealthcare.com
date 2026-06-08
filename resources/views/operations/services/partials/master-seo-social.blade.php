@@ -5,7 +5,7 @@
     $geoEntityLines = old('seo.geo_entities_lines', is_array($seo?->geo_entities) ? implode("\n", $seo->geo_entities) : '');
 @endphp
 
-<div class="mt-8 grid gap-6 border-t border-[var(--border-panel-soft)] pt-8 md:grid-cols-2">
+<div class="mt-8 grid gap-6 border-t border-[color:var(--border-tabstrip-divider)] pt-8 md:grid-cols-2">
     <div class="md:col-span-2">
         <h4 class="text-sm font-semibold text-mom-gold">{{ __('Technical SEO') }}</h4>
     </div>

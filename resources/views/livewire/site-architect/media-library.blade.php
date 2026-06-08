@@ -188,7 +188,7 @@
                         >{{ __('Delete') }}</button>
                     </div>
 
-                    <div class="border-t border-[var(--border-panel-soft)] pt-4">
+                    <div class="border-t border-[color:var(--border-tabstrip-divider)] pt-4">
                         <p class="mom-micro mb-2 text-[var(--text-muted)]">{{ __('Copy') }}</p>
                         <div class="flex flex-wrap gap-2">
                             @if ($selected->file_type === 'image')
