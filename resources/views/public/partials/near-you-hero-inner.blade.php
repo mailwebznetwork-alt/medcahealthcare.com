@@ -49,24 +49,7 @@
         <x-public.lead-action-bar class="pt-2" />
     @endif
 
-    @if ($pinCodeRecord && filled($pinCodeRecord->coverage_text))
-        <section class="rounded-xl border border-slate-200 bg-slate-50 p-6">
-            <h3 class="text-lg font-semibold text-slate-900">{{ __('About :area healthcare coverage', ['area' => $pinCodeRecord->area_name]) }}</h3>
-            <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ $pinCodeRecord->coverage_text }}</p>
-            @php $pinCodeRecord->loadMissing(['landmarks', 'hospitals', 'nearbyAreas']); @endphp
-            @if ($pinCodeRecord->landmarks->isNotEmpty() || $pinCodeRecord->hospitals->isNotEmpty() || $pinCodeRecord->nearbyAreas->isNotEmpty())
-                <div class="mt-4 flex flex-wrap gap-2 text-xs text-slate-600">
-                    @foreach ($pinCodeRecord->landmarks->take(4) as $landmark)
-                        <span class="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">{{ $landmark->name }}</span>
-                    @endforeach
-                    @foreach ($pinCodeRecord->hospitals->take(3) as $hospital)
-                        <span class="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">{{ $hospital->name }}</span>
-                    @endforeach
-                    @foreach ($pinCodeRecord->nearbyAreas->take(3) as $nearby)
-                        <span class="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">{{ $nearby->area_name }}</span>
-                    @endforeach
-                </div>
-            @endif
-        </section>
+    @if ($pinCodeRecord)
+        <x-public.location-about-coverage :pin="$pinCodeRecord" />
     @endif
 </div>

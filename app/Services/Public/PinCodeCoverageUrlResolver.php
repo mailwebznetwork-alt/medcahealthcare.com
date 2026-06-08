@@ -8,6 +8,10 @@ use Illuminate\Support\Collection;
 
 class PinCodeCoverageUrlResolver
 {
+    public function __construct(
+        private readonly PinCodeAreaResolver $areaResolver,
+    ) {}
+
     /**
      * @param  Collection<int, PinCode>  $pins
      * @return array<int, string>
@@ -44,6 +48,10 @@ class PinCodeCoverageUrlResolver
             return str_starts_with($landing, ['http://', 'https://'])
                 ? $landing
                 : url('/'.ltrim($landing, '/'));
+        }
+
+        if ($pin->is_active && $pin->geo_page_ready) {
+            return $this->areaResolver->publicUrlFor($pin);
         }
 
         $mapping = $mappings?->first();

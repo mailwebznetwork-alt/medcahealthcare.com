@@ -2,12 +2,17 @@
     'areas' => collect(),
     'title' => __('Areas we cover'),
     'initial' => 8,
+    'excludePincodeIds' => [],
 ])
 
 @php
     use App\Services\Public\PinCodeCoverageUrlResolver;
 
     $areas = $areas instanceof \Illuminate\Support\Collection ? $areas : collect($areas);
+    $excludeIds = collect($excludePincodeIds)->map(fn ($id) => (int) $id)->filter()->all();
+    if ($excludeIds !== []) {
+        $areas = $areas->whereNotIn('id', $excludeIds)->values();
+    }
     $initial = max(4, (int) $initial);
     $urlResolver = app(PinCodeCoverageUrlResolver::class);
     $urls = $urlResolver->urlsFor($areas);

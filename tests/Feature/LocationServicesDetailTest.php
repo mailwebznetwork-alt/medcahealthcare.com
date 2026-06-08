@@ -59,7 +59,7 @@ it('renders detailed service content on the locations near-you partial', functio
 
 it('renders detailed service content on service location geo enrichment', function () {
     $pin = PinCode::factory()->create([
-        'pincode' => '560078',
+        'pincode' => '560907',
         'area_name' => 'JP Nagar',
         'is_active' => true,
     ]);

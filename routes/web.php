@@ -24,6 +24,7 @@ use App\Http\Controllers\Operations\Services\SubServiceController;
 use App\Http\Controllers\Public\ServiceCategoryPublicController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\CmsPageController;
+use App\Http\Controllers\Public\LocationAreaController;
 use App\Http\Controllers\Public\LeadCaptureController;
 use App\Http\Controllers\Public\LocationController;
 use App\Http\Controllers\Public\ServicePublicController;
@@ -94,6 +95,10 @@ Route::get('/service-categories/{code}', [ServiceCategoryPublicController::class
 Route::get('/t/mail/{token}/open.gif', [MarketingEmailOpenController::class, 'pixel'])
     ->middleware('throttle:120,1')
     ->name('marketing.email-open-pixel');
+
+Route::get('/locations/{slug}', [LocationAreaController::class, 'show'])
+    ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->name('public.locations.area');
 
 foreach (config('public_pages.root_slugs', []) as $cmsSlug) {
     $routeName = match ($cmsSlug) {
