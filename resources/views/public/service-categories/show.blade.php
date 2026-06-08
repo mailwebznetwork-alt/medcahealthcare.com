@@ -35,7 +35,7 @@
             </p>
             <button
                 type="button"
-                onclick="window.dispatchEvent(new CustomEvent('open-pincode-modal'))"
+                onclick="window.dispatchEvent(new CustomEvent('open-pincode-modal', { detail: { contextPath: window.location.pathname } }))"
                 class="mom-cta-primary mt-4"
             >{{ __('Set pincode') }}</button>
         @else

@@ -36,7 +36,7 @@
     </div>
     <button
         type="button"
-        onclick="window.dispatchEvent(new CustomEvent('open-pincode-modal'))"
+        onclick="window.dispatchEvent(new CustomEvent('open-pincode-modal', { detail: { contextPath: window.location.pathname } }))"
         @class([
             'inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold underline underline-offset-2',
             'text-white hover:text-white/90' => $onBrand,

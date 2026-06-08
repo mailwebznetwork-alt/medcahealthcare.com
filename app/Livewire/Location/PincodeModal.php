@@ -3,7 +3,9 @@
 namespace App\Livewire\Location;
 
 use App\Models\PinCode;
+use App\Services\Discovery\PincodeRedirectResolver;
 use App\Services\UserLocationService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View as ViewFacade;
 use Illuminate\View\View;
@@ -25,25 +27,29 @@ class PincodeModal extends Component
 
     public bool $showPincodeSuggestions = false;
 
+    public string $redirectContextPath = '';
+
     public function mount(): void
     {
         $this->open = (bool) ViewFacade::shared('locationRequired', false);
+        $this->redirectContextPath = '/'.ltrim(request()->path(), '/');
         $current = app(UserLocationService::class)->currentPincode();
         if ($current !== null) {
             $this->pincode = $current;
         }
     }
 
-    public function openModal(): void
+    public function openModal(?string $contextPath = null): void
     {
+        $this->refreshRedirectContext($contextPath);
         $this->open = true;
         $this->refreshPincodeSuggestions();
     }
 
     #[On('open-pincode-modal')]
-    public function openFromEvent(): void
+    public function openFromEvent(?string $contextPath = null): void
     {
-        $this->openModal();
+        $this->openModal($contextPath);
     }
 
     public function closeModal(): void
@@ -97,7 +103,7 @@ class PincodeModal extends Component
         $this->showPincodeSuggestions = false;
     }
 
-    public function savePincode(UserLocationService $location): void
+    public function savePincode(UserLocationService $location, PincodeRedirectResolver $redirects): void
     {
         $this->validate([
             'pincode' => ['required', 'string', 'regex:/^\d{6}$/'],
@@ -112,7 +118,51 @@ class PincodeModal extends Component
 
         $this->open = false;
         $this->dispatch('pincode-updated', pincode: $resolved);
-        $this->js('window.location.reload()');
+
+        $redirectUrl = $redirects->resolveAfterSwitch($this->redirectContextRequest(), $resolved);
+
+        // Full page load required — wire:navigate does not re-render service-location heroes.
+        $this->redirect($redirectUrl, navigate: false);
+    }
+
+    private function refreshRedirectContext(?string $contextPath = null): void
+    {
+        if (is_string($contextPath) && $contextPath !== '') {
+            $this->redirectContextPath = '/'.ltrim($contextPath, '/');
+
+            return;
+        }
+
+        $referer = request()->headers->get('referer');
+        if (is_string($referer) && $referer !== '') {
+            $refererPath = parse_url($referer, PHP_URL_PATH);
+            if (is_string($refererPath) && $refererPath !== '' && ! str_contains($refererPath, '/livewire')) {
+                $this->redirectContextPath = $refererPath;
+
+                return;
+            }
+        }
+
+        $this->redirectContextPath = '/'.ltrim(request()->path(), '/');
+    }
+
+    private function redirectContextRequest(): Request
+    {
+        $path = trim($this->redirectContextPath, '/');
+
+        if ($path !== '' && $path !== 'livewire' && ! str_starts_with($path, 'livewire/')) {
+            return Request::create('/'.$path, 'GET');
+        }
+
+        $referer = request()->headers->get('referer');
+        if (is_string($referer) && $referer !== '') {
+            $refererPath = parse_url($referer, PHP_URL_PATH);
+            if (is_string($refererPath) && $refererPath !== '') {
+                return Request::create($refererPath, 'GET');
+            }
+        }
+
+        return request();
     }
 
     public function render(): View

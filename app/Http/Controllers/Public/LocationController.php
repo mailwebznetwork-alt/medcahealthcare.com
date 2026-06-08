@@ -16,15 +16,16 @@ class LocationController extends Controller
         $normalized = preg_replace('/\D/', '', $pincode) ?? '';
         abort_if(strlen($normalized) !== 6, 404);
 
-        $result = $pincodeEngine->switch($normalized);
+        $result = $pincodeEngine->switch($normalized, request());
 
-        $redirect = redirect()->to(url('/locations').'#near-you');
+        $fallback = url('/locations').'#near-you';
+        $target = (string) ($result['redirect_url'] ?? $fallback);
 
         if (! $result['success']) {
-            return $redirect->withErrors(['pincode' => $result['message']]);
+            return redirect()->to($fallback)->withErrors(['pincode' => $result['message']]);
         }
 
-        return $redirect->with('status', $result['message']);
+        return redirect()->to($target)->with('status', $result['message']);
     }
 
     public function storePincode(Request $request, ChangePincodeEngine $pincodeEngine): JsonResponse|RedirectResponse
@@ -33,7 +34,7 @@ class LocationController extends Controller
             'pincode' => ['required', 'string', 'regex:/^\d{6}$/'],
         ]);
 
-        $result = $pincodeEngine->switch($validated['pincode']);
+        $result = $pincodeEngine->switch($validated['pincode'], $request);
         if (! $result['success']) {
             if ($request->expectsJson()) {
                 return response()->json([
@@ -49,10 +50,13 @@ class LocationController extends Controller
                 'pincode' => $result['pincode'],
                 'message' => $result['message'],
                 'discovery' => $result['discovery'],
+                'redirect_url' => $result['redirect_url'] ?? null,
             ]);
         }
 
-        return back()->with('status', $result['message']);
+        $target = (string) ($result['redirect_url'] ?? $request->headers->get('referer', url('/locations').'#near-you'));
+
+        return redirect()->to($target)->with('status', $result['message']);
     }
 
     public function storeGeolocation(Request $request, UserLocationService $location): JsonResponse

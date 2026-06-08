@@ -15,7 +15,8 @@ function postJson(url, payload) {
 
 export function bootLocationDetection() {
     window.addEventListener('open-pincode-modal', () => {
-        window.Livewire?.dispatch('open-pincode-modal');
+        const contextPath = window.location.pathname || '/';
+        window.Livewire?.dispatch('open-pincode-modal', { contextPath });
     });
 
     if (!('geolocation' in navigator)) {
