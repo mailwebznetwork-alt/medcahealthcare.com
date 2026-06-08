@@ -32,6 +32,7 @@ use App\Http\Controllers\Settings\SystemOperationsController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SiteArchitect\DynamicRecordController;
 use App\Http\Controllers\SiteArchitect\ModuleManagerController;
+use App\Http\Controllers\System\SourceOfTruthController;
 use App\Http\Controllers\System\SystemOverviewController;
 use App\Http\Controllers\ThemePreviewController;
 use App\Http\Controllers\UserManagement\UserController;
@@ -464,6 +465,7 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:security
 Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings', 'role:admin,super_admin'])->group(function () {
     Route::get('/system', fn () => redirect()->route('system.overview', [], 301))->name('system.index');
     Route::get('/system/overview', [SystemOverviewController::class, 'index'])->name('system.overview');
+    Route::get('/system/source-of-truth', [SourceOfTruthController::class, 'index'])->name('system.source-of-truth');
     Route::get('/system/queue', [SystemOverviewController::class, 'queue'])->name('system.queue');
     Route::get('/system/scheduler', [SystemOverviewController::class, 'scheduler'])->name('system.scheduler');
     Route::get('/system/health', [SystemOverviewController::class, 'health'])->name('system.health');

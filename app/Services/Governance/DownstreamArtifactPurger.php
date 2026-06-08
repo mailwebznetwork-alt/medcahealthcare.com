@@ -22,6 +22,32 @@ class DownstreamArtifactPurger
     ) {}
 
     /**
+     * @return list<array{registry_key: string, entity_type: string, entity_id: int|null, page_id: int|null}>
+     */
+    public function previewRegistryOrphans(): array
+    {
+        $orphans = [];
+
+        PageRegistry::query()->orderBy('id')->each(function (PageRegistry $entry) use (&$orphans): void {
+            if ($this->registryEntryIsOrphan($entry)) {
+                $orphans[] = [
+                    'registry_key' => $entry->registry_key,
+                    'entity_type' => $entry->entity_type,
+                    'entity_id' => $entry->entity_id,
+                    'page_id' => $entry->page_id,
+                ];
+            }
+        });
+
+        return $orphans;
+    }
+
+    public function countRegistryOrphans(): int
+    {
+        return count($this->previewRegistryOrphans());
+    }
+
+    /**
      * @return array{registry_removed: int, issues: list<string>}
      */
     public function purgeRegistryOrphans(): array

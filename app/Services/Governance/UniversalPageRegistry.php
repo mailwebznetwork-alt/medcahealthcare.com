@@ -9,6 +9,7 @@ use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\ServiceLocationPage;
 use App\Models\SubService;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Single registry for manual, generated, and planned pages.
@@ -60,6 +61,10 @@ class UniversalPageRegistry
                 $counts['synced']++;
             }
         });
+
+        Cache::put('governance.registry.last_sync_at', now()->toIso8601String(), now()->addDays(90));
+        Cache::put('governance.registry.last_sync_counts', $counts, now()->addDays(90));
+        Cache::put('governance.registry.last_sync_status', 'ok', now()->addDays(90));
 
         return $counts;
     }

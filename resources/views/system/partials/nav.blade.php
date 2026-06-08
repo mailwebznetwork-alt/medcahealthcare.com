@@ -5,6 +5,7 @@
 <nav class="flex flex-wrap gap-0" aria-label="{{ __('System sections') }}">
     @foreach ([
         'overview' => [__('Overview'), 'system.index'],
+        'source-of-truth' => [__('Source of Truth'), 'system.source-of-truth'],
         'integrations' => [__('Integrations'), 'settings.integrations'],
         'webhooks' => [__('Webhooks'), 'settings.webhooks'],
         'queue' => [__('Queue'), 'system.queue'],

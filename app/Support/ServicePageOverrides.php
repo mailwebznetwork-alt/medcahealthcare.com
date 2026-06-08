@@ -55,6 +55,24 @@ final class ServicePageOverrides
             || self::geoOverride($page);
     }
 
+    public static function countPagesWithAdminAuthority(): int
+    {
+        $count = 0;
+
+        Page::query()
+            ->select(['id', 'deployment_meta_json'])
+            ->orderBy('id')
+            ->chunkById(100, function ($pages) use (&$count): void {
+                foreach ($pages as $page) {
+                    if (self::adminAuthorityActive($page)) {
+                        $count++;
+                    }
+                }
+            });
+
+        return $count;
+    }
+
     /**
      * Mark all content fields as admin-owned after Site Architect save.
      */
