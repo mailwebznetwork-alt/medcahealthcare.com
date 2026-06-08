@@ -4,15 +4,19 @@
 
 @section('content')
     <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
-        <nav class="text-sm text-[var(--text-muted)]" aria-label="{{ __('Breadcrumb') }}">
-            <a href="{{ route('public.service-categories.index') }}" class="hover:text-mom-gold">{{ __('Categories') }}</a>
-            @if ($category->parent)
-                <span class="mx-2">/</span>
-                <a href="{{ route('public.service-categories.show', $category->parent->code) }}" class="hover:text-mom-gold">{{ $category->parent->name }}</a>
-            @endif
-            <span class="mx-2">/</span>
-            <span class="text-[var(--text-secondary)]">{{ $category->name }}</span>
-        </nav>
+        @php
+            $categoryBreadcrumbItems = [
+                ['label' => __('Categories'), 'url' => route('public.service-categories.index')],
+            ];
+            if ($category->parent) {
+                $categoryBreadcrumbItems[] = [
+                    'label' => $category->parent->name,
+                    'url' => route('public.service-categories.show', $category->parent->code),
+                ];
+            }
+            $categoryBreadcrumbItems[] = ['label' => $category->name, 'url' => '#'];
+        @endphp
+        <x-public.breadcrumbs :items="$categoryBreadcrumbItems" />
 
         <h1 class="mt-4 text-3xl font-bold text-[var(--text-primary)] md:text-4xl">{{ $category->name }}</h1>
         @if ($category->description)

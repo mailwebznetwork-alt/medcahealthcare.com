@@ -94,14 +94,10 @@
             @isset($page)
                 @php
                     $renderCtx = app(\App\Services\Content\ContentRenderContext::class)->all();
-                    $hideVisualBreadcrumbs = isset($service)
-                        || isset($serviceLocation)
-                        || (isset($page) && $page->slug === 'locations');
-                    $showGrowthChrome = ! $hideVisualBreadcrumbs
-                        && (
-                            ! empty($breadcrumbs ?? null)
-                            || ! empty($renderCtx['breadcrumbs'] ?? null)
-                        );
+                    $hasBreadcrumbData = ! empty($breadcrumbs ?? null)
+                        || ! empty($renderCtx['breadcrumbs'] ?? null);
+                    $showGrowthChrome = $hasBreadcrumbData
+                        && ! config('medca.hide_visual_breadcrumbs', true);
                 @endphp
                 @if ($showGrowthChrome)
                     <div @class(['w-full', 'pt-6 md:pt-8' => ! $page->usesCanvasLayout()])>

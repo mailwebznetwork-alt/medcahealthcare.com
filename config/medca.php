@@ -42,6 +42,12 @@ return [
     'public_profile_url' => env('MEDCA_PUBLIC_PROFILE_URL', ''),
 
     /**
+     * Hide visible breadcrumb nav on public pages while keeping JSON-LD / schema hierarchy.
+     * Set MEDCA_HIDE_VISUAL_BREADCRUMBS=false to restore the UI trail.
+     */
+    'hide_visual_breadcrumbs' => (bool) env('MEDCA_HIDE_VISUAL_BREADCRUMBS', true),
+
+    /**
      * Dev/staging hosts rewritten by `medca:normalize-site-urls` toward APP_URL (or --to=).
      *
      * @var list<string>

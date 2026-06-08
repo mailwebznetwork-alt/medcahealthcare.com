@@ -1,7 +1,7 @@
 @props(['items' => []])
 
-@if (is_array($items) && $items !== [])
-<nav aria-label="{{ __('Breadcrumb') }}" class="mb-6 text-sm text-slate-600">
+@if (is_array($items) && $items !== [] && ! config('medca.hide_visual_breadcrumbs', true))
+<nav aria-label="{{ __('Breadcrumb') }}" class="medca-visual-breadcrumbs mb-6 text-sm text-slate-600">
     <ol class="flex flex-wrap items-center gap-1">
         @foreach ($items as $index => $item)
             @if ($index > 0)

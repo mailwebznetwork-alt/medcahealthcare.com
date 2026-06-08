@@ -1,37 +1,37 @@
 # MEDCA HEALTH CARE — Production Launch Report
 
-**Generated:** 2026-06-06T10:37:48+00:00
+**Generated:** 2026-06-08T16:04:29+00:00
 **Launch Ready:** YES
 
 ## Totals
 
 | Metric | Count |
 |--------|------:|
-| Categories | 7 |
-| Services | 7 |
+| Categories | 6 |
+| Services | 8 |
 | Sub Services | 4 |
-| Pincodes | 15 |
-| Serviceable Pincodes | 15 |
-| Service↔Pincode Mappings | 105 |
-| Generated Pages | 123 |
-| Location Pages | 105 |
-| FAQs (all types) | 66 |
-| Schema Pages | 130 |
+| Pincodes | 19 |
+| Serviceable Pincodes | 19 |
+| Service↔Pincode Mappings | 84 |
+| Generated Pages | 104 |
+| Location Pages | 84 |
+| FAQs (all types) | 62 |
+| Schema Pages | 111 |
 | Internal Link Snapshots | 18 |
-| Registry Rows | 253 |
+| Registry Rows | 215 |
 
 ## Scores
 
 | Dimension | Score |
 |-----------|------:|
 | SEO | 100 |
-| GEO | 100 |
+| GEO | 74 |
 | AEO | 100 |
 | Performance | 85 |
 | Tracking | 25 |
 | Content | 100 |
 | Discovery | 100 |
-| **Launch** | **87** |
+| **Launch** | **83** |
 
 ## Validation Summary
 
@@ -41,7 +41,7 @@
 - **Location pages:** Reconciled from service↔pincode matrix
 - **Change pincode:** Switch success = YES
 - **Site Architect:** Compatible = YES
-- **GEO coverage:** 100% serviceable pincodes enriched
+- **GEO coverage:** 74% serviceable pincodes enriched
 
 ## Tracking Status
 

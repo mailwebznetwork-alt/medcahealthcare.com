@@ -1,32 +1,32 @@
 # MEDCA HEALTH CARE — Go-Live Certification (Phase 4)
 
-**Generated:** 2026-06-06T10:36:02+00:00
-**Decision:** **GO**
-**Certified:** YES
+**Generated:** 2026-06-08T16:04:04+00:00
+**Decision:** **NO-GO**
+**Certified:** NO
 
 ## Scores
 
 | Dimension | Score |
 |-----------|------:|
-| Architecture | 100 |
-| Data | 100 |
+| Architecture | 79 |
+| Data | 85 |
 | SEO | 100 |
-| GEO | 100 |
+| GEO | 67 |
 | AEO | 100 |
 | Performance | 100 |
 | Tracking | 50 |
-| Discovery | 100 |
-| **Launch** | **94** |
+| Discovery | 92 |
+| **Launch** | **84** |
 
 ## Go-Live Checklist
 
 | Area | Status |
 |------|--------|
-| Content | PASS |
+| Content | FAIL |
 | SEO | PASS |
-| GEO | PASS |
+| GEO | FAIL |
 | AEO | PASS |
-| Schema | PASS |
+| Schema | FAIL |
 | Discovery | PASS |
 | Tracking | FAIL |
 | Performance | PASS |
@@ -34,7 +34,8 @@
 
 ## Critical Issues
 
-None
+- Section [page_generation] failed certification
+- Section [matrix] failed certification
 
 ## Warnings
 
@@ -48,33 +49,72 @@ None
 
 ## Section Details
 
-### Import system — PASS (100%)
+### Import system — FAIL (67%)
+- FAIL: production_csv_files — /var/www/medca_healthcare/storage/imports/production
+- FAIL: preview_pipeline — categories.csv preview
 
-### Categories — PASS (100%)
+### Categories — PASS (97%)
+- FAIL: active_count — 6 active categories
 
-### Services — PASS (100%)
+### Services — PASS (93%)
+- FAIL: detach-pin-svc_faq — 0 FAQs
+- FAIL: detach-pin-svc_locations — pincode mappings
+- FAIL: dolore-cum-33626_faq — 0 FAQs
+- FAIL: dolore-cum-33626_locations — pincode mappings
 
-### Sub services — PASS (100%)
+### Sub services — FAIL (81%)
+- FAIL: blood-test_page — CMS page
+- FAIL: ecg-at-home_page — CMS page
+- FAIL: thyroid-test_page — CMS page
+- FAIL: xray-at-home_page — CMS page
 
-### Locations — PASS (100%)
+### Locations — FAIL (73%)
+- FAIL: 560997_coverage — coverage text
+- FAIL: 560997_landmarks — 0
+- FAIL: 560997_hospitals — 0
+- FAIL: 560997_faqs — location FAQs
+- FAIL: 752761_coverage — coverage text
+- FAIL: 752761_landmarks — 0
+- FAIL: 752761_hospitals — 0
+- FAIL: 752761_faqs — location FAQs
+- FAIL: 560101_coverage — coverage text
+- FAIL: 560101_landmarks — 0
+- FAIL: 560101_hospitals — 0
+- FAIL: 560101_faqs — location FAQs
+- FAIL: 061285_coverage — coverage text
+- FAIL: 061285_landmarks — 0
+- FAIL: 061285_hospitals — 0
+- FAIL: 061285_faqs — location FAQs
+- FAIL: 290107_coverage — coverage text
+- FAIL: 290107_landmarks — 0
+- FAIL: 290107_hospitals — 0
+- FAIL: 290107_faqs — location FAQs
+- FAIL: geo_readiness — geo enrichment score
 
-### Matrix — PASS (100%)
+### Matrix — FAIL (80%)
+- FAIL: services_have_pins — 2 services without pins
 
-### Page generation — PASS (100%)
+### Page generation — FAIL (71%)
+- FAIL: category_pages — 6 category pages
+- FAIL: sub_service_pages — 0 sub-service pages
 
 ### Discovery — PASS (100%)
 
 ### Change pincode — PASS (100%)
 
-### Internal linking — PASS (100%)
+### Internal linking — FAIL (75%)
+- FAIL: service_to_location — related locations
 
 ### Seo — PASS (100%)
 
-### Geo — PASS (100%)
+### Geo — FAIL (60%)
+- FAIL: coverage_text — 14 with coverage
+- FAIL: full_geo_coverage — 14/19 enriched
 
 ### Aeo — PASS (100%)
 
-### Schema — PASS (100%)
+### Schema — FAIL (83%)
+- FAIL: service_has_FAQPage — FAQPage
 
 ### Ai discoverability — PASS (100%)
 
