@@ -154,6 +154,7 @@ class ServiceDetailPageProvisioner
             return;
         }
 
+        app(\App\Services\Governance\DownstreamArtifactPurger::class)->purgeForDeletedService($service);
         $page->delete();
     }
 

@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\ServiceCategory;
 use App\Services\Governance\AdminDeletionGuard;
+use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Governance\UniversalPageRegistry;
 use App\Services\Operations\CategoryMasterOrchestrator;
 
@@ -13,6 +14,7 @@ class ServiceCategoryObserver
         private readonly CategoryMasterOrchestrator $orchestrator,
         private readonly UniversalPageRegistry $pageRegistry,
         private readonly AdminDeletionGuard $deletionGuard,
+        private readonly DownstreamArtifactPurger $purger,
     ) {}
 
     public function saved(ServiceCategory $category): void
@@ -31,5 +33,10 @@ class ServiceCategoryObserver
     public function deleting(ServiceCategory $category): void
     {
         $this->orchestrator->teardown($category);
+    }
+
+    public function deleted(ServiceCategory $category): void
+    {
+        $this->purger->purgeAfterCatalogEntityChange();
     }
 }

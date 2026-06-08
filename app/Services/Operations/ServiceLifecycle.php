@@ -80,6 +80,8 @@ final class ServiceLifecycle
             $service->delete();
             $this->audit->serviceDeleted($service, 'ui');
         });
+
+        $this->purger->purgeAfterCatalogEntityChange();
     }
 
     private function deletePublicPath(?string $path): void

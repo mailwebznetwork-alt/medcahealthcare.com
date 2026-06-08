@@ -166,11 +166,18 @@ class UniversalPageRegistry
     }
 
     /**
-     * @return array{registry_removed: int, issues: list<string>}
+     * @return array{
+     *     registry_removed: int,
+     *     location_pages_removed: int,
+     *     service_pages_removed: int,
+     *     sub_service_pages_removed: int,
+     *     category_pages_removed: int,
+     *     issues: list<string>
+     * }
      */
     public function purgeOrphans(): array
     {
-        return app(DownstreamArtifactPurger::class)->purgeRegistryOrphans();
+        return app(DownstreamArtifactPurger::class)->purgeAllCatalogOrphans();
     }
 
     public function upsertLocationEntry(ServiceLocationPage $mapping): PageRegistry

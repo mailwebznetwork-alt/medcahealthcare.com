@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\PinCode;
 use App\Services\Governance\AdminDeletionGuard;
+use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Operations\InternalLinkRefreshDispatcher;
 use App\Services\Operations\ServiceLocationPageProvisioner;
 
@@ -13,6 +14,7 @@ class PinCodeObserver
         private readonly InternalLinkRefreshDispatcher $linkRefreshDispatcher,
         private readonly ServiceLocationPageProvisioner $locationPageProvisioner,
         private readonly AdminDeletionGuard $deletionGuard,
+        private readonly DownstreamArtifactPurger $purger,
     ) {}
 
     public function saved(PinCode $pinCode): void
@@ -32,6 +34,11 @@ class PinCodeObserver
     public function deleting(PinCode $pinCode): void
     {
         $this->locationPageProvisioner->deleteAllForPincode($pinCode);
+    }
+
+    public function deleted(PinCode $pinCode): void
+    {
+        $this->purger->purgeAfterCatalogEntityChange();
     }
 
     private function refreshMappedServices(PinCode $pinCode): void

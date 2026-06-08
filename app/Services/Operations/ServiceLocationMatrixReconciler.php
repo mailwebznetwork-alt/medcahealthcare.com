@@ -90,7 +90,7 @@ class ServiceLocationMatrixReconciler
             }
         }
 
-        app(DownstreamArtifactPurger::class)->purgeRegistryOrphans();
+        app(DownstreamArtifactPurger::class)->purgeAllCatalogOrphans();
 
         return $report;
     }

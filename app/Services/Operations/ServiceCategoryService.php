@@ -5,6 +5,7 @@ namespace App\Services\Operations;
 use App\Models\ServiceCategory;
 use App\Services\ActivityLogService;
 use App\Services\Governance\AdminDeletionGuard;
+use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Governance\MasterDataAudit;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -14,6 +15,7 @@ class ServiceCategoryService
     public function __construct(
         private readonly ActivityLogService $activityLog,
         private readonly AdminDeletionGuard $deletionGuard,
+        private readonly DownstreamArtifactPurger $purger,
         private readonly MasterDataAudit $audit,
     ) {}
 
@@ -58,6 +60,8 @@ class ServiceCategoryService
             $this->audit->categoryDeleted($category, 'ui');
             $this->activityLog->log('service_category.deleted', 'operations', $category->name.' ('.$category->code.')');
         });
+
+        $this->purger->purgeAfterCatalogEntityChange();
     }
 
     /**

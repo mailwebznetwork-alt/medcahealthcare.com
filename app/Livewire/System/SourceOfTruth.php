@@ -41,13 +41,23 @@ class SourceOfTruth extends Component
 
     public function purgeOrphans(DownstreamArtifactPurger $purger, SourceOfTruthDashboardService $dashboard): void
     {
-        $result = $purger->purgeRegistryOrphans();
-        $removed = (int) ($result['registry_removed'] ?? 0);
+        $result = $purger->purgeAllCatalogOrphans();
+        $totalRemoved = (int) ($result['registry_removed'] ?? 0)
+            + (int) ($result['location_pages_removed'] ?? 0)
+            + (int) ($result['service_pages_removed'] ?? 0)
+            + (int) ($result['sub_service_pages_removed'] ?? 0)
+            + (int) ($result['category_pages_removed'] ?? 0);
 
-        $this->flashType = $removed > 0 ? 'success' : 'info';
-        $this->flash = $removed > 0
-            ? __('Removed :count orphan registry row(s).', ['count' => number_format($removed)])
-            : __('No orphan registry rows found.');
+        $this->flashType = $totalRemoved > 0 ? 'success' : 'info';
+        $this->flash = $totalRemoved > 0
+            ? __('Removed :registry registry, :location location, :service service, :sub sub-service, and :category category orphan(s).', [
+                'registry' => number_format((int) ($result['registry_removed'] ?? 0)),
+                'location' => number_format((int) ($result['location_pages_removed'] ?? 0)),
+                'service' => number_format((int) ($result['service_pages_removed'] ?? 0)),
+                'sub' => number_format((int) ($result['sub_service_pages_removed'] ?? 0)),
+                'category' => number_format((int) ($result['category_pages_removed'] ?? 0)),
+            ])
+            : __('No orphan registry rows or catalog pages found.');
 
         $this->refreshReport($dashboard);
     }

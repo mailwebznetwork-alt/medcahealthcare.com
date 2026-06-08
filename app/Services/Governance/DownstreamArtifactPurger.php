@@ -78,6 +78,155 @@ class DownstreamArtifactPurger
         return ['registry_removed' => $removed, 'issues' => $issues];
     }
 
+    /**
+     * Generated location CMS pages with no service_location_pages mapping (e.g. after pincode delete bypass).
+     *
+     * @return list<array{id: int, slug: string}>
+     */
+    public function previewOrphanLocationPages(): array
+    {
+        $orphans = [];
+        $mappedPageIds = $this->mappedLocationPageIds();
+
+        $this->orphanLocationPageQuery($mappedPageIds)
+            ->orderBy('id')
+            ->each(function (Page $page) use (&$orphans): void {
+                $orphans[] = [
+                    'id' => $page->id,
+                    'slug' => $page->slug,
+                ];
+            });
+
+        return $orphans;
+    }
+
+    /**
+     * @return array{pages_removed: int, issues: list<string>}
+     */
+    public function purgeOrphanLocationPages(): array
+    {
+        $removed = 0;
+        $issues = [];
+        $mappedPageIds = $this->mappedLocationPageIds();
+
+        $this->orphanLocationPageQuery($mappedPageIds)
+            ->orderBy('id')
+            ->each(function (Page $page) use (&$removed, &$issues): void {
+                $slug = $page->slug;
+                $this->purgeForDeletedPage($page);
+                $page->delete();
+                $removed++;
+
+                $this->audit->log(
+                    process: 'DownstreamArtifactPurger',
+                    action: 'purge_orphan_location_page',
+                    table: 'pages',
+                    recordId: null,
+                    recordKey: $slug,
+                    outcome: 'applied',
+                    reason: 'Location CMS page has no service_location_pages mapping; database is authoritative.',
+                );
+
+                $issues[] = "Removed orphan location page: {$slug}";
+            });
+
+        if ($removed > 0) {
+            $this->forgetPageCaches();
+        }
+
+        return ['pages_removed' => $removed, 'issues' => $issues];
+    }
+
+    /**
+     * @return array{
+     *     registry_removed: int,
+     *     location_pages_removed: int,
+     *     service_pages_removed: int,
+     *     sub_service_pages_removed: int,
+     *     category_pages_removed: int,
+     *     issues: list<string>
+     * }
+     */
+    public function purgeAllCatalogOrphans(): array
+    {
+        $registry = $this->purgeRegistryOrphans();
+        $location = $this->purgeOrphanLocationPages();
+        $service = $this->purgeOrphanServiceDetailPages();
+        $subService = $this->purgeOrphanSubServicePages();
+        $category = $this->purgeOrphanCategoryPages();
+
+        return [
+            'registry_removed' => $registry['registry_removed'],
+            'location_pages_removed' => $location['pages_removed'],
+            'service_pages_removed' => $service['pages_removed'],
+            'sub_service_pages_removed' => $subService['pages_removed'],
+            'category_pages_removed' => $category['pages_removed'],
+            'issues' => array_merge(
+                $registry['issues'],
+                $location['issues'],
+                $service['issues'],
+                $subService['issues'],
+                $category['issues'],
+            ),
+        ];
+    }
+
+    /**
+     * Run after any catalog entity delete/detach so stray CMS pages cannot survive.
+     *
+     * @return array{
+     *     registry_removed: int,
+     *     location_pages_removed: int,
+     *     service_pages_removed: int,
+     *     sub_service_pages_removed: int,
+     *     category_pages_removed: int,
+     *     issues: list<string>
+     * }
+     */
+    public function purgeAfterCatalogEntityChange(): array
+    {
+        return $this->purgeAllCatalogOrphans();
+    }
+
+    /**
+     * @return array{pages_removed: int, issues: list<string>}
+     */
+    public function purgeOrphanServiceDetailPages(): array
+    {
+        return $this->purgeOrphanPagesOfType(
+            query: $this->orphanServiceDetailPageQuery($this->mappedServiceDetailPageIds()),
+            auditAction: 'purge_orphan_service_page',
+            auditReason: 'Service detail CMS page is not linked to any service; database is authoritative.',
+            issuePrefix: 'Removed orphan service page',
+        );
+    }
+
+    /**
+     * @return array{pages_removed: int, issues: list<string>}
+     */
+    public function purgeOrphanSubServicePages(): array
+    {
+        return $this->purgeOrphanPagesOfType(
+            query: $this->orphanSubServicePageQuery($this->mappedSubServicePageIds()),
+            auditAction: 'purge_orphan_sub_service_page',
+            auditReason: 'Sub-service CMS page is not linked to any sub-service; database is authoritative.',
+            issuePrefix: 'Removed orphan sub-service page',
+        );
+    }
+
+    /**
+     * @return array{pages_removed: int, issues: list<string>}
+     */
+    public function purgeOrphanCategoryPages(): array
+    {
+        return $this->purgeOrphanPagesOfType(
+            query: $this->orphanCategoryPageQuery($this->mappedCategoryPageIds()),
+            auditAction: 'purge_orphan_category_page',
+            auditReason: 'Category CMS page is not linked to any category; database is authoritative.',
+            issuePrefix: 'Removed orphan category page',
+        );
+    }
+
     public function purgeForDeletedPage(Page $page): void
     {
         PageRegistry::query()
@@ -160,6 +309,169 @@ class DownstreamArtifactPurger
             });
 
         $this->forgetPageCaches();
+    }
+
+    /**
+     * @param  list<int>  $mappedPageIds
+     * @return \Illuminate\Database\Eloquent\Builder<Page>
+     */
+    private function orphanLocationPageQuery(array $mappedPageIds)
+    {
+        return Page::query()
+            ->where(function ($query): void {
+                $query->where('registry_owner', 'operations_location_matrix')
+                    ->orWhere('slug', 'like', 'service-%-loc-%');
+            })
+            ->when(
+                $mappedPageIds !== [],
+                fn ($query) => $query->whereNotIn('id', $mappedPageIds),
+                fn ($query) => $query,
+            );
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function mappedLocationPageIds(): array
+    {
+        return ServiceLocationPage::query()
+            ->whereNotNull('page_id')
+            ->pluck('page_id')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function mappedCategoryPageIds(): array
+    {
+        return ServiceCategory::query()
+            ->whereNotNull('page_id')
+            ->pluck('page_id')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  list<int>  $mappedPageIds
+     * @return \Illuminate\Database\Eloquent\Builder<Page>
+     */
+    private function orphanServiceDetailPageQuery(array $mappedPageIds)
+    {
+        return Page::query()
+            ->where(function ($query): void {
+                $query->where('registry_owner', 'operations_service')
+                    ->orWhere(function ($inner): void {
+                        $inner->where('slug', 'like', 'service-%')
+                            ->where('slug', 'not like', '%-loc-%')
+                            ->where('slug', 'not like', '%-sub-%');
+                    });
+            })
+            ->when(
+                $mappedPageIds !== [],
+                fn ($query) => $query->whereNotIn('id', $mappedPageIds),
+                fn ($query) => $query,
+            );
+    }
+
+    /**
+     * @param  list<int>  $mappedPageIds
+     * @return \Illuminate\Database\Eloquent\Builder<Page>
+     */
+    private function orphanSubServicePageQuery(array $mappedPageIds)
+    {
+        return Page::query()
+            ->where(function ($query): void {
+                $query->where('registry_owner', 'operations_sub_service')
+                    ->orWhere('slug', 'like', 'service-%-sub-%');
+            })
+            ->when(
+                $mappedPageIds !== [],
+                fn ($query) => $query->whereNotIn('id', $mappedPageIds),
+                fn ($query) => $query,
+            );
+    }
+
+    /**
+     * @param  list<int>  $mappedPageIds
+     * @return \Illuminate\Database\Eloquent\Builder<Page>
+     */
+    private function orphanCategoryPageQuery(array $mappedPageIds)
+    {
+        return Page::query()
+            ->where(function ($query): void {
+                $query->where('registry_owner', 'operations_category')
+                    ->orWhere('slug', 'like', 'category-%');
+            })
+            ->when(
+                $mappedPageIds !== [],
+                fn ($query) => $query->whereNotIn('id', $mappedPageIds),
+                fn ($query) => $query,
+            );
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function mappedServiceDetailPageIds(): array
+    {
+        return Service::query()
+            ->whereNotNull('detail_page_id')
+            ->pluck('detail_page_id')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function mappedSubServicePageIds(): array
+    {
+        return SubService::query()
+            ->whereNotNull('page_id')
+            ->pluck('page_id')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder<Page>  $query
+     * @return array{pages_removed: int, issues: list<string>}
+     */
+    private function purgeOrphanPagesOfType($query, string $auditAction, string $auditReason, string $issuePrefix): array
+    {
+        $removed = 0;
+        $issues = [];
+
+        $query->orderBy('id')->each(function (Page $page) use (&$removed, &$issues, $auditAction, $auditReason, $issuePrefix): void {
+            $slug = $page->slug;
+            $this->purgeForDeletedPage($page);
+            $page->delete();
+            $removed++;
+
+            $this->audit->log(
+                process: 'DownstreamArtifactPurger',
+                action: $auditAction,
+                table: 'pages',
+                recordId: null,
+                recordKey: $slug,
+                outcome: 'applied',
+                reason: $auditReason,
+            );
+
+            $issues[] = "{$issuePrefix}: {$slug}";
+        });
+
+        if ($removed > 0) {
+            $this->forgetPageCaches();
+        }
+
+        return ['pages_removed' => $removed, 'issues' => $issues];
     }
 
     private function registryEntryIsOrphan(PageRegistry $entry): bool

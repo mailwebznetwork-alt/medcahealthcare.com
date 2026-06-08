@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\SubService;
 use App\Services\Governance\AdminDeletionGuard;
+use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Governance\SubServiceCreationGuard;
 use App\Services\Governance\UniversalPageRegistry;
 use App\Services\Operations\SubServiceMasterOrchestrator;
@@ -14,6 +15,7 @@ class SubServiceObserver
         private readonly SubServiceMasterOrchestrator $orchestrator,
         private readonly UniversalPageRegistry $pageRegistry,
         private readonly AdminDeletionGuard $deletionGuard,
+        private readonly DownstreamArtifactPurger $purger,
     ) {}
 
     public function saved(SubService $sub): void
@@ -33,5 +35,10 @@ class SubServiceObserver
     public function deleting(SubService $sub): void
     {
         $this->orchestrator->teardown($sub);
+    }
+
+    public function deleted(SubService $sub): void
+    {
+        $this->purger->purgeAfterCatalogEntityChange();
     }
 }

@@ -6,6 +6,7 @@ use App\Models\PageElement;
 use App\Models\PageSeo;
 use App\Models\Service;
 use App\Services\Governance\AdminDeletionGuard;
+use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Growth\AiPulseService;
 use App\Services\Growth\ContentSeoAutoFillService;
 use App\Services\Operations\InternalLinkRefreshDispatcher;
@@ -18,6 +19,7 @@ class ServiceObserver
         private readonly AiPulseService $aiPulseService,
         private readonly InternalLinkRefreshDispatcher $linkRefreshDispatcher,
         private readonly AdminDeletionGuard $deletionGuard,
+        private readonly DownstreamArtifactPurger $purger,
     ) {}
 
     public function saved(Service $service): void
@@ -47,5 +49,6 @@ class ServiceObserver
 
         $this->contentSeoAutoFill->refreshAggregateSignals();
         $this->aiPulseService->triggerAuditAfterPublish();
+        $this->purger->purgeAfterCatalogEntityChange();
     }
 }

@@ -4,6 +4,7 @@ namespace App\Services\Operations;
 
 use App\Models\SubService;
 use App\Services\Governance\AdminDeletionGuard;
+use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Governance\MasterDataAudit;
 use Illuminate\Support\Facades\DB;
 
@@ -11,6 +12,7 @@ final class SubServiceDeletionService
 {
     public function __construct(
         private readonly AdminDeletionGuard $deletionGuard,
+        private readonly DownstreamArtifactPurger $purger,
         private readonly MasterDataAudit $audit,
     ) {}
 
@@ -21,5 +23,7 @@ final class SubServiceDeletionService
             $this->audit->subServiceDeleted($subService, $source, $reason);
             $subService->delete();
         });
+
+        $this->purger->purgeAfterCatalogEntityChange();
     }
 }
