@@ -22,11 +22,8 @@ class ServiceCategoryObserver
         }
     }
 
-    public function deleted(ServiceCategory $category): void
+    public function deleting(ServiceCategory $category): void
     {
-        \App\Models\PageRegistry::query()
-            ->where('entity_type', 'category')
-            ->where('entity_id', $category->id)
-            ->delete();
+        $this->orchestrator->teardown($category);
     }
 }

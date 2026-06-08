@@ -3,6 +3,7 @@
 namespace App\Services\Operations;
 
 use App\Models\Service;
+use App\Support\ServicePageOverrides;
 
 /**
  * Central pipeline: Service → SEO/AEO/GEO/Schema → auto pages → URLs → links → sitemap data.
@@ -46,10 +47,13 @@ class ServiceMasterOrchestrator
         );
 
         $detailPage = $this->detailPageProvisioner->syncFromService($service, $previousServiceCode);
-        $detailPage->forceFill([
+        $detailAttributes = ServicePageOverrides::filterAutomatedAttributes($detailPage, [
             'page_category' => \App\Enums\PageCategory::Service,
             'canonical_url' => $this->urlBuilder->serviceUrl($service),
-        ])->saveQuietly();
+        ]);
+        if ($detailAttributes !== []) {
+            $detailPage->forceFill($detailAttributes)->saveQuietly();
+        }
 
         $this->masterPageSync->pushToPage($service->fresh(), $detailPage, forceEmptyOnly: false);
         $this->categoryResolver->applyToPage($detailPage);

@@ -4,6 +4,7 @@ namespace App\Services\Operations;
 
 use App\Models\Service;
 use App\Models\ServiceLocationPage;
+use App\Services\Governance\DownstreamArtifactPurger;
 use Illuminate\Support\Collection;
 
 /**
@@ -76,15 +77,20 @@ class ServiceLocationMatrixReconciler
             }
 
             $pivotPinIds = $service->pincodes->pluck('id')->all();
-            $orphanMappings = ServiceLocationPage::query()
+            $orphanRows = ServiceLocationPage::query()
                 ->where('service_id', $service->id)
                 ->when($pivotPinIds !== [], fn ($q) => $q->whereNotIn('pincode_id', $pivotPinIds))
-                ->count();
+                ->with('page')
+                ->get();
 
-            if ($orphanMappings > 0) {
-                $report['issues'][] = "service:{$service->service_code} has {$orphanMappings} orphan location mapping(s)";
+            foreach ($orphanRows as $orphan) {
+                $this->locationProvisioner->removeMappingAndPage($orphan);
+                $report['pages_removed']++;
+                $report['issues'][] = "service:{$service->service_code} purged orphan mapping pin:{$orphan->pincode_id}";
             }
         }
+
+        app(DownstreamArtifactPurger::class)->purgeRegistryOrphans();
 
         return $report;
     }

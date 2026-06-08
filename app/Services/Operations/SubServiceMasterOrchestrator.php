@@ -18,4 +18,9 @@ class SubServiceMasterOrchestrator
 
         $this->pageProvisioner->syncFromSubService($sub->fresh(['seo', 'faqs', 'schema', 'service']));
     }
+
+    public function teardown(SubService $sub): void
+    {
+        $this->pageProvisioner->deleteOwnedPage($sub);
+    }
 }

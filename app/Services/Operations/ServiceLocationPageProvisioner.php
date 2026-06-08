@@ -9,7 +9,9 @@ use App\Models\Page;
 use App\Models\PinCode;
 use App\Models\Service;
 use App\Models\ServiceLocationPage;
+use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Seo\LocalityContextResolver;
+use App\Support\ServicePageOverrides;
 
 class ServiceLocationPageProvisioner
 {
@@ -79,12 +81,61 @@ class ServiceLocationPageProvisioner
             ->get();
 
         foreach ($orphans as $row) {
-            $row->page?->delete();
-            $row->delete();
+            $this->removeMappingAndPage($row);
             $removed++;
         }
 
         return compact('created', 'updated', 'removed');
+    }
+
+    /**
+     * @return array{updated: int}
+     */
+    public function syncAllForPincode(PinCode $pin): array
+    {
+        $pin->loadMissing('services');
+        $updated = 0;
+
+        foreach ($pin->services as $service) {
+            if (! $service->pincodes()->whereKey($pin->id)->exists()) {
+                continue;
+            }
+
+            $this->provisionOne($service, $pin);
+            $updated++;
+        }
+
+        return ['updated' => $updated];
+    }
+
+    public function deleteAllForPincode(PinCode $pin): int
+    {
+        $removed = 0;
+
+        ServiceLocationPage::query()
+            ->where('pincode_id', $pin->id)
+            ->with(['page', 'service', 'pincode'])
+            ->each(function (ServiceLocationPage $row) use (&$removed): void {
+                $this->removeMappingAndPage($row);
+                $removed++;
+            });
+
+        return $removed;
+    }
+
+    public function removeMappingAndPage(ServiceLocationPage $mapping): void
+    {
+        $mapping->loadMissing(['page', 'service', 'pincode']);
+
+        app(DownstreamArtifactPurger::class)->purgeForDeletedLocationMapping($mapping);
+
+        if ($mapping->page !== null) {
+            $mapping->page->delete();
+        }
+
+        if ($mapping->exists) {
+            $mapping->delete();
+        }
     }
 
     public function provisionOne(Service $service, PinCode $pin): Page
@@ -136,7 +187,7 @@ class ServiceLocationPageProvisioner
                 'canonical_url' => $canonical,
             ]);
         } else {
-            $page->update([
+            $attributes = ServicePageOverrides::filterAutomatedAttributes($page, [
                 'title' => $title,
                 'slug' => $cmsSlug,
                 'is_active' => $pageActive,
@@ -148,9 +199,13 @@ class ServiceLocationPageProvisioner
                 'heading_h3' => $h3 !== null ? [$h3] : null,
                 'canonical_url' => $canonical,
             ]);
+
+            if ($attributes !== []) {
+                $page->update($attributes);
+            }
         }
 
-        if (filled($description)) {
+        if (filled($description) && ! ServicePageOverrides::aeoOverride($page)) {
             $page->forceFill(['aeo_answer' => $description])->saveQuietly();
         }
 
@@ -169,12 +224,18 @@ class ServiceLocationPageProvisioner
 
         $mapping->loadMissing(['page', 'pincode', 'service']);
         $locationGraph = $this->schemaGenerator->buildLocationGraph($service, $pin, $mapping);
-        $page->forceFill([
-            'schema_json' => $locationGraph,
-            'schema_type' => 'LocationServiceGraph',
+        $schemaAttributes = ['schema_json' => $locationGraph, 'schema_type' => 'LocationServiceGraph'];
+
+        if ($page->schema_json !== null) {
+            unset($schemaAttributes['schema_json'], $schemaAttributes['schema_type']);
+        }
+
+        $aeoAttributes = ServicePageOverrides::filterAutomatedAttributes($page, [
             'aeo_question' => $pin->locationFaqs->first()?->question,
             'aeo_answer' => $pin->locationFaqs->first()?->answer,
-        ])->saveQuietly();
+        ]);
+
+        $page->forceFill(array_merge($schemaAttributes, $aeoAttributes))->saveQuietly();
 
         $this->masterPageSync->pushToLocationPage($service, $pin, $page->fresh(), $intro);
         $this->categoryResolver->applyToPage($page);
@@ -210,10 +271,9 @@ class ServiceLocationPageProvisioner
     {
         ServiceLocationPage::query()
             ->where('service_id', $service->id)
-            ->with('page')
+            ->with(['page', 'service', 'pincode'])
             ->each(function (ServiceLocationPage $row): void {
-                $row->page?->delete();
-                $row->delete();
+                $this->removeMappingAndPage($row);
             });
     }
 

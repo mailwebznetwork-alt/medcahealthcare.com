@@ -22,4 +22,9 @@ class CategoryMasterOrchestrator
         $this->discoveryEngine->sync($category);
         $this->pageProvisioner->syncFromCategory($category->fresh(['seo', 'faqs', 'schema']));
     }
+
+    public function teardown(ServiceCategory $category): void
+    {
+        $this->pageProvisioner->deleteOwnedPage($category);
+    }
 }

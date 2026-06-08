@@ -22,11 +22,8 @@ class SubServiceObserver
         }
     }
 
-    public function deleted(SubService $sub): void
+    public function deleting(SubService $sub): void
     {
-        \App\Models\PageRegistry::query()
-            ->where('entity_type', 'sub_service')
-            ->where('entity_id', $sub->id)
-            ->delete();
+        $this->orchestrator->teardown($sub);
     }
 }

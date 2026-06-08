@@ -356,7 +356,9 @@ class ServiceController extends Controller
                 }
             }
 
+            app(\App\Services\Governance\AdminDeletionGuard::class)->recordServiceDeletion($service);
             $this->serviceMasterOrchestrator->teardown($service);
+            app(\App\Services\Governance\DownstreamArtifactPurger::class)->purgeForDeletedService($service);
             $service->delete();
         });
 

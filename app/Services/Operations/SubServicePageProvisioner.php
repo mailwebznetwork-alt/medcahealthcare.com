@@ -14,6 +14,7 @@ use App\Services\Discovery\Expansion\SchemaExpansionEngine;
 use App\Services\Discovery\Expansion\SeoExpansionEngine;
 use App\Services\Discovery\RelatedContentEngine;
 use App\Services\Governance\UniversalPageRegistry;
+use App\Support\ServicePageOverrides;
 
 class SubServicePageProvisioner
 {
@@ -68,12 +69,16 @@ class SubServicePageProvisioner
                 'registry_owner' => 'operations_sub_service',
             ]);
         } else {
-            $page->update([
+            $attributes = ServicePageOverrides::filterAutomatedAttributes($page, [
                 'title' => $sub->title,
                 'slug' => $this->uniqueSlug($this->suggestedSlug($sub), $page->id),
                 'is_active' => $sub->is_active && $sub->isListedPublicly(),
                 'page_category' => PageCategory::SubService,
             ]);
+
+            if ($attributes !== []) {
+                $page->update($attributes);
+            }
         }
 
         if ($sub->page_id !== $page->id) {
@@ -85,10 +90,16 @@ class SubServicePageProvisioner
         $schema = $this->schemaExpansion->forSubService($sub);
         $ai = $this->aiDiscoverability->scoreSubService($sub);
 
-        $page->forceFill(array_merge($seo, $aeo, [
-            'schema_json' => $schema,
-            'schema_type' => 'SubServiceGraph',
-        ]))->saveQuietly();
+        $expansion = ServicePageOverrides::filterAutomatedAttributes($page, array_merge($seo, $aeo, []));
+
+        if ($page->schema_json === null) {
+            $expansion['schema_json'] = $schema;
+            $expansion['schema_type'] = 'SubServiceGraph';
+        }
+
+        if ($expansion !== []) {
+            $page->forceFill($expansion)->saveQuietly();
+        }
 
         $this->syncPageFaqs($sub, $page);
         $this->categoryResolver->applyToPage($page);
@@ -96,6 +107,18 @@ class SubServicePageProvisioner
         $this->pageRegistry->upsertSubServiceEntry($sub->fresh());
 
         return $page->fresh();
+    }
+
+    public function deleteOwnedPage(SubService $sub): void
+    {
+        $page = $this->findOwnedPage($sub);
+
+        if ($page === null) {
+            return;
+        }
+
+        app(\App\Services\Governance\DownstreamArtifactPurger::class)->purgeForDeletedSubService($sub);
+        $page->delete();
     }
 
     private function findOwnedPage(SubService $sub): ?Page
@@ -112,6 +135,10 @@ class SubServicePageProvisioner
 
     private function syncPageFaqs(SubService $sub, Page $page): void
     {
+        if (ServicePageOverrides::aeoOverride($page)) {
+            return;
+        }
+
         $sub->loadMissing('faqs');
         if ($sub->faqs->isEmpty()) {
             return;

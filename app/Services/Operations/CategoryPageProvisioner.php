@@ -15,6 +15,7 @@ use App\Services\Discovery\Expansion\SchemaExpansionEngine;
 use App\Services\Discovery\Expansion\SeoExpansionEngine;
 use App\Services\Discovery\RelatedContentEngine;
 use App\Services\Governance\UniversalPageRegistry;
+use App\Support\ServicePageOverrides;
 
 class CategoryPageProvisioner
 {
@@ -70,12 +71,16 @@ class CategoryPageProvisioner
                 'registry_owner' => 'operations_category',
             ]);
         } else {
-            $page->update([
+            $attributes = ServicePageOverrides::filterAutomatedAttributes($page, [
                 'title' => $category->name,
                 'slug' => $this->uniqueSlug($this->suggestedSlug($category), $page->id),
                 'is_active' => $category->is_active && $category->isListedPublicly(),
                 'page_category' => PageCategory::Category,
             ]);
+
+            if ($attributes !== []) {
+                $page->update($attributes);
+            }
         }
 
         if ($category->page_id !== $page->id) {
@@ -87,14 +92,21 @@ class CategoryPageProvisioner
         $schema = $this->schemaExpansion->forCategory($category);
         $ai = $this->aiDiscoverability->scoreCategory($category);
 
-        $page->forceFill(array_merge($seo, $aeo, [
-            'schema_json' => $schema,
-            'schema_type' => 'CategoryDiscoveryGraph',
+        $expansion = ServicePageOverrides::filterAutomatedAttributes($page, array_merge($seo, $aeo, [
             'entity_tags' => $category->seo?->entity_tags ?: $this->geoExpansion->signalsForCategory($category),
             'keywords' => is_array($category->seo?->focus_keywords)
                 ? implode(', ', $category->seo->focus_keywords)
                 : null,
-        ]))->saveQuietly();
+        ]));
+
+        if ($page->schema_json === null) {
+            $expansion['schema_json'] = $schema;
+            $expansion['schema_type'] = 'CategoryDiscoveryGraph';
+        }
+
+        if ($expansion !== []) {
+            $page->forceFill($expansion)->saveQuietly();
+        }
 
         $this->syncPageFaqs($category, $page);
         $this->categoryResolver->applyToPage($page);
@@ -108,6 +120,18 @@ class CategoryPageProvisioner
         }
 
         return $page->fresh();
+    }
+
+    public function deleteOwnedPage(ServiceCategory $category): void
+    {
+        $page = $this->findOwnedPage($category);
+
+        if ($page === null) {
+            return;
+        }
+
+        app(\App\Services\Governance\DownstreamArtifactPurger::class)->purgeForDeletedCategory($category);
+        $page->delete();
     }
 
     private function findOwnedPage(ServiceCategory $category): ?Page
@@ -124,6 +148,10 @@ class CategoryPageProvisioner
 
     private function syncPageFaqs(ServiceCategory $category, Page $page): void
     {
+        if (ServicePageOverrides::aeoOverride($page)) {
+            return;
+        }
+
         $category->loadMissing('faqs');
         if ($category->faqs->isEmpty()) {
             return;
