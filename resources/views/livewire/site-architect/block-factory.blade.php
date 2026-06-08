@@ -47,10 +47,15 @@
             />
         </div>
 
+        <x-bulk.selection-toolbar :count="$this->bulkSelectedCount()" :actions="['delete', 'publish', 'unpublish', 'export', 'sync']" />
+
         <div class="mom-card overflow-x-auto p-0">
             <table class="mom-table w-full min-w-[960px] text-left text-sm">
                 <thead>
                     <tr>
+                        <th class="w-10 px-4 py-3">
+                            <input type="checkbox" class="rounded border-[var(--border-panel-soft)]" wire:click="selectAllVisibleRows({{ $blocks->pluck('id')->values()->toJson() }})" aria-label="{{ __('Select all visible') }}" />
+                        </th>
                         <th class="px-4 py-3">{{ __('Block name') }}</th>
                         <th class="px-4 py-3">{{ __('Block slug') }}</th>
                         <th class="px-4 py-3">{{ __('Block type') }}</th>
@@ -62,6 +67,9 @@
                 <tbody>
                     @forelse ($blocks as $block)
                         <tr wire:key="bf-row-{{ $block->id }}">
+                            <td class="px-4 py-3">
+                                <input type="checkbox" class="rounded border-[var(--border-panel-soft)]" wire:click="toggleBulkRow({{ $block->id }})" @checked($this->isBulkRowSelected($block->id)) aria-label="{{ __('Select row') }}" />
+                            </td>
                             <td class="px-4 py-3 font-medium text-[var(--text-primary)]">
                                 {{ $block->block_name }}
                                 @if ($block->is_managed)
@@ -255,4 +263,6 @@
             </div>
         </div>
     @endif
+
+    <x-bulk.action-modal :open="$bulkModalOpen" :preview="$bulkGovernancePreview" />
 </div>

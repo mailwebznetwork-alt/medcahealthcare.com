@@ -18,10 +18,15 @@
             </a>
         </div>
 
+        <x-bulk.selection-toolbar :count="$this->bulkSelectedCount()" :actions="['delete', 'publish', 'unpublish', 'export']" />
+
         <div class="mom-card overflow-x-auto p-0">
             <table class="mom-table w-full min-w-[800px] text-left text-sm">
                 <thead>
                     <tr>
+                        <th class="w-10 px-4 py-3">
+                            <input type="checkbox" class="rounded border-[var(--border-panel-soft)]" wire:click="selectAllVisibleRows({{ $blogs->pluck('id')->values()->toJson() }})" aria-label="{{ __('Select all visible') }}" />
+                        </th>
                         <th class="px-4 py-3">{{ __('Blog title') }}</th>
                         <th class="px-4 py-3">{{ __('Slug') }}</th>
                         <th class="px-4 py-3">{{ __('Published status') }}</th>
@@ -33,6 +38,9 @@
                 <tbody>
                     @forelse ($blogs as $blog)
                         <tr wire:key="blog-row-{{ $blog->id }}">
+                            <td class="px-4 py-3">
+                                <input type="checkbox" class="rounded border-[var(--border-panel-soft)]" wire:click="toggleBulkRow({{ $blog->id }})" @checked($this->isBulkRowSelected($blog->id)) aria-label="{{ __('Select row') }}" />
+                            </td>
                             <td class="px-4 py-3 font-medium text-[var(--text-primary)]">{{ $blog->title }}</td>
                             <td class="px-4 py-3 font-mono text-xs text-[var(--text-muted)]">{{ $blog->slug }}</td>
                             <td class="px-4 py-3">
@@ -200,10 +208,22 @@
                     @error('module_choice') <span class="mt-2 block text-xs text-[var(--danger)]">{{ $message }}</span> @enderror
                 </div>
 
-                <ul class="mt-6 space-y-2">
+                <ul
+                    class="mt-6 space-y-2"
+                    data-sortable-list
+                    data-sortable-method="syncContentPartsOrder"
+                    data-sortable-item="[data-sortable-item]"
+                    data-sortable-key="data-sortable-item"
+                    data-sortable-handle="[data-sortable-handle]"
+                >
                     @foreach ($contentParts as $idx => $part)
-                        <li wire:key="blog-part-{{ $idx }}-{{ $part['type'] }}-{{ $part['slug'] }}" class="flex flex-wrap items-center justify-between gap-2 rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] px-3 py-2 text-sm">
-                            <span class="font-medium text-[var(--text-primary)]">
+                        <li
+                            wire:key="blog-part-{{ $idx }}-{{ $part['type'] }}-{{ $part['slug'] }}"
+                            data-sortable-item="{{ $idx }}"
+                            class="flex flex-wrap items-center justify-between gap-2 rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] px-3 py-2 text-sm"
+                        >
+                            <span class="flex items-center gap-2 font-medium text-[var(--text-primary)]">
+                                <button type="button" data-sortable-handle class="cursor-grab px-1 text-[var(--text-muted)] active:cursor-grabbing" aria-label="{{ __('Drag to reorder') }}">⋮⋮</button>
                                 @if ($part['type'] === 'block')
                                     {{ app(\App\Services\SiteArchitect\PageSectionCatalog::class)->displayNameForSlug($part['slug']) }}
                                 @else
@@ -323,4 +343,6 @@
             </div>
         </div>
     @endif
+
+    <x-bulk.action-modal :open="$bulkModalOpen" :preview="$bulkGovernancePreview" />
 </div>

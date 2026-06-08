@@ -18,7 +18,9 @@ use App\Services\Integrations\OutboundWebhookDispatcher;
 use App\Services\DynamicModules\DynamicModuleInsertCatalog;
 use App\Support\BlockContent;
 use App\Livewire\Concerns\HandlesArchitectFlexibleSave;
+use App\Livewire\Concerns\InteractsWithBulkActions;
 use App\Livewire\SiteArchitect\Concerns\InteractsWithPageSectionPicker;
+use Illuminate\Database\Eloquent\Builder;
 use App\Services\Operations\ServiceDetailPageProvisioner;
 use App\Services\SiteArchitect\ServiceInsertCatalog;
 use App\Support\ArchitectSaveBypass;
@@ -34,6 +36,7 @@ class Pages extends Component
 {
     use AuthorizesRequests;
     use HandlesArchitectFlexibleSave;
+    use InteractsWithBulkActions;
     use InteractsWithPageSectionPicker;
     use WithPagination;
 
@@ -166,6 +169,63 @@ class Pages extends Component
     public function updatingPageCategoryFilter(): void
     {
         $this->resetPage();
+    }
+
+    public function bulkResourceKey(): string
+    {
+        return 'site_architect.pages';
+    }
+
+    protected function bulkFilteredIdsQuery(): Builder
+    {
+        $query = Page::query()->latest();
+
+        if (trim($this->pageSearch) !== '') {
+            $term = '%'.trim($this->pageSearch).'%';
+            $query->where(function ($q) use ($term): void {
+                $q->where('title', 'like', $term)
+                    ->orWhere('slug', 'like', $term);
+            });
+        }
+
+        if ($this->pageCategoryFilter !== '' && $this->pageCategoryFilter !== 'all') {
+            $category = PageCategory::tryFrom($this->pageCategoryFilter);
+            if ($category !== null) {
+                $query->where('page_category', $category->value);
+            }
+        }
+
+        return $query;
+    }
+
+    /**
+     * @param  list<string|int>  $orderedIndices
+     */
+    public function syncContentPartsOrder(array $orderedIndices): void
+    {
+        $reordered = [];
+        foreach ($orderedIndices as $raw) {
+            $index = (int) $raw;
+            if (array_key_exists($index, $this->contentParts)) {
+                $reordered[] = $this->contentParts[$index];
+            }
+        }
+
+        if (count($reordered) !== count($this->contentParts)) {
+            return;
+        }
+
+        $this->contentParts = $reordered;
+
+        if ($this->editingId !== null) {
+            app(ActivityLogService::class)->log(
+                'page_sections_reorder',
+                'site_architect',
+                'Page '.$this->editingId.' sections reordered via drag-and-drop',
+            );
+        }
+
+        session()->flash('status', __('Section order updated.'));
     }
 
     public function syncServiceDetailPages(): void

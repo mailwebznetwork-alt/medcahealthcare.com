@@ -60,10 +60,26 @@
             </div>
         </div>
 
+        <div class="mb-3 flex flex-wrap gap-2 text-xs">
+            <button type="button" wire:click="selectAllVisibleRows({{ $pages->pluck('id')->values()->toJson() }})" class="text-mom-gold hover:underline">{{ __('Select all visible') }}</button>
+            <button type="button" wire:click="selectAllFilteredRows" class="text-mom-gold hover:underline">{{ __('Select all filtered results') }}</button>
+            <button type="button" wire:click="deselectAllRows" class="text-[var(--text-muted)] hover:underline">{{ __('Deselect all') }}</button>
+        </div>
+
+        <x-bulk.selection-toolbar :count="$this->bulkSelectedCount()" :actions="['delete', 'publish', 'unpublish', 'export']" />
+
         <div class="mom-card overflow-x-auto p-0">
             <table class="mom-table w-full min-w-[640px] text-left text-sm">
                 <thead>
                     <tr>
+                        <th class="w-10 px-4 py-3">
+                            <input
+                                type="checkbox"
+                                class="rounded border-[var(--border-panel-soft)]"
+                                aria-label="{{ __('Select all visible') }}"
+                                wire:click="selectAllVisibleRows({{ $pages->pluck('id')->values()->toJson() }})"
+                            />
+                        </th>
                         <th class="px-4 py-3">{{ __('Page name') }}</th>
                         <th class="px-4 py-3">{{ __('Slug') }}</th>
                         <th class="px-4 py-3">{{ __('Status') }}</th>
@@ -85,6 +101,15 @@
                             $previewUrl = $locationPublicUrl ?? route('site-architect.pages.preview', $page);
                         @endphp
                         <tr wire:key="page-row-{{ $page->id }}">
+                            <td class="px-4 py-3">
+                                <input
+                                    type="checkbox"
+                                    class="rounded border-[var(--border-panel-soft)]"
+                                    wire:click="toggleBulkRow({{ $page->id }})"
+                                    @checked($this->isBulkRowSelected($page->id))
+                                    aria-label="{{ __('Select row') }}"
+                                />
+                            </td>
                             <td class="px-4 py-3 font-medium text-[var(--text-primary)]">
                                 {{ $page->title }}
                                 <span class="ml-2 rounded-full bg-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">{{ $pageCategory->label() }}</span>
@@ -261,10 +286,27 @@
                     @error('module_choice') <span class="mt-2 block text-xs text-[var(--danger)]">{{ $message }}</span> @enderror
                 </div>
 
-                <ul class="mt-6 space-y-2">
+                <ul
+                    class="mt-6 space-y-2"
+                    data-sortable-list
+                    data-sortable-method="syncContentPartsOrder"
+                    data-sortable-item="[data-sortable-item]"
+                    data-sortable-key="data-sortable-item"
+                    data-sortable-handle="[data-sortable-handle]"
+                >
                     @foreach ($contentParts as $idx => $part)
-                        <li wire:key="part-{{ $idx }}-{{ $part['type'] }}-{{ $part['slug'] }}" class="flex flex-wrap items-center justify-between gap-2 rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] px-3 py-2 text-sm text-[var(--text-primary)]">
-                            <span class="font-medium">
+                        <li
+                            wire:key="part-{{ $idx }}-{{ $part['type'] }}-{{ $part['slug'] }}"
+                            data-sortable-item="{{ $idx }}"
+                            class="flex flex-wrap items-center justify-between gap-2 rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] px-3 py-2 text-sm text-[var(--text-primary)]"
+                        >
+                            <span class="flex items-center gap-2 font-medium">
+                                <button
+                                    type="button"
+                                    data-sortable-handle
+                                    class="cursor-grab px-1 text-[var(--text-muted)] active:cursor-grabbing"
+                                    aria-label="{{ __('Drag to reorder') }}"
+                                >⋮⋮</button>
                                 @if ($part['type'] === 'block')
                                     {{ app(\App\Services\SiteArchitect\PageSectionCatalog::class)->displayNameForSlug($part['slug']) }}
                                 @else
@@ -711,4 +753,14 @@
             </div>
         </div>
     @endif
+
+    <x-bulk.action-modal :open="$bulkModalOpen" :preview="$bulkGovernancePreview" />
 </div>
+
+@push('head')
+    <style>
+        .sortable-ghost { opacity: 0.45; background: rgba(197,160,89,0.12); }
+        .sortable-chosen { box-shadow: 0 0 0 2px rgba(197,160,89,0.35); }
+        .sortable-drag { cursor: grabbing !important; }
+    </style>
+@endpush

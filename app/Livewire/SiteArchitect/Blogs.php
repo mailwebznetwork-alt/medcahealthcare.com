@@ -7,7 +7,10 @@ use App\Models\Blog;
 use App\Models\Page;
 use App\Support\BlockContent;
 use App\Livewire\Concerns\HandlesArchitectFlexibleSave;
+use App\Livewire\Concerns\InteractsWithBulkActions;
 use App\Livewire\SiteArchitect\Concerns\InteractsWithPageSectionPicker;
+use App\Services\ActivityLogService;
+use Illuminate\Database\Eloquent\Builder;
 use App\Support\ArchitectSaveBypass;
 use App\Services\DynamicModules\DynamicModuleInsertCatalog;
 use App\Services\Integrations\OutboundWebhookDispatcher;
@@ -25,6 +28,7 @@ class Blogs extends Component
 {
     use AuthorizesRequests;
     use HandlesArchitectFlexibleSave;
+    use InteractsWithBulkActions;
     use InteractsWithPageSectionPicker;
     use WithFileUploads;
     use WithPagination;
@@ -99,6 +103,46 @@ class Blogs extends Component
     public ?string $featured_image_path = null;
 
     public $featured_image_upload = null;
+
+    public function bulkResourceKey(): string
+    {
+        return 'site_architect.blogs';
+    }
+
+    protected function bulkFilteredIdsQuery(): Builder
+    {
+        return Blog::query()->latest();
+    }
+
+    /**
+     * @param  list<string|int>  $orderedIndices
+     */
+    public function syncContentPartsOrder(array $orderedIndices): void
+    {
+        $reordered = [];
+        foreach ($orderedIndices as $raw) {
+            $index = (int) $raw;
+            if (array_key_exists($index, $this->contentParts)) {
+                $reordered[] = $this->contentParts[$index];
+            }
+        }
+
+        if (count($reordered) !== count($this->contentParts)) {
+            return;
+        }
+
+        $this->contentParts = $reordered;
+
+        if ($this->editingId !== null) {
+            app(ActivityLogService::class)->log(
+                'blog_sections_reorder',
+                'site_architect',
+                'Blog '.$this->editingId.' sections reordered via drag-and-drop',
+            );
+        }
+
+        session()->flash('status', __('Section order updated.'));
+    }
 
     public function render()
     {

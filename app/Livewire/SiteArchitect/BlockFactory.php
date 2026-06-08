@@ -3,6 +3,8 @@
 namespace App\Livewire\SiteArchitect;
 
 use App\Livewire\Concerns\HandlesArchitectFlexibleSave;
+use App\Livewire\Concerns\InteractsWithBulkActions;
+use Illuminate\Database\Eloquent\Builder;
 use App\Models\Block;
 use App\Services\DynamicModules\DynamicModuleInsertCatalog;
 use App\Services\ContentParser;
@@ -21,6 +23,7 @@ class BlockFactory extends Component
 {
     use AuthorizesRequests;
     use HandlesArchitectFlexibleSave;
+    use InteractsWithBulkActions;
     use WithPagination;
 
     public string $mode = 'list';
@@ -74,6 +77,28 @@ class BlockFactory extends Component
     public function updatingSearch(): void
     {
         $this->resetPage();
+    }
+
+    public function bulkResourceKey(): string
+    {
+        return 'site_architect.blocks';
+    }
+
+    protected function bulkFilteredIdsQuery(): Builder
+    {
+        $query = Block::query()->latest();
+
+        if (trim($this->search) !== '') {
+            $term = '%'.trim($this->search).'%';
+            $query->where(function ($q) use ($term): void {
+                $q->where('block_name', 'like', $term)
+                    ->orWhere('block_slug', 'like', $term)
+                    ->orWhere('block_type', 'like', $term)
+                    ->orWhere('description', 'like', $term);
+            });
+        }
+
+        return $query;
     }
 
     public function render()

@@ -242,6 +242,8 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:site_arc
 
         Route::view('/media', 'site-architect.media-library-shell')->name('media.index');
 
+        Route::get('/bulk/export', \App\Http\Controllers\SiteArchitect\BulkExportController::class)->name('bulk.export');
+
         Route::prefix('modules')->name('modules.')->group(function () {
             Route::get('/', [ModuleManagerController::class, 'index'])->name('index');
             Route::get('/create', [ModuleManagerController::class, 'create'])->name('create');
