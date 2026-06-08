@@ -2,7 +2,10 @@
 
 namespace App\Services\Blocks;
 
+use App\Enums\AdminLifecycleState;
 use App\Models\Block;
+use App\Services\Governance\AdminAuthorityGuard;
+use App\Services\Governance\AutomatedWriteAuditLogger;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -11,6 +14,8 @@ class BlockTemplateSyncService
 {
     public function __construct(
         private readonly BlockTemplateRegistry $registry,
+        private readonly AdminAuthorityGuard $authority,
+        private readonly AutomatedWriteAuditLogger $audit,
     ) {}
 
     /**
@@ -18,8 +23,9 @@ class BlockTemplateSyncService
      * @param  list<string>|null  $categories
      * @return array{synced: list<string>, restored: list<string>, skipped: list<string>, backup: string|null}
      */
-    public function sync(?array $slugs = null, ?array $categories = null, bool $backup = true, bool $restoreTrashed = true): array
+    public function sync(?array $slugs = null, ?array $categories = null, bool $backup = true, ?bool $restoreTrashed = null): array
     {
+        $restoreTrashed ??= (bool) config('governance.block_sync_restore_trashed', false);
         $definitions = $this->resolveDefinitions($slugs, $categories);
 
         $backupPath = null;
@@ -34,11 +40,21 @@ class BlockTemplateSyncService
         foreach ($definitions as $slug => $definition) {
             $existing = Block::withTrashed()->where('block_slug', $slug)->first();
 
+            if (! $this->authority->canRecreateBlockSlug($slug, 'BlockTemplateSyncService')) {
+                $skipped[] = $slug;
+
+                continue;
+            }
+
             if ($existing?->trashed()) {
-                if ($restoreTrashed) {
+                if ($restoreTrashed && $this->authority->canRestoreBlock($existing, 'BlockTemplateSyncService')) {
                     $existing->restore();
+                    $existing->markLifecycle(AdminLifecycleState::SystemManaged)->saveQuietly();
                     $restored[] = $slug;
                 } else {
+                    if ($existing->isDeletedByAdmin()) {
+                        $this->authority->canRestoreBlock($existing, 'BlockTemplateSyncService');
+                    }
                     $skipped[] = $slug;
 
                     continue;
@@ -47,7 +63,7 @@ class BlockTemplateSyncService
 
             $code = $this->registry->resolveCode($definition, $slug);
 
-            Block::query()->updateOrCreate(
+            $block = Block::query()->updateOrCreate(
                 ['block_slug' => $slug],
                 [
                     'block_name' => (string) ($definition['block_name'] ?? Str::title(str_replace('-', ' ', $slug))),
@@ -56,7 +72,17 @@ class BlockTemplateSyncService
                     'code' => $code,
                     'is_active' => true,
                     'is_managed' => true,
+                    'lifecycle_state' => AdminLifecycleState::SystemManaged->value,
                 ]
+            );
+
+            $this->audit->log(
+                process: 'BlockTemplateSyncService',
+                action: 'sync_block',
+                table: 'blocks',
+                recordId: $block->id,
+                recordKey: $slug,
+                newValues: ['block_slug' => $slug, 'is_managed' => true],
             );
 
             $synced[] = $slug;
@@ -130,7 +156,16 @@ class BlockTemplateSyncService
             }
 
             $slug = (string) $row['block_slug'];
+
+            if (! $this->authority->canRecreateBlockSlug($slug, 'BlockTemplateSyncService::restoreFromBackup')) {
+                continue;
+            }
+
             $block = Block::withTrashed()->firstOrNew(['block_slug' => $slug]);
+
+            if ($block->trashed() && ! $this->authority->canRestoreBlock($block, 'BlockTemplateSyncService::restoreFromBackup')) {
+                continue;
+            }
 
             if ($block->trashed()) {
                 $block->restore();

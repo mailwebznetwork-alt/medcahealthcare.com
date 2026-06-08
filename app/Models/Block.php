@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\HasAdminLifecycle;
 use Database\Factories\BlockFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,7 @@ use Illuminate\Support\Str;
 class Block extends Model
 {
     /** @use HasFactory<BlockFactory> */
+    use HasAdminLifecycle;
     use HasFactory;
     use SoftDeletes;
 
@@ -26,6 +28,7 @@ class Block extends Model
         'settings_json',
         'is_active',
         'is_managed',
+        'lifecycle_state',
     ];
 
     /**

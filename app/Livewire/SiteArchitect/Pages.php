@@ -815,6 +815,11 @@ class Pages extends Component
         });
 
         if ($savedPageId !== null) {
+            $savedPage = Page::query()->find($savedPageId);
+            if ($savedPage !== null) {
+                \App\Support\ServicePageOverrides::markAdminSave($savedPage);
+            }
+
             app(ActivityLogService::class)->log(
                 $wasCreating ? 'page_create' : 'page_update',
                 'site_architect',
@@ -853,6 +858,8 @@ class Pages extends Component
     {
         $page = Page::query()->findOrFail($id);
         $this->authorize('delete', $page);
+        app(\App\Services\Governance\AdminAuthorityGuard::class)->markDeletedByAdmin($page);
+        app(\App\Services\Governance\DownstreamArtifactPurger::class)->purgeForDeletedPage($page);
         $page->delete();
         app(ActivityLogService::class)->log(
             'page_delete',

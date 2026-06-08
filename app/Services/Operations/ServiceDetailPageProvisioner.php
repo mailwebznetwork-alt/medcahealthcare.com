@@ -2,12 +2,16 @@
 
 namespace App\Services\Operations;
 
+use App\Enums\AdminLifecycleState;
 use App\Enums\PageCategory;
 use App\Enums\PageLayoutMode;
 use App\Enums\PublishStatus;
 use App\Models\Block;
 use App\Models\Page;
 use App\Models\Service;
+use App\Services\Governance\AdminAuthorityGuard;
+use App\Services\Governance\AdminDeletionGuard;
+use App\Support\ServicePageOverrides;
 
 class ServiceDetailPageProvisioner
 {
@@ -50,6 +54,10 @@ class ServiceDetailPageProvisioner
      */
     public function provision(Service $service): Page
     {
+        if (! app(AdminDeletionGuard::class)->canProvisionService($service, $service->service_code, 'ServiceDetailPageProvisioner::provision')) {
+            throw new \RuntimeException("Cannot provision deleted service: {$service->service_code}");
+        }
+
         $slug = $this->suggestedSlug($service);
 
         $page = Page::query()->where('slug', $slug)->first();
@@ -68,11 +76,17 @@ class ServiceDetailPageProvisioner
                 'registry_owner' => 'operations_service',
                 'meta_title' => $service->seo?->meta_title ?: $service->title,
             ]);
-        } elseif (trim((string) $page->content) === '' || ! str_contains((string) $page->content, 'service-detail-hero')) {
+        } elseif (
+            ! ServicePageOverrides::contentOverride($page)
+            && (trim((string) $page->content) === '' || ! str_contains((string) $page->content, 'service-detail-hero'))
+        ) {
             $page->update(['content' => self::DEFAULT_PAGE_CONTENT]);
         }
 
-        if ($page->title === $service->title.' — '.__('Service detail')) {
+        if (
+            ! ServicePageOverrides::titleOverride($page)
+            && $page->title === $service->title.' — '.__('Service detail')
+        ) {
             $page->update(['title' => $service->title]);
         }
 
@@ -101,7 +115,7 @@ class ServiceDetailPageProvisioner
 
         $targetSlug = $this->uniquePageSlug($this->suggestedSlug($service), $page->id);
 
-        $page->update([
+        $attributes = ServicePageOverrides::filterAutomatedAttributes($page, [
             'title' => $service->title,
             'slug' => $targetSlug,
             'page_category' => PageCategory::Service,
@@ -111,6 +125,10 @@ class ServiceDetailPageProvisioner
             'h1' => $service->seo?->h1 ?: $service->title,
             'canonical_url' => $service->seo?->canonical_url ?: $service->publicUrl(),
         ]);
+
+        if ($attributes !== []) {
+            $page->update($attributes);
+        }
 
         if ($service->detail_page_id !== $page->id) {
             $service->forceFill(['detail_page_id' => $page->id])->save();
@@ -225,49 +243,44 @@ class ServiceDetailPageProvisioner
 
     public function syncStarterBlocks(): void
     {
-        Block::query()->updateOrCreate(
-            ['block_slug' => 'service-detail-hero'],
-            [
+        $guard = app(AdminAuthorityGuard::class);
+
+        foreach ([
+            'service-detail-hero' => [
                 'block_name' => 'Service detail — hero (uses $service)',
                 'code' => "@include('blocks.services.service-detail-hero')",
                 'block_type' => 'Hero',
-                'is_active' => true,
-                'is_managed' => true,
-            ]
-        );
-
-        Block::query()->updateOrCreate(
-            ['block_slug' => 'service-detail-areas'],
-            [
+            ],
+            'service-detail-areas' => [
                 'block_name' => 'Service detail — areas served',
                 'code' => "@include('blocks.services.service-detail-areas')",
                 'block_type' => 'Text',
-                'is_active' => true,
-                'is_managed' => true,
-            ]
-        );
-
-        Block::query()->updateOrCreate(
-            ['block_slug' => 'service-detail-related'],
-            [
+            ],
+            'service-detail-related' => [
                 'block_name' => 'Service detail — related services (Insert service tokens)',
                 'code' => "@include('blocks.services.service-detail-related')",
                 'block_type' => 'Service Grid',
-                'is_active' => true,
-                'is_managed' => true,
-            ]
-        );
-
-        Block::query()->updateOrCreate(
-            ['block_slug' => 'location-geo-enrichment'],
-            [
+            ],
+            'location-geo-enrichment' => [
                 'block_name' => 'Location page — geo enrichment (pincode dataset)',
                 'code' => "@include('blocks.locations.location-geo-enrichment')",
                 'block_type' => 'Location',
-                'is_active' => true,
-                'is_managed' => true,
-            ]
-        );
+            ],
+        ] as $slug => $fields) {
+            if (! $guard->canRecreateBlockSlug($slug, 'ServiceDetailPageProvisioner::syncStarterBlocks')) {
+                continue;
+            }
+
+            Block::query()->updateOrCreate(
+                ['block_slug' => $slug],
+                [
+                    ...$fields,
+                    'is_active' => true,
+                    'is_managed' => true,
+                    'lifecycle_state' => AdminLifecycleState::SystemManaged->value,
+                ]
+            );
+        }
 
         $hero = Block::query()->where('block_slug', 'service-detail-hero')->first();
         if ($hero !== null) {

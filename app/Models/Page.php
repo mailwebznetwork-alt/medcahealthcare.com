@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\HasAdminLifecycle;
 use App\Enums\PageCategory;
 use App\Enums\PageLayoutMode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,6 +13,7 @@ use Illuminate\Support\Str;
 
 class Page extends Model
 {
+    use HasAdminLifecycle;
     use HasFactory;
 
     protected $fillable = [
@@ -55,6 +57,7 @@ class Page extends Model
         'gtm_code',
         'pixel_code',
         'is_active',
+        'lifecycle_state',
         'layout_mode',
         'block_overrides_json',
         'deployment_meta_json',
