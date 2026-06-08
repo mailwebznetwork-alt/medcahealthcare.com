@@ -1,4 +1,11 @@
-<div>
+<div
+    x-data
+    x-on:block-context-copied.window="
+        if ($event.detail?.text) {
+            navigator.clipboard.writeText($event.detail.text).catch(() => {});
+        }
+    "
+>
     @if (session('status'))
         <div class="mom-card mb-6 border border-[rgba(98,195,120,0.28)] bg-[rgba(98,195,120,0.08)] px-4 py-3 text-sm text-[var(--success)]" role="status">
             {{ session('status') }}
@@ -77,6 +84,7 @@
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <button type="button" wire:click="startEdit({{ $block->id }})" class="mr-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]">{{ __('Edit') }}</button>
+                                <button type="button" wire:click="copyBlockContext({{ $block->id }})" class="mr-2 text-mom-gold hover:underline">{{ __('Copy context') }}</button>
                                 <button type="button" wire:click="duplicateBlock({{ $block->id }})" class="mr-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]">{{ __('Duplicate') }}</button>
                                 <button
                                     type="button"
@@ -114,7 +122,12 @@
     @else
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-lg font-semibold text-[var(--text-primary)]">{{ $editingId ? __('Edit block') : __('Create block') }}</h2>
-            <button type="button" wire:click="cancelForm" class="mom-subtext text-[var(--text-muted)] hover:text-[var(--text-primary)]">{{ __('Back to list') }}</button>
+            <div class="flex flex-wrap items-center gap-3">
+                @if ($editingId)
+                    <button type="button" wire:click="copyBlockContext({{ $editingId }})" class="text-sm font-semibold text-mom-gold hover:underline">{{ __('Copy block context') }}</button>
+                @endif
+                <button type="button" wire:click="cancelForm" class="mom-subtext text-[var(--text-muted)] hover:text-[var(--text-primary)]">{{ __('Back to list') }}</button>
+            </div>
         </div>
 
         <div class="space-y-8">

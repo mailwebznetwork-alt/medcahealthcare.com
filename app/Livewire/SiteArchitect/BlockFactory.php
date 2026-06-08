@@ -8,6 +8,7 @@ use App\Services\DynamicModules\DynamicModuleInsertCatalog;
 use App\Services\ContentParser;
 use App\Services\SiteArchitect\ServiceInsertCatalog;
 use App\Support\ArchitectSaveBypass;
+use App\Services\Blocks\BlockContextExporter;
 use App\Support\BlockContent;
 use App\Services\Deployment\BlockSettingsEditor;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -352,6 +353,7 @@ class BlockFactory extends Component
         $this->authorize('delete', $block);
 
         $wasManaged = $block->is_managed;
+        app(\App\Services\Governance\AdminAuthorityGuard::class)->markDeletedByAdmin($block);
         $block->delete();
 
         if ($this->editingId === $id) {
@@ -361,7 +363,7 @@ class BlockFactory extends Component
         session()->flash(
             'status',
             $wasManaged
-                ? __('Managed block removed from the database. Run blocks:sync to restore from Git templates.')
+                ? __('Managed block removed. Auto-heal will not restore it without explicit admin action.')
                 : __('Block removed.')
         );
         $this->resetPage();
@@ -371,6 +373,15 @@ class BlockFactory extends Component
     public function deleteBlock(int $id): void
     {
         $this->removeBlock($id);
+    }
+
+    public function copyBlockContext(int $id, BlockContextExporter $exporter): void
+    {
+        $block = Block::query()->findOrFail($id);
+        $this->authorize('view', $block);
+
+        $this->dispatch('block-context-copied', text: $exporter->export($block));
+        session()->flash('status', __('Block context copied to clipboard.'));
     }
 
     public function duplicateBlock(int $id): void
