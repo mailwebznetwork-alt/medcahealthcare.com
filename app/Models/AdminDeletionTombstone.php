@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class AdminDeletionTombstone extends Model
+{
+    public $timestamps = false;
+
+    protected $fillable = [
+        'entity_type',
+        'natural_key',
+        'deleted_at',
+        'deleted_by_id',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'deleted_at' => 'datetime',
+        ];
+    }
+
+    public static function record(string $entityType, string $naturalKey, ?int $userId = null): self
+    {
+        return self::query()->updateOrCreate(
+            [
+                'entity_type' => $entityType,
+                'natural_key' => $naturalKey,
+            ],
+            [
+                'deleted_at' => now(),
+                'deleted_by_id' => $userId ?? auth()->id(),
+            ]
+        );
+    }
+
+    public static function exists(string $entityType, string $naturalKey): bool
+    {
+        return self::query()
+            ->where('entity_type', $entityType)
+            ->where('natural_key', $naturalKey)
+            ->exists();
+    }
+}

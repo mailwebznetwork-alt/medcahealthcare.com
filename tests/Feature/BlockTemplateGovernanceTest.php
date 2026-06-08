@@ -51,15 +51,28 @@ it('renders synced managed blocks on the public home page', function () {
         ->assertSee('Premium home healthcare', false);
 });
 
-it('restores soft-deleted managed blocks when syncing', function () {
+it('does not restore admin-deleted managed blocks when syncing', function () {
+    app(BlockTemplateSyncService::class)->sync(slugs: ['hero-home'], backup: false);
+
+    $block = Block::query()->where('block_slug', 'hero-home')->firstOrFail();
+    app(\App\Services\Governance\AdminAuthorityGuard::class)->markDeletedByAdmin($block);
+    $block->delete();
+
+    expect(Block::query()->where('block_slug', 'hero-home')->exists())->toBeFalse();
+
+    $result = app(BlockTemplateSyncService::class)->sync(slugs: ['hero-home'], backup: false);
+
+    expect(Block::query()->where('block_slug', 'hero-home')->exists())->toBeFalse()
+        ->and($result['skipped'])->toContain('hero-home');
+});
+
+it('restores soft-deleted managed blocks only when explicitly opted in', function () {
     app(BlockTemplateSyncService::class)->sync(slugs: ['hero-home'], backup: false);
 
     $block = Block::query()->where('block_slug', 'hero-home')->firstOrFail();
     $block->delete();
 
-    expect(Block::query()->where('block_slug', 'hero-home')->exists())->toBeFalse();
-
-    app(BlockTemplateSyncService::class)->sync(slugs: ['hero-home'], backup: false);
+    app(BlockTemplateSyncService::class)->sync(slugs: ['hero-home'], backup: false, restoreTrashed: true);
 
     expect(Block::query()->where('block_slug', 'hero-home')->exists())->toBeTrue();
 });

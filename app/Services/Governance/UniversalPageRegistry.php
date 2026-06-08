@@ -160,6 +160,14 @@ class UniversalPageRegistry
         );
     }
 
+    /**
+     * @return array{registry_removed: int, issues: list<string>}
+     */
+    public function purgeOrphans(): array
+    {
+        return app(DownstreamArtifactPurger::class)->purgeRegistryOrphans();
+    }
+
     public function upsertLocationEntry(ServiceLocationPage $mapping): PageRegistry
     {
         $mapping->loadMissing(['service', 'page', 'pincode']);
