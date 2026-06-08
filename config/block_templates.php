@@ -145,6 +145,15 @@ return [
             'description' => 'Carousel of services selected via {{service:code}} tokens in Site Architect.',
             'block_type' => 'Service Grid',
             'view' => 'blocks.services.block-carousel',
+            'code' => <<<'BLADE'
+{{service:homenursing-services}}
+{{service:elder-care}}
+{{service:caregivers}}
+{{service:doctor-home-visit}}
+{{service:physiotherapy-at-home}}
+{{service:icu-care-at-home}}
+@include('blocks.services.block-carousel')
+BLADE,
         ],
         'services-block-grid' => [
             'category' => 'services',
