@@ -7,6 +7,7 @@ use App\Enums\ServiceVisibility;
 use App\Models\PinCode;
 use App\Models\Service;
 use App\Models\ServiceSeo;
+use App\Services\Governance\AdminDeletionGuard;
 use App\Services\Operations\ServiceDetailPageProvisioner;
 use App\Services\Operations\ServiceRelatedPageTokens;
 use Database\Seeders\Support\MedcaLaunchMedia;
@@ -34,6 +35,11 @@ class MedcaLaunchServicesSeeder extends Seeder
     private function upsertService(array $definition): void
     {
         $code = (string) $definition['service_code'];
+
+        if (! app(AdminDeletionGuard::class)->canSeedService($code, 'MedcaLaunchServicesSeeder')) {
+            return;
+        }
+
         $featured = MedcaLaunchMedia::featuredPath($code);
         $gallery = MedcaLaunchMedia::galleryPaths($code);
 

@@ -30,6 +30,8 @@ class ServiceMasterPageSync
 
         if (! ServicePageOverrides::seoOverride($page)) {
             $changed = $this->applySeoFields($service, $page, $forceEmptyOnly) || $changed;
+        } elseif ($page->schema_json === null) {
+            $changed = $this->repairEmptySchemaOnly($service, $page) || $changed;
         }
 
         if (! ServicePageOverrides::aeoOverride($page)) {
@@ -56,13 +58,15 @@ class ServiceMasterPageSync
         $area = $pin->area_name ?: $pin->locality ?: $pin->city ?: $pin->pincode;
         $title = app(ServiceLocationPageProvisioner::class)->locationTitle($service, $pin);
 
-        if (! ServicePageOverrides::seoOverride($page)) {
-            $page->forceFill([
-                'meta_title' => mb_substr(($service->seo?->meta_title ?: $service->title).' — '.$area, 0, 255),
-                'meta_description' => app(ServiceLocationPageProvisioner::class)->localMetaDescription($service, $pin)
-                    ?? mb_substr($intro, 0, 320),
-                'h1' => $title,
-            ]);
+        $locationAttributes = ServicePageOverrides::filterAutomatedAttributes($page, [
+            'meta_title' => mb_substr(($service->seo?->meta_title ?: $service->title).' — '.$area, 0, 255),
+            'meta_description' => app(ServiceLocationPageProvisioner::class)->localMetaDescription($service, $pin)
+                ?? mb_substr($intro, 0, 320),
+            'h1' => $title,
+        ]);
+
+        if ($locationAttributes !== []) {
+            $page->forceFill($locationAttributes);
         }
 
         if (! ServicePageOverrides::aeoOverride($page)) {
@@ -73,7 +77,9 @@ class ServiceMasterPageSync
             }
         }
 
-        $page->save();
+        if ($page->isDirty()) {
+            $page->save();
+        }
 
         $this->syncPageFaqsFromPin($pin, $page);
         $this->categoryResolver->applyToPage($page);
@@ -116,6 +122,10 @@ class ServiceMasterPageSync
             'twitter_card' => $seo?->twitter_card ?: 'summary_large_image',
         ];
 
+        if (ServicePageOverrides::titleOverride($page)) {
+            unset($pairs['h1']);
+        }
+
         foreach ($pairs as $field => $value) {
             if ($value === null || $value === '') {
                 continue;
@@ -142,13 +152,25 @@ class ServiceMasterPageSync
             $changed = true;
         }
 
-        if ($service->schema?->schema_json !== null && (! $emptyOnly || $page->schema_json === null)) {
+        if ($service->schema?->schema_json !== null && $page->schema_json === null) {
             $page->schema_json = $service->schema->schema_json;
             $page->schema_type = $service->schema->schema_type ?: 'ServiceGraph';
             $changed = true;
         }
 
         return $changed;
+    }
+
+    private function repairEmptySchemaOnly(Service $service, Page $page): bool
+    {
+        if ($page->schema_json !== null || $service->schema?->schema_json === null) {
+            return false;
+        }
+
+        $page->schema_json = $service->schema->schema_json;
+        $page->schema_type = $service->schema->schema_type ?: 'ServiceGraph';
+
+        return true;
     }
 
     private function applyAeoFields(Service $service, Page $page, bool $emptyOnly): bool

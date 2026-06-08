@@ -13,6 +13,11 @@ class GlobalContentVariableRepository
 {
     private const CACHE_KEY = 'deployment.global_content_variables.resolved';
 
+    private function cacheTtl(): int
+    {
+        return (int) config('governance.global_content_cache_ttl', 0);
+    }
+
     public function __construct(
         private readonly ThemeConfigRepository $themeRepository,
     ) {}
@@ -32,41 +37,55 @@ class GlobalContentVariableRepository
      */
     public function resolved(): array
     {
-        return Cache::remember(self::CACHE_KEY, 300, function (): array {
-            $definitions = config('global_content_variables.keys', []);
-            $branding = $this->themeRepository->publishedBranding();
-            $stored = Schema::hasTable('global_content_variables')
-                ? GlobalContentVariable::query()->pluck('value', 'key')->all()
-                : [];
+        $ttl = $this->cacheTtl();
 
-            $resolved = [];
-            foreach ($definitions as $key => $meta) {
-                $storedValue = isset($stored[$key]) ? trim((string) $stored[$key]) : '';
-                if ($storedValue !== '') {
-                    $resolved[$key] = $storedValue;
+        if ($ttl <= 0) {
+            return $this->resolveFromDatabase();
+        }
 
-                    continue;
-                }
-
-                $brandingKey = is_array($meta) ? ($meta['branding_key'] ?? null) : null;
-                if (is_string($brandingKey) && isset($branding[$brandingKey]) && (string) $branding[$brandingKey] !== '') {
-                    $resolved[$key] = (string) $branding[$brandingKey];
-
-                    continue;
-                }
-
-                $medcaKey = is_array($meta) ? ($meta['medca_key'] ?? null) : null;
-                if (is_string($medcaKey) && config('medca.'.$medcaKey) !== null) {
-                    $resolved[$key] = (string) config('medca.'.$medcaKey);
-                }
-            }
-
-            if (! isset($resolved['website_url']) || $resolved['website_url'] === '') {
-                $resolved['website_url'] = (string) config('app.url');
-            }
-
-            return $resolved;
+        return Cache::remember(self::CACHE_KEY, $ttl, function (): array {
+            return $this->resolveFromDatabase();
         });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function resolveFromDatabase(): array
+    {
+        $definitions = config('global_content_variables.keys', []);
+        $branding = $this->themeRepository->publishedBranding();
+        $stored = Schema::hasTable('global_content_variables')
+            ? GlobalContentVariable::query()->pluck('value', 'key')->all()
+            : [];
+
+        $resolved = [];
+        foreach ($definitions as $key => $meta) {
+            $storedValue = isset($stored[$key]) ? trim((string) $stored[$key]) : '';
+            if ($storedValue !== '') {
+                $resolved[$key] = $storedValue;
+
+                continue;
+            }
+
+            $brandingKey = is_array($meta) ? ($meta['branding_key'] ?? null) : null;
+            if (is_string($brandingKey) && isset($branding[$brandingKey]) && (string) $branding[$brandingKey] !== '') {
+                $resolved[$key] = (string) $branding[$brandingKey];
+
+                continue;
+            }
+
+            $medcaKey = is_array($meta) ? ($meta['medca_key'] ?? null) : null;
+            if (is_string($medcaKey) && config('medca.'.$medcaKey) !== null) {
+                $resolved[$key] = (string) config('medca.'.$medcaKey);
+            }
+        }
+
+        if (! isset($resolved['website_url']) || $resolved['website_url'] === '') {
+            $resolved['website_url'] = (string) config('app.url');
+        }
+
+        return $resolved;
     }
 
     public static function forgetCache(): void
