@@ -53,7 +53,7 @@ class ImportPostSyncService
 
         if ($autoMap && ! $this->autoMapDispatched) {
             $this->autoMapDispatched = true;
-            $result = $this->autoMapper->map();
+            $result = $this->autoMapper->map(provisionPages: false);
             if ($result['mapped']) {
                 $ran[] = 'service_pincode_auto_map';
             }

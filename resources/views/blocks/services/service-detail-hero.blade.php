@@ -16,7 +16,7 @@
 
         return $fallback;
     };
-    $serviceHeadline = (string) ($service->seo?->h1 ?: $service->title);
+    $serviceHeadline = app(\App\Services\Public\PublicDisplayNameResolver::class)->serviceHeadline($service);
     $serviceSummary = (string) ($service->short_summary ?? '');
     $eyebrow = $pick('eyebrow', __('Service'));
     $headline = $pick('headline', $serviceHeadline);

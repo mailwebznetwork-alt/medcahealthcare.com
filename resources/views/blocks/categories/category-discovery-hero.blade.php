@@ -1,8 +1,10 @@
 @php
+    use App\Services\Public\PublicDisplayNameResolver;
+
     $category = $category ?? ($serviceCategory ?? null);
-    $seo = $category?->seo;
-    $headline = $seo?->meta_title ?: $category?->name;
-    $summary = $seo?->meta_description ?: $category?->description;
+    $displayNames = app(PublicDisplayNameResolver::class);
+    $headline = $category ? $displayNames->categoryHeadline($category) : '';
+    $summary = $category ? ($displayNames->categoryMetaDescription($category) ?: $category->description) : '';
 @endphp
 @if ($category)
 <x-public.section>

@@ -9,6 +9,7 @@
     use App\Models\Service;
     use App\Models\ServiceLocationPage;
     use App\Services\Operations\ServicePublicUrlBuilder;
+    use App\Services\Public\PublicDisplayNameResolver;
 
     if (! $service instanceof Service) {
         return;
@@ -44,6 +45,8 @@
     }
 
     $serviceUrl = route('public.services.show', $service->service_code);
+    $displayNames = app(PublicDisplayNameResolver::class);
+    $serviceHeadline = $displayNames->serviceHeadline($service);
 @endphp
 
 <article {{ $attributes->merge(['class' => 'rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:p-8']) }} data-location-service="{{ $service->service_code }}">
@@ -53,7 +56,7 @@
         @endif
 
         <div class="flex flex-wrap items-start justify-between gap-4">
-            <h3 class="text-xl font-semibold text-slate-900 md:text-2xl">{{ $service->seo?->h1 ?: $service->title }}</h3>
+            <h3 class="text-xl font-semibold text-slate-900 md:text-2xl">{{ $serviceHeadline }}</h3>
             @if ($service->hasPriceRange())
                 <span class="rounded-full bg-slate-100 px-4 py-1.5 text-sm font-medium text-slate-700 ring-1 ring-slate-200">{{ $service->price_range }}</span>
             @endif

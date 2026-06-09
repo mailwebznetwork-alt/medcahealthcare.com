@@ -179,7 +179,7 @@ class ServiceLocationPageProvisioner
                 'page_category' => PageCategory::Location,
                 'page_source' => 'generated',
                 'registry_owner' => 'operations_location_matrix',
-                'meta_title' => $this->localMetaTitle($service, $pin),
+                'meta_title' => $this->locationMetaTitle($service, $pin),
                 'meta_description' => $this->localMetaDescription($service, $pin),
                 'h1' => $title,
                 'heading_h2' => $h2 !== null ? [$h2] : null,
@@ -192,7 +192,7 @@ class ServiceLocationPageProvisioner
                 'slug' => $cmsSlug,
                 'is_active' => $pageActive,
                 'page_category' => PageCategory::Location,
-                'meta_title' => $this->localMetaTitle($service, $pin),
+                'meta_title' => $this->locationMetaTitle($service, $pin),
                 'meta_description' => $this->localMetaDescription($service, $pin),
                 'h1' => $title,
                 'heading_h2' => $h2 !== null ? [$h2] : null,
@@ -226,7 +226,7 @@ class ServiceLocationPageProvisioner
         $locationGraph = $this->schemaGenerator->buildLocationGraph($service, $pin, $mapping);
         $schemaAttributes = ['schema_json' => $locationGraph, 'schema_type' => 'LocationServiceGraph'];
 
-        if ($page->schema_json !== null) {
+        if (ServicePageOverrides::geoOverride($page)) {
             unset($schemaAttributes['schema_json'], $schemaAttributes['schema_type']);
         }
 
@@ -277,7 +277,7 @@ class ServiceLocationPageProvisioner
             });
     }
 
-    private function localMetaTitle(Service $service, PinCode $pin): string
+    public function locationMetaTitle(Service $service, PinCode $pin): string
     {
         $service->loadMissing(['seo']);
         $area = $pin->area_name ?: $pin->locality ?: $pin->pincode;

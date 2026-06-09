@@ -67,7 +67,7 @@ final class ServicePincodeAutoMapper
      *     message: string
      * }
      */
-    public function map(?string $onlyServiceCode = null): array
+    public function map(?string $onlyServiceCode = null, bool $provisionPages = true): array
     {
         [$pinIds, $services] = $this->resolveTargets($onlyServiceCode);
 
@@ -98,7 +98,9 @@ final class ServicePincodeAutoMapper
             }
 
             $service->pincodes()->syncWithoutDetaching($attachable);
-            $this->orchestrator->sync($service->fresh(['pincodes', 'seo', 'faqs', 'schema']));
+            if ($provisionPages) {
+                $this->orchestrator->sync($service->fresh(['pincodes', 'seo', 'faqs', 'schema']));
+            }
             $processed++;
         }
 

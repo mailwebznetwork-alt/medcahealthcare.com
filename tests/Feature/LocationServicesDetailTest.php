@@ -2,45 +2,47 @@
 
 use App\Models\PinCode;
 use App\Models\Service;
-use App\Models\ServiceFaq;
+use App\Models\ServiceCategory;
 use App\Services\Public\PublicPagePresenter;
 
-it('loads all localized services for the locations page payload', function () {
+it('loads all localized categories for the locations page payload', function () {
     $pin = PinCode::factory()->create(['pincode' => '560078', 'is_active' => true]);
+    $category = ServiceCategory::factory()->create(['code' => 'near-you-cat', 'name' => 'Near You Cat']);
 
     $services = Service::factory()->count(8)->create();
     foreach ($services as $service) {
         $service->pincodes()->attach($pin->id);
+        $service->categories()->attach($category->id);
     }
 
     session(['medca.detected_pincode' => '560078']);
 
     $payload = app(PublicPagePresenter::class)->nearYouPayload(limit: 0);
 
-    expect($payload['services'])->toHaveCount(8);
+    expect($payload['categories'])->toHaveCount(1);
 });
 
-it('renders the home-style service grid on the locations near-you partial', function () {
+it('renders the home-style category grid on the locations near-you partial', function () {
     $pin = PinCode::factory()->create([
         'pincode' => '560078',
         'area_name' => 'JP Nagar',
         'is_active' => true,
     ]);
 
-    $service = Service::factory()->create([
-        'title' => 'Home Nursing Care',
-        'short_summary' => 'Doctor-supervised nursing at home.',
-        'description' => '<p>Comprehensive bedside nursing with vitals monitoring.</p>',
-    ]);
-    $service->pincodes()->attach($pin->id);
-    ServiceFaq::factory()->create([
-        'service_id' => $service->id,
-        'question' => 'How quickly can a nurse arrive?',
-        'answer' => 'Usually within 2 hours in JP Nagar.',
+    $category = ServiceCategory::factory()->create([
+        'code' => 'home-nursing',
+        'name' => 'Home Nursing Services',
+        'description' => 'Doctor-supervised nursing at home.',
     ]);
 
+    $service = Service::factory()->create(['title' => 'Home Nursing Care']);
+    $service->pincodes()->attach($pin->id);
+    $service->categories()->attach($category->id);
+
+    $category->load(['services' => fn ($q) => $q->publicListing()->forPincode('560078')]);
+
     $html = view('public.partials.near-you-services', [
-        'services' => collect([$service->load(['categories', 'faqs'])]),
+        'categories' => collect([$category]),
         'pincode' => '560078',
         'pinCodeRecord' => $pin,
         'locationRequired' => false,
@@ -52,9 +54,12 @@ it('renders the home-style service grid on the locations near-you partial', func
         ->toContain('data-section="near-you"')
         ->not->toContain('medca-hero-gradient')
         ->not->toContain('data-location-services-detail')
-        ->toContain('Home Nursing Care')
+        ->toContain('Home Nursing Services')
         ->toContain('Doctor-supervised nursing at home.')
-        ->not->toContain('How quickly can a nurse arrive?');
+        ->toContain('View category')
+        ->toContain('Care category')
+        ->not->toContain('Home Nursing Care')
+        ->not->toContain('1 service');
 });
 
 it('renders detailed service content on service location geo enrichment', function () {

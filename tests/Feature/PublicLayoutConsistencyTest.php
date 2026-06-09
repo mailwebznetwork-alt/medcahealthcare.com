@@ -109,7 +109,7 @@ it('aligns the careers hub hero and listing with the header content width', func
 
 it('aligns the near-you partial with the public content shell', function () {
     $html = view('public.partials.near-you-services', [
-        'services' => collect(),
+        'categories' => collect(),
         'pincode' => null,
         'pinCodeRecord' => null,
         'locationRequired' => false,

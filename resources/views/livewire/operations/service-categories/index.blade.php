@@ -68,7 +68,7 @@
                         <th class="px-5 py-3">{{ __('Name') }}</th>
                         <th class="px-5 py-3">{{ __('Code') }}</th>
                         <th class="px-5 py-3">{{ __('Parent') }}</th>
-                        <th class="px-5 py-3">{{ __('Services') }}</th>
+                        <th class="px-5 py-3">{{ __('Services (all areas)') }}</th>
                         <th class="px-5 py-3">{{ __('Sort') }}</th>
                         <th class="px-5 py-3">{{ __('Status') }}</th>
                         <th class="px-5 py-3 text-end">{{ __('Actions') }}</th>

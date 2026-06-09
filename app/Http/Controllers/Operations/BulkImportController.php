@@ -173,11 +173,7 @@ class BulkImportController extends Controller
 
             $touchedEntities = $result['touched_entities'] ?? [];
             if ($touchedEntities !== []) {
-                app()->terminating(function () use ($pipeline, $touchedEntities): void {
-                    @set_time_limit((int) config('import_registry.workflow.commit_time_limit', 600));
-                    @ini_set('max_execution_time', (string) config('import_registry.workflow.commit_time_limit', 600));
-                    $pipeline->postSyncForEntities($touchedEntities);
-                });
+                $this->dispatchImportPostSync($touchedEntities);
                 $result['post_sync_pending'] = true;
             }
         } else {
@@ -195,11 +191,7 @@ class BulkImportController extends Controller
 
             $entity = (string) $staging['entity'];
             if (($result['created'] ?? 0) > 0 || ($result['updated'] ?? 0) > 0) {
-                app()->terminating(function () use ($pipeline, $entity): void {
-                    @set_time_limit((int) config('import_registry.workflow.commit_time_limit', 600));
-                    @ini_set('max_execution_time', (string) config('import_registry.workflow.commit_time_limit', 600));
-                    $pipeline->postSyncForEntities([$entity]);
-                });
+                $this->dispatchImportPostSync([$entity]);
                 $result['post_sync_pending'] = true;
             }
         }
@@ -298,5 +290,26 @@ class BulkImportController extends Controller
         if (is_array($staging) && isset($staging['path']) && is_string($staging['path'])) {
             Storage::disk('local')->delete($staging['path']);
         }
+    }
+
+    /**
+     * @param  list<string>  $entities
+     */
+    private function dispatchImportPostSync(array $entities): void
+    {
+        $entities = array_values(array_filter($entities));
+        if ($entities === []) {
+            return;
+        }
+
+        $args = implode(' ', array_map('escapeshellarg', $entities));
+        $command = sprintf(
+            'cd %s && php artisan medca:import-post-sync %s >> %s 2>&1 &',
+            escapeshellarg(base_path()),
+            $args,
+            escapeshellarg(storage_path('logs/import-post-sync.log'))
+        );
+
+        exec($command);
     }
 }

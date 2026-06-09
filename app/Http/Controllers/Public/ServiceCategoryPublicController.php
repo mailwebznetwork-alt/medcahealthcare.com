@@ -63,8 +63,7 @@ class ServiceCategoryPublicController extends Controller
         }
 
         if ($page !== null && $page->is_active) {
-            $internalLinks = $category->internal_links_snapshot
-                ?: $this->relatedContent->buildForCategory($category, $pincode);
+            $internalLinks = $this->relatedContent->buildForCategory($category, $pincode);
 
             $this->pageRenderContext->registerCategoryDetail($page, $category, [
                 'breadcrumbs' => $this->categoryBreadcrumbs($category),

@@ -14,33 +14,21 @@
 
     @if ($locationRequired)
         <p class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            {{ __('Set your Bangalore pincode to see hyper-local services available in your area.') }}
+            {{ __('Set your Bangalore pincode to see healthcare categories available in your area.') }}
         </p>
-    @elseif ($services->isEmpty())
-        <p class="text-sm text-slate-600">{{ $emptyServicesMessage }}</p>
-    @elseif ($detailedServices ?? false)
-        <x-public.location-services-detail-list
-            :services="$services"
-            :pin-code-record="$pinCodeRecord"
-            :section-title="__('Healthcare services in your area')"
-            :empty-message="$emptyServicesMessage"
-        />
+    @elseif ($categories->isEmpty())
+        <p class="text-sm text-slate-600">{{ $emptyCategoriesMessage }}</p>
     @else
         <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            @foreach ($services as $service)
-                @php
-                    $categoryName = $service->categories->first()?->name;
-                @endphp
+            @foreach ($categories as $category)
                 <li>
-                    <a href="{{ route('public.services.show', $service->service_code) }}" class="group flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-medca-primary/30 hover:shadow-md">
-                        @if ($categoryName)
-                            <span class="text-[10px] font-semibold uppercase tracking-wide text-medca-primary">{{ $categoryName }}</span>
+                    <a href="{{ route('public.service-categories.show', $category->code) }}" class="group flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-medca-primary/30 hover:shadow-md">
+                        <span class="text-[10px] font-semibold uppercase tracking-wide text-medca-primary">{{ __('Care category') }}</span>
+                        <h3 class="mt-1 text-base font-semibold text-slate-900 group-hover:text-medca-primary">{{ $category->name }}</h3>
+                        @if (filled($category->description))
+                            <p class="medca-card-body mt-2 flex-1">{{ \Illuminate\Support\Str::limit(strip_tags($category->description), 120) }}</p>
                         @endif
-                        <h3 class="mt-1 text-base font-semibold text-slate-900 group-hover:text-medca-primary">{{ $service->title }}</h3>
-                        @if (filled($service->short_summary))
-                            <p class="medca-card-body mt-2 flex-1">{{ \Illuminate\Support\Str::limit(strip_tags($service->short_summary), 120) }}</p>
-                        @endif
-                        <span class="mt-4 text-sm font-semibold text-medca-primary">{{ __('View details') }} →</span>
+                        <span class="mt-4 text-sm font-semibold text-medca-primary">{{ __('View category') }} →</span>
                     </a>
                 </li>
             @endforeach

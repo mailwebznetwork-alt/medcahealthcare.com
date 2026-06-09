@@ -33,6 +33,15 @@
         @if (isset($service) && ! $service->isListedPublicly())
             <meta name="robots" content="noindex, nofollow">
         @endif
+        @php
+            $documentMeta = app(\App\Services\Public\PublicDisplayNameResolver::class)->documentMeta(
+                $page ?? null,
+                $service ?? null,
+                $category ?? null,
+                $serviceLocation ?? null,
+                $subService ?? null,
+            );
+        @endphp
         @include('global.partials.site-seo-meta')
         @includeWhen(isset($page), 'global.partials.page-json-ld')
         @php
@@ -57,17 +66,13 @@
         @endif
         <title>
             @isset($service)
-                @if (isset($page) && filled($page->meta_title))
-                    {{ $page->meta_title }} — {{ config('medca.brand_name') }}
-                @elseif (isset($page))
-                    {{ $page->title }} — {{ config('medca.brand_name') }}
-                @else
-                    {{ $service->seo?->meta_title ?: $service->title }} — {{ config('medca.brand_name') }}
-                @endif
+                {{ $documentMeta['meta_title'] }} — {{ config('medca.brand_name') }}
+            @elseif(isset($category))
+                {{ $documentMeta['meta_title'] }} — {{ config('medca.brand_name') }}
             @elseif(isset($vacancy))
                 {{ $vacancy->seo_title ?: $vacancy->title }} — {{ config('medca.brand_name') }}
             @elseif(isset($page))
-                {{ $page->meta_title ?? $page->title }} — {{ config('medca.brand_name') }}
+                {{ $documentMeta['meta_title'] }} — {{ config('medca.brand_name') }}
             @elseif(isset($blog))
                 {{ $blog->meta_title ?? $blog->title }} — {{ config('medca.brand_name') }}
             @else

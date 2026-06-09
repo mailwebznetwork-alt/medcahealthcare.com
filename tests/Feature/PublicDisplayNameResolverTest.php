@@ -1,0 +1,106 @@
+<?php
+
+use App\Enums\PageCategory;
+use App\Models\Page;
+use App\Models\PinCode;
+use App\Models\Service;
+use App\Models\ServiceCategory;
+use App\Models\ServiceLocationPage;
+use App\Services\Operations\ServiceLocationPageProvisioner;
+use App\Services\Public\PublicDisplayNameResolver;
+
+it('prefers live service title over stale cms page title for location pages', function () {
+    $pin = PinCode::factory()->create([
+        'pincode' => '560083',
+        'area_name' => 'Bannerghatta Road',
+        'is_active' => true,
+    ]);
+
+    $service = Service::factory()->create([
+        'service_code' => 'SRV-LAB-1',
+        'title' => 'Blood Tests at Home',
+    ]);
+    $service->pincodes()->attach($pin->id);
+
+    $page = Page::factory()->create([
+        'title' => 'Medical Lab in Bannerghatta Road',
+        'meta_title' => 'Medical Lab Tests at Home Bangalore | Medca — Bannerghatta Road',
+        'page_category' => PageCategory::Location,
+        'page_source' => 'generated',
+        'registry_owner' => 'operations_location_matrix',
+    ]);
+
+    $mapping = ServiceLocationPage::query()->create([
+        'service_id' => $service->id,
+        'pincode_id' => $pin->id,
+        'page_id' => $page->id,
+        'slug' => 'service-SRV-LAB-1-loc-560083',
+        'location_slug' => 'bannerghatta-road',
+        'city_slug' => 'bangalore',
+    ]);
+
+    $mapping->load(['service', 'pincode', 'page']);
+
+    $resolver = app(PublicDisplayNameResolver::class);
+    $meta = $resolver->documentMeta($page, $service, null, $mapping);
+
+    expect($meta['title'])->toBe('Blood Tests at Home in Bannerghatta Road')
+        ->and($meta['meta_title'])->toContain('Blood Tests at Home')
+        ->and($meta['prefer_live_schema'])->toBeTrue();
+});
+
+it('uses live category name for category document meta', function () {
+    $category = ServiceCategory::factory()->create([
+        'code' => 'cat-lab',
+        'name' => 'Medical Lab Services',
+    ]);
+
+    $page = Page::factory()->create([
+        'title' => 'Medical Lab',
+        'meta_title' => 'Medical Lab',
+        'page_source' => 'generated',
+        'registry_owner' => 'operations_category',
+    ]);
+
+    $meta = app(PublicDisplayNameResolver::class)->documentMeta($page, null, $category);
+
+    expect($meta['title'])->toBe('Medical Lab Services')
+        ->and($meta['meta_title'])->toBe('Medical Lab Services');
+});
+
+it('renders location breadcrumbs from live database labels', function () {
+    $pin = PinCode::factory()->create([
+        'pincode' => '560083',
+        'area_name' => 'Bannerghatta Road',
+        'is_active' => true,
+    ]);
+
+    $service = Service::factory()->create([
+        'service_code' => 'SRV-LAB-1',
+        'title' => 'Blood Tests at Home',
+    ]);
+    $service->pincodes()->attach($pin->id);
+
+    $provisioner = app(ServiceLocationPageProvisioner::class);
+    $page = $provisioner->provisionOne($service, $pin);
+
+    $mapping = ServiceLocationPage::query()
+        ->where('service_id', $service->id)
+        ->where('pincode_id', $pin->id)
+        ->firstOrFail();
+
+    $page->forceFill([
+        'title' => 'Medical Lab in Bannerghatta Road',
+        'meta_title' => 'Legacy Medical Lab Title',
+    ])->saveQuietly();
+
+    $response = $this->get(route('public.services.location', [
+        'code' => $service->service_code,
+        'locationSlug' => $mapping->location_slug,
+    ]));
+
+    $response->assertOk();
+    expect($response->getContent())
+        ->toContain('Blood Tests at Home in Bannerghatta Road')
+        ->not->toContain('Medical Lab in Bannerghatta Road');
+});

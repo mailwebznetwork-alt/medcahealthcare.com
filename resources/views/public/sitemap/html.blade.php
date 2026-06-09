@@ -26,7 +26,13 @@
                 @foreach ($locations as $row)
                     <li>
                         <a href="{{ $row->publicUrl() }}" class="text-clinical-700 hover:underline">
-                            {{ $row->page?->title ?? $row->service?->title }}
+                            @php
+                                $row->loadMissing(['service', 'pincode']);
+                                $sitemapLocationTitle = ($row->service && $row->pincode)
+                                    ? app(\App\Services\Public\PublicDisplayNameResolver::class)->locationHeadline($row->service, $row->pincode)
+                                    : ($row->service?->title ?? $row->page?->title);
+                            @endphp
+                            {{ $sitemapLocationTitle }}
                         </a>
                     </li>
                 @endforeach

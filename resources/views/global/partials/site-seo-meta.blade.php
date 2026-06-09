@@ -11,7 +11,9 @@
     }
 
     $metaDescription = null;
-    if (isset($page) && filled($page->meta_description)) {
+    if (isset($documentMeta) && filled($documentMeta['meta_description'] ?? null)) {
+        $metaDescription = $documentMeta['meta_description'];
+    } elseif (isset($page) && filled($page->meta_description)) {
         $metaDescription = $page->meta_description;
     } elseif (isset($blog) && filled($blog->meta_description)) {
         $metaDescription = $blog->meta_description;
@@ -20,7 +22,9 @@
     }
 
     $ogTitle = null;
-    if (isset($page)) {
+    if (isset($documentMeta) && filled($documentMeta['meta_title'] ?? null)) {
+        $ogTitle = $documentMeta['meta_title'];
+    } elseif (isset($page)) {
         $ogTitle = $page->meta_title ?? $page->title;
     } elseif (isset($blog)) {
         $ogTitle = $blog->meta_title ?? $blog->title;

@@ -33,8 +33,7 @@ class PagePublicPreviewService
 
         if ($locationMapping?->service !== null && $locationMapping->pincode !== null) {
             $service = $locationMapping->service;
-            $internalLinks = $service->internal_links_snapshot
-                ?: app(RelatedContentEngine::class)->buildForService($service);
+            $internalLinks = app(RelatedContentEngine::class)->buildForService($service);
 
             $this->pageRenderContext->registerServiceLocation($page, $service, $locationMapping, [
                 'internalLinks' => $internalLinks,

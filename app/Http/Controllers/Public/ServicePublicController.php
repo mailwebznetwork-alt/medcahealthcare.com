@@ -12,6 +12,7 @@ use App\Services\Operations\ServiceInternalLinkingEngine;
 use App\Services\Operations\SubServicePageProvisioner;
 use App\Services\Operations\ServicePublicUrlBuilder;
 use App\Services\Public\PageRenderContextRegistrar;
+use App\Services\Public\PublicDisplayNameResolver;
 use App\Services\Public\ServicesDetailPageResolver;
 use App\Services\ServiceContextCollector;
 use App\Services\UserLocationService;
@@ -30,6 +31,7 @@ class ServicePublicController extends Controller
         private readonly ServiceInternalLinkingEngine $internalLinks,
         private readonly RelatedContentEngine $relatedContent,
         private readonly SubServicePageProvisioner $subServicePageProvisioner,
+        private readonly PublicDisplayNameResolver $displayNames,
     ) {}
 
     public function showSubService(Request $request, string $code, string $subCode): View
@@ -53,12 +55,12 @@ class ServicePublicController extends Controller
         $pincode = $this->location->currentPincode();
         $locationRequired = $pincode === null || $request->attributes->get('services_blocked_until_pincode') === true;
 
-        $services = $locationRequired
+        $categories = $locationRequired
             ? collect()
-            : $this->localizedServicesQuery($pincode)->get();
+            : app(\App\Services\Public\PublicPagePresenter::class)->localizedCategories($pincode, limit: 0);
 
         return view('public.services.index', [
-            'services' => $services,
+            'categories' => $categories,
             'pincode' => $pincode,
             'locationRequired' => $locationRequired,
             'pinCodeRecord' => $this->location->currentPinCodeRecord(),
@@ -135,8 +137,7 @@ class ServicePublicController extends Controller
             }
         }
 
-        $internalLinks = $service->internal_links_snapshot
-            ?: $this->relatedContent->buildForService($service);
+        $internalLinks = $this->relatedContent->buildForService($service);
 
         if ($detailPage !== null) {
             $detailPage->loadMissing('faqs');
@@ -175,8 +176,7 @@ class ServicePublicController extends Controller
 
         app(ServiceContextCollector::class)->register($service);
 
-        $internalLinks = $service->internal_links_snapshot
-            ?: $this->relatedContent->buildForService($service);
+        $internalLinks = $this->relatedContent->buildForService($service);
 
         $this->pageRenderContext->registerServiceLocation($page, $service, $mapping, [
             'breadcrumbs' => $this->locationBreadcrumbs($service, $mapping),
@@ -210,8 +210,7 @@ class ServicePublicController extends Controller
 
         abort_if($page === null || ! $page->is_active, 404);
 
-        $internalLinks = $sub->internal_links_snapshot
-            ?: $this->relatedContent->persistSubService($sub);
+        $internalLinks = $this->relatedContent->persistSubService($sub);
 
         $this->pageRenderContext->registerSubServiceDetail($page, $sub, [
             'breadcrumbs' => $this->subServiceBreadcrumbs($service, $sub),
@@ -233,8 +232,8 @@ class ServicePublicController extends Controller
         return [
             ['label' => __('Home'), 'url' => url('/')],
             ['label' => __('Services'), 'url' => url('/services-catalog')],
-            ['label' => $service->title, 'url' => $service->publicUrl()],
-            ['label' => $sub->title, 'url' => app(\App\Services\Discovery\Expansion\SeoExpansionEngine::class)->subServicePublicUrl($sub)],
+            ['label' => $this->displayNames->serviceHeadline($service), 'url' => $service->publicUrl()],
+            ['label' => $this->displayNames->subServiceHeadline($sub), 'url' => app(\App\Services\Discovery\Expansion\SeoExpansionEngine::class)->subServicePublicUrl($sub)],
         ];
     }
 
@@ -246,7 +245,7 @@ class ServicePublicController extends Controller
         return [
             ['label' => __('Home'), 'url' => url('/')],
             ['label' => __('Services'), 'url' => url('/services-catalog')],
-            ['label' => $service->title, 'url' => $service->publicUrl()],
+            ['label' => $this->displayNames->serviceHeadline($service), 'url' => $service->publicUrl()],
         ];
     }
 
@@ -255,11 +254,16 @@ class ServicePublicController extends Controller
      */
     private function locationBreadcrumbs(Service $service, ServiceLocationPage $mapping): array
     {
+        $mapping->loadMissing('pincode');
+        $locationLabel = $mapping->pincode !== null
+            ? $this->displayNames->locationHeadline($service, $mapping->pincode)
+            : $this->displayNames->serviceHeadline($service);
+
         return [
             ['label' => __('Home'), 'url' => url('/')],
             ['label' => __('Services'), 'url' => url('/services-catalog')],
-            ['label' => $service->title, 'url' => $service->publicUrl()],
-            ['label' => $mapping->page?->title ?? $service->title, 'url' => $mapping->publicUrl()],
+            ['label' => $this->displayNames->serviceHeadline($service), 'url' => $service->publicUrl()],
+            ['label' => $locationLabel, 'url' => $mapping->publicUrl()],
         ];
     }
 
