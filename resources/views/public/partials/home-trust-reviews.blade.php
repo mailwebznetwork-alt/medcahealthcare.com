@@ -1,6 +1,5 @@
 @php
     use App\Models\Review;
-    use App\Models\Service;
 
     $approvedReviews = Review::query()
         ->where('status', Review::STATUS_APPROVED)
@@ -11,19 +10,10 @@
 
     $avgRating = Review::query()->where('status', Review::STATUS_APPROVED)->avg('rating');
     $reviewCount = Review::query()->where('status', Review::STATUS_APPROVED)->count();
-
-    $topServices = Service::query()
-        ->publicListing()
-        ->where('is_featured', true)
-        ->orderBy('sort_order')
-        ->limit(4)
-        ->get();
-
-    if ($topServices->isEmpty()) {
-        $topServices = Service::query()->publicListing()->orderBy('sort_order')->limit(4)->get();
-    }
+    $showTrustSection = ($avgRating !== null && $reviewCount > 0) || $approvedReviews->isNotEmpty();
 @endphp
 
+@if ($showTrustSection)
 <x-public.full-bleed class="border-t border-slate-200 bg-slate-50 py-10 md:py-12" data-section="home-trust">
     <x-public.content-shell>
         @if ($avgRating !== null && $reviewCount > 0)
@@ -59,26 +49,6 @@
                 </div>
             </div>
         @endif
-
-        @if ($topServices->isNotEmpty())
-            <div class="mt-10">
-                <div class="flex flex-wrap items-end justify-between gap-3">
-                    <h2 class="text-xl font-semibold text-slate-900 md:text-2xl">{{ __('Popular services') }}</h2>
-                    <a href="{{ url('/services-catalog') }}" class="text-sm font-semibold text-medca-primary hover:underline">{{ __('View all services') }}</a>
-                </div>
-                <ul class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    @foreach ($topServices as $svc)
-                        <li>
-                            <a href="{{ $svc->publicUrl() }}" class="block h-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-medca-primary/30 hover:shadow-md">
-                                <h3 class="text-sm font-semibold text-slate-900">{{ $svc->title }}</h3>
-                                @if (filled($svc->short_summary))
-                                    <p class="medca-card-body mt-2">{{ \Illuminate\Support\Str::limit(strip_tags((string) $svc->short_summary), 90) }}</p>
-                                @endif
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
     </x-public.content-shell>
 </x-public.full-bleed>
+@endif

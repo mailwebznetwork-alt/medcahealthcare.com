@@ -177,11 +177,14 @@ final class ServiceEntityImporter extends AbstractSpreadsheetImporter
             return;
         }
 
+        $service->faqs()->delete();
+
         foreach ($pairs as $pair) {
-            ServiceFaq::query()->updateOrCreate(
-                ['service_id' => $service->id, 'question' => $pair['question']],
-                ['answer' => $pair['answer']]
-            );
+            ServiceFaq::query()->create([
+                'service_id' => $service->id,
+                'question' => $pair['question'],
+                'answer' => $pair['answer'],
+            ]);
         }
     }
 

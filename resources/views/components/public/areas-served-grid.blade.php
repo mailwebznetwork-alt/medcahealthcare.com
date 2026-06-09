@@ -1,6 +1,7 @@
 @props([
     'areas' => collect(),
     'service' => null,
+    'category' => null,
     'initial' => 8,
     'title' => __('Areas we cover'),
     'subtitle' => __('Bangalore neighbourhoods where this service is available.'),
@@ -8,13 +9,15 @@
 
 @php
     use App\Models\Service;
+    use App\Models\ServiceCategory;
     use App\Services\Public\PinCodeCoverageUrlResolver;
 
     $areas = $areas instanceof \Illuminate\Support\Collection ? $areas : collect($areas);
     $initial = max(1, (int) $initial);
     $serviceModel = $service instanceof Service ? $service : null;
+    $categoryModel = $category instanceof ServiceCategory ? $category : null;
     $urlResolver = app(PinCodeCoverageUrlResolver::class);
-    $urls = $urlResolver->urlsFor($areas, $serviceModel);
+    $urls = $urlResolver->urlsFor($areas, $serviceModel, $categoryModel);
 @endphp
 
 @if ($areas->isNotEmpty())

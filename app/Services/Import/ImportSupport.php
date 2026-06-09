@@ -2,6 +2,8 @@
 
 namespace App\Services\Import;
 
+use App\Support\FaqPairNormalizer;
+
 /**
  * Shared parsing helpers for bulk imports.
  */
@@ -36,19 +38,7 @@ final class ImportSupport
      */
     public static function parseFaqPairs(?string $value): array
     {
-        if ($value === null || trim($value) === '') {
-            return [];
-        }
-
-        $pairs = [];
-        foreach (explode(';;', $value) as $chunk) {
-            $parts = explode('|', $chunk, 2);
-            if (count($parts) === 2 && trim($parts[0]) !== '' && trim($parts[1]) !== '') {
-                $pairs[] = ['question' => trim($parts[0]), 'answer' => trim($parts[1])];
-            }
-        }
-
-        return $pairs;
+        return FaqPairNormalizer::parseImportString($value);
     }
 
     public static function parseKeywords(?string $value): ?array

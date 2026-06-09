@@ -16,6 +16,7 @@
     <x-public.section>
         <x-public.areas-served-grid
             :areas="$areas"
+            :category="$category"
             :title="__('Areas we cover')"
             :subtitle="__('Bangalore neighbourhoods where :category services are available.', ['category' => $category->name])"
         />

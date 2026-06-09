@@ -5,10 +5,14 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\PinCode;
 use App\Models\Service;
+use App\Models\ServiceCategory;
 use App\Services\Public\PinCodeAreaResolver;
+use App\Services\Public\PublicDisplayNameResolver;
+use App\Services\Public\PublicPagePresenter;
 use App\Services\UserLocationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class LocationAreaController extends Controller
@@ -16,6 +20,7 @@ class LocationAreaController extends Controller
     public function __construct(
         private readonly PinCodeAreaResolver $areaResolver,
         private readonly UserLocationService $location,
+        private readonly PublicDisplayNameResolver $displayNames,
     ) {}
 
     public function show(Request $request, string $slug): View|RedirectResponse
@@ -25,12 +30,19 @@ class LocationAreaController extends Controller
 
         $canonicalSlug = $this->areaResolver->routeSlugFor($pin);
         if ($slug !== $canonicalSlug) {
-            return redirect()->route('public.locations.area', ['slug' => $canonicalSlug], 301);
+            return redirect()->route(
+                'public.locations.area',
+                ['slug' => $canonicalSlug] + $request->only(['category', 'service']),
+                301
+            );
         }
 
         if ($request->session()->get('medca.detected_pincode') !== $pin->pincode) {
             $this->location->rememberPincode($pin->pincode);
         }
+
+        $category = ServiceCategory::findActiveByCode((string) $request->query('category', ''));
+        $contextService = $this->resolveContextService($request, $pin);
 
         $pin->loadMissing(['landmarks', 'hospitals', 'locationFaqs', 'nearbyAreas']);
 
@@ -41,23 +53,140 @@ class LocationAreaController extends Controller
             ->orderBy('pincode')
             ->get();
 
-        $services = Service::query()
-            ->localizedListing($pin->pincode)
-            ->with(['seo', 'pincodes', 'categories', 'faqs'])
-            ->get();
+        $services = $this->servicesForLocation($pin, $category, $contextService);
 
         $area = $pin->area_name ?: $pin->locality ?: $pin->city ?: $pin->pincode;
+        $hasCategoryContext = $category instanceof ServiceCategory;
+        $hasServiceContext = $contextService instanceof Service;
+
+        [$title, $intro, $sectionTitle] = $this->headlinesForContext(
+            $area,
+            $pin,
+            $category,
+            $contextService,
+            $hasCategoryContext,
+            $hasServiceContext,
+        );
+
+        $breadcrumbs = [
+            ['label' => __('Locations'), 'url' => url('/locations')],
+        ];
+
+        if ($hasCategoryContext) {
+            $breadcrumbs[] = ['label' => $category->name, 'url' => $category->publicUrl()];
+        } elseif ($hasServiceContext) {
+            $breadcrumbs[] = ['label' => $contextService->title, 'url' => $contextService->publicUrl()];
+        }
+
+        $breadcrumbs[] = ['label' => $area, 'url' => null];
 
         return view('public.locations.area', [
             'pin' => $pin,
             'area' => $area,
+            'category' => $category,
+            'contextService' => $contextService,
             'services' => $services,
             'coverageAreas' => $coverageAreas,
-            'canonicalUrl' => $this->areaResolver->publicUrlFor($pin),
-            'breadcrumbs' => [
-                ['label' => __('Locations'), 'url' => url('/locations')],
-                ['label' => $area, 'url' => null],
-            ],
+            'canonicalUrl' => $this->canonicalUrlFor($pin, $category, $contextService),
+            'breadcrumbs' => $breadcrumbs,
+            'title' => $title,
+            'intro' => $intro,
+            'sectionTitle' => $sectionTitle,
+            'showNearYouBlock' => $hasCategoryContext || $hasServiceContext,
+            'nearYouPayload' => app(PublicPagePresenter::class)->nearYouPayload(),
         ]);
+    }
+
+    /**
+     * @return Collection<int, Service>
+     */
+    private function servicesForLocation(PinCode $pin, ?ServiceCategory $category, ?Service $contextService): Collection
+    {
+        $query = Service::query()
+            ->localizedListing($pin->pincode)
+            ->with(['seo', 'pincodes', 'categories', 'faqs']);
+
+        if ($category instanceof ServiceCategory) {
+            $query->whereHas('categories', fn ($q) => $q->where('service_categories.id', $category->id));
+        } elseif ($contextService instanceof Service) {
+            $query->whereKey($contextService->id);
+        }
+
+        return $query->get();
+    }
+
+    private function resolveContextService(Request $request, PinCode $pin): ?Service
+    {
+        $code = trim((string) $request->query('service', ''));
+        if ($code === '') {
+            return null;
+        }
+
+        $service = Service::query()
+            ->publicListing()
+            ->where('service_code', $code)
+            ->first();
+
+        if ($service === null || ! $service->isAvailableInPincode($pin->pincode)) {
+            return null;
+        }
+
+        return $service->loadMissing(['seo', 'pincodes', 'categories', 'faqs']);
+    }
+
+    /**
+     * @return array{0: string, 1: string, 2: string}
+     */
+    private function headlinesForContext(
+        string $area,
+        PinCode $pin,
+        ?ServiceCategory $category,
+        ?Service $contextService,
+        bool $hasCategoryContext,
+        bool $hasServiceContext,
+    ): array {
+        if ($hasCategoryContext) {
+            $categoryName = $this->displayNames->categoryHeadline($category);
+
+            return [
+                __(':category in :area', ['category' => $categoryName, 'area' => $area]),
+                __('Professional :category services available in :area (:pin).', [
+                    'category' => $categoryName,
+                    'area' => $area,
+                    'pin' => $pin->pincode,
+                ]),
+                __(':category services in your area', ['category' => $categoryName]),
+            ];
+        }
+
+        if ($hasServiceContext) {
+            $serviceName = $this->displayNames->serviceHeadline($contextService);
+
+            return [
+                $this->displayNames->locationHeadline($contextService, $pin),
+                __('Professional :service services available in :area (:pin).', [
+                    'service' => $serviceName,
+                    'area' => $area,
+                    'pin' => $pin->pincode,
+                ]),
+                __(':service in your area', ['service' => $serviceName]),
+            ];
+        }
+
+        return [
+            __('Healthcare Services in :area', ['area' => $area]),
+            __('Professional healthcare services available in :area (:pin).', [
+                'area' => $area,
+                'pin' => $pin->pincode,
+            ]),
+            __('Healthcare services in your area'),
+        ];
+    }
+
+    private function canonicalUrlFor(PinCode $pin, ?ServiceCategory $category, ?Service $contextService): string
+    {
+        $url = $this->areaResolver->publicUrlFor($pin);
+
+        return \App\Support\CoverageLinkContext::append($url, $category, $contextService);
     }
 }

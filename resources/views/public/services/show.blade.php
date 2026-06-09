@@ -72,17 +72,18 @@
             </section>
         @endif
 
-        @if ($service->faqs->isNotEmpty())
+        @php
+            $serviceFaqs = \App\Support\FaqPairNormalizer::expandMany($service->faqs);
+        @endphp
+        @if ($serviceFaqs !== [])
             <section class="space-y-4">
                 <h2 class="text-2xl font-semibold text-slate-900 md:text-3xl">{{ __('Frequently asked questions') }}</h2>
                 <dl class="space-y-3">
-                    @foreach ($service->faqs as $faq)
-                        @if (trim((string) $faq->question) !== '' && trim((string) $faq->answer) !== '')
-                            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                                <dt class="text-base font-semibold text-slate-900 md:text-lg">{{ $faq->question }}</dt>
-                                <dd class="mt-2 text-sm leading-relaxed text-slate-600 md:text-base">{{ $faq->answer }}</dd>
-                            </div>
-                        @endif
+                    @foreach ($serviceFaqs as $faq)
+                        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                            <dt class="text-base font-semibold text-slate-900 md:text-lg">{{ $faq['question'] }}</dt>
+                            <dd class="mt-2 text-sm leading-relaxed text-slate-600 md:text-base">{{ $faq['answer'] }}</dd>
+                        </div>
                     @endforeach
                 </dl>
             </section>

@@ -54,6 +54,7 @@
         <x-public.locations-coverage-grid
             :areas="$coverageAreas"
             :exclude-pincode-ids="[$pin->id]"
+            :service="$svc"
             :title="__('Areas we cover')"
             :initial="8"
         />

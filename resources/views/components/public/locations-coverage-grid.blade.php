@@ -3,9 +3,13 @@
     'title' => __('Areas we cover'),
     'initial' => 8,
     'excludePincodeIds' => [],
+    'category' => null,
+    'service' => null,
 ])
 
 @php
+    use App\Models\Service;
+    use App\Models\ServiceCategory;
     use App\Services\Public\PinCodeCoverageUrlResolver;
 
     $areas = $areas instanceof \Illuminate\Support\Collection ? $areas : collect($areas);
@@ -14,8 +18,10 @@
         $areas = $areas->whereNotIn('id', $excludeIds)->values();
     }
     $initial = max(4, (int) $initial);
+    $categoryModel = $category instanceof ServiceCategory ? $category : null;
+    $serviceModel = $service instanceof Service ? $service : null;
     $urlResolver = app(PinCodeCoverageUrlResolver::class);
-    $urls = $urlResolver->urlsFor($areas);
+    $urls = $urlResolver->urlsFor($areas, $serviceModel, $categoryModel);
     $items = $areas->map(function ($pc) use ($urls): array {
         return [
             'id' => (int) $pc->id,

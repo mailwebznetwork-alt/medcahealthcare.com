@@ -4,7 +4,9 @@ namespace App\Services\Public;
 
 use App\Models\PinCode;
 use App\Models\Service;
+use App\Models\ServiceCategory;
 use App\Models\ServiceLocationPage;
+use App\Support\CoverageLinkContext;
 use Illuminate\Support\Collection;
 
 class PinCodeCoverageUrlResolver
@@ -17,7 +19,7 @@ class PinCodeCoverageUrlResolver
      * @param  Collection<int, PinCode>  $pins
      * @return array<int, string>
      */
-    public function urlsFor(Collection $pins, ?Service $service = null): array
+    public function urlsFor(Collection $pins, ?Service $service = null, ?ServiceCategory $category = null): array
     {
         if ($pins->isEmpty()) {
             return [];
@@ -27,7 +29,7 @@ class PinCodeCoverageUrlResolver
         $needsMapping = collect();
 
         foreach ($pins as $pin) {
-            $quick = $this->quickUrl($pin, $service);
+            $quick = $this->quickUrl($pin, $service, $category);
             if ($quick !== null) {
                 $urls[$pin->id] = $quick;
             } else {
@@ -42,7 +44,7 @@ class PinCodeCoverageUrlResolver
         $mappingsByPin = $this->indexableMappingsFor($needsMapping, $service);
 
         foreach ($needsMapping as $pin) {
-            $urls[$pin->id] = $this->urlFor($pin, $mappingsByPin->get($pin->id), $service);
+            $urls[$pin->id] = $this->urlFor($pin, $mappingsByPin->get($pin->id), $service, $category);
         }
 
         return $urls;
@@ -51,9 +53,9 @@ class PinCodeCoverageUrlResolver
     /**
      * @param  Collection<int, ServiceLocationPage>|null  $mappings
      */
-    public function urlFor(PinCode $pin, ?Collection $mappings = null, ?Service $service = null): string
+    public function urlFor(PinCode $pin, ?Collection $mappings = null, ?Service $service = null, ?ServiceCategory $category = null): string
     {
-        $quick = $this->quickUrl($pin, $service);
+        $quick = $this->quickUrl($pin, $service, $category);
         if ($quick !== null) {
             return $quick;
         }
@@ -66,17 +68,21 @@ class PinCodeCoverageUrlResolver
         }
 
         if ($mapping instanceof ServiceLocationPage) {
-            return $mapping->publicUrl();
+            return CoverageLinkContext::append($mapping->publicUrl(), $category);
         }
 
         if ($pin->is_active && $pin->geo_page_ready) {
-            return $this->areaResolver->publicUrlFor($pin);
+            return CoverageLinkContext::append(
+                $this->areaResolver->publicUrlFor($pin),
+                $category,
+                $service instanceof Service ? $service : null,
+            );
         }
 
         return route('location.pincode.select', ['pincode' => $pin->pincode]);
     }
 
-    private function quickUrl(PinCode $pin, ?Service $service = null): ?string
+    private function quickUrl(PinCode $pin, ?Service $service = null, ?ServiceCategory $category = null): ?string
     {
         if (filled($pin->landing_page)) {
             $landing = (string) $pin->landing_page;
@@ -91,7 +97,10 @@ class PinCodeCoverageUrlResolver
         }
 
         if ($pin->is_active && $pin->geo_page_ready) {
-            return $this->areaResolver->publicUrlFor($pin);
+            return CoverageLinkContext::append(
+                $this->areaResolver->publicUrlFor($pin),
+                $category,
+            );
         }
 
         return null;

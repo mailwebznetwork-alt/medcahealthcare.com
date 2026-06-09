@@ -468,18 +468,17 @@ class Service extends Model
     {
         $this->loadMissing('faqs');
 
-        return $this->faqs
-            ->filter(fn (ServiceFaq $faq): bool => trim((string) $faq->question) !== '' && trim((string) $faq->answer) !== '')
-            ->map(fn (ServiceFaq $faq): array => [
+        return array_map(
+            fn (array $faq): array => [
                 '@type' => 'Question',
-                'name' => $faq->question,
+                'name' => $faq['question'],
                 'acceptedAnswer' => [
                     '@type' => 'Answer',
-                    'text' => $faq->answer,
+                    'text' => $faq['answer'],
                 ],
-            ])
-            ->values()
-            ->all();
+            ],
+            \App\Support\FaqPairNormalizer::expandMany($this->faqs)
+        );
     }
 
     public function hasPriceRange(): bool

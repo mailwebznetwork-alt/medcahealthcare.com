@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', __('Healthcare Services in :area', ['area' => $area]).' — '.config('medca.brand_name'))
+@section('title', $title.' — '.config('medca.brand_name'))
 
 @push('meta')
-    <meta name="description" content="{{ \Illuminate\Support\Str::limit(__('Professional healthcare services available in :area (:pin).', ['area' => $area, 'pin' => $pin->pincode]), 320, '') }}">
+    <meta name="description" content="{{ \Illuminate\Support\Str::limit($intro, 320, '') }}">
     <link rel="canonical" href="{{ $canonicalUrl }}">
 @endpush
 
@@ -13,16 +13,9 @@
             <x-public.breadcrumbs :items="$breadcrumbs" />
         </div>
     @endif
-    @php
-        $title = __('Healthcare Services in :area', ['area' => $area]);
-        $intro = __('Professional healthcare services available in :area (:pin).', [
-            'area' => $area,
-            'pin' => $pin->pincode,
-        ]);
-    @endphp
 
     <x-public.location-page-hero
-        :eyebrow="__('Near You')"
+        :eyebrow="$category ? __('Category') : ($contextService ? __('Service') : __('Near You'))"
         :headline="$title"
         :subline="$intro"
         :intro="null"
@@ -35,12 +28,26 @@
             <x-public.location-services-detail-list
                 :services="$services"
                 :pin-code-record="$pin"
-                :section-title="__('Healthcare services in your area')"
+                :section-title="$sectionTitle"
+                :empty-message="$category
+                    ? __('No published :category services are mapped to this pincode yet.', ['category' => $category->name])
+                    : ($contextService
+                        ? __('This service is not mapped to this pincode yet.')
+                        : __('No published services are mapped to this pincode yet.'))"
             />
+
+            @if ($showNearYouBlock ?? false)
+                @include('public.partials.near-you-services', array_merge(
+                    $nearYouPayload ?? app(\App\Services\Public\PublicPagePresenter::class)->nearYouPayload(),
+                    ['contentSlug' => 'near-you-locations']
+                ))
+            @endif
 
             <x-public.locations-coverage-grid
                 :areas="$coverageAreas"
                 :exclude-pincode-ids="[$pin->id]"
+                :category="$category ?? null"
+                :service="$contextService ?? null"
                 :title="__('Areas we cover')"
                 :initial="8"
             />

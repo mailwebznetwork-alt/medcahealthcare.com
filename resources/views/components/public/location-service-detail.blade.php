@@ -30,9 +30,7 @@
     $procedures = is_array($service->procedures) ? array_values(array_filter($service->procedures)) : [];
     $specialized = is_array($service->specialized_care) ? array_values(array_filter($service->specialized_care)) : [];
     $shifts = is_array($service->shifts) ? array_values(array_filter($service->shifts)) : [];
-    $faqs = $service->faqs->filter(
-        fn ($faq) => filled(trim((string) $faq->question)) && filled(trim((string) $faq->answer))
-    );
+    $faqs = \App\Support\FaqPairNormalizer::expandMany($service->faqs);
 
     $locationUrl = null;
     if ($pinCode instanceof PinCode) {
@@ -128,14 +126,14 @@
         </div>
     @endif
 
-    @if ($faqs->isNotEmpty())
+    @if ($faqs !== [])
         <section class="mt-6 space-y-3">
             <h4 class="text-base font-semibold text-slate-900">{{ __('Frequently asked questions') }}</h4>
             <dl class="space-y-3">
-                @foreach ($faqs->take($compactFaqs ? 3 : 10) as $faq)
+                @foreach (array_slice($faqs, 0, $compactFaqs ? 3 : 10) as $faq)
                     <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                        <dt class="font-semibold text-slate-900">{{ $faq->question }}</dt>
-                        <dd class="mt-2 text-sm leading-relaxed text-slate-600">{{ $faq->answer }}</dd>
+                        <dt class="font-semibold text-slate-900">{{ $faq['question'] }}</dt>
+                        <dd class="mt-2 text-sm leading-relaxed text-slate-600">{{ $faq['answer'] }}</dd>
                     </div>
                 @endforeach
             </dl>
