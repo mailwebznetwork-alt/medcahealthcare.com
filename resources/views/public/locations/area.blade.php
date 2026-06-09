@@ -8,9 +8,11 @@
 @endpush
 
 @section('content')
-    <div class="mx-auto w-full max-w-6xl px-4 pt-6 sm:px-6 lg:px-8 md:pt-8">
-        <x-public.breadcrumbs :items="$breadcrumbs" />
-    </div>
+    @if (! config('medca.hide_visual_breadcrumbs', true) && ! empty($breadcrumbs))
+        <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+            <x-public.breadcrumbs :items="$breadcrumbs" />
+        </div>
+    @endif
     @php
         $title = __('Healthcare Services in :area', ['area' => $area]);
         $intro = __('Professional healthcare services available in :area (:pin).', [

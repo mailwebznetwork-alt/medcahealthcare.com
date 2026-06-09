@@ -1,9 +1,17 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mx-auto max-w-6xl px-4 py-12 md:px-6">
-    <h1 class="text-3xl font-bold text-medca-primary">{{ __('Sitemap') }}</h1>
-    <p class="mt-2 text-slate-600">{{ __('Browse all public services, locations, pages, and articles.') }}</p>
+    <x-public.location-page-hero
+        :eyebrow="__('Site map')"
+        :headline="__('Sitemap')"
+        :subline="__('Browse all public services, locations, pages, and articles.')"
+        :show-pincode="false"
+        :show-actions="false"
+        :show-body="false"
+        tone="brand"
+    />
+
+    <x-public.section class="bg-white">
 
     <form method="get" action="{{ route('public.sitemap.html') }}" class="mt-6 max-w-md">
         <label for="sitemap-q" class="sr-only">{{ __('Search sitemap') }}</label>

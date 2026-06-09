@@ -18,3 +18,7 @@ it('reports schema presence', function () {
     expect(BlockContent::hasSchema('hero-home'))->toBeTrue()
         ->and(BlockContent::hasSchema('nonexistent-block'))->toBeFalse();
 });
+
+it('uses the Call Us label for phone buttons', function () {
+    expect(BlockContent::callUsLabel())->toBe('Call Us');
+});

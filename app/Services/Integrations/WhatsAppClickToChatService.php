@@ -70,8 +70,11 @@ class WhatsAppClickToChatService
     public function primaryUrl(): string
     {
         $active = $this->activeNumbers();
+        if ($active !== []) {
+            return $active[0]->waMeUrl() ?? $this->brandingWhatsAppUrl();
+        }
 
-        return $active[0]->waMeUrl() ?? (string) config('medca.whatsapp_url', 'https://wa.me/');
+        return $this->brandingWhatsAppUrl();
     }
 
     public function isFloatingButtonEnabled(): bool
@@ -149,7 +152,7 @@ class WhatsAppClickToChatService
      */
     private function fallbackFromConfig(): array
     {
-        $url = (string) config('medca.whatsapp_url', '');
+        $url = $this->brandingWhatsAppUrl();
         if ($url === '' || ! preg_match('#wa\.me/(\d+)#', $url, $m)) {
             return [];
         }
@@ -168,5 +171,16 @@ class WhatsAppClickToChatService
         ]);
 
         return $number !== null ? [$number] : [];
+    }
+
+    private function brandingWhatsAppUrl(): string
+    {
+        $url = trim((string) (app(\App\Services\Deployment\GlobalContentVariableRepository::class)->resolved()['whatsapp'] ?? ''));
+
+        if ($url !== '') {
+            return $url;
+        }
+
+        return (string) config('medca.whatsapp_url', 'https://wa.me/');
     }
 }

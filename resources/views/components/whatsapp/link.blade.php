@@ -6,6 +6,8 @@
 ])
 
 @php
+    use App\Support\BlockContent;
+
     $whatsAppService = app(\App\Services\Integrations\WhatsAppClickToChatService::class);
     $resolved = $number instanceof \App\Support\WhatsAppClickNumber
         ? $number
@@ -13,7 +15,7 @@
     $primaryNumber = $whatsAppService->activeNumbers()[0] ?? null;
     $href = $resolved?->waMeUrl()
         ?? $primaryNumber?->waMeUrl()
-        ?? $whatsAppService->primaryUrl();
+        ?? BlockContent::whatsAppUrl();
     $buttonName = $label ?? $resolved?->displayName ?? __('WhatsApp Us');
     $phone = $resolved?->phone ?? $primaryNumber?->phone ?? '';
     $baseClass = $styled

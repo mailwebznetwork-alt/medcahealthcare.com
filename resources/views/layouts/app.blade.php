@@ -84,7 +84,7 @@
         @include('global.header')
 
         @php
-            $layoutMainClass = $themeResolver->layoutMainClasses().' py-8 md:py-10 lg:py-12';
+            $layoutMainClass = $themeResolver->layoutMainClasses().' pb-8 md:pb-10 lg:pb-12 pt-0';
         @endphp
         <main
             id="main-content"
@@ -105,11 +105,11 @@
                         && ! config('medca.hide_visual_breadcrumbs', true);
                 @endphp
                 @if ($showGrowthChrome)
-                    <div @class(['w-full', 'pt-6 md:pt-8' => ! $page->usesCanvasLayout()])>
+                    <div class="w-full">
                         @include('public.partials.growth-chrome')
                     </div>
                 @endif
-                <div @class(['w-full', 'py-6 md:py-8' => ! $page->usesCanvasLayout()])>
+                <div @class(['w-full', 'pb-6 md:pb-8' => ! $page->usesCanvasLayout()])>
                     {!! \App\Services\ContentParser::parse($page->content ?? '') !!}
                 </div>
                 @php
@@ -149,7 +149,7 @@
                             />
                         </div>
                     @endif
-                    <div class="max-w-none py-6 md:py-8">
+                    <div class="max-w-none pb-6 md:pb-8 pt-0">
                         {!! \App\Services\ContentParser::parse($blog->content ?? '') !!}
                     </div>
                 </article>

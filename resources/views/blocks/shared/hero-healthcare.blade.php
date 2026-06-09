@@ -16,7 +16,7 @@
         <h1 class="mt-4 text-3xl font-semibold md:text-5xl">{{ $headline }}</h1>
         <p class="mt-4 max-w-2xl text-white/85">{{ $subheadline }}</p>
         <div class="mt-8 flex flex-wrap gap-3">
-            <a href="{{ $tel }}" class="medca-cta-on-hero">{{ $primaryCta }}</a>
+            <a href="{{ $tel }}" class="medca-cta-on-hero">{{ BlockContent::callUsLabel() }}</a>
             <a href="{{ $secondaryUrl }}" class="inline-flex rounded-xl border border-white/30 px-5 py-3 text-sm font-semibold">{{ $secondaryCta }}</a>
         </div>
     </div>

@@ -31,6 +31,11 @@
         @apply w-full;
     }
 
+    /** Public heroes sit flush under the sticky site header (no main top padding). */
+    body.medca-public-surface #main-content {
+        padding-top: 0;
+    }
+
     .medca-link-primary {
         @apply text-sm font-semibold text-medca-primary hover:underline;
     }

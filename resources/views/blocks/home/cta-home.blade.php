@@ -4,11 +4,9 @@
     $ctaImage = \App\Support\BlockMediaUrl::first(is_array($blockMedia ?? null) ? $blockMedia : [], 'image', 'desktop_image');
     $headline = BlockContent::get($settings, 'cta-home', 'headline');
     $subheadline = BlockContent::get($settings, 'cta-home', 'subheadline');
-    $primaryCta = BlockContent::get($settings, 'cta-home', 'primary_cta_label');
     $secondaryCta = BlockContent::get($settings, 'cta-home', 'secondary_cta_label');
     $secondaryUrl = BlockContent::get($settings, 'cta-home', 'secondary_cta_url');
     $tel = BlockContent::telHref();
-    $phone = BlockContent::phoneDisplay();
 @endphp
 <x-public.section class="bg-slate-50">
     <div id="contact" class="scroll-mt-32 rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center shadow-sm md:p-10">
@@ -18,7 +16,7 @@
     <h2 class="text-2xl font-semibold text-slate-900 md:text-3xl">{{ $headline }}</h2>
     <p class="mt-3 text-sm leading-relaxed text-slate-600 md:text-base">{{ $subheadline }}</p>
     <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
-        <a href="{{ $tel }}" class="medca-cta-solid">{{ $primaryCta }} {{ $phone }}</a>
+        <a href="{{ $tel }}" class="medca-cta-solid">{{ BlockContent::callUsLabel() }}</a>
         <a href="{{ $secondaryUrl }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50">{{ $secondaryCta }}</a>
     </div>
     </div>

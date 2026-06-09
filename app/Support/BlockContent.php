@@ -109,11 +109,41 @@ final class BlockContent
         return $value !== '' ? $value : ($fallback ?? '');
     }
 
-    public static function telHref(?string $fallback = 'tel:+918884999002'): string
+    public static function telHref(?string $fallback = null): string
     {
-        $tel = self::global('phone_tel');
+        $tel = trim(self::global('phone_tel'));
 
-        return $tel !== '' ? $tel : ($fallback ?? '');
+        if ($tel === '') {
+            $tel = trim((string) ($fallback ?? config('medca.phone_tel', '')));
+        }
+
+        if ($tel === '') {
+            return '';
+        }
+
+        if (str_starts_with(strtolower($tel), 'tel:')) {
+            return $tel;
+        }
+
+        return 'tel:'.preg_replace('/\s+/', '', $tel);
+    }
+
+    public static function callUsLabel(): string
+    {
+        return (string) __('Call Us');
+    }
+
+    public static function whatsAppUrl(?string $fallback = null): string
+    {
+        $url = trim(self::global('whatsapp'));
+
+        if ($url !== '') {
+            return $url;
+        }
+
+        $fallback = trim((string) ($fallback ?? config('medca.whatsapp_url', '')));
+
+        return $fallback !== '' ? $fallback : app(\App\Services\Integrations\WhatsAppClickToChatService::class)->primaryUrl();
     }
 
     public static function phoneDisplay(?string $fallback = '+91 88849 99002'): string

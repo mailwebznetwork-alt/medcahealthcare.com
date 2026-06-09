@@ -7,13 +7,13 @@
     $summary = $category ? ($displayNames->categoryMetaDescription($category) ?: $category->description) : '';
 @endphp
 @if ($category)
-<x-public.section>
-    <header class="space-y-4 border-b border-slate-200 pb-6">
-        <p class="medca-eyebrow text-slate-500">{{ __('Category') }}</p>
-        <h1 class="text-3xl font-semibold text-slate-900 md:text-4xl">{{ $headline }}</h1>
-        @if (filled($summary))
-            <p class="medca-subheadline max-w-3xl text-slate-600">{{ $summary }}</p>
-        @endif
-    </header>
-</x-public.section>
+    <x-public.location-page-hero
+        :eyebrow="__('Category')"
+        :headline="$headline"
+        :subline="$summary"
+        :show-pincode="false"
+        :show-actions="true"
+        :show-body="false"
+        tone="brand"
+    />
 @endif

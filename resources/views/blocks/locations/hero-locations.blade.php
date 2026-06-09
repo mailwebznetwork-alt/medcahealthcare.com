@@ -8,8 +8,8 @@
     $subheadline = BlockContent::get($settings, 'hero-locations', 'subheadline');
 @endphp
 
-<x-public.hero class="border-b border-slate-200 bg-white" style="{{ $heroMediaStyle }}">
-    <p class="medca-eyebrow">{{ $eyebrow }}</p>
-    <h1 class="mt-3 text-3xl font-semibold text-slate-900 md:text-4xl">{{ $headline }}</h1>
-    <p class="mt-4 max-w-2xl text-base leading-relaxed text-slate-600">{{ $subheadline }}</p>
+<x-public.hero class="medca-hero-gradient text-white" style="{{ $heroMediaStyle }}">
+    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-white/80">{{ $eyebrow }}</p>
+    <h1 class="mt-4 text-3xl font-semibold leading-tight text-white md:text-5xl">{{ $headline }}</h1>
+    <p class="mt-5 max-w-2xl text-base leading-relaxed text-white/85 md:text-lg">{{ $subheadline }}</p>
 </x-public.hero>

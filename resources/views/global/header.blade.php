@@ -7,8 +7,8 @@
     $brandTagline = $themeBranding['tagline'] ?? config('medca.tagline');
     $isSuperAdmin = auth()->check() && strtolower((string) auth()->user()?->role) === 'super_admin';
     $navItems = app(\App\Services\SiteNavigationResolver::class)->headerLinks();
-    $medcaPhoneTel = preg_replace('/\s+/', '', (string) ($themeBranding['phone_tel'] ?? config('medca.phone_tel')));
-    $medcaWhatsAppUrl = (string) ($whatsAppPrimaryUrl ?? $themeBranding['whatsapp_url'] ?? config('medca.whatsapp_url'));
+    $medcaCallHref = \App\Support\BlockContent::telHref();
+    $medcaWhatsAppUrl = (string) ($whatsAppPrimaryUrl ?? \App\Support\BlockContent::whatsAppUrl());
     $headerPresetClass = $themeResolver->headerPresetClass();
     $headerConfig = $themeResolver->headerConfiguration();
     $layoutShellClass = $themeResolver->layoutShellClass();
@@ -95,7 +95,7 @@
 
                 @if ($themeResolver->headerConfigEnabled('show_secondary_menu'))
                     <div class="ml-2 hidden shrink-0 items-center gap-2 lg:flex">
-                        <a href="tel:{{ $medcaPhoneTel }}" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-medca-primary hover:bg-slate-50">{{ __('Call') }}</a>
+                        <a href="{{ $medcaCallHref }}" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-medca-primary hover:bg-slate-50">{{ __('Call Us') }}</a>
                         <a href="{{ $medcaWhatsAppUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-500">{{ __('WhatsApp Us') }}</a>
                     </div>
                 @endif
@@ -221,10 +221,10 @@
                                 <div @class(['grid gap-2', 'grid-cols-2' => $themeResolver->headerConfigEnabled('mobile_cta_enabled') && $themeResolver->headerConfigEnabled('mobile_whatsapp_enabled'), 'grid-cols-1' => ! ($themeResolver->headerConfigEnabled('mobile_cta_enabled') && $themeResolver->headerConfigEnabled('mobile_whatsapp_enabled'))])>
                                     @if ($themeResolver->headerConfigEnabled('mobile_cta_enabled'))
                                     <a
-                                        href="tel:{{ $medcaPhoneTel }}"
+                                        href="{{ $medcaCallHref }}"
                                         class="flex min-h-[52px] items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-clinical-800 shadow-sm transition-colors duration-200 hover:bg-slate-50"
                                     >
-                                        {{ __('Call Now') }}
+                                        {{ __('Call Us') }}
                                     </a>
                                     @endif
                                     @if ($themeResolver->headerConfigEnabled('mobile_whatsapp_enabled'))
