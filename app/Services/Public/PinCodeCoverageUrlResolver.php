@@ -3,6 +3,7 @@
 namespace App\Services\Public;
 
 use App\Models\PinCode;
+use App\Models\Service;
 use App\Models\ServiceLocationPage;
 use Illuminate\Support\Collection;
 
@@ -16,22 +17,32 @@ class PinCodeCoverageUrlResolver
      * @param  Collection<int, PinCode>  $pins
      * @return array<int, string>
      */
-    public function urlsFor(Collection $pins): array
+    public function urlsFor(Collection $pins, ?Service $service = null): array
     {
         if ($pins->isEmpty()) {
             return [];
         }
 
-        $mappingsByPin = ServiceLocationPage::query()
-            ->whereIn('pincode_id', $pins->pluck('id'))
-            ->with(['service', 'page', 'pincode'])
-            ->get()
-            ->filter(fn (ServiceLocationPage $mapping): bool => $mapping->isPubliclyIndexable())
-            ->groupBy('pincode_id');
-
         $urls = [];
+        $needsMapping = collect();
+
         foreach ($pins as $pin) {
-            $urls[$pin->id] = $this->urlFor($pin, $mappingsByPin->get($pin->id));
+            $quick = $this->quickUrl($pin, $service);
+            if ($quick !== null) {
+                $urls[$pin->id] = $quick;
+            } else {
+                $needsMapping->push($pin);
+            }
+        }
+
+        if ($needsMapping->isEmpty()) {
+            return $urls;
+        }
+
+        $mappingsByPin = $this->indexableMappingsFor($needsMapping, $service);
+
+        foreach ($needsMapping as $pin) {
+            $urls[$pin->id] = $this->urlFor($pin, $mappingsByPin->get($pin->id), $service);
         }
 
         return $urls;
@@ -40,7 +51,32 @@ class PinCodeCoverageUrlResolver
     /**
      * @param  Collection<int, ServiceLocationPage>|null  $mappings
      */
-    public function urlFor(PinCode $pin, ?Collection $mappings = null): string
+    public function urlFor(PinCode $pin, ?Collection $mappings = null, ?Service $service = null): string
+    {
+        $quick = $this->quickUrl($pin, $service);
+        if ($quick !== null) {
+            return $quick;
+        }
+
+        $mapping = $this->firstMapping($mappings);
+        if ($mapping === null) {
+            $mapping = $this->firstMapping(
+                $this->indexableMappingsFor(collect([$pin]), $service)->get($pin->id)
+            );
+        }
+
+        if ($mapping instanceof ServiceLocationPage) {
+            return $mapping->publicUrl();
+        }
+
+        if ($pin->is_active && $pin->geo_page_ready) {
+            return $this->areaResolver->publicUrlFor($pin);
+        }
+
+        return route('location.pincode.select', ['pincode' => $pin->pincode]);
+    }
+
+    private function quickUrl(PinCode $pin, ?Service $service = null): ?string
     {
         if (filled($pin->landing_page)) {
             $landing = (string) $pin->landing_page;
@@ -50,23 +86,55 @@ class PinCodeCoverageUrlResolver
                 : url('/'.ltrim($landing, '/'));
         }
 
+        if ($service instanceof Service) {
+            return null;
+        }
+
         if ($pin->is_active && $pin->geo_page_ready) {
             return $this->areaResolver->publicUrlFor($pin);
         }
 
-        $mapping = $mappings?->first();
-        if ($mapping === null) {
-            $mapping = ServiceLocationPage::query()
-                ->where('pincode_id', $pin->id)
-                ->with(['service', 'page', 'pincode'])
-                ->get()
-                ->first(fn (ServiceLocationPage $row): bool => $row->isPubliclyIndexable());
+        return null;
+    }
+
+    /**
+     * @param  Collection<int, PinCode>  $pins
+     * @return Collection<int, Collection<int, ServiceLocationPage>>
+     */
+    private function indexableMappingsFor(Collection $pins, ?Service $service = null): Collection
+    {
+        $query = ServiceLocationPage::query()
+            ->whereIn('pincode_id', $pins->pluck('id'))
+            ->where('is_indexable', true)
+            ->with([
+                'service:id,service_code,is_active,publish_status,visibility,title',
+                'page:id,is_active,robots_meta',
+                'pincode:id,pincode,city_slug,location_slug',
+            ]);
+
+        if ($service instanceof Service) {
+            $query->where('service_id', $service->id);
         }
 
-        if ($mapping instanceof ServiceLocationPage) {
-            return $mapping->publicUrl();
+        return $query
+            ->get()
+            ->filter(fn (ServiceLocationPage $mapping): bool => $mapping->isPubliclyIndexable())
+            ->groupBy('pincode_id')
+            ->map(fn (Collection $group): Collection => $group->values());
+    }
+
+    private function firstMapping(mixed $mappings): ?ServiceLocationPage
+    {
+        if ($mappings instanceof ServiceLocationPage) {
+            return $mappings;
         }
 
-        return route('location.pincode.select', ['pincode' => $pin->pincode]);
+        if ($mappings instanceof Collection) {
+            $first = $mappings->first();
+
+            return $first instanceof ServiceLocationPage ? $first : null;
+        }
+
+        return null;
     }
 }

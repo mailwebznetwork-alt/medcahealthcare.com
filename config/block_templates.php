@@ -172,7 +172,7 @@ BLADE,
         ],
         'service-detail-areas' => [
             'category' => 'services',
-            'block_name' => 'Service detail — areas served',
+            'block_name' => 'Service detail — areas we cover',
             'description' => 'GEO pincode grid for the current service.',
             'block_type' => 'Text',
             'view' => 'blocks.services.service-detail-areas',

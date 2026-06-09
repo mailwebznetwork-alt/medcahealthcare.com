@@ -2,14 +2,19 @@
     'areas' => collect(),
     'service' => null,
     'initial' => 8,
-    'title' => __('Areas served'),
+    'title' => __('Areas we cover'),
     'subtitle' => __('Bangalore neighbourhoods where this service is available.'),
 ])
 
 @php
+    use App\Models\Service;
+    use App\Services\Public\PinCodeCoverageUrlResolver;
+
     $areas = $areas instanceof \Illuminate\Support\Collection ? $areas : collect($areas);
     $initial = max(1, (int) $initial);
-    $serviceCode = $service?->service_code;
+    $serviceModel = $service instanceof Service ? $service : null;
+    $urlResolver = app(PinCodeCoverageUrlResolver::class);
+    $urls = $urlResolver->urlsFor($areas, $serviceModel);
 @endphp
 
 @if ($areas->isNotEmpty())
@@ -23,37 +28,21 @@
         <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             @foreach ($areas as $index => $pc)
                 @php
-                    $url = null;
-                    if ($service && filled($pc->pincode ?? null)) {
-                        $mapping = \App\Models\ServiceLocationPage::query()
-                            ->where('service_id', $service->id)
-                            ->whereHas('pincode', fn ($q) => $q->where('pincode', $pc->pincode))
-                            ->first();
-                        $url = $mapping?->publicUrl();
-                    }
+                    $url = $urls[$pc->id] ?? route('location.pincode.select', ['pincode' => $pc->pincode]);
+                    $areaLabel = $pc->area_name ?: $pc->locality ?: $pc->city ?: $pc->pincode;
                 @endphp
                 <li
                     x-show="expanded || {{ $index }} < {{ $initial }}"
                     x-cloak
                     class="group"
                 >
-                    @if ($url)
-                        <a href="{{ $url }}" class="flex h-full min-w-0 flex-col gap-1 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-medca-primary/40 hover:shadow-md">
-                            <span class="font-mono text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $pc->pincode }}</span>
-                            <span class="text-sm font-semibold text-slate-900 group-hover:text-medca-primary">{{ $pc->area_name }}</span>
-                            @if (filled($pc->city))
-                                <span class="text-xs text-slate-500">{{ $pc->city }}</span>
-                            @endif
-                        </a>
-                    @else
-                        <div class="flex h-full min-w-0 flex-col gap-1 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <span class="font-mono text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $pc->pincode }}</span>
-                            <span class="text-sm font-semibold text-slate-900">{{ $pc->area_name }}</span>
-                            @if (filled($pc->city))
-                                <span class="text-xs text-slate-500">{{ $pc->city }}</span>
-                            @endif
-                        </div>
-                    @endif
+                    <a href="{{ $url }}" class="flex h-full min-w-0 flex-col gap-1 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-medca-primary/40 hover:shadow-md">
+                        <span class="font-mono text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $pc->pincode }}</span>
+                        <span class="text-sm font-semibold text-slate-900 group-hover:text-medca-primary">{{ $areaLabel }}</span>
+                        @if (filled($pc->city))
+                            <span class="text-xs text-slate-500">{{ $pc->city }}</span>
+                        @endif
+                    </a>
                 </li>
             @endforeach
         </ul>

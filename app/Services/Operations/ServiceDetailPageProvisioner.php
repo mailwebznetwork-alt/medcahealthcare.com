@@ -253,7 +253,7 @@ class ServiceDetailPageProvisioner
                 'block_type' => 'Hero',
             ],
             'service-detail-areas' => [
-                'block_name' => 'Service detail — areas served',
+                'block_name' => 'Service detail — areas we cover',
                 'code' => "@include('blocks.services.service-detail-areas')",
                 'block_type' => 'Text',
             ],

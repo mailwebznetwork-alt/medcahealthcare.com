@@ -4,10 +4,20 @@ namespace App\Services\Public;
 
 use App\Models\PinCode;
 use App\Models\ServiceLocationPage;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class PinCodeAreaResolver
 {
+    /** @var array<int, string> */
+    private array $routeSlugCache = [];
+
+    /** @var array<string, list<int>>|null */
+    private ?array $areaSlugIndex = null;
+
+    /** @var array<string, PinCode>|null */
+    private ?array $pinsByRouteSlug = null;
+
     public function resolve(string $slug): ?PinCode
     {
         $slug = trim(Str::lower($slug));
@@ -24,13 +34,13 @@ class PinCodeAreaResolver
             return $pin;
         }
 
-        $byAreaSlug = PinCode::query()
-            ->where('is_active', true)
-            ->get()
-            ->filter(fn (PinCode $row): bool => $this->routeSlugFor($row) === $slug);
+        $this->ensureRouteSlugMaps();
 
-        if ($byAreaSlug->count() === 1) {
-            return $byAreaSlug->first();
+        if (isset($this->pinsByRouteSlug[$slug])) {
+            return PinCode::query()
+                ->whereKey($this->pinsByRouteSlug[$slug]->id)
+                ->where('is_active', true)
+                ->first();
         }
 
         $mapping = ServiceLocationPage::query()
@@ -45,22 +55,10 @@ class PinCodeAreaResolver
 
     public function routeSlugFor(PinCode $pin): string
     {
-        $areaSlug = Str::slug((string) ($pin->area_name ?: $pin->locality ?: ''));
-        if ($areaSlug !== '') {
-            $collision = PinCode::query()
-                ->where('is_active', true)
-                ->where('id', '!=', $pin->id)
-                ->get()
-                ->contains(fn (PinCode $row): bool => Str::slug((string) ($row->area_name ?: $row->locality ?: '')) === $areaSlug);
+        $this->ensureRouteSlugMaps();
 
-            if (! $collision) {
-                return $areaSlug;
-            }
-        }
-
-        return filled($pin->slug)
-            ? (string) $pin->slug
-            : Str::slug(($pin->area_name ?: 'area').'-'.$pin->pincode);
+        return $this->routeSlugCache[(int) $pin->id]
+            ?? $this->computeRouteSlug($pin);
     }
 
     public function publicUrlFor(PinCode $pin): string
@@ -74,5 +72,57 @@ class PinCodeAreaResolver
         }
 
         return route('public.locations.area', ['slug' => $this->routeSlugFor($pin)]);
+    }
+
+    private function ensureRouteSlugMaps(): void
+    {
+        if ($this->pinsByRouteSlug !== null) {
+            return;
+        }
+
+        $pins = PinCode::query()
+            ->where('is_active', true)
+            ->select(['id', 'area_name', 'locality', 'pincode', 'slug'])
+            ->orderBy('id')
+            ->get();
+
+        $this->areaSlugIndex = [];
+        foreach ($pins as $pin) {
+            $areaSlug = Str::slug((string) ($pin->area_name ?: $pin->locality ?: ''));
+            if ($areaSlug !== '') {
+                $this->areaSlugIndex[$areaSlug][] = (int) $pin->id;
+            }
+        }
+
+        $this->routeSlugCache = [];
+        $this->pinsByRouteSlug = [];
+
+        foreach ($pins as $pin) {
+            $routeSlug = $this->computeRouteSlug($pin);
+            $this->routeSlugCache[(int) $pin->id] = $routeSlug;
+
+            if (! isset($this->pinsByRouteSlug[$routeSlug])) {
+                $this->pinsByRouteSlug[$routeSlug] = $pin;
+            }
+        }
+    }
+
+    private function computeRouteSlug(PinCode $pin): string
+    {
+        $areaSlug = Str::slug((string) ($pin->area_name ?: $pin->locality ?: ''));
+
+        if ($areaSlug !== '') {
+            $owners = $this->areaSlugIndex[$areaSlug] ?? [(int) $pin->id];
+
+            if (count($owners) === 1 && $owners[0] === (int) $pin->id) {
+                return $areaSlug;
+            }
+        }
+
+        if (filled($pin->slug)) {
+            return (string) $pin->slug;
+        }
+
+        return Str::slug(($pin->area_name ?: 'area').'-'.$pin->pincode);
     }
 }
