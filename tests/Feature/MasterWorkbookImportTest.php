@@ -7,6 +7,7 @@ use App\Models\ServiceCategory;
 use App\Models\SubService;
 use App\Services\Import\WorkbookImportOrchestrator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -93,6 +94,23 @@ it('imports pincodes master workbook with geo and mappings', function () {
         ->and($pin)->not->toBeNull()
         ->and($pin->landmarks()->count())->toBeGreaterThan(0)
         ->and(Service::query()->where('service_code', 'nursing')->first()->pincodes)->toHaveCount(1);
+});
+
+it('previews uploaded pincodes workbook when temp path has no extension', function () {
+    $path = storage_path('framework/testing/upload-pincodes.xlsx');
+    writeTestWorkbook($path, [
+        'Pincodes' => [
+            ['pincode', 'area_name', 'city'],
+            ['560076', 'Arekere', 'Bangalore'],
+        ],
+    ]);
+
+    $upload = UploadedFile::fake()->createWithContent('pincodes.xlsx', file_get_contents($path));
+    $preview = app(WorkbookImportOrchestrator::class)->preview('pincodes', $upload);
+
+    expect($preview['valid'])->toBeTrue()
+        ->and($preview['sheets'])->not->toBeEmpty()
+        ->and($preview['errors'])->toBeEmpty();
 });
 
 it('detects workbook key from filename', function () {

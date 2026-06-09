@@ -21,13 +21,13 @@ final class SpreadsheetReader
             throw new \InvalidArgumentException(__('Could not read the uploaded file.'));
         }
 
-        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $extension = $this->resolveExtension($source, $path);
         if (! in_array($extension, ['xls', 'xlsx'], true)) {
             return [];
         }
 
         try {
-            $reader = IOFactory::createReaderForFile($path);
+            $reader = $this->createReader($path, $extension);
             $reader->setReadDataOnly(true);
 
             return $reader->listWorksheetNames($path);
@@ -46,7 +46,7 @@ final class SpreadsheetReader
             throw new \InvalidArgumentException(__('Could not read the uploaded file.'));
         }
 
-        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $extension = $this->resolveExtension($source, $path);
 
         return match ($extension) {
             'csv', 'txt' => $this->readCsv($path),
@@ -104,7 +104,7 @@ final class SpreadsheetReader
     private function readSpreadsheet(string $path, string $extension, ?string $sheetName = null): array
     {
         try {
-            $reader = IOFactory::createReaderForFile($path);
+            $reader = $this->createReader($path, $extension);
             $reader->setReadDataOnly(true);
             $spreadsheet = $reader->load($path);
             $sheet = $sheetName !== null
@@ -224,5 +224,33 @@ final class SpreadsheetReader
         }
 
         return null;
+    }
+
+    private function resolveExtension(mixed $source, string $path): string
+    {
+        if ($source instanceof UploadedFile) {
+            $clientExtension = strtolower((string) $source->getClientOriginalExtension());
+            if ($clientExtension !== '') {
+                return $clientExtension;
+            }
+
+            $guessed = strtolower((string) $source->guessExtension());
+            if ($guessed !== '') {
+                return $guessed;
+            }
+
+            return strtolower(pathinfo($source->getClientOriginalName(), PATHINFO_EXTENSION));
+        }
+
+        return strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    }
+
+    private function createReader(string $path, string $extension): \PhpOffice\PhpSpreadsheet\Reader\IReader
+    {
+        return match ($extension) {
+            'xlsx' => IOFactory::createReader('Xlsx'),
+            'xls' => IOFactory::createReader('Xls'),
+            default => IOFactory::createReaderForFile($path),
+        };
     }
 }
