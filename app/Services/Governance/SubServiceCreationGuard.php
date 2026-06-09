@@ -6,11 +6,19 @@ use App\Models\SubService;
 
 final class SubServiceCreationGuard
 {
+    /** Admin/UI paths that may intentionally re-add a previously deleted sub-service. */
+    private const EXPLICIT_SOURCES = ['ui', 'import'];
+
     public function __construct(
         private readonly AdminDeletionGuard $deletionGuard,
         private readonly MasterDataAudit $audit,
         private readonly MasterDataProtection $protection,
     ) {}
+
+    public function isExplicitSource(string $source): bool
+    {
+        return in_array($source, self::EXPLICIT_SOURCES, true);
+    }
 
     public function canCreateSubService(string $parentServiceCode, string $subServiceCode, string $source = 'system'): bool
     {
@@ -28,13 +36,37 @@ final class SubServiceCreationGuard
             return false;
         }
 
-        if ($this->deletionGuard->isSubServicePermanentlyDeleted($naturalKey)) {
+        if (
+            $this->deletionGuard->isSubServicePermanentlyDeleted($naturalKey)
+            && ! $this->isExplicitSource($source)
+        ) {
             $this->audit->subServiceRecreationBlocked($naturalKey, $source, 'Sub-service was permanently deleted by admin.');
 
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * Tombstones block automatic recreation only. Explicit admin import/UI may re-add.
+     */
+    public function resolveForExplicitRecreate(string $parentServiceCode, string $subServiceCode, string $source): ?SubService
+    {
+        if (! $this->isExplicitSource($source)) {
+            return null;
+        }
+
+        $naturalKey = self::naturalKey($parentServiceCode, $subServiceCode);
+        if (! $this->canCreateSubService($parentServiceCode, $subServiceCode, $source)) {
+            return null;
+        }
+
+        if ($this->deletionGuard->isSubServicePermanentlyDeleted($naturalKey)) {
+            $this->deletionGuard->clearSubServiceTombstone($naturalKey);
+        }
+
+        return null;
     }
 
     public static function naturalKey(string $parentServiceCode, string $subServiceCode): string

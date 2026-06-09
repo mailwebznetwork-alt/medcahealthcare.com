@@ -18,6 +18,11 @@
             <li>{{ __('Skipped: :n', ['n' => (int) ($r['skipped'] ?? 0)]) }}</li>
             <li>{{ __('Failed: :n', ['n' => (int) ($r['failed'] ?? 0)]) }}</li>
         </ul>
+        @if (! empty($r['post_sync_pending']))
+            <p class="mom-body-text mt-3 text-[var(--text-secondary)]">
+                {{ __('CMS pages and service links are syncing in the background. Refresh in a minute if new pages are not visible yet.') }}
+            </p>
+        @endif
     </div>
 @endif
 

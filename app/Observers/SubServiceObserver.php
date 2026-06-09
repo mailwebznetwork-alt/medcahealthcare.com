@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\SubService;
 use App\Services\Governance\AdminDeletionGuard;
+use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Governance\SubServiceCreationGuard;
 use App\Services\Governance\UniversalPageRegistry;
@@ -20,6 +21,10 @@ class SubServiceObserver
 
     public function saved(SubService $sub): void
     {
+        if (app(ImportSideEffectsGate::class)->suppressed()) {
+            return;
+        }
+
         $naturalKey = SubServiceCreationGuard::naturalKeyFromModel($sub);
         if ($this->deletionGuard->isSubServicePermanentlyDeleted($naturalKey)) {
             return;

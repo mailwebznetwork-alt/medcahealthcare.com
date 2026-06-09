@@ -97,6 +97,9 @@ class ServiceController extends Controller
         $data = $request->validated();
 
         $service = DB::transaction(function () use ($request, $data) {
+            app(\App\Services\Governance\ServiceCreationGuard::class)
+                ->resolveForExplicitRecreate((string) $data['service_code'], 'ui');
+
             $service = Service::query()->create(array_merge([
                 'title' => $data['title'],
                 'service_code' => $data['service_code'],

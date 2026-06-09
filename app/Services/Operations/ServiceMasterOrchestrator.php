@@ -36,10 +36,18 @@ class ServiceMasterOrchestrator
             && $service->schema->schema_type !== 'ServiceGraph';
 
         if (! $manualSchema) {
-            $this->schemaGenerator->generateAndPersist($service->fresh(['seo', 'faqs', 'pincodes']));
+            $freshForSchema = $service->fresh(['seo', 'faqs', 'pincodes']);
+            if ($freshForSchema !== null) {
+                $this->schemaGenerator->generateAndPersist($freshForSchema);
+            }
         }
 
-        $this->entityGraph->persist($service->fresh());
+        $freshForGraph = $service->fresh();
+        if ($freshForGraph === null) {
+            return;
+        }
+
+        $this->entityGraph->persist($freshForGraph);
 
         $service->seo()->updateOrCreate(
             ['service_id' => $service->id],

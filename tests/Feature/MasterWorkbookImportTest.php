@@ -59,6 +59,10 @@ it('previews and imports services master workbook', function () {
     expect($preview['valid'])->toBeTrue()
         ->and($preview['sheets'])->toHaveCount(3);
 
+    $subSheet = collect($preview['sheets'])->firstWhere('entity', 'sub_services');
+    expect($subSheet['rows'][0]['status'] ?? null)->toBe('ready')
+        ->and($subSheet['rows'][0]['key'] ?? null)->toBe('blood-test/cbc');
+
     $result = $orchestrator->commit('services', $path, null, 'services.xlsx', false);
 
     expect($result['created'])->toBeGreaterThanOrEqual(3)

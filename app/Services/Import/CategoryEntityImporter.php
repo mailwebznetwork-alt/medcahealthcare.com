@@ -8,6 +8,7 @@ use App\Models\ServiceCategoryFaq;
 use App\Services\Governance\CategoryCreationGuard;
 use App\Services\Governance\MasterDataAudit;
 use App\Services\Governance\MasterDataProtection;
+use Illuminate\Support\Str;
 
 final class CategoryEntityImporter extends AbstractSpreadsheetImporter
 {
@@ -70,10 +71,17 @@ final class CategoryEntityImporter extends AbstractSpreadsheetImporter
             return ['action' => 'skipped', 'error' => __('Import blocked by master data protection.')];
         }
 
-        $existing = ServiceCategory::query()->where('code', $code)->first();
+        $slug = trim((string) ($row['slug'] ?? ''));
+        if ($slug === '') {
+            $slug = Str::slug($name);
+        }
+
+        $guard = app(CategoryCreationGuard::class);
+        $restored = $guard->resolveForExplicitRecreate($code, 'import', $slug);
+        $existing = ServiceCategory::query()->where('code', $code)->first() ?? $restored;
         $previous = $existing?->toArray();
 
-        if ($existing === null && ! app(CategoryCreationGuard::class)->canCreateCategory($code, 'import')) {
+        if ($existing === null && ! $guard->canCreateCategory($code, 'import')) {
             return ['action' => 'skipped', 'error' => __('Category permanently deleted; import skipped.')];
         }
 

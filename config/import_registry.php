@@ -119,6 +119,7 @@ return [
     'workflow' => [
         'preview_row_limit' => 25,
         'batch_size' => 100,
+        'commit_time_limit' => (int) env('IMPORT_COMMIT_TIME_LIMIT', 600),
         'requires_approval' => true,
         'rollback_enabled' => true,
         'auto_map_service_pincodes' => env('IMPORT_AUTO_MAP_SERVICE_PINCODES', true),
@@ -170,6 +171,47 @@ return [
         'mappings' => [
             'service_code', 'pincode', 'priority', 'is_visible', 'is_featured', 'coverage_notes',
             'category_filter_codes', 'effective_from', 'effective_until',
+        ],
+    ],
+
+    'template_sample_rows' => [
+        'categories' => [
+            [
+                'code' => 'physiotherapy',
+                'name' => 'Physiotherapy at Home',
+                'is_active' => 'TRUE',
+                'visibility' => 'public',
+            ],
+        ],
+        'services' => [
+            [
+                'primary_category_code' => 'physiotherapy',
+                'category_codes' => 'physiotherapy',
+                'service_code' => 'SRV-PHYSIO-01',
+                'title' => 'Physiotherapy at Home',
+                'short_summary' => 'Expert physiotherapy in Bangalore (Arekere belt).',
+                'is_active' => 'TRUE',
+                'publish_status' => 'published',
+                'visibility' => 'public',
+            ],
+        ],
+        'sub_services' => [
+            [
+                'parent_service_code' => 'SRV-PHYSIO-01',
+                'sub_service_code' => 'SUB-PHYSIO-NECK',
+                'title' => 'Neck Pain Physiotherapy',
+                'is_active' => 'TRUE',
+                'publish_status' => 'published',
+                'visibility' => 'public',
+            ],
+            [
+                'parent_service_code' => 'SRV-PHYSIO-01',
+                'sub_service_code' => 'SUB-PHYSIO-BACK',
+                'title' => 'Back Pain Physiotherapy',
+                'is_active' => 'TRUE',
+                'publish_status' => 'published',
+                'visibility' => 'public',
+            ],
         ],
     ],
 ];

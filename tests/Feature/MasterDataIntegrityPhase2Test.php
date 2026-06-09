@@ -32,7 +32,7 @@ function phase2User(): User
     ]);
 }
 
-it('records service tombstone and blocks import recreation', function () {
+it('records service tombstone and allows explicit import recreation', function () {
     $user = phase2User();
     $service = Service::factory()->create(['service_code' => 'test-svc-del', 'title' => 'Test']);
 
@@ -47,8 +47,9 @@ it('records service tombstone and blocks import recreation', function () {
         'rows' => [['test-svc-del', 'Resurrected']],
     ]);
 
-    expect($result['skipped'] ?? 0)->toBeGreaterThan(0)
-        ->and(Service::query()->where('service_code', 'test-svc-del')->exists())->toBeFalse();
+    expect($result['created'] ?? 0)->toBe(1)
+        ->and(Service::query()->where('service_code', 'test-svc-del')->exists())->toBeTrue()
+        ->and(AdminDeletionTombstone::exists('service', 'test-svc-del'))->toBeFalse();
 });
 
 it('blocks seeder from recreating tombstoned service', function () {
@@ -61,7 +62,7 @@ it('blocks seeder from recreating tombstoned service', function () {
     expect(app(ServiceCreationGuard::class)->canCreateService('doctor-home-visit', 'seeder'))->toBeFalse();
 });
 
-it('records category tombstone and blocks import recreation', function () {
+it('records category tombstone and allows explicit import recreation', function () {
     $user = phase2User();
     $category = ServiceCategory::factory()->create(['code' => 'test-cat-del', 'name' => 'Test Cat']);
 
@@ -76,7 +77,30 @@ it('records category tombstone and blocks import recreation', function () {
         'rows' => [['test-cat-del', 'Resurrected Cat']],
     ]);
 
-    expect($result['skipped'] ?? 0)->toBeGreaterThan(0);
+    expect($result['created'] + $result['updated'])->toBeGreaterThan(0)
+        ->and(ServiceCategory::query()->where('code', 'test-cat-del')->exists())->toBeTrue()
+        ->and(AdminDeletionTombstone::exists('category', 'test-cat-del'))->toBeFalse();
+});
+
+it('restores soft-deleted category by slug on explicit import when code differs', function () {
+    $user = phase2User();
+    $category = ServiceCategory::factory()->create([
+        'code' => 'medical-lab-services',
+        'name' => 'Medical Lab Services',
+        'slug' => 'medical-lab-services',
+    ]);
+
+    $this->actingAs($user);
+    app(ServiceCategoryService::class)->delete($category);
+
+    $result = app(CategoryEntityImporter::class)->importParsed([
+        'headers' => ['code', 'name'],
+        'rows' => [['cat-lab', 'Medical Lab Services']],
+    ]);
+
+    expect($result['created'] + $result['updated'])->toBeGreaterThan(0)
+        ->and(ServiceCategory::query()->where('code', 'cat-lab')->exists())->toBeTrue()
+        ->and(AdminDeletionTombstone::exists('category', 'medical-lab-services'))->toBeFalse();
 });
 
 it('blocks category seeder from recreating tombstoned category', function () {
@@ -91,7 +115,7 @@ it('blocks category seeder from recreating tombstoned category', function () {
     expect(ServiceCategory::query()->where('code', 'home-care')->exists())->toBeFalse();
 });
 
-it('records sub service tombstone and blocks import recreation', function () {
+it('records sub service tombstone and allows explicit import recreation', function () {
     $user = phase2User();
     $service = Service::factory()->create(['service_code' => 'parent-svc']);
     $sub = SubService::query()->create([
@@ -116,7 +140,9 @@ it('records sub service tombstone and blocks import recreation', function () {
         'rows' => [['parent-svc', 'sub-del-test', 'Resurrected Sub']],
     ]);
 
-    expect($result['skipped'] ?? 0)->toBeGreaterThan(0);
+    expect($result['created'] ?? 0)->toBe(1)
+        ->and(SubService::query()->where('sub_service_code', 'sub-del-test')->exists())->toBeTrue()
+        ->and(AdminDeletionTombstone::exists('sub_service', $key))->toBeFalse();
 });
 
 it('blocks matrix sync from reattaching admin removed mappings', function () {

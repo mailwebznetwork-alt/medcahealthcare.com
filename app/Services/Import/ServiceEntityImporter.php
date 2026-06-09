@@ -89,10 +89,12 @@ final class ServiceEntityImporter extends AbstractSpreadsheetImporter
             return ['action' => 'skipped', 'error' => __('Import blocked by master data protection.')];
         }
 
+        $guard = app(ServiceCreationGuard::class);
+        $guard->resolveForExplicitRecreate($code, 'import');
         $existing = Service::query()->where('service_code', $code)->first();
         $previous = $existing?->toArray();
 
-        if ($existing === null && ! app(ServiceCreationGuard::class)->canCreateService($code, 'import')) {
+        if ($existing === null && ! $guard->canCreateService($code, 'import')) {
             return ['action' => 'skipped', 'error' => __('Service permanently deleted; import skipped.')];
         }
 

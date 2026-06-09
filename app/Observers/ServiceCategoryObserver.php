@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\ServiceCategory;
 use App\Services\Governance\AdminDeletionGuard;
+use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Governance\UniversalPageRegistry;
 use App\Services\Operations\CategoryMasterOrchestrator;
@@ -19,6 +20,10 @@ class ServiceCategoryObserver
 
     public function saved(ServiceCategory $category): void
     {
+        if (app(ImportSideEffectsGate::class)->suppressed()) {
+            return;
+        }
+
         if ($category->trashed() || $this->deletionGuard->isCategoryPermanentlyDeleted($category->code)) {
             return;
         }

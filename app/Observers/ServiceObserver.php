@@ -9,6 +9,7 @@ use App\Services\Governance\AdminDeletionGuard;
 use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Growth\AiPulseService;
 use App\Services\Growth\ContentSeoAutoFillService;
+use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Operations\InternalLinkRefreshDispatcher;
 use Illuminate\Support\Facades\Schema;
 
@@ -24,6 +25,10 @@ class ServiceObserver
 
     public function saved(Service $service): void
     {
+        if (app(ImportSideEffectsGate::class)->suppressed()) {
+            return;
+        }
+
         if ($this->deletionGuard->isServicePermanentlyDeleted($service->service_code)) {
             return;
         }

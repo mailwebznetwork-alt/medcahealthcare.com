@@ -15,6 +15,7 @@ final class WorkbookImportOrchestrator
         private readonly ImportRegistry $registry,
         private readonly ImportPipeline $pipeline,
         private readonly ServiceImportDefaults $serviceDefaults,
+        private readonly WorkbookImportContext $workbookContext,
     ) {}
 
     public function detectWorkbookKey(?string $filename): ?string
@@ -63,6 +64,7 @@ final class WorkbookImportOrchestrator
         }
 
         $this->serviceDefaults->clear();
+        $this->workbookContext->clear();
         $sheets = [];
         $errors = [];
         $totalRows = 0;
@@ -109,6 +111,9 @@ final class WorkbookImportOrchestrator
 
             $entityKey = (string) ($sheetMeta['entity'] ?? '');
             $parsed = $this->reader->read($source, $resolvedName);
+            if ($entityKey === 'services') {
+                $this->workbookContext->absorbServiceCodesFromParsed($parsed, $this->reader);
+            }
             $importer = $this->resolveImporter($entityKey, $workbookKey);
             $sheetPreview = $importer->previewParsed($parsed, $limit);
 
@@ -213,6 +218,7 @@ final class WorkbookImportOrchestrator
 
         $sheetNames = $this->reader->sheetNames($source);
         $this->serviceDefaults->clear();
+        $this->workbookContext->clear();
 
         $created = 0;
         $updated = 0;
@@ -320,6 +326,7 @@ final class WorkbookImportOrchestrator
             'errors' => $errors,
             'batch_ids' => $batchIds,
             'post_sync' => $postSync,
+            'touched_entities' => array_values(array_unique($touchedEntities)),
             'sheets' => $sheetResults,
         ];
     }

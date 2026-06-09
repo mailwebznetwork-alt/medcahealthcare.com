@@ -5,8 +5,10 @@ namespace App\Services\Operations;
 use App\Models\ServiceCategory;
 use App\Services\ActivityLogService;
 use App\Services\Governance\AdminDeletionGuard;
+use App\Services\Governance\CategoryCreationGuard;
 use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Governance\MasterDataAudit;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -25,6 +27,19 @@ class ServiceCategoryService
     public function create(array $data): ServiceCategory
     {
         return DB::transaction(function () use ($data): ServiceCategory {
+            $code = ServiceCategory::normalizeCode((string) ($data['code'] ?? ''));
+            $slug = filled($data['slug'] ?? null)
+                ? Str::slug((string) $data['slug'])
+                : Str::slug((string) ($data['name'] ?? $code));
+
+            $guard = app(CategoryCreationGuard::class);
+            $restored = $guard->resolveForExplicitRecreate($code, 'ui', $slug);
+            if ($restored !== null) {
+                $restored->update($this->payloadFromInput($data));
+
+                return $restored->fresh();
+            }
+
             $category = ServiceCategory::query()->create($this->payloadFromInput($data));
 
             $this->activityLog->log('service_category.created', 'operations', $category->name.' ('.$category->code.')');

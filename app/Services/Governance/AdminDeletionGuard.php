@@ -138,4 +138,19 @@ class AdminDeletionGuard
     {
         AdminDeletionTombstone::forget('pin_code', $pincode);
     }
+
+    public function clearServiceTombstone(string $serviceCode): void
+    {
+        AdminDeletionTombstone::forget('service', $serviceCode);
+    }
+
+    public function clearCategoryTombstone(string $code): void
+    {
+        AdminDeletionTombstone::forget('category', $code);
+    }
+
+    public function clearSubServiceTombstone(string $naturalKey): void
+    {
+        AdminDeletionTombstone::forget('sub_service', $naturalKey);
+    }
 }

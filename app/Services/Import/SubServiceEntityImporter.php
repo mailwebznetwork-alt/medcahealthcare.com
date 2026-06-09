@@ -46,6 +46,14 @@ final class SubServiceEntityImporter extends AbstractSpreadsheetImporter
 
         $parent = Service::query()->where('service_code', $parentCode)->first();
         if ($parent === null) {
+            if (app(WorkbookImportContext::class)->hasPendingServiceCode($parentCode)) {
+                return [
+                    'status' => 'ready',
+                    'detail' => __('Parent service will be created from the Services sheet in this workbook.'),
+                    'key' => "{$parentCode}/{$subCode}",
+                ];
+            }
+
             return ['status' => 'invalid', 'detail' => __('Parent service not found.'), 'key' => null];
         }
 
@@ -86,12 +94,15 @@ final class SubServiceEntityImporter extends AbstractSpreadsheetImporter
             return ['action' => 'skipped', 'error' => __('Import blocked by master data protection.')];
         }
 
+        $guard = app(SubServiceCreationGuard::class);
+        $guard->resolveForExplicitRecreate($parentCode, $subCode, 'import');
+
         $existing = SubService::query()
             ->where('service_id', $parent->id)
             ->where('sub_service_code', $subCode)
             ->first();
 
-        if ($existing === null && ! app(SubServiceCreationGuard::class)->canCreateSubService($parentCode, $subCode, 'import')) {
+        if ($existing === null && ! $guard->canCreateSubService($parentCode, $subCode, 'import')) {
             return ['action' => 'skipped', 'error' => __('Sub-service permanently deleted; import skipped.')];
         }
 

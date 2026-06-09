@@ -142,6 +142,9 @@ class BulkImportController extends Controller
         ImportPipeline $pipeline,
         WorkbookImportOrchestrator $workbooks,
     ): RedirectResponse {
+        @set_time_limit((int) config('import_registry.workflow.commit_time_limit', 600));
+        @ini_set('max_execution_time', (string) config('import_registry.workflow.commit_time_limit', 600));
+
         $staging = session(self::STAGING_KEY);
         if (! is_array($staging) || empty($staging['path'])) {
             return redirect()->to($this->returnUrl())->withErrors(['file' => __('Upload and preview a file before confirming.')]);
@@ -164,8 +167,19 @@ class BulkImportController extends Controller
                 $staging['workbook'],
                 $absolute,
                 $request->user()?->id,
-                $staging['original_filename'] ?? null
+                $staging['original_filename'] ?? null,
+                false,
             );
+
+            $touchedEntities = $result['touched_entities'] ?? [];
+            if ($touchedEntities !== []) {
+                app()->terminating(function () use ($pipeline, $touchedEntities): void {
+                    @set_time_limit((int) config('import_registry.workflow.commit_time_limit', 600));
+                    @ini_set('max_execution_time', (string) config('import_registry.workflow.commit_time_limit', 600));
+                    $pipeline->postSyncForEntities($touchedEntities);
+                });
+                $result['post_sync_pending'] = true;
+            }
         } else {
             if (empty($staging['entity'])) {
                 return redirect()->to($this->returnUrl())->withErrors(['file' => __('Missing import entity.')]);
@@ -175,8 +189,19 @@ class BulkImportController extends Controller
                 $staging['entity'],
                 $absolute,
                 $request->user()?->id,
-                $staging['original_filename'] ?? null
+                $staging['original_filename'] ?? null,
+                false,
             );
+
+            $entity = (string) $staging['entity'];
+            if (($result['created'] ?? 0) > 0 || ($result['updated'] ?? 0) > 0) {
+                app()->terminating(function () use ($pipeline, $entity): void {
+                    @set_time_limit((int) config('import_registry.workflow.commit_time_limit', 600));
+                    @ini_set('max_execution_time', (string) config('import_registry.workflow.commit_time_limit', 600));
+                    $pipeline->postSyncForEntities([$entity]);
+                });
+                $result['post_sync_pending'] = true;
+            }
         }
 
         Storage::disk('local')->delete($staging['path']);

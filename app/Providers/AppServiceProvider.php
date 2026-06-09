@@ -94,6 +94,8 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(\App\Services\Import\ImportBatchRecorder::class);
         $this->app->singleton(\App\Services\Import\ServiceImportDefaults::class);
+        $this->app->singleton(\App\Services\Import\WorkbookImportContext::class);
+        $this->app->singleton(\App\Services\Import\ImportSideEffectsGate::class);
 
         $this->app->singleton(ImportRegistry::class, function (): ImportRegistry {
             $registry = new ImportRegistry;

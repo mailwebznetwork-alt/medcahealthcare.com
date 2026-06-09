@@ -10,7 +10,7 @@ class ExportImportTemplatesCommand extends Command
 {
     protected $signature = 'medca:export-import-templates {--path=storage/imports/templates}';
 
-    protected $description = 'Generate blank services.xlsx and pincodes.xlsx master import templates';
+    protected $description = 'Generate services.xlsx and pincodes.xlsx master import templates';
 
     public function handle(): int
     {
@@ -22,18 +22,40 @@ class ExportImportTemplatesCommand extends Command
         }
 
         $columns = config('import_registry.template_columns', []);
+        $samples = config('import_registry.template_sample_rows', []);
 
         $this->writeWorkbook($dir.'/services.xlsx', [
-            'Categories' => $columns['categories'] ?? [],
-            'Services' => $columns['services'] ?? [],
-            'SubServices' => $columns['sub_services'] ?? [],
-            'ServiceDefaults' => $columns['service_defaults'] ?? [],
+            'Categories' => [
+                'headers' => $columns['categories'] ?? [],
+                'samples' => $samples['categories'] ?? [],
+            ],
+            'Services' => [
+                'headers' => $columns['services'] ?? [],
+                'samples' => $samples['services'] ?? [],
+            ],
+            'SubServices' => [
+                'headers' => $columns['sub_services'] ?? [],
+                'samples' => $samples['sub_services'] ?? [],
+            ],
+            'ServiceDefaults' => [
+                'headers' => $columns['service_defaults'] ?? [],
+                'samples' => [],
+            ],
         ]);
 
         $this->writeWorkbook($dir.'/pincodes.xlsx', [
-            'Pincodes' => $columns['pincodes'] ?? [],
-            'GeoEnrichment' => $columns['geo_enrichment'] ?? [],
-            'Mappings' => $columns['mappings'] ?? [],
+            'Pincodes' => [
+                'headers' => $columns['pincodes'] ?? [],
+                'samples' => [],
+            ],
+            'GeoEnrichment' => [
+                'headers' => $columns['geo_enrichment'] ?? [],
+                'samples' => [],
+            ],
+            'Mappings' => [
+                'headers' => $columns['mappings'] ?? [],
+                'samples' => [],
+            ],
         ]);
 
         $this->info("Templates written to {$dir}");
@@ -42,18 +64,33 @@ class ExportImportTemplatesCommand extends Command
     }
 
     /**
-     * @param  array<string, list<string>>  $sheets
+     * @param  array<string, array{headers: list<string>, samples: list<array<string, string>>}>  $sheets
      */
     private function writeWorkbook(string $path, array $sheets): void
     {
         $spreadsheet = new Spreadsheet;
         $spreadsheet->removeSheetByIndex(0);
 
-        foreach ($sheets as $name => $headers) {
+        foreach ($sheets as $name => $sheetConfig) {
+            $headers = $sheetConfig['headers'];
+            $samples = $sheetConfig['samples'];
+
             $sheet = $spreadsheet->createSheet();
             $sheet->setTitle($name);
+
             foreach ($headers as $col => $header) {
                 $sheet->setCellValue([$col + 1, 1], $header);
+            }
+
+            $headerIndex = array_flip($headers);
+            foreach ($samples as $rowOffset => $sampleRow) {
+                $rowNumber = $rowOffset + 2;
+                foreach ($sampleRow as $column => $value) {
+                    if (! isset($headerIndex[$column])) {
+                        continue;
+                    }
+                    $sheet->setCellValue([$headerIndex[$column] + 1, $rowNumber], $value);
+                }
             }
         }
 

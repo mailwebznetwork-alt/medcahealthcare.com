@@ -11,6 +11,7 @@ class ImportPipeline
         private readonly ImportRegistry $registry,
         private readonly ImportBatchRecorder $recorder,
         private readonly ImportPostSyncService $postSync,
+        private readonly ImportSideEffectsGate $sideEffectsGate,
     ) {}
 
     /**
@@ -40,16 +41,18 @@ class ImportPipeline
     {
         $this->recorder->start($entityKey, $userId, $filename);
 
-        $importer = $this->registry->resolve($entityKey);
-        if ($entityKey === 'pincodes' && ($options['upsert_pincodes'] ?? false) && $importer instanceof PinCodeSpreadsheetImporter) {
-            $importer->withUpsert(true);
-        }
+        $result = $this->sideEffectsGate->run(function () use ($entityKey, $source, $options): array {
+            $importer = $this->registry->resolve($entityKey);
+            if ($entityKey === 'pincodes' && ($options['upsert_pincodes'] ?? false) && $importer instanceof PinCodeSpreadsheetImporter) {
+                $importer->withUpsert(true);
+            }
 
-        if (is_array($source) && isset($source['headers']) && $importer instanceof AbstractSpreadsheetImporter) {
-            $result = $importer->importParsed($source);
-        } else {
-            $result = $importer->import($source);
-        }
+            if (is_array($source) && isset($source['headers']) && $importer instanceof AbstractSpreadsheetImporter) {
+                return $importer->importParsed($source);
+            }
+
+            return $importer->import($source);
+        });
 
         $batch = $this->recorder->finish($result);
 
@@ -70,16 +73,6 @@ class ImportPipeline
      */
     public function postSyncForEntities(array $entityKeys): array
     {
-        $order = config('import_registry.import_order', []);
-        $commands = [];
-
-        foreach ($order as $entityKey) {
-            if (! in_array($entityKey, $entityKeys, true)) {
-                continue;
-            }
-            $commands = array_merge($commands, $this->postSync->syncForEntity($entityKey));
-        }
-
-        return array_values(array_unique($commands));
+        return $this->postSync->syncForEntities($entityKeys);
     }
 }

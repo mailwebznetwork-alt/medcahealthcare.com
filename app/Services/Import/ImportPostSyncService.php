@@ -21,8 +21,52 @@ class ImportPostSyncService
      */
     public function syncForEntity(string $entityKey): array
     {
-        $ran = [];
+        return $this->syncForEntities([$entityKey]);
+    }
 
+    /**
+     * @param  list<string>  $entityKeys
+     * @return list<string>
+     */
+    public function syncForEntities(array $entityKeys): array
+    {
+        $order = config('import_registry.import_order', []);
+        $commands = [];
+        $autoMap = false;
+
+        foreach ($order as $entityKey) {
+            if (! in_array($entityKey, $entityKeys, true)) {
+                continue;
+            }
+
+            $commands = array_merge($commands, $this->commandsForEntity($entityKey));
+            if ($this->shouldAutoMap($entityKey)) {
+                $autoMap = true;
+            }
+        }
+
+        $ran = [];
+        foreach (array_values(array_unique($commands)) as $command) {
+            Artisan::call($command);
+            $ran[] = $command;
+        }
+
+        if ($autoMap && ! $this->autoMapDispatched) {
+            $this->autoMapDispatched = true;
+            $result = $this->autoMapper->map();
+            if ($result['mapped']) {
+                $ran[] = 'service_pincode_auto_map';
+            }
+        }
+
+        return $ran;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function commandsForEntity(string $entityKey): array
+    {
         $map = [
             'categories' => ['medca:sync-category-pages', 'medca:sync-page-registry'],
             'services' => ['services:sync-master', 'medca:sync-page-registry'],
@@ -32,20 +76,7 @@ class ImportPostSyncService
             'pincodes' => ['medca:reconcile-service-location-matrix'],
         ];
 
-        foreach ($map[$entityKey] ?? [] as $command) {
-            Artisan::call($command);
-            $ran[] = $command;
-        }
-
-        if ($this->shouldAutoMap($entityKey) && ! $this->autoMapDispatched) {
-            $this->autoMapDispatched = true;
-            $result = $this->autoMapper->map();
-            if ($result['mapped']) {
-                $ran[] = 'service_pincode_auto_map';
-            }
-        }
-
-        return $ran;
+        return $map[$entityKey] ?? [];
     }
 
     private function shouldAutoMap(string $entityKey): bool
