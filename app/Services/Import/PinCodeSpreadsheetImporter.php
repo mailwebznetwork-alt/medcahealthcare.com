@@ -47,11 +47,20 @@ class PinCodeSpreadsheetImporter extends AbstractSpreadsheetImporter
             return ['status' => 'invalid', 'detail' => __('Invalid pincode.'), 'key' => null];
         }
 
-        $duplicate = PinCode::query()->where('pincode', $pin)->exists();
+        $active = PinCode::query()->where('pincode', $pin)->exists();
+        $trashed = PinCode::withTrashed()->where('pincode', $pin)->whereNotNull('deleted_at')->exists();
+
+        if ($trashed && ! $active) {
+            return [
+                'status' => 'update',
+                'detail' => __('Will restore previously deleted pincode.'),
+                'key' => $pin,
+            ];
+        }
 
         return [
-            'status' => $duplicate ? ($this->upsertExisting ? 'update' : 'duplicate') : 'ready',
-            'detail' => $duplicate
+            'status' => $active ? ($this->upsertExisting ? 'update' : 'duplicate') : 'ready',
+            'detail' => $active
                 ? ($this->upsertExisting ? __('Will update existing pincode.') : __('Already in directory (will be skipped).'))
                 : null,
             'key' => $pin,
@@ -75,13 +84,14 @@ class PinCodeSpreadsheetImporter extends AbstractSpreadsheetImporter
         }
 
         $guard = app(PinCodeCreationGuard::class);
-        $existing = PinCode::query()->where('pincode', $pin)->first();
+        $restored = $guard->resolveForExplicitRecreate($pin, 'import');
+        $existing = PinCode::query()->where('pincode', $pin)->first() ?? $restored;
 
         if ($existing === null && ! $guard->canCreatePincode($pin, 'import')) {
-            return ['action' => 'skipped', 'error' => __('Pincode permanently deleted; import skipped.')];
+            return ['action' => 'skipped', 'error' => __('Pincode cannot be imported.')];
         }
 
-        if ($existing !== null && ! $this->upsertExisting) {
+        if ($existing !== null && ! $this->upsertExisting && $restored === null) {
             return ['action' => 'skipped', 'error' => null];
         }
 

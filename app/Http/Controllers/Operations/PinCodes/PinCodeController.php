@@ -78,7 +78,14 @@ class PinCodeController extends Controller
             return redirect()->back()->withInput()->with('error', __('This pincode cannot be created.'));
         }
 
-        $pinCode = PinCode::query()->create(collect($data)->except(['landmarks', 'hospitals', 'location_faqs', 'nearby_areas'])->all());
+        $payload = collect($data)->except(['landmarks', 'hospitals', 'location_faqs', 'nearby_areas'])->all();
+        $restored = $guard->resolveForExplicitRecreate($pincode, 'ui');
+        if ($restored !== null) {
+            $restored->update($payload);
+            $pinCode = $restored->fresh();
+        } else {
+            $pinCode = PinCode::query()->create($payload);
+        }
 
         app(PinCodeGeoDataSyncService::class)->sync($pinCode, $data);
         $this->persistLegacyCustomFields($request, LegacyManagedModuleRegistry::PIN_CODES, $pinCode);

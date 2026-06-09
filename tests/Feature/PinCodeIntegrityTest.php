@@ -65,7 +65,7 @@ it('blocks growth center from recreating tombstoned pincode', function () {
         ->and(PinCode::query()->where('pincode', '560999')->exists())->toBeFalse();
 });
 
-it('blocks spreadsheet import from recreating tombstoned pincode', function () {
+it('allows spreadsheet import to restore tombstoned pincode', function () {
     $user = pinCodeIntegrityUser();
     $pin = PinCode::factory()->create(['pincode' => '560999', 'area_name' => 'Test', 'city' => 'Bangalore']);
 
@@ -78,11 +78,15 @@ it('blocks spreadsheet import from recreating tombstoned pincode', function () {
         'rows' => [['560999', 'Reimported', 'Bangalore']],
     ]);
 
-    expect($result['skipped'] ?? 0)->toBeGreaterThan(0)
-        ->and(PinCode::query()->where('pincode', '560999')->exists())->toBeFalse();
+    $restored = PinCode::query()->where('pincode', '560999')->first();
+
+    expect($result['updated'] ?? 0)->toBe(1)
+        ->and($restored)->not->toBeNull()
+        ->and($restored->area_name)->toBe('Reimported')
+        ->and(AdminDeletionTombstone::exists('pin_code', '560999'))->toBeFalse();
 });
 
-it('blocks geo enrichment import from recreating tombstoned pincode', function () {
+it('allows geo enrichment import to restore tombstoned pincode', function () {
     $user = pinCodeIntegrityUser();
     $pin = PinCode::factory()->create(['pincode' => '560999', 'city' => 'Bangalore']);
 
@@ -95,8 +99,17 @@ it('blocks geo enrichment import from recreating tombstoned pincode', function (
         'rows' => [['560999', 'Geo Area', 'Bangalore']],
     ]);
 
-    expect($result['skipped'] ?? 0)->toBeGreaterThan(0)
-        ->and(PinCode::query()->where('pincode', '560999')->exists())->toBeFalse();
+    expect($result['updated'] ?? 0)->toBe(1)
+        ->and(PinCode::query()->where('pincode', '560999')->exists())->toBeTrue()
+        ->and(AdminDeletionTombstone::exists('pin_code', '560999'))->toBeFalse();
+});
+
+it('allows explicit ui recreation of tombstoned pincode', function () {
+    AdminDeletionTombstone::record('pin_code', '560999', null, 'ui', 'deleted');
+
+    expect(app(PinCodeCreationGuard::class)->canCreatePincode('560999', 'ui'))->toBeTrue()
+        ->and(app(PinCodeCreationGuard::class)->canCreatePincode('560999', 'import'))->toBeTrue()
+        ->and(app(PinCodeCreationGuard::class)->canCreatePincode('560999', 'seeder'))->toBeFalse();
 });
 
 it('blocks populate command when master data protection is enabled', function () {

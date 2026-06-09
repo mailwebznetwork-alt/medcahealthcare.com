@@ -52,4 +52,12 @@ class AdminDeletionTombstone extends Model
             ->where('natural_key', $naturalKey)
             ->exists();
     }
+
+    public static function forget(string $entityType, string $naturalKey): void
+    {
+        self::query()
+            ->where('entity_type', $entityType)
+            ->where('natural_key', $naturalKey)
+            ->delete();
+    }
 }

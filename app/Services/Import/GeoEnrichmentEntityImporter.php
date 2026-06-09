@@ -64,10 +64,11 @@ final class GeoEnrichmentEntityImporter extends AbstractSpreadsheetImporter
 
         $guard = app(PinCodeCreationGuard::class);
         $normalized = $guard->normalizePincode($pincode) ?? $pincode;
-        $existing = PinCode::query()->where('pincode', $normalized)->first();
+        $restored = $guard->resolveForExplicitRecreate($normalized, 'import');
+        $existing = PinCode::query()->where('pincode', $normalized)->first() ?? $restored;
 
         if ($existing === null && ! $guard->canCreatePincode($normalized, 'import')) {
-            return ['action' => 'skipped', 'error' => __('Pincode permanently deleted; geo import skipped.')];
+            return ['action' => 'skipped', 'error' => __('Pincode cannot be imported.')];
         }
         $previous = $existing?->toArray();
 

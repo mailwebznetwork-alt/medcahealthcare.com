@@ -133,4 +133,9 @@ class AdminDeletionGuard
             reason: $reason,
         );
     }
+
+    public function clearPinCodeTombstone(string $pincode): void
+    {
+        AdminDeletionTombstone::forget('pin_code', $pincode);
+    }
 }
