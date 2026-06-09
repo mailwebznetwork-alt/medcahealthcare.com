@@ -2,10 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\PinCode;
-use App\Models\Service;
-use App\Services\Operations\ServiceMasterOrchestrator;
-use App\Services\Seo\LocalityContextResolver;
+use App\Services\Operations\ServicePincodeAutoMapper;
 use Illuminate\Console\Command;
 
 class ExpandServiceLocationPincodesCommand extends Command
@@ -16,60 +13,39 @@ class ExpandServiceLocationPincodesCommand extends Command
 
     protected $description = 'Map eligible pincodes to published services and provision location pages';
 
-    public function handle(ServiceMasterOrchestrator $orchestrator): int
+    public function handle(ServicePincodeAutoMapper $mapper): int
     {
-        $city = (string) (config('services_master.pincode_expansion.city_filter') ?? app(LocalityContextResolver::class)->primaryCity() ?? '');
-        $requireServiceable = (bool) config('services_master.pincode_expansion.require_serviceable', true);
-        $requireActive = (bool) config('services_master.pincode_expansion.require_active', true);
+        $serviceCode = $this->option('service');
 
-        $pinQuery = PinCode::query();
-        if ($city !== '') {
-            $pinQuery->where('city', 'like', '%'.$city.'%');
-        }
-        if ($requireActive) {
-            $pinQuery->where('is_active', true);
-        }
-        if ($requireServiceable) {
-            $pinQuery->where('is_serviceable', true);
+        if ($this->option('dry-run')) {
+            $estimate = $mapper->estimate($serviceCode);
+            if ($estimate['pincodes_eligible'] === 0) {
+                $this->warn($estimate['message']);
+
+                return self::FAILURE;
+            }
+            if ($estimate['services_eligible'] === 0) {
+                $this->warn($estimate['message']);
+
+                return self::FAILURE;
+            }
+
+            foreach ($estimate['service_codes'] as $code) {
+                $this->line("DRY RUN: {$code} ← {$estimate['pincodes_eligible']} pincodes");
+            }
+
+            return self::SUCCESS;
         }
 
-        $pinIds = $pinQuery->pluck('id')->all();
-        if ($pinIds === []) {
-            $this->warn('No eligible pincodes found for expansion.');
+        $result = $mapper->map($serviceCode);
+
+        if ($result['pincodes_eligible'] === 0 || ! $result['mapped']) {
+            $this->warn($result['message']);
 
             return self::FAILURE;
         }
 
-        $serviceQuery = Service::query()->publicListing();
-        if ($code = $this->option('service')) {
-            $serviceQuery->where('service_code', $code);
-        }
-
-        $services = $serviceQuery->get();
-        if ($services->isEmpty()) {
-            $this->warn('No published public services found.');
-
-            return self::FAILURE;
-        }
-
-        $this->info(sprintf('Expanding %d service(s) across %d pincode(s).', $services->count(), count($pinIds)));
-
-        foreach ($services as $service) {
-            if ($this->option('dry-run')) {
-                $this->line("DRY RUN: {$service->service_code} ← ".count($pinIds).' pincodes');
-
-                continue;
-            }
-
-            $attachable = app(\App\Services\Governance\MappingProtectionService::class)
-                ->filterAttachablePinIds($service, $pinIds, 'sync');
-            if ($attachable !== []) {
-                $service->pincodes()->syncWithoutDetaching($attachable);
-            }
-            $orchestrator->sync($service->fresh(['pincodes', 'seo', 'faqs', 'schema']));
-            $this->line("Synced {$service->service_code}");
-        }
-
+        $this->info($result['message']);
         $this->info('Pincode expansion complete.');
 
         return self::SUCCESS;

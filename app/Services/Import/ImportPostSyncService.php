@@ -2,6 +2,7 @@
 
 namespace App\Services\Import;
 
+use App\Services\Operations\ServicePincodeAutoMapper;
 use Illuminate\Support\Facades\Artisan;
 
 /**
@@ -9,6 +10,12 @@ use Illuminate\Support\Facades\Artisan;
  */
 class ImportPostSyncService
 {
+    private bool $autoMapDispatched = false;
+
+    public function __construct(
+        private readonly ServicePincodeAutoMapper $autoMapper,
+    ) {}
+
     /**
      * @return list<string>
      */
@@ -30,6 +37,23 @@ class ImportPostSyncService
             $ran[] = $command;
         }
 
+        if ($this->shouldAutoMap($entityKey) && ! $this->autoMapDispatched) {
+            $this->autoMapDispatched = true;
+            $result = $this->autoMapper->map();
+            if ($result['mapped']) {
+                $ran[] = 'service_pincode_auto_map';
+            }
+        }
+
         return $ran;
+    }
+
+    private function shouldAutoMap(string $entityKey): bool
+    {
+        if (! config('import_registry.workflow.auto_map_service_pincodes', true)) {
+            return false;
+        }
+
+        return in_array($entityKey, ['pincodes', 'geo', 'services'], true);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\PublishStatus;
+use App\Enums\ServiceVisibility;
 use App\Models\ImportBatch;
 use App\Models\PinCode;
 use App\Models\Service;
@@ -66,14 +68,19 @@ it('previews and imports services master workbook', function () {
         ->and(ImportBatch::query()->count())->toBeGreaterThanOrEqual(3);
 });
 
-it('imports pincodes master workbook with geo and mappings', function () {
-    Service::factory()->create(['service_code' => 'nursing']);
+it('imports pincodes master workbook and auto maps services after post sync', function () {
+    Service::factory()->create([
+        'service_code' => 'nursing',
+        'publish_status' => PublishStatus::Published,
+        'visibility' => ServiceVisibility::Public,
+        'is_active' => true,
+    ]);
 
     $path = storage_path('framework/testing/pincodes.xlsx');
     writeTestWorkbook($path, [
         'Pincodes' => [
-            ['pincode', 'area_name', 'city'],
-            ['560076', 'Arekere', 'Bangalore'],
+            ['pincode', 'area_name', 'city', 'is_serviceable', 'is_active'],
+            ['560076', 'Arekere', 'Bangalore', 'TRUE', 'TRUE'],
         ],
         'GeoEnrichment' => [
             ['pincode', 'coverage_text', 'landmark_names'],
@@ -86,13 +93,14 @@ it('imports pincodes master workbook with geo and mappings', function () {
     ]);
 
     $orchestrator = app(WorkbookImportOrchestrator::class);
-    $result = $orchestrator->commit('pincodes', $path, null, 'pincodes.xlsx', false);
+    $result = $orchestrator->commit('pincodes', $path, null, 'pincodes.xlsx', true);
 
     $pin = PinCode::query()->where('pincode', '560076')->first();
 
     expect($result['failed'])->toBe(0)
         ->and($pin)->not->toBeNull()
         ->and($pin->landmarks()->count())->toBeGreaterThan(0)
+        ->and($result['post_sync'])->toContain('service_pincode_auto_map')
         ->and(Service::query()->where('service_code', 'nursing')->first()->pincodes)->toHaveCount(1);
 });
 

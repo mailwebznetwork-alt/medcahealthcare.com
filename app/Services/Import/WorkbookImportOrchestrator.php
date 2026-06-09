@@ -74,6 +74,12 @@ final class WorkbookImportOrchestrator
                 continue;
             }
 
+            if ($this->skipWorkbookSheet($workbookKey, $sheetKey, $sheetMeta)) {
+                $sheets[] = $this->systemManagedSheetPreview($sheetKey);
+
+                continue;
+            }
+
             $resolvedName = $this->resolveSheetName($sheetNames, $sheetKey, $sheetMeta['aliases'] ?? []);
             if ($resolvedName === null) {
                 if ($sheetMeta['optional'] ?? false) {
@@ -220,6 +226,10 @@ final class WorkbookImportOrchestrator
         foreach ($plan['sheet_order'] as $sheetKey) {
             $sheetMeta = $plan['sheets'][$sheetKey] ?? null;
             if ($sheetMeta === null) {
+                continue;
+            }
+
+            if ($this->skipWorkbookSheet($workbookKey, $sheetKey, $sheetMeta)) {
                 continue;
             }
 
@@ -434,5 +444,48 @@ final class WorkbookImportOrchestrator
         }
 
         return true;
+    }
+
+    /**
+     * @param  array<string, mixed>  $sheetMeta
+     */
+    private function skipWorkbookSheet(string $workbookKey, string $sheetKey, array $sheetMeta): bool
+    {
+        if (! ($sheetMeta['system_managed'] ?? false)) {
+            return false;
+        }
+
+        if ($workbookKey !== 'pincodes') {
+            return false;
+        }
+
+        if (! config('import_registry.workflow.auto_map_service_pincodes', true)) {
+            return false;
+        }
+
+        return (bool) config('import_registry.workbooks.pincodes.auto_map_service_pincodes', true);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function systemManagedSheetPreview(string $sheetKey): array
+    {
+        return [
+            'sheet_key' => $sheetKey,
+            'sheet_name' => __('System auto-map'),
+            'entity' => 'mappings',
+            'valid' => true,
+            'errors' => [],
+            'rows' => [[
+                'line' => '—',
+                'status' => 'system_auto',
+                'key' => __('Eligible pincodes link to published services after import.'),
+                'detail' => null,
+            ]],
+            'total_data_rows' => 0,
+            'missing_columns' => [],
+            'extra_columns' => [],
+        ];
     }
 }

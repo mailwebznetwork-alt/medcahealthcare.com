@@ -94,6 +94,7 @@ return [
         'pincodes' => [
             'label' => 'pincodes.xlsx',
             'filename_hints' => ['pincodes.xlsx', 'pincodes.xls', 'medca-pincodes.xlsx'],
+            'auto_map_service_pincodes' => true,
             'sheet_order' => ['pincodes', 'geoenrichment', 'mappings'],
             'sheets' => [
                 'pincodes' => [
@@ -109,6 +110,7 @@ return [
                     'entity' => 'mappings',
                     'aliases' => ['service_pincodes', 'matrix'],
                     'optional' => true,
+                    'system_managed' => true,
                 ],
             ],
         ],
@@ -119,6 +121,7 @@ return [
         'batch_size' => 100,
         'requires_approval' => true,
         'rollback_enabled' => true,
+        'auto_map_service_pincodes' => env('IMPORT_AUTO_MAP_SERVICE_PINCODES', true),
     ],
 
     'template_columns' => [
