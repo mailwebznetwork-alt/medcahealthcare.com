@@ -7,17 +7,16 @@ use App\Models\PageSeo;
 use App\Models\Service;
 use App\Services\Governance\AdminDeletionGuard;
 use App\Services\Governance\DownstreamArtifactPurger;
-use App\Services\Growth\AiPulseService;
 use App\Services\Growth\ContentSeoAutoFillService;
 use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Operations\InternalLinkRefreshDispatcher;
+use App\Support\PostPublishGrowthSync;
 use Illuminate\Support\Facades\Schema;
 
 class ServiceObserver
 {
     public function __construct(
         private readonly ContentSeoAutoFillService $contentSeoAutoFill,
-        private readonly AiPulseService $aiPulseService,
         private readonly InternalLinkRefreshDispatcher $linkRefreshDispatcher,
         private readonly AdminDeletionGuard $deletionGuard,
         private readonly DownstreamArtifactPurger $purger,
@@ -34,8 +33,7 @@ class ServiceObserver
         }
 
         $this->contentSeoAutoFill->applyAndSyncService($service);
-        $this->contentSeoAutoFill->refreshAggregateSignals();
-        $this->aiPulseService->triggerAuditAfterPublish();
+        PostPublishGrowthSync::defer();
         $this->linkRefreshDispatcher->dispatchForService($service->id);
     }
 
@@ -52,8 +50,7 @@ class ServiceObserver
             PageElement::query()->where('page_slug', $slugPath)->delete();
         }
 
-        $this->contentSeoAutoFill->refreshAggregateSignals();
-        $this->aiPulseService->triggerAuditAfterPublish();
+        PostPublishGrowthSync::defer();
         $this->purger->purgeAfterCatalogEntityChange();
     }
 }

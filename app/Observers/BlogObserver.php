@@ -5,15 +5,14 @@ namespace App\Observers;
 use App\Models\Blog;
 use App\Models\PageElement;
 use App\Models\PageSeo;
-use App\Services\Growth\AiPulseService;
 use App\Services\Growth\ContentSeoAutoFillService;
+use App\Support\PostPublishGrowthSync;
 use Illuminate\Support\Facades\Schema;
 
 class BlogObserver
 {
     public function __construct(
         private readonly ContentSeoAutoFillService $contentSeoAutoFill,
-        private readonly AiPulseService $aiPulseService,
     ) {}
 
     public function saving(Blog $blog): void
@@ -24,8 +23,7 @@ class BlogObserver
     public function saved(Blog $blog): void
     {
         $this->contentSeoAutoFill->syncBlogGrowthArtifacts($blog);
-        $this->contentSeoAutoFill->refreshAggregateSignals();
-        $this->aiPulseService->triggerAuditAfterPublish();
+        PostPublishGrowthSync::defer();
     }
 
     public function deleted(Blog $blog): void
@@ -40,7 +38,6 @@ class BlogObserver
             PageElement::query()->where('page_slug', $slugPath)->delete();
         }
 
-        $this->contentSeoAutoFill->refreshAggregateSignals();
-        $this->aiPulseService->triggerAuditAfterPublish();
+        PostPublishGrowthSync::defer();
     }
 }
