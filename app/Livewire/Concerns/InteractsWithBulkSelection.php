@@ -21,13 +21,31 @@ trait InteractsWithBulkSelection
 
     public function toggleBulkRow(int $id): void
     {
+        if ($this->bulkSelectAllFiltered) {
+            $this->bulkSelectedIds = $this->bulkFilteredIdsQuery()
+                ->whereKeyNot($id)
+                ->pluck('id')
+                ->map(fn ($rowId) => (int) $rowId)
+                ->all();
+            $this->bulkSelectAllFiltered = false;
+
+            return;
+        }
+
         if (in_array($id, $this->bulkSelectedIds, true)) {
             $this->bulkSelectedIds = array_values(array_diff($this->bulkSelectedIds, [$id]));
         } else {
             $this->bulkSelectedIds[] = $id;
         }
+    }
 
-        $this->bulkSelectAllFiltered = false;
+    /**
+     * Select every row in the current list (all pages), respecting active filters.
+     */
+    public function selectAllRows(): void
+    {
+        $this->bulkSelectedIds = [];
+        $this->bulkSelectAllFiltered = true;
     }
 
     /**
@@ -42,10 +60,10 @@ trait InteractsWithBulkSelection
         $this->bulkSelectAllFiltered = false;
     }
 
+    /** @deprecated Use selectAllRows() */
     public function selectAllFilteredRows(): void
     {
-        $this->bulkSelectedIds = $this->bulkFilteredIdsQuery()->pluck('id')->map(fn ($id) => (int) $id)->all();
-        $this->bulkSelectAllFiltered = true;
+        $this->selectAllRows();
     }
 
     public function deselectAllRows(): void
@@ -54,13 +72,26 @@ trait InteractsWithBulkSelection
         $this->bulkSelectAllFiltered = false;
     }
 
+    public function bulkTotalSelectableCount(): int
+    {
+        return $this->bulkFilteredIdsQuery()->count();
+    }
+
     public function bulkSelectedCount(): int
     {
+        if ($this->bulkSelectAllFiltered) {
+            return $this->bulkTotalSelectableCount();
+        }
+
         return count($this->bulkSelectedIds);
     }
 
     public function isBulkRowSelected(int $id): bool
     {
+        if ($this->bulkSelectAllFiltered) {
+            return $this->bulkFilteredIdsQuery()->whereKey($id)->exists();
+        }
+
         return in_array($id, $this->bulkSelectedIds, true);
     }
 

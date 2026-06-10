@@ -4,7 +4,9 @@ use App\Livewire\Operations\JobPortal\ApplicationsIndex;
 use App\Livewire\Operations\JobPortal\VacanciesIndex;
 use App\Livewire\Operations\ServiceCategories\Index as ServiceCategoriesIndex;
 use App\Livewire\Operations\Services\Index as ServicesIndex;
+use App\Livewire\Operations\Services\SubServicesIndex;
 use App\Models\Service;
+use App\Models\SubService;
 use App\Models\ServiceCategory;
 use App\Models\User;
 use App\Models\Vacancy;
@@ -29,7 +31,7 @@ it('renders bulk selection controls on the services list', function () {
     $this->actingAs($user)
         ->get(route('operations.services.index'))
         ->assertOk()
-        ->assertSee(__('Select all visible'), false)
+        ->assertSee(__('Select all'), false)
         ->assertSee(__('Select row'), false);
 
     Livewire::actingAs($user)
@@ -38,6 +40,22 @@ it('renders bulk selection controls on the services list', function () {
         ->assertSee(__('Modify selected'), false)
         ->assertSee(__('Duplicate selected'), false)
         ->assertSee(__('Delete Selected'), false);
+});
+
+it('bulk deletes all services when select all is used', function () {
+    $user = operationsBulkUser();
+    Service::factory()->count(3)->create();
+
+    Livewire::actingAs($user)
+        ->test(ServicesIndex::class)
+        ->call('selectAllRows')
+        ->assertSet('bulkSelectAllFiltered', true)
+        ->call('openBulkAction', 'delete')
+        ->set('bulkDeleteConfirmText', 'DELETE')
+        ->call('confirmBulkAction')
+        ->assertHasNoErrors();
+
+    expect(Service::query()->count())->toBe(0);
 });
 
 it('bulk deletes selected services from the list', function () {
@@ -72,6 +90,31 @@ it('bulk duplicates selected services from the list', function () {
     expect(Service::query()->count())->toBe($before + 1);
 });
 
+it('bulk deletes all sub-services when select all is used', function () {
+    $user = operationsBulkUser();
+    $service = Service::factory()->create();
+    foreach (['a', 'b'] as $code) {
+        SubService::query()->create([
+            'service_id' => $service->id,
+            'sub_service_code' => $code,
+            'title' => 'Sub '.$code,
+            'is_active' => true,
+            'publish_status' => 'published',
+            'visibility' => 'public',
+        ]);
+    }
+
+    Livewire::actingAs($user)
+        ->test(SubServicesIndex::class, ['service' => $service])
+        ->call('selectAllRows')
+        ->call('openBulkAction', 'delete')
+        ->set('bulkDeleteConfirmText', 'DELETE')
+        ->call('confirmBulkAction')
+        ->assertHasNoErrors();
+
+    expect(SubService::query()->where('service_id', $service->id)->count())->toBe(0);
+});
+
 it('redirects to edit when modifying a single selected service', function () {
     $user = operationsBulkUser();
     $service = Service::factory()->create();
@@ -90,7 +133,7 @@ it('renders bulk selection controls on service categories list', function () {
     $this->actingAs($user)
         ->get(route('operations.service-categories.index'))
         ->assertOk()
-        ->assertSee(__('Select all visible'), false);
+        ->assertSee(__('Select all'), false);
 
     Livewire::actingAs($user)
         ->test(ServiceCategoriesIndex::class)

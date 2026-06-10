@@ -9,6 +9,7 @@ use App\Models\PinCode;
 use App\Models\SectionLibraryItem;
 use App\Models\Service;
 use App\Models\ServiceCategory;
+use App\Models\SubService;
 use App\Models\User;
 use App\Models\Vacancy;
 use App\Services\ActivityLogService;
@@ -18,6 +19,7 @@ use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Operations\PinCodeDeletionService;
 use App\Services\Operations\ServiceCategoryService;
 use App\Services\Operations\ServiceLifecycle;
+use App\Services\Operations\SubServiceDeletionService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -33,6 +35,7 @@ class BulkActionService
         private readonly ServiceLifecycle $serviceLifecycle,
         private readonly ServiceCategoryService $categoryService,
         private readonly PinCodeDeletionService $pinCodeDeletionService,
+        private readonly SubServiceDeletionService $subServiceDeletionService,
     ) {}
 
     /**
@@ -96,6 +99,7 @@ class BulkActionService
                 'operations.pin_codes' => $this->executePinCodeAction($model, $action, $user),
                 'operations.services' => $this->executeServiceAction($model, $action, $user, $resourceKey),
                 'operations.service_categories' => $this->executeServiceCategoryAction($model, $action, $user, $resourceKey),
+                'operations.sub_services' => $this->executeSubServiceAction($model, $action, $user),
                 'operations.vacancies' => $this->executeVacancyAction($model, $action, $user, $resourceKey),
                 default => false,
             };
@@ -306,6 +310,25 @@ class BulkActionService
         }
 
         $this->categoryService->delete($category);
+
+        return true;
+    }
+
+    private function executeSubServiceAction(SubService $subService, string $action, User $user): bool
+    {
+        return match ($action) {
+            'delete' => $this->deleteSubService($subService, $user),
+            default => false,
+        };
+    }
+
+    private function deleteSubService(SubService $subService, User $user): bool
+    {
+        if (! $user->can('delete', $subService)) {
+            return false;
+        }
+
+        $this->subServiceDeletionService->delete($subService, 'bulk');
 
         return true;
     }

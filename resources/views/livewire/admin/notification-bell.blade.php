@@ -1,11 +1,11 @@
 <div
     class="relative shrink-0"
-    x-data="{ open: @entangle('open') }"
+    x-data="{ open: false }"
     @keydown.escape.window="open = false"
 >
     <button
         type="button"
-        wire:click="toggleOpen"
+        @click="open = ! open"
         class="relative flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-panel-soft)] text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(197,160,89,0.2)] hover:text-[var(--text-primary)]"
         aria-label="{{ __('Notifications') }}"
         x-bind:aria-expanded="open"
@@ -21,6 +21,7 @@
 
     <div
         x-show="open"
+        x-cloak
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 translate-y-1"
         x-transition:enter-end="opacity-100 translate-y-0"
@@ -28,8 +29,7 @@
         x-transition:leave-start="opacity-100 translate-y-0"
         x-transition:leave-end="opacity-0 translate-y-1"
         @click.outside="open = false"
-        class="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-[min(22rem,calc(100vw-2.5rem))] overflow-hidden rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] shadow-mom-elevated ring-1 ring-[rgba(197,160,89,0.08)]"
-        style="display: none;"
+        class="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-[min(22rem,calc(100vw-2.5rem))] max-h-[min(28rem,70vh)] overflow-hidden rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] shadow-mom-elevated ring-1 ring-[rgba(197,160,89,0.08)]"
         role="menu"
     >
         <div class="flex items-center justify-between border-b border-[var(--border-panel-soft)] px-4 py-3">

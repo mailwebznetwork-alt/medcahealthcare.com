@@ -25,12 +25,7 @@ class SubServiceController extends Controller
     {
         $this->authorize('update', $service);
 
-        $subServices = $service->subServices()
-            ->with(['seo', 'linkedPage'])
-            ->ordered()
-            ->get();
-
-        return view('operations.services.sub-services.index', compact('service', 'subServices'));
+        return view('operations.services.sub-services.index', compact('service'));
     }
 
     public function create(Service $service): View

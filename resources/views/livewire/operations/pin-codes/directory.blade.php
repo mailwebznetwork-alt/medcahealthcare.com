@@ -35,11 +35,11 @@
     </div>
 
     @if ($pinCodes->isNotEmpty())
-        <div class="mb-3 mt-6 flex flex-wrap gap-2 text-xs">
-            <button type="button" wire:click="selectAllVisibleRows({{ $pinCodes->pluck('id')->values()->toJson() }})" class="text-mom-gold hover:underline">{{ __('Select all visible') }}</button>
-            <button type="button" wire:click="selectAllFilteredRows" class="text-mom-gold hover:underline">{{ __('Select all filtered results') }}</button>
-            <button type="button" wire:click="deselectAllRows" class="text-[var(--text-muted)] hover:underline">{{ __('Deselect all') }}</button>
-        </div>
+        <x-bulk.selection-links
+            class="mt-6"
+            :visible-ids="$pinCodes->pluck('id')->all()"
+            :total-count="$this->bulkTotalSelectableCount()"
+        />
 
         <x-bulk.selection-toolbar
             :count="$this->bulkSelectedCount()"
@@ -71,8 +71,8 @@
                                 <input
                                     type="checkbox"
                                     class="rounded border-[var(--border-panel-soft)]"
-                                    aria-label="{{ __('Select all visible') }}"
-                                    wire:click="selectAllVisibleRows({{ $pinCodes->pluck('id')->values()->toJson() }})"
+                                    aria-label="{{ __('Select all') }}"
+                                    wire:click="selectAllRows"
                                 />
                             </th>
                             <th class="px-4 py-3 font-medium">{{ __('Pincode') }}</th>

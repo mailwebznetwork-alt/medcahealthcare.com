@@ -334,6 +334,10 @@ body.mom-body::after {
     display: none;
 }
 
+[x-cloak] {
+    display: none !important;
+}
+
 /* ---- Scrollbars (sidebar nav + generic) ---- */
 
 .custom-scrollbar {

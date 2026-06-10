@@ -1,9 +1,9 @@
 const updateCallbacks = new Set();
 let hooksRegistered = false;
 
-function scheduleDomUpdates() {
+function scheduleDomUpdates(root = document) {
     requestAnimationFrame(() => {
-        updateCallbacks.forEach((callback) => callback());
+        updateCallbacks.forEach((callback) => callback(root));
     });
 }
 
@@ -20,7 +20,9 @@ function registerLivewireHooks() {
         return;
     }
 
-    window.Livewire.hook('morph.updated', scheduleDomUpdates);
+    window.Livewire.hook('morph.updated', ({ el }) => {
+        scheduleDomUpdates(el ?? document);
+    });
     scheduleDomUpdates();
 }
 

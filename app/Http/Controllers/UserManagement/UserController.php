@@ -75,10 +75,16 @@ class UserController extends Controller
     public function store(StoreUserRequest $request): RedirectResponse
     {
         $user = new User;
+        $role = $request->validated('role');
+
         $user->fill([
             'name' => $request->validated('name'),
             'email' => $request->validated('email'),
-            'role' => $request->validated('role'),
+            'role' => $role,
+            'role_label' => $this->roleLabelFor($role),
+            'email_verified_at' => now(),
+            'is_active' => true,
+            'module_access' => ModuleAccess::defaultGrants(),
         ]);
         $user->password = Hash::make($request->validated('password'));
 
@@ -268,5 +274,16 @@ class UserController extends Controller
         $user->update(['is_active' => false]);
 
         return redirect()->route('user-management.index')->with('status', 'user-deactivated');
+    }
+
+    private function roleLabelFor(string $role): string
+    {
+        return match ($role) {
+            'super_admin' => 'Super Admin',
+            'admin' => 'Admin',
+            'manager' => 'Manager',
+            'editor' => 'Editor',
+            default => 'Viewer',
+        };
     }
 }

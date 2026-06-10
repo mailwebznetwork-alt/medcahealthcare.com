@@ -84,12 +84,19 @@ const lucideIcons = {
     Workflow,
 };
 
-export function bootIcons() {
+export function bootIcons(root = document) {
+    const scope = root?.querySelector ? root : document;
+
+    if (!scope.querySelector?.('[data-lucide]')) {
+        return;
+    }
+
     createIcons({
         icons: lucideIcons,
         attrs: {
             'stroke-width': 1.75,
         },
+        root: scope,
     });
 }
 

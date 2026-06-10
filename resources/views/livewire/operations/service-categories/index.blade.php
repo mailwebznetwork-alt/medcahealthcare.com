@@ -45,11 +45,10 @@
     </div>
 
     @if ($categories->isNotEmpty())
-        <div class="mb-3 flex flex-wrap gap-2 text-xs">
-            <button type="button" wire:click="selectAllVisibleRows({{ $categories->pluck('id')->values()->toJson() }})" class="text-mom-gold hover:underline">{{ __('Select all visible') }}</button>
-            <button type="button" wire:click="selectAllFilteredRows" class="text-mom-gold hover:underline">{{ __('Select all filtered results') }}</button>
-            <button type="button" wire:click="deselectAllRows" class="text-[var(--text-muted)] hover:underline">{{ __('Deselect all') }}</button>
-        </div>
+        <x-bulk.selection-links
+            :visible-ids="$categories->pluck('id')->all()"
+            :total-count="$this->bulkTotalSelectableCount()"
+        />
 
         <x-bulk.selection-toolbar
             :count="$this->bulkSelectedCount()"
@@ -63,7 +62,7 @@
                 <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
                     <tr>
                         <th class="w-10 px-5 py-3">
-                            <input type="checkbox" class="rounded border-[var(--border-panel-soft)]" aria-label="{{ __('Select all visible') }}" wire:click="selectAllVisibleRows({{ $categories->pluck('id')->values()->toJson() }})" />
+                            <input type="checkbox" class="rounded border-[var(--border-panel-soft)]" aria-label="{{ __('Select all') }}" wire:click="selectAllRows" />
                         </th>
                         <th class="px-5 py-3">{{ __('Name') }}</th>
                         <th class="px-5 py-3">{{ __('Code') }}</th>

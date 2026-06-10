@@ -58,8 +58,31 @@ it('renders bulk selection controls on the pin codes directory', function () {
     $this->actingAs($user)
         ->get(route('operations.pin-codes.directory'))
         ->assertOk()
-        ->assertSee(__('Select all visible'), false)
+        ->assertSee(__('Select all'), false)
         ->assertSee('aria-label="'.__('Select row').'"', false);
+});
+
+it('bulk deletes all pin codes when select all is used', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'role' => 'manager',
+        'module_access' => collect(ModuleAccess::keys())
+            ->mapWithKeys(fn (string $k) => [$k => $k === ModuleAccess::OPERATIONS])
+            ->all(),
+    ]);
+
+    PinCode::factory()->count(3)->create(['city' => 'Bangalore']);
+
+    Livewire::actingAs($user)
+        ->test(Directory::class)
+        ->call('selectAllRows')
+        ->assertSet('bulkSelectAllFiltered', true)
+        ->call('openBulkAction', 'delete')
+        ->set('bulkDeleteConfirmText', 'DELETE')
+        ->call('confirmBulkAction')
+        ->assertHasNoErrors();
+
+    expect(PinCode::query()->count())->toBe(0);
 });
 
 it('bulk deletes selected pin codes from the directory', function () {

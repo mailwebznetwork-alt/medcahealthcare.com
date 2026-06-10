@@ -10,8 +10,6 @@ use Livewire\Component;
 
 class NotificationBell extends Component
 {
-    public bool $open = false;
-
     public int $unreadCount = 0;
 
     /** @var Collection<int, AdminNotification> */
@@ -21,11 +19,6 @@ class NotificationBell extends Component
     {
         $this->recent = collect();
         $this->refreshNotifications($notificationService);
-    }
-
-    public function toggleOpen(): void
-    {
-        $this->open = ! $this->open;
     }
 
     public function markRead(int $notificationId, AdminNotificationService $notificationService): void

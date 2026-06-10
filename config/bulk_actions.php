@@ -8,6 +8,7 @@ use App\Models\PinCode;
 use App\Models\SectionLibraryItem;
 use App\Models\Service;
 use App\Models\ServiceCategory;
+use App\Models\SubService;
 use App\Models\Vacancy;
 
 return [
@@ -65,6 +66,14 @@ return [
             'actions' => ['delete', 'duplicate', 'modify'],
             'destructive' => ['delete'],
             'edit_route' => 'operations.service-categories.edit',
+        ],
+
+        'operations.sub_services' => [
+            'model' => SubService::class,
+            'label' => 'Sub-services',
+            'module' => 'operations',
+            'actions' => ['delete'],
+            'destructive' => ['delete'],
         ],
 
         'operations.vacancies' => [
