@@ -1,8 +1,24 @@
 @php
+    $catalogKind = $catalogKind ?? 'service';
+    $imageSeo = app(\App\Services\Operations\ServiceImageSeoService::class);
     $featuredMeta = is_array($service->featured_image_meta) ? $service->featured_image_meta : [];
     $galleryMeta = is_array($service->gallery_meta) ? $service->gallery_meta : [];
-    $suggestions = app(\App\Services\Operations\ServiceImageSeoService::class)->suggestFeatured($service);
-    $imageScore = (int) ($service->seo?->image_seo_score ?? app(\App\Services\Operations\ServiceImageSeoService::class)->score($service));
+    $title = (string) ($service->title ?? '');
+    $area = app(\App\Services\Seo\LocalityContextResolver::class)->primaryAreaLabel()
+        ?: config('medca.location_display', '');
+    $suggestions = $catalogKind === 'service'
+        ? $imageSeo->suggestFeatured($service)
+        : [
+            'alt' => __('Professional :service in :area', ['service' => $title, 'area' => $area]),
+            'title' => $title,
+            'caption' => __('Qualified care with :brand', ['brand' => config('medca.brand_name', 'Medca Health Care')]),
+            'description' => mb_substr(trim((string) ($service->short_summary ?: $service->seo?->meta_description ?: $title)), 0, 320),
+        ];
+    $imageScore = (int) ($service->seo?->image_seo_score ?? (
+        $catalogKind === 'service'
+            ? $imageSeo->score($service)
+            : $imageSeo->scoreCatalogEntity($service)
+    ));
 @endphp
 
 <section class="mom-card p-6">

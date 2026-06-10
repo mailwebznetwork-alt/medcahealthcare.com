@@ -15,7 +15,7 @@ use App\Support\ServicePageOverrides;
 
 class ServiceDetailPageProvisioner
 {
-    public const string DEFAULT_PAGE_CONTENT = "{{block:service-detail-hero}}\n{{block:service-detail-areas}}";
+    public const string DEFAULT_PAGE_CONTENT = "{{block:service-detail-hero}}\n{{block:service-detail-body}}\n{{block:service-detail-areas}}";
 
     public function __construct(
         private readonly ServiceDetailPageSeoSync $seoSync,
@@ -76,11 +76,14 @@ class ServiceDetailPageProvisioner
                 'registry_owner' => 'operations_service',
                 'meta_title' => $service->seo?->meta_title ?: $service->title,
             ]);
-        } elseif (
-            ! ServicePageOverrides::contentOverride($page)
-            && (trim((string) $page->content) === '' || ! str_contains((string) $page->content, 'service-detail-hero'))
-        ) {
-            $page->update(['content' => self::DEFAULT_PAGE_CONTENT]);
+        } elseif (! ServicePageOverrides::contentOverride($page)) {
+            $content = trim((string) $page->content);
+
+            if ($content === '' || ! str_contains($content, 'service-detail-hero')) {
+                $page->update(['content' => self::DEFAULT_PAGE_CONTENT]);
+            } elseif (! str_contains($content, 'service-detail-body')) {
+                $page->update(['content' => $this->injectDetailBodyBlock($content)]);
+            }
         }
 
         if (
@@ -252,6 +255,11 @@ class ServiceDetailPageProvisioner
                 'code' => "@include('blocks.services.service-detail-hero')",
                 'block_type' => 'Hero',
             ],
+            'service-detail-body' => [
+                'block_name' => 'Service detail — full content (uses $service)',
+                'code' => "@include('blocks.services.service-detail-body')",
+                'block_type' => 'Sections',
+            ],
             'service-detail-areas' => [
                 'block_name' => 'Service detail — areas we cover',
                 'code' => "@include('blocks.services.service-detail-areas')",
@@ -294,5 +302,22 @@ class ServiceDetailPageProvisioner
     private function ensureStarterBlocks(): void
     {
         $this->syncStarterBlocks();
+    }
+
+    private function injectDetailBodyBlock(string $content): string
+    {
+        if (str_contains($content, '{{block:service-detail-body}}')) {
+            return $content;
+        }
+
+        if (str_contains($content, '{{block:service-detail-hero}}')) {
+            return str_replace(
+                '{{block:service-detail-hero}}',
+                "{{block:service-detail-hero}}\n{{block:service-detail-body}}",
+                $content
+            );
+        }
+
+        return "{{block:service-detail-body}}\n".$content;
     }
 }

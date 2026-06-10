@@ -22,6 +22,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'schema_health_score',
     'entity_tags',
     'geo_entities',
+    'h2',
+    'h3',
+    'search_intent',
+    'og_title',
+    'og_description',
+    'og_image',
+    'twitter_card',
+    'content_quality_score',
+    'local_seo_score',
+    'ai_discovery_score',
+    'image_seo_score',
+    'seo_recommendations',
 ])]
 class SubServiceSeo extends Model
 {
@@ -39,6 +51,13 @@ class SubServiceSeo extends Model
             'schema_health_score' => 'integer',
             'entity_tags' => 'array',
             'geo_entities' => 'array',
+            'h2' => 'array',
+            'h3' => 'array',
+            'content_quality_score' => 'integer',
+            'local_seo_score' => 'integer',
+            'ai_discovery_score' => 'integer',
+            'image_seo_score' => 'integer',
+            'seo_recommendations' => 'array',
         ];
     }
 

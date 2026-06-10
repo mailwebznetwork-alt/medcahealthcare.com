@@ -1,9 +1,9 @@
 /**
- * Public service fallback detail page (public/services/show).
+ * Public service detail pages (CMS block + fallback view).
  */
 @layer components {
     .medca-service-detail {
-        @apply mx-auto w-full max-w-4xl;
+        @apply mx-auto w-full max-w-6xl space-y-10;
     }
 
     .medca-service-detail .medca-service-prose {
@@ -24,6 +24,173 @@
 
     .medca-service-detail .medca-service-prose :is(pre, code) {
         @apply max-w-full overflow-x-auto text-sm;
+    }
+
+    .medca-svc-detail-rating {
+        @apply inline-flex flex-wrap items-center gap-3 rounded-full border border-amber-200 bg-amber-50 px-4 py-2;
+    }
+
+    .medca-svc-detail-rating-stars {
+        @apply text-amber-500;
+    }
+
+    .medca-svc-detail-rating-text {
+        @apply text-sm font-medium text-amber-900;
+    }
+
+    .medca-svc-detail-trust {
+        @apply flex flex-wrap gap-2;
+    }
+
+    .medca-svc-detail-trust li {
+        @apply rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200;
+    }
+
+    .medca-svc-detail-featured {
+        @apply overflow-hidden rounded-2xl border border-slate-200 shadow-sm;
+    }
+
+    .medca-svc-detail-featured img {
+        @apply max-h-[28rem] w-full object-cover;
+    }
+
+    .medca-svc-detail-section {
+        @apply space-y-4;
+    }
+
+    .medca-svc-detail-heading {
+        @apply text-2xl font-semibold tracking-tight text-slate-900 md:text-3xl;
+    }
+
+    .medca-svc-detail-gallery {
+        @apply grid gap-3 sm:grid-cols-2 lg:grid-cols-3;
+    }
+
+    .medca-svc-detail-gallery li {
+        @apply overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm;
+    }
+
+    .medca-svc-detail-gallery img {
+        @apply aspect-[4/3] h-full w-full object-cover;
+    }
+
+    .medca-svc-detail-benefits {
+        @apply grid gap-3 sm:grid-cols-2;
+    }
+
+    .medca-svc-detail-benefits li {
+        @apply flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm;
+    }
+
+    .medca-svc-detail-benefits li::before {
+        content: "✓";
+        @apply mt-0.5 shrink-0 font-bold text-medca-primary;
+    }
+
+    .medca-svc-detail-steps {
+        @apply grid gap-3 md:grid-cols-2;
+    }
+
+    .medca-svc-detail-steps li {
+        @apply flex items-start gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700;
+    }
+
+    .medca-svc-detail-step-num {
+        @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-medca-primary text-sm font-bold text-white;
+    }
+
+    .medca-svc-detail-list {
+        @apply space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-5;
+    }
+
+    .medca-svc-detail-list li {
+        @apply flex items-start gap-2 text-sm text-slate-700;
+    }
+
+    .medca-svc-detail-list li::before {
+        content: "•";
+        @apply font-bold text-medca-primary;
+    }
+
+    .medca-svc-detail-grid {
+        @apply grid gap-4 md:grid-cols-3;
+    }
+
+    .medca-svc-detail-card {
+        @apply rounded-xl border border-slate-200 bg-white p-5 shadow-sm;
+    }
+
+    .medca-svc-detail-card h3 {
+        @apply text-base font-semibold text-slate-900;
+    }
+
+    .medca-svc-detail-card ul {
+        @apply mt-3 space-y-2;
+    }
+
+    .medca-svc-detail-card li {
+        @apply text-sm text-slate-600;
+    }
+
+    .medca-svc-detail-subs {
+        @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3;
+    }
+
+    .medca-svc-detail-sub-card {
+        @apply flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition;
+    }
+
+    .medca-svc-detail-sub-card:hover {
+        border-color: var(--medca-primary-border);
+        box-shadow: var(--medca-shadow-hover);
+    }
+
+    .medca-svc-detail-sub-title {
+        @apply text-base font-semibold text-slate-900;
+    }
+
+    .medca-svc-detail-sub-summary {
+        @apply mt-2 text-sm text-slate-600;
+    }
+
+    .medca-svc-detail-faqs {
+        @apply space-y-3;
+    }
+
+    .medca-svc-detail-faq {
+        @apply rounded-xl border border-slate-200 bg-white p-5 shadow-sm;
+    }
+
+    .medca-svc-detail-faq dt {
+        @apply text-base font-semibold text-slate-900 md:text-lg;
+    }
+
+    .medca-svc-detail-faq dd {
+        @apply mt-2 text-sm leading-relaxed text-slate-600 md:text-base;
+    }
+
+    .medca-svc-detail-reviews {
+        @apply grid gap-4 md:grid-cols-2 lg:grid-cols-3;
+    }
+
+    .medca-svc-detail-review {
+        @apply rounded-xl border border-slate-200 bg-white p-5 shadow-sm;
+    }
+
+    .medca-svc-detail-review-stars {
+        @apply text-amber-500;
+    }
+
+    .medca-svc-detail-review-text {
+        @apply mt-2 text-sm leading-relaxed text-slate-600;
+    }
+
+    .medca-svc-detail-review-form {
+        @apply rounded-xl border border-slate-200 bg-slate-50 p-5 md:p-6;
+    }
+
+    .medca-svc-detail-cta {
+        @apply border-t border-slate-200 pt-6;
     }
 
     .medca-service-areas__grid {

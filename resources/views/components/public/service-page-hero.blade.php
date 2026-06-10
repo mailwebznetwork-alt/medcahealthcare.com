@@ -15,11 +15,12 @@
 
 @php
     use App\Models\Service;
+    use App\Services\Public\PublicDisplayNameResolver;
 
     if ($service instanceof Service) {
         $service->loadMissing(['seo', 'pincodes']);
         $eyebrow = $eyebrow ?? __('Service');
-        $headline = $headline ?? (string) ($service->seo?->h1 ?: $service->title);
+        $headline = $headline ?? app(PublicDisplayNameResolver::class)->serviceHeadline($service);
         $subheadline = $subheadline ?? (string) ($service->short_summary ?? '');
         $body = $body ?? (filled($service->description) ? $service->description : null);
         $coverageCount = $showCoverage ? ($service->pincodes?->count() ?? 0) : 0;

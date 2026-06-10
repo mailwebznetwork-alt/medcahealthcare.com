@@ -2,102 +2,129 @@
     <div class="mom-card p-6">
         <h2 class="text-lg font-semibold text-[var(--text-primary)]">{{ __('Navigation menus') }}</h2>
         <p class="mom-subtext mt-2 max-w-3xl">
-            {{ __('Drag live pages between the pool and header/footer. Order is saved automatically when you drop. URLs follow each page’s current slug (updates automatically when you rename a page). Optional labels override the page title in the public header and footer.') }}
+            {{ __('Manual header and footer menus for pages, groups, and custom URLs. The Services dropdown is auto-built from your live catalog (categories → services → sub-services) and updates when you add, edit, or remove catalog items.') }}
         </p>
         @if ($lastSavedAt)
             <p class="mom-micro mt-3 text-[var(--text-muted)]">{{ __('Last saved: :time', ['time' => $lastSavedAt]) }}</p>
         @endif
     </div>
 
-    @if ($livePageCount === 0)
-        <div class="mom-card border border-dashed border-[var(--border-panel-soft)] p-6">
-            <p class="text-sm text-[var(--text-primary)]">{{ __('There are no published pages yet. Create a page first, then assign it to the header or footer menu.') }}</p>
-            <a
-                href="{{ route('site-architect.pages.index') }}?create=1"
-                class="mom-subtext mt-4 inline-flex font-medium text-mom-gold hover:underline"
-            >
-                {{ __('Open Pages and create a page') }}
-            </a>
-        </div>
-    @endif
-
-    <div class="grid gap-6 lg:grid-cols-3">
-        <div class="mom-card flex flex-col p-6">
-            <h3 class="mom-section-title mb-3">{{ __('Available (live pages)') }}</h3>
-            <p class="mom-micro mb-4">{{ __('Not placed in a menu yet') }}</p>
-            <ul
-                data-nav-zone="pool"
-                class="custom-scrollbar flex min-h-[200px] flex-col gap-2 overflow-y-auto rounded-mom-chrome border border-dashed border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] p-3"
-            >
-                @foreach ($poolPages as $page)
-                    <li
-                        wire:key="nav-pool-{{ $page->id }}"
-                        data-page-id="{{ $page->id }}"
-                        class="cursor-grab rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)] active:cursor-grabbing"
-                    >
-                        <span class="font-medium">{{ $page->title }}</span>
-                        <span class="font-mono mom-micro block text-xs">{{ $page->slug }}</span>
-                    </li>
-                @endforeach
-            </ul>
-        </div>
-
-        <div class="mom-card flex flex-col p-6">
-            <h3 class="mom-section-title mb-3">{{ __('Header menu') }}</h3>
-            <p class="mom-micro mb-4">{{ __('Shown in public site header') }}</p>
-            <ul
-                data-nav-zone="header"
-                class="custom-scrollbar flex min-h-[200px] flex-col gap-2 overflow-y-auto rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] p-3"
-            >
-                @foreach ($headerPages as $page)
-                    <li
-                        wire:key="nav-header-{{ $page->id }}"
-                        data-page-id="{{ $page->id }}"
-                        class="cursor-grab rounded-mom-chrome border border-[rgba(197,160,89,0.35)] bg-[rgba(197,160,89,0.08)] px-3 py-2 text-sm text-[var(--text-primary)] active:cursor-grabbing"
-                    >
-                        <span class="font-medium">{{ $page->title }}</span>
-                        <span class="font-mono mom-micro block text-xs">{{ $page->slug }}</span>
-                        <label class="mom-micro mt-2 block text-[10px] uppercase tracking-wide text-[var(--text-muted)]" for="nav-label-header-{{ $page->id }}">{{ __('Nav label (optional)') }}</label>
-                        <input
-                            id="nav-label-header-{{ $page->id }}"
-                            type="text"
-                            wire:model.blur="customLabels.{{ $page->id }}"
-                            wire:blur="saveNavigationLabels"
-                            placeholder="{{ $page->title }}"
-                            class="mt-1 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-2 py-1.5 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
-                        />
-                    </li>
-                @endforeach
-            </ul>
+    <div class="mom-card p-6 space-y-4">
+        <h3 class="mom-section-title">{{ __('Add menu item') }}</h3>
+        @if ($editPath !== null)
+            <p class="text-sm text-mom-gold">
+                {{ __('Editing menu item') }}
+                <button type="button" wire:click="cancelEdit" class="ml-2 underline">{{ __('Cancel edit') }}</button>
+            </p>
+        @elseif ($addParentPath !== [] || filled($addParentCatalogKey))
+            <p class="text-sm text-mom-gold">
+                @if (filled($addParentCatalogKey))
+                    {{ __('Adding manual submenu under catalog item :key', ['key' => $addParentCatalogKey]) }}
+                @else
+                    {{ __('Adding submenu under level :depth', ['depth' => count($addParentPath) + 1]) }}
+                @endif
+                <button type="button" wire:click="clearAddTarget" class="ml-2 underline">{{ __('Cancel target') }}</button>
+            </p>
+        @endif
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div>
+                <label class="mom-micro text-[var(--text-muted)]">{{ __('Menu zone') }}</label>
+                <select wire:model.live="addZone" class="mom-input mt-1 block w-full text-sm">
+                    <option value="header">{{ __('Header') }}</option>
+                    <option value="footer">{{ __('Footer') }}</option>
+                </select>
+            </div>
+            <div>
+                <label class="mom-micro text-[var(--text-muted)]">{{ __('Link type') }}</label>
+                <select wire:model.live="addType" class="mom-input mt-1 block w-full text-sm">
+                    <option value="group">{{ __('Group label (dropdown parent)') }}</option>
+                    <option value="page">{{ __('CMS page') }}</option>
+                    <option value="category">{{ __('Service category') }}</option>
+                    <option value="service">{{ __('Service') }}</option>
+                    <option value="sub_service">{{ __('Sub-service') }}</option>
+                    <option value="url">{{ __('Custom URL') }}</option>
+                </select>
+            </div>
+            <div>
+                <label class="mom-micro text-[var(--text-muted)]">{{ __('Label override (optional)') }}</label>
+                <input type="text" wire:model="addTitle" class="mom-input mt-1 block w-full text-sm" placeholder="{{ __('Public menu label') }}" />
+                @error('addTitle') <p class="mt-1 text-xs text-[var(--danger)]">{{ $message }}</p> @enderror
+            </div>
         </div>
 
-        <div class="mom-card flex flex-col p-6">
-            <h3 class="mom-section-title mb-3">{{ __('Footer menu') }}</h3>
-            <p class="mom-micro mb-4">{{ __('Shown above copyright on the public site') }}</p>
-            <ul
-                data-nav-zone="footer"
-                class="custom-scrollbar flex min-h-[200px] flex-col gap-2 overflow-y-auto rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] p-3"
-            >
-                @foreach ($footerPages as $page)
-                    <li
-                        wire:key="nav-footer-{{ $page->id }}"
-                        data-page-id="{{ $page->id }}"
-                        class="cursor-grab rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)] active:cursor-grabbing"
-                    >
-                        <span class="font-medium">{{ $page->title }}</span>
-                        <span class="font-mono mom-micro block text-xs">{{ $page->slug }}</span>
-                        <label class="mom-micro mt-2 block text-[10px] uppercase tracking-wide text-[var(--text-muted)]" for="nav-label-footer-{{ $page->id }}">{{ __('Nav label (optional)') }}</label>
-                        <input
-                            id="nav-label-footer-{{ $page->id }}"
-                            type="text"
-                            wire:model.blur="customLabels.{{ $page->id }}"
-                            wire:blur="saveNavigationLabels"
-                            placeholder="{{ $page->title }}"
-                            class="mt-1 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-2 py-1.5 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
-                        />
-                    </li>
-                @endforeach
-            </ul>
+        <div class="grid gap-4 md:grid-cols-2">
+            <div>
+                <label class="mom-micro text-[var(--text-muted)]">{{ __('Search catalog / pages') }}</label>
+                <input type="search" wire:model.live.debounce.300ms="poolSearch" class="mom-input mt-1 block w-full text-sm" placeholder="{{ __('Type 2+ characters…') }}" />
+                <p class="mom-micro mt-1">{{ __(':count live pages in site', ['count' => number_format($livePageCount)]) }}</p>
+            </div>
+
+            @if ($addType === 'page')
+                <div>
+                    <label class="mom-micro text-[var(--text-muted)]">{{ __('Page') }}</label>
+                    <select wire:model="addPageId" class="mom-input mt-1 block w-full text-sm">
+                        <option value="">{{ __('Select page…') }}</option>
+                        @foreach ($poolPages as $page)
+                            <option value="{{ $page->id }}">{{ $page->title }} ({{ $page->slug }})</option>
+                        @endforeach
+                    </select>
+                    @error('addPageId') <p class="mt-1 text-xs text-[var(--danger)]">{{ $message }}</p> @enderror
+                </div>
+            @elseif ($addType === 'category')
+                <div>
+                    <label class="mom-micro text-[var(--text-muted)]">{{ __('Category') }}</label>
+                    <select wire:model="addCategoryId" class="mom-input mt-1 block w-full text-sm">
+                        <option value="">{{ __('Select category…') }}</option>
+                        @foreach ($categoryOptions as $cat)
+                            <option value="{{ $cat->id }}">{{ $cat->name }} ({{ $cat->code }})</option>
+                        @endforeach
+                    </select>
+                    @error('addCategoryId') <p class="mt-1 text-xs text-[var(--danger)]">{{ $message }}</p> @enderror
+                </div>
+            @elseif ($addType === 'service')
+                <div>
+                    <label class="mom-micro text-[var(--text-muted)]">{{ __('Service') }}</label>
+                    <select wire:model="addServiceId" class="mom-input mt-1 block w-full text-sm">
+                        <option value="">{{ __('Select service…') }}</option>
+                        @foreach ($serviceOptions as $svc)
+                            <option value="{{ $svc->id }}">{{ $svc->title }} ({{ $svc->service_code }})</option>
+                        @endforeach
+                    </select>
+                    @error('addServiceId') <p class="mt-1 text-xs text-[var(--danger)]">{{ $message }}</p> @enderror
+                </div>
+            @elseif ($addType === 'sub_service')
+                <div>
+                    <label class="mom-micro text-[var(--text-muted)]">{{ __('Sub-service') }}</label>
+                    <select wire:model="addSubServiceId" class="mom-input mt-1 block w-full text-sm">
+                        <option value="">{{ __('Select sub-service…') }}</option>
+                        @foreach ($subServiceOptions as $sub)
+                            <option value="{{ $sub->id }}">{{ $sub->title }} — {{ $sub->service?->service_code }}/{{ $sub->sub_service_code }}</option>
+                        @endforeach
+                    </select>
+                    @error('addSubServiceId') <p class="mt-1 text-xs text-[var(--danger)]">{{ $message }}</p> @enderror
+                </div>
+            @elseif ($addType === 'url')
+                <div>
+                    <label class="mom-micro text-[var(--text-muted)]">{{ __('URL') }}</label>
+                    <input type="url" wire:model="addCustomUrl" class="mom-input mt-1 block w-full text-sm" placeholder="https://…" />
+                    @error('addCustomUrl') <p class="mt-1 text-xs text-[var(--danger)]">{{ $message }}</p> @enderror
+                </div>
+            @endif
+        </div>
+
+        <button type="button" wire:click="addMenuItem" class="mom-cta-primary">
+            {{ $editPath !== null ? __('Save changes') : __('Add to menu') }}
+        </button>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+        <div class="mom-card p-6">
+            <h3 class="mom-section-title mb-3">{{ __('Header menu tree') }}</h3>
+            @include('livewire.site-architect.partials.navigation-tree', ['nodes' => $headerTree, 'zone' => 'header', 'depth' => 0, 'pathPrefix' => []])
+        </div>
+        <div class="mom-card p-6">
+            <h3 class="mom-section-title mb-3">{{ __('Footer menu tree') }}</h3>
+            @include('livewire.site-architect.partials.navigation-tree', ['nodes' => $footerTree, 'zone' => 'footer', 'depth' => 0, 'pathPrefix' => []])
         </div>
     </div>
 </div>

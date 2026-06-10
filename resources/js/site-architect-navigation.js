@@ -1,14 +1,20 @@
 import { onBackendDomUpdate, SORTABLE_INTERACTIVE_FILTER } from './livewire-dom-hooks';
 
-function readZoneIds(zone) {
-    const el = document.querySelector(`[data-nav-zone="${zone}"]`);
-    if (!el) {
+function readParentPath(listEl) {
+    try {
+        const raw = listEl.dataset.navParentPath ?? '[]';
+        const parsed = JSON.parse(raw);
+
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
         return [];
     }
+}
 
-    return [...el.querySelectorAll('[data-page-id]')]
-        .map((n) => parseInt(n.dataset.pageId, 10))
-        .filter((id) => !Number.isNaN(id));
+function readOrderedNodeKeys(listEl) {
+    return [...listEl.querySelectorAll('[data-nav-node-key]')]
+        .map((node) => node.getAttribute('data-nav-node-key'))
+        .filter((value) => value !== null && value !== '');
 }
 
 async function bindNavigationSortables() {
@@ -29,26 +35,29 @@ async function bindNavigationSortables() {
 
     const { default: Sortable } = await import('sortablejs');
 
-    document.querySelectorAll('[data-nav-zone]').forEach((zoneEl) => {
-        if (zoneEl._sortableInstance) {
-            zoneEl._sortableInstance.destroy();
-            zoneEl._sortableInstance = null;
+    document.querySelectorAll('[data-nav-sortable-list]').forEach((listEl) => {
+        if (listEl._sortableInstance) {
+            listEl._sortableInstance.destroy();
+            listEl._sortableInstance = null;
         }
 
-        zoneEl._sortableInstance = Sortable.create(zoneEl, {
-            group: 'site-navigation',
+        listEl._sortableInstance = Sortable.create(listEl, {
             animation: 150,
-            draggable: '[data-page-id]',
+            handle: '[data-sortable-handle]',
+            draggable: '[data-nav-node-key]',
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
             delay: 120,
             delayOnTouchOnly: true,
             filter: SORTABLE_INTERACTIVE_FILTER,
             preventOnFilter: false,
             onEnd: () => {
-                component.call(
-                    'syncFromDrag',
-                    readZoneIds('header'),
-                    readZoneIds('footer'),
-                );
+                const zone = listEl.dataset.navZone ?? 'header';
+                const parentPath = readParentPath(listEl);
+                const orderedKeys = readOrderedNodeKeys(listEl);
+
+                component.call('syncNavigationSiblingOrder', zone, parentPath, orderedKeys);
             },
         });
     });

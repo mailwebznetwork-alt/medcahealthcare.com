@@ -4,13 +4,35 @@ namespace App\Http\Requests\Operations\Services;
 
 use App\Enums\PublishStatus;
 use App\Enums\ServiceVisibility;
+use App\Http\Requests\Concerns\InteractsWithArchitectSavePolicy;
+use App\Http\Requests\Operations\Concerns\ValidatesCatalogExtendedFields;
+use App\Http\Requests\Operations\Services\Concerns\NormalizesServiceKeywordArrays;
+use App\Http\Requests\Operations\Services\Concerns\NormalizesServiceListingLines;
 use App\Models\Service;
 use App\Models\SubService;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateSubServiceRequest extends FormRequest
 {
+    use InteractsWithArchitectSavePolicy;
+    use NormalizesServiceKeywordArrays;
+    use NormalizesServiceListingLines;
+    use ValidatesCatalogExtendedFields;
+
+    protected function prepareForValidation(): void
+    {
+        $code = strtolower(trim((string) $this->input('sub_service_code', '')));
+        $code = str_replace([' ', '_'], '-', $code);
+        if ($code !== '') {
+            $this->merge(['sub_service_code' => $code]);
+        }
+
+        $this->normalizeServiceListingLines();
+        $this->normalizeServiceKeywordArrays();
+    }
+
     public function authorize(): bool
     {
         $service = $this->route('service');
@@ -22,18 +44,29 @@ class UpdateSubServiceRequest extends FormRequest
             && $this->user()?->can('update', $subService) === true;
     }
 
-    protected function prepareForValidation(): void
-    {
-        $code = strtolower(trim((string) $this->input('sub_service_code', '')));
-        $code = str_replace([' ', '_'], '-', $code);
-        if ($code !== '') {
-            $this->merge(['sub_service_code' => $code]);
-        }
-    }
-
     /**
      * @return array<string, mixed>
      */
+    public function withValidator(Validator $validator): void
+    {
+        /** @var Service $service */
+        $service = $this->route('service');
+        /** @var SubService $subService */
+        $subService = $this->route('sub_service');
+
+        $validator->after(function (Validator $validator) use ($service, $subService): void {
+            $this->architectAssertIncompleteAcknowledged($validator, ['title', 'sub_service_code', 'publish_status', 'visibility']);
+            $this->architectAssertUnique(
+                $validator,
+                SubService::class,
+                'sub_service_code',
+                $this->input('sub_service_code'),
+                $subService->id,
+                'title'
+            );
+        });
+    }
+
     public function rules(): array
     {
         /** @var Service $service */
@@ -41,7 +74,7 @@ class UpdateSubServiceRequest extends FormRequest
         /** @var SubService $subService */
         $subService = $this->route('sub_service');
 
-        return [
+        return $this->architectPrepareRules(array_merge([
             'sub_service_code' => [
                 'required',
                 'string',
@@ -52,8 +85,9 @@ class UpdateSubServiceRequest extends FormRequest
                     ->ignore($subService->id),
             ],
             'title' => ['required', 'string', 'max:255'],
-            'short_summary' => ['nullable', 'string', 'max:500'],
+            'short_summary' => ['nullable', 'string', 'max:65535'],
             'description' => ['nullable', 'string'],
+            'price_range' => ['nullable', 'string', 'max:120'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
             'is_featured' => ['nullable', 'boolean'],
@@ -63,13 +97,10 @@ class UpdateSubServiceRequest extends FormRequest
             'show_on_contact' => ['nullable', 'boolean'],
             'publish_status' => ['required', Rule::enum(PublishStatus::class)],
             'visibility' => ['required', Rule::enum(ServiceVisibility::class)],
-            'seo.meta_title' => ['nullable', 'string', 'max:255'],
-            'seo.meta_description' => ['nullable', 'string', 'max:500'],
-            'seo.h1' => ['nullable', 'string', 'max:255'],
-            'seo.focus_keywords' => ['nullable', 'string', 'max:500'],
-            'faqs' => ['nullable', 'array'],
-            'faqs.*.question' => ['nullable', 'string', 'max:500'],
-            'faqs.*.answer' => ['nullable', 'string'],
-        ];
+            'page_id' => ['nullable', 'integer', 'exists:pages,id'],
+            'procedures_lines' => ['nullable', 'string'],
+            'procedures' => ['nullable', 'array'],
+            'procedures.*' => ['string', 'max:500'],
+        ], $this->extendedCatalogFieldRules()), ['title', 'sub_service_code', 'publish_status', 'visibility']);
     }
 }

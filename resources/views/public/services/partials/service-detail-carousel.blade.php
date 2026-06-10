@@ -1,6 +1,9 @@
 @php
+    use App\Services\Public\PublicDisplayNameResolver;
+
     /** @var \App\Models\Service $service */
     $s = $service;
+    $displayNames = app(PublicDisplayNameResolver::class);
     $procedures = is_array($s->procedures) ? array_values(array_filter($s->procedures)) : [];
     $specialized = is_array($s->specialized_care) ? array_values(array_filter($s->specialized_care)) : [];
     $shifts = is_array($s->shifts) ? array_values(array_filter($s->shifts)) : [];
@@ -10,7 +13,7 @@
     <x-public.content-shell>
         <div class="medca-detail-carousel">
         <header class="medca-detail-carousel-header">
-            <h1>{{ $s->seo?->h1 ?: $s->title }}</h1>
+            <h1>{{ $displayNames->serviceHeadline($s) }}</h1>
             @if (filled($s->short_summary))
                 <p class="medca-detail-carousel-lead">{{ $s->short_summary }}</p>
             @endif

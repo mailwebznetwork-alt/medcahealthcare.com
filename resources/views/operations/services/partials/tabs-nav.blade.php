@@ -1,8 +1,10 @@
 @php
     $activeTab = $activeTab ?? 'basic';
+    $catalogKind = $catalogKind ?? 'service';
     $hasCustomFields = isset($managedModule) && ($managedModule->fieldDefinitions->isNotEmpty() || (auth()->user()?->canManageDynamicModuleSchema() ?? false));
     $reviewCount = isset($serviceReviews) ? $serviceReviews->count() : 0;
     $subServiceCount = isset($subServices) ? $subServices->count() : 0;
+    $childTabLabel = $catalogKind === 'category' ? __('Services') : __('Sub-services');
 
     $tabs = [
         'basic' => __('Basic'),
@@ -22,8 +24,8 @@
 
     if (($mode ?? 'create') === 'edit') {
         $tabs['sub_services'] = $subServiceCount > 0
-            ? __('Sub-services').' ('.$subServiceCount.')'
-            : __('Sub-services');
+            ? $childTabLabel.' ('.$subServiceCount.')'
+            : $childTabLabel;
         $tabs['reviews'] = $reviewCount > 0
             ? __('Reviews').' ('.$reviewCount.')'
             : __('Reviews');

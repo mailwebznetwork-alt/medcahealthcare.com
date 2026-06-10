@@ -170,6 +170,13 @@ BLADE,
             'block_type' => 'Hero',
             'view' => 'blocks.services.service-detail-hero',
         ],
+        'service-detail-body' => [
+            'category' => 'services',
+            'block_name' => 'Service detail — full content (uses $service)',
+            'description' => 'Renders description, benefits, process, eligibility, FAQs, and reviews from Operations.',
+            'block_type' => 'Sections',
+            'view' => 'blocks.services.service-detail-body',
+        ],
         'service-detail-areas' => [
             'category' => 'services',
             'block_name' => 'Service detail — areas we cover',
@@ -189,7 +196,7 @@ BLADE,
             'block_name' => 'Services — detail fallback',
             'description' => 'Composed layout for /services/{code} Site Architect pages.',
             'block_type' => 'Layout',
-            'code' => "{{block:service-detail-hero}}\n{{block:service-detail-areas}}",
+            'code' => "{{block:service-detail-hero}}\n{{block:service-detail-body}}\n{{block:service-detail-areas}}",
         ],
 
         // ── Locations ─────────────────────────────────────────────────────

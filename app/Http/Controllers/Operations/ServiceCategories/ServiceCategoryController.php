@@ -7,8 +7,12 @@ use App\Http\Requests\Operations\ServiceCategories\StoreServiceCategoryRequest;
 use App\Http\Requests\Operations\ServiceCategories\UpdateServiceCategoryRequest;
 use App\Models\ServiceCategory;
 use App\Repositories\Operations\ServiceCategoryRepository;
+use App\Services\Operations\CatalogFormViewData;
+use App\Services\Operations\CatalogMasterPersister;
 use App\Services\Operations\ServiceCategoryService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ServiceCategoryController extends Controller
@@ -16,6 +20,8 @@ class ServiceCategoryController extends Controller
     public function __construct(
         private readonly ServiceCategoryRepository $repository,
         private readonly ServiceCategoryService $categoryService,
+        private readonly CatalogMasterPersister $catalogPersister,
+        private readonly CatalogFormViewData $catalogFormViewData,
     ) {}
 
     public function index(): View
@@ -52,26 +58,33 @@ class ServiceCategoryController extends Controller
             ->with('status', 'service-category-created');
     }
 
-    public function edit(ServiceCategory $service_category): View
+    public function edit(Request $request, ServiceCategory $service_category): View
     {
         $this->authorize('update', $service_category);
 
-        return view('operations.service-categories.edit', [
-            'category' => $service_category,
-            'parentOptions' => $this->repository->parentOptions($service_category->id),
-        ]);
+        return view('operations.service-categories.edit', array_merge(
+            ['category' => $service_category],
+            $this->catalogFormViewData->forCategory($request, $service_category),
+        ));
     }
 
     public function update(UpdateServiceCategoryRequest $request, ServiceCategory $service_category): RedirectResponse
     {
         $data = $request->validated();
-        $data['is_active'] = $request->boolean('is_active', true);
 
-        $this->categoryService->update($service_category, $data);
+        DB::transaction(function () use ($request, $data, $service_category): void {
+            $this->catalogPersister->persistCategory($service_category, $request, $data);
+        });
+
+        $tab = (string) $request->input('active_tab', $request->query('tab', 'basic'));
+        $params = ['service_category' => $service_category->fresh()];
+        if ($tab !== '' && $tab !== 'basic') {
+            $params['tab'] = $tab;
+        }
 
         return redirect()
-            ->route('operations.service-categories.index')
-            ->with('status', 'service-category-updated');
+            ->route('operations.service-categories.edit', $params)
+            ->with('status', __('Category updated.'));
     }
 
     public function destroy(ServiceCategory $service_category): RedirectResponse

@@ -2,8 +2,10 @@
 
 @php
     use App\Services\Public\PublicDisplayNameResolver;
+    use App\Support\ProductCategoryContext;
 
     $displayNames = app(PublicDisplayNameResolver::class);
+    $isProductCategory = ProductCategoryContext::isCategory($category);
 @endphp
 
 @section('title', $displayNames->categoryMetaTitle($category).' — '.config('medca.brand_name'))
@@ -55,31 +57,20 @@
             >{{ __('Set pincode') }}</button>
         @else
             @if ($pincode)
-                <p class="mt-6 text-sm text-slate-600">{{ __('Showing services for pincode :pin', ['pin' => $pincode]) }}</p>
+                <p class="mt-6 text-sm text-slate-600">{{ $isProductCategory ? __('Showing products for pincode :pin', ['pin' => $pincode]) : __('Showing services for pincode :pin', ['pin' => $pincode]) }}</p>
             @endif
 
             <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @forelse ($services as $service)
-                    <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <h2 class="text-lg font-semibold">
-                            <a href="{{ route('public.services.show', $service->service_code) }}" class="text-slate-900 hover:text-medca-primary">{{ $displayNames->serviceHeadline($service) }}</a>
-                        </h2>
-                        @if ($service->short_summary)
-                            <p class="mt-2 line-clamp-3 text-sm text-slate-600">{{ $service->short_summary }}</p>
-                        @endif
-                        @if ($service->price_range)
-                            <p class="mt-3 text-sm font-medium text-medca-primary">{{ $service->price_range }}</p>
-                        @endif
-                        @if ($service->categories->isNotEmpty())
-                            <div class="mt-3 flex flex-wrap gap-1">
-                                @foreach ($service->categories as $cat)
-                                    <span class="text-[10px] uppercase tracking-wide text-slate-500">{{ $cat->name }}</span>
-                                @endforeach
-                            </div>
-                        @endif
-                    </article>
+                    <x-public.service-card
+                        :service="$service"
+                        heading-tag="h2"
+                        show-price
+                        show-categories
+                        :product-category="$isProductCategory"
+                    />
                 @empty
-                    <p class="text-slate-600 sm:col-span-2 lg:col-span-3">{{ __('No published services in this category for your area yet.') }}</p>
+                    <p class="text-slate-600 sm:col-span-2 lg:col-span-3">{{ $isProductCategory ? __('No published products in this category for your area yet.') : __('No published services in this category for your area yet.') }}</p>
                 @endforelse
             </div>
 

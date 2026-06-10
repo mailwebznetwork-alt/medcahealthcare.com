@@ -2,6 +2,7 @@
 
 namespace App\Services\Import;
 
+use App\Enums\PublishStatus;
 use App\Enums\ServiceVisibility;
 use App\Models\ServiceCategory;
 use App\Models\ServiceCategoryFaq;
@@ -33,11 +34,15 @@ final class CategoryEntityImporter extends AbstractSpreadsheetImporter
     protected function optionalColumns(): array
     {
         return [
-            'slug', 'description', 'parent_code', 'sort_order', 'is_featured', 'is_active',
-            'show_on_homepage', 'show_on_about', 'show_on_contact', 'visibility',
+            'slug', 'description', 'short_summary', 'parent_code', 'sort_order', 'is_featured', 'is_active',
+            'publish_status', 'show_on_homepage', 'show_on_about', 'show_on_contact', 'visibility',
+            'key_benefits', 'eligibility', 'process_steps', 'ai_summary', 'procedures', 'specialized_care', 'shifts',
+            'price_range', 'trust_signals', 'target_keywords', 'ai_keywords',
             'meta_title', 'meta_description', 'focus_keywords', 'secondary_keywords',
             'canonical_url', 'robots_index', 'og_title', 'og_description', 'og_image',
-            'aeo_question', 'aeo_answer', 'faq_pairs', 'h1', 'breadcrumb_title',
+            'aeo_question', 'aeo_answer', 'faq_pairs', 'h1', 'h2_lines', 'h3_lines', 'search_intent', 'ai_context',
+            'breadcrumb_title', 'schema_type', 'schema_json_override',
+            'featured_image_url', 'icon_url', 'gallery_image_urls', 'image_alt',
         ];
     }
 
@@ -105,6 +110,12 @@ final class CategoryEntityImporter extends AbstractSpreadsheetImporter
             $attrs['visibility'] = ServiceVisibility::tryFrom(strtolower($row['visibility'])) ?? ServiceVisibility::Public;
         }
 
+        if (filled($row['publish_status'] ?? null)) {
+            $attrs['publish_status'] = PublishStatus::tryFrom(strtolower($row['publish_status'])) ?? PublishStatus::Published;
+        } elseif ($existing === null) {
+            $attrs['publish_status'] = PublishStatus::Published;
+        }
+
         if ($existing === null) {
             $category = ServiceCategory::query()->create($attrs);
             $this->recorder->record('created', 'service_category', $category->id, null, $line);
@@ -119,6 +130,7 @@ final class CategoryEntityImporter extends AbstractSpreadsheetImporter
         }
 
         $this->fieldMapper->syncSeo($category, $row);
+        $this->fieldMapper->syncSchema($category, $row);
         $this->syncFaqs($category, $row);
 
         return ['action' => $action, 'error' => null];

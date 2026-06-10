@@ -1,6 +1,7 @@
 @php
     use App\Models\Page;
     use App\Support\BlockContent;
+    use App\Support\ProductCategoryContext;
 
     $page = app(\App\Services\Content\ContentRenderContext::class)->all()['currentPage'] ?? null;
     $pageOverrides = ($page instanceof Page && is_array($page->block_overrides_json))
@@ -16,9 +17,13 @@
 
         return $fallback;
     };
+    $isProductCategory = ProductCategoryContext::isService($service);
     $serviceHeadline = app(\App\Services\Public\PublicDisplayNameResolver::class)->serviceHeadline($service);
+    if ($isProductCategory) {
+        $serviceHeadline = ProductCategoryContext::stripServicesLabel($serviceHeadline);
+    }
     $serviceSummary = (string) ($service->short_summary ?? '');
-    $eyebrow = $pick('eyebrow', __('Service'));
+    $eyebrow = $pick('eyebrow', $isProductCategory ? __('Product') : __('Service'));
     $headline = $pick('headline', $serviceHeadline);
     $subheadline = $pick('subheadline', $serviceSummary);
 @endphp

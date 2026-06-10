@@ -1,37 +1,37 @@
 # MEDCA HEALTH CARE — Production Launch Report
 
-**Generated:** 2026-06-08T16:04:29+00:00
-**Launch Ready:** YES
+**Generated:** 2026-06-10T10:26:50+00:00
+**Launch Ready:** NO
 
 ## Totals
 
 | Metric | Count |
 |--------|------:|
-| Categories | 6 |
-| Services | 8 |
-| Sub Services | 4 |
-| Pincodes | 19 |
-| Serviceable Pincodes | 19 |
-| Service↔Pincode Mappings | 84 |
-| Generated Pages | 104 |
-| Location Pages | 84 |
-| FAQs (all types) | 62 |
-| Schema Pages | 111 |
-| Internal Link Snapshots | 18 |
-| Registry Rows | 215 |
+| Categories | 0 |
+| Services | 0 |
+| Sub Services | 0 |
+| Pincodes | 0 |
+| Serviceable Pincodes | 0 |
+| Service↔Pincode Mappings | 0 |
+| Generated Pages | 0 |
+| Location Pages | 0 |
+| FAQs (all types) | 0 |
+| Schema Pages | 7 |
+| Internal Link Snapshots | 0 |
+| Registry Rows | 7 |
 
 ## Scores
 
 | Dimension | Score |
 |-----------|------:|
-| SEO | 100 |
-| GEO | 74 |
-| AEO | 100 |
+| SEO | 0 |
+| GEO | 0 |
+| AEO | 0 |
 | Performance | 85 |
 | Tracking | 25 |
-| Content | 100 |
-| Discovery | 100 |
-| **Launch** | **83** |
+| Content | 0 |
+| Discovery | 0 |
+| **Launch** | **16** |
 
 ## Validation Summary
 
@@ -39,9 +39,9 @@
 - **Service pages:** Orchestrator sync + location matrix
 - **Sub-service pages:** Independent pages with parent linkage
 - **Location pages:** Reconciled from service↔pincode matrix
-- **Change pincode:** Switch success = YES
+- **Change pincode:** Switch success = NO
 - **Site Architect:** Compatible = YES
-- **GEO coverage:** 74% serviceable pincodes enriched
+- **GEO coverage:** 0% serviceable pincodes enriched
 
 ## Tracking Status
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\PublishStatus;
 use App\Enums\ServiceVisibility;
+use App\Models\Concerns\HasCatalogMasterFields;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -31,12 +32,36 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'show_on_contact',
     'internal_links_snapshot',
     'custom_fields',
+    'key_benefits',
+    'eligibility',
+    'process_steps',
+    'ai_summary',
+    'procedures',
+    'specialized_care',
+    'shifts',
+    'price_range',
+    'featured_image',
+    'featured_media_id',
+    'icon',
+    'icon_media_id',
+    'gallery',
+    'gallery_media_ids',
+    'gallery_meta',
+    'image_alt',
+    'featured_image_meta',
+    'trust_signals',
+    'optimization_snapshot',
+    'target_keywords',
+    'ai_keywords',
+    'quality_score',
 ])]
 class SubService extends Model
 {
+    use HasCatalogMasterFields;
+
     protected function casts(): array
     {
-        return [
+        return array_merge([
             'sort_order' => 'integer',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
@@ -49,8 +74,7 @@ class SubService extends Model
             'show_on_contact' => 'boolean',
             'page_id' => 'integer',
             'internal_links_snapshot' => 'array',
-            'custom_fields' => 'array',
-        ];
+        ], $this->catalogMasterFieldCasts());
     }
 
     public static function findByCode(int $serviceId, string $code): ?self

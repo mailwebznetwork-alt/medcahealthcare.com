@@ -27,7 +27,7 @@ return [
     'entity_plans' => [
         'categories' => [
             'required_columns' => ['code', 'name'],
-            'optional_columns' => ['slug', 'description', 'parent_code', 'is_featured', 'meta_title', 'meta_description', 'focus_keywords', 'faq_pairs', 'show_on_homepage', 'show_on_about', 'show_on_contact'],
+            'optional_columns' => ['slug', 'description', 'short_summary', 'parent_code', 'publish_status', 'visibility', 'key_benefits', 'specialized_care', 'meta_title', 'meta_description', 'focus_keywords', 'faq_pairs', 'show_on_homepage', 'show_on_about', 'show_on_contact'],
             'validation' => ['unique_code', 'valid_parent_chain'],
         ],
         'services' => [
@@ -37,7 +37,7 @@ return [
         ],
         'sub_services' => [
             'required_columns' => ['parent_service_code', 'sub_service_code', 'title'],
-            'optional_columns' => ['description', 'is_featured', 'sort_order', 'faq_pairs', 'meta_title'],
+            'optional_columns' => ['description', 'short_summary', 'key_benefits', 'specialized_care', 'is_featured', 'sort_order', 'faq_pairs', 'meta_title', 'publish_status', 'visibility'],
             'validation' => ['parent_exists', 'unique_sub_code_per_parent'],
         ],
         'mappings' => [
@@ -127,15 +127,19 @@ return [
 
     'template_columns' => [
         'categories' => [
-            'code', 'name', 'slug', 'description', 'parent_code', 'sort_order', 'is_active', 'is_featured',
-            'visibility', 'show_on_homepage', 'show_on_about', 'show_on_contact', 'meta_title', 'meta_description',
-            'focus_keywords', 'secondary_keywords', 'canonical_url', 'robots_index', 'og_title', 'og_description',
-            'og_image', 'aeo_question', 'aeo_answer', 'faq_pairs', 'h1', 'breadcrumb_title',
+            'code', 'name', 'slug', 'description', 'short_summary', 'parent_code', 'sort_order', 'is_active', 'is_featured',
+            'publish_status', 'visibility', 'show_on_homepage', 'show_on_about', 'show_on_contact',
+            'key_benefits', 'eligibility', 'process_steps', 'ai_summary', 'procedures', 'specialized_care', 'shifts',
+            'price_range', 'trust_signals', 'target_keywords', 'ai_keywords',
+            'meta_title', 'meta_description', 'focus_keywords', 'secondary_keywords', 'canonical_url', 'robots_index',
+            'og_title', 'og_description', 'og_image', 'aeo_question', 'aeo_answer', 'h1', 'h2_lines', 'h3_lines',
+            'search_intent', 'ai_context', 'breadcrumb_title', 'faq_pairs', 'schema_type', 'schema_json_override',
+            'featured_image_url', 'icon_url', 'gallery_image_urls', 'image_alt',
         ],
         'services' => [
             'primary_category_code', 'category_codes', 'service_code', 'title', 'short_summary', 'description',
             'key_benefits', 'eligibility', 'process_steps', 'preparation', 'duration', 'requirements', 'deliverables',
-            'trust_signals', 'procedures', 'shifts', 'coverage_notes', 'emergency_coverage_notes', 'sort_order',
+            'trust_signals', 'procedures', 'specialized_care', 'shifts', 'coverage_notes', 'emergency_coverage_notes', 'sort_order',
             'is_active', 'publish_status', 'visibility', 'meta_title', 'meta_description', 'focus_keywords',
             'secondary_keywords', 'canonical_url', 'robots_index', 'og_title', 'og_description', 'og_image',
             'twitter_title', 'twitter_description', 'twitter_image', 'breadcrumb_title', 'h1', 'h2_lines', 'h3_lines',
@@ -150,10 +154,14 @@ return [
             'featured_image_url', 'banner_image_url', 'icon_url', 'gallery_image_urls', 'video_url', 'image_alt',
         ],
         'sub_services' => [
-            'parent_service_code', 'sub_service_code', 'title', 'short_summary', 'description', 'sort_order',
+            'parent_service_code', 'sub_service_code', 'title', 'short_summary', 'description',
+            'key_benefits', 'eligibility', 'process_steps', 'ai_summary', 'procedures', 'specialized_care', 'shifts',
+            'price_range', 'trust_signals', 'target_keywords', 'ai_keywords', 'sort_order',
             'is_active', 'publish_status', 'visibility', 'is_featured', 'is_top_rated', 'show_on_homepage',
             'show_on_about', 'show_on_contact', 'meta_title', 'meta_description', 'focus_keywords', 'secondary_keywords',
-            'faq_pairs', 'ai_summary', 'h1', 'h2_lines', 'h3_lines', 'schema_json_override',
+            'canonical_url', 'robots_index', 'og_title', 'og_description', 'og_image', 'h1', 'h2_lines', 'h3_lines',
+            'search_intent', 'ai_context', 'faq_pairs', 'schema_type', 'schema_json_override',
+            'featured_image_url', 'icon_url', 'gallery_image_urls', 'image_alt',
         ],
         'service_defaults' => [
             'service_code', 'location_h1_template', 'location_h2_template', 'location_h3_template',
@@ -179,7 +187,9 @@ return [
             [
                 'code' => 'physiotherapy',
                 'name' => 'Physiotherapy at Home',
+                'short_summary' => 'Licensed physiotherapy delivered at home across Bangalore.',
                 'is_active' => 'TRUE',
+                'publish_status' => 'published',
                 'visibility' => 'public',
             ],
         ],

@@ -44,6 +44,7 @@ final class ImportServiceFieldMapper
             'process_steps' => self::lineArrayOrNull($row['process_steps'] ?? null),
             'trust_signals' => self::lineArrayOrNull($row['trust_signals'] ?? null),
             'procedures' => self::lineArrayOrNull($row['procedures'] ?? null),
+            'specialized_care' => self::lineArrayOrNull($row['specialized_care'] ?? null),
             'shifts' => self::lineArrayOrNull($row['shifts'] ?? null),
             'ai_summary' => $row['ai_summary'] ?? null,
             'target_keywords' => ImportSupport::parseKeywords($row['target_keywords'] ?? null),

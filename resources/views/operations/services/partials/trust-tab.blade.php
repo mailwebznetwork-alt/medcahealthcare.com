@@ -1,7 +1,7 @@
 @php
     $trust = is_array($service->trust_signals) ? $service->trust_signals : [];
-    $googleRating = $service->averageApprovedRating();
-    $reviewCount = $service->approvedReviewsCount();
+    $googleRating = method_exists($service, 'averageApprovedRating') ? $service->averageApprovedRating() : null;
+    $reviewCount = method_exists($service, 'approvedReviewsCount') ? $service->approvedReviewsCount() : 0;
 @endphp
 
 <section class="mom-card p-6">

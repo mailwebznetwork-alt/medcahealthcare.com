@@ -6,7 +6,7 @@
     $brandName = $themeBranding['brand_name'] ?? config('medca.brand_name');
     $brandTagline = $themeBranding['tagline'] ?? config('medca.tagline');
     $isSuperAdmin = auth()->check() && strtolower((string) auth()->user()?->role) === 'super_admin';
-    $navItems = app(\App\Services\SiteNavigationResolver::class)->headerLinks();
+    $navItems = app(\App\Services\SiteNavigationResolver::class)->headerNav();
     $medcaCallHref = \App\Support\BlockContent::telHref();
     $medcaWhatsAppUrl = (string) ($whatsAppPrimaryUrl ?? \App\Support\BlockContent::whatsAppUrl());
     $headerPresetClass = $themeResolver->headerPresetClass();
@@ -66,23 +66,17 @@
             </a>
 
             {{-- Desktop Navigation --}}
-            <div class="hidden shrink-0 items-center justify-end gap-1 md:flex">
-                <nav class="flex shrink-0 items-center justify-end" aria-label="{{ __('Primary') }}">
-                    <ul class="flex flex-nowrap items-center justify-end">
+            <div class="hidden shrink-0 items-center justify-end gap-1 overflow-visible md:flex">
+                <nav class="medca-primary-nav flex shrink-0 items-center justify-end overflow-visible" aria-label="{{ __('Primary') }}">
+                    <ul class="flex flex-nowrap items-center justify-end overflow-visible">
                         @foreach($navItems as $item)
-                            @php($isNavCurrent = \App\Support\PublicNav::isCurrent($item['href']))
-                            <li @class([
-                                'flex shrink-0 items-center px-2 lg:px-2.5',
-                                'border-l border-solid border-slate-300' => ! $loop->first,
-                            ])>
-                                <a
-                                    href="{{ $item['href'] }}"
-                                    @if ($isNavCurrent) aria-current="page" @endif
-                                    class="{{ $navLinkBase }} {{ $isNavCurrent ? $navLinkActive : $navLinkDefault }}"
-                                >
-                                    {{ $item['label'] }}
-                                </a>
-                            </li>
+                            <x-public.nav-item
+                                :item="$item"
+                                :nav-link-base="$navLinkBase"
+                                :nav-link-default="$navLinkDefault"
+                                :nav-link-active="$navLinkActive"
+                                :show-border="! $loop->first"
+                            />
                         @endforeach
                     </ul>
                 </nav>
@@ -172,15 +166,13 @@
 
                             <nav class="custom-scrollbar flex-1 overflow-y-auto bg-white px-5 py-4">
                                 @foreach($navItems as $item)
-                                    @php($drawerCurrent = \App\Support\PublicNav::isCurrent($item['href']))
-                                    <a
-                                        href="{{ $item['href'] }}"
-                                        x-on:click="open = false"
-                                        @if ($drawerCurrent) aria-current="page" @endif
-                                        class="flex min-h-[60px] items-center border-b border-slate-100 px-1 text-sm font-medium uppercase tracking-[0.05em] transition-colors duration-200 hover:bg-slate-50 focus-visible:outline-none {{ $drawerCurrent ? $navLinkActive : 'text-medca-primary hover:text-medca-primary-hover' }}"
-                                    >
-                                        {{ $item['label'] }}
-                                    </a>
+                                    <x-public.nav-item
+                                        :item="$item"
+                                        :nav-link-base="$navLinkBase"
+                                        :nav-link-default="$navLinkDefault"
+                                        :nav-link-active="$navLinkActive"
+                                        :is-mobile="true"
+                                    />
                                 @endforeach
 
                                 @if($isSuperAdmin)

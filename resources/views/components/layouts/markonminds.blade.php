@@ -35,6 +35,8 @@
         };
     }
 
+    $showAdminNotifications = in_array(strtolower((string) ($user->role ?? '')), ['admin', 'super_admin'], true);
+
 @endphp
 
 <!DOCTYPE html>
@@ -131,6 +133,10 @@
                             </label>
                         </form>
                     </div>
+
+                    @if ($showAdminNotifications)
+                        <livewire:admin.notification-bell />
+                    @endif
 
                     <div
                         class="relative shrink-0"

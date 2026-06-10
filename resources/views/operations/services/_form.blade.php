@@ -5,11 +5,23 @@
     /** @var \Illuminate\Support\Collection<int, \App\Models\PinCode> $pinCodes */
     /** @var \Illuminate\Support\Collection<int, \App\Models\Page> $detailPages */
     $mode = $mode ?? 'create';
+    $catalogKind = $catalogKind ?? 'service';
     $activeTab = $activeTab ?? 'basic';
     $detailPages = isset($detailPages) ? $detailPages : collect();
-    $selectedPinIds = array_map(static fn ($v) => (int) $v, old('pincodes', $service->exists ? $service->pincodes->pluck('id')->all() : []));
+    $pincodeDefaults = [];
+    if ($catalogKind === 'service' && $service->exists && method_exists($service, 'pincodes')) {
+        $service->loadMissing('pincodes');
+        $pincodeDefaults = $service->pincodes?->pluck('id')->all() ?? [];
+    }
+    $selectedPinIds = array_map(static fn ($v) => (int) $v, old('pincodes', $pincodeDefaults));
     $categoryOptions = $categoryOptions ?? collect();
-    $selectedCategoryIds = array_map(static fn ($v) => (int) $v, old('category_ids', $service->exists ? $service->categories->pluck('id')->all() : []));
+    $categoryIdDefaults = [];
+    if ($catalogKind === 'service' && $service->exists && method_exists($service, 'categories')) {
+        $service->loadMissing('categories');
+        $categoryIdDefaults = $service->categories?->pluck('id')->all() ?? [];
+    }
+    $selectedCategoryIds = array_map(static fn ($v) => (int) $v, old('category_ids', $categoryIdDefaults));
+    $service->loadMissing(['seo', 'schema', 'faqs']);
     $seo = $service->seo;
     $schema = $service->schema;
 
@@ -54,6 +66,7 @@
     @include('operations.services.partials.tabs-nav', [
         'mode' => $mode,
         'activeTab' => $activeTab,
+        'catalogKind' => $catalogKind,
         'service' => $service,
         'serviceReviews' => $serviceReviews ?? collect(),
         'subServices' => $subServices ?? collect(),
@@ -61,8 +74,9 @@
     ])
 
     @if ($mode === 'edit')
-        @include('operations.services.partials.optimization-hub', [
+        @include($catalogKind === 'service' ? 'operations.services.partials.optimization-hub' : 'operations.catalog.partials.optimization-hub', [
             'service' => $service,
+            'catalogKind' => $catalogKind,
             'optimizationScores' => $optimizationScores ?? [],
             'seoRecommendations' => $seoRecommendations ?? [],
             'locationPageCount' => $locationPageCount ?? 0,
@@ -70,6 +84,11 @@
     @endif
 
     <div x-show="tab === 'basic'" x-cloak class="space-y-8">
+        @if ($catalogKind === 'category')
+            @include('operations.catalog.partials.basic-category', ['category' => $category ?? $service, 'service' => $service, 'mode' => $mode, 'parentOptions' => $parentOptions ?? []])
+        @elseif ($catalogKind === 'sub_service')
+            @include('operations.catalog.partials.basic-sub-service', ['subService' => $subService ?? $service, 'service' => $service, 'parentService' => $parentService ?? null, 'mode' => $mode])
+        @else
         <section class="mom-card p-6">
             <h3 class="mom-section-title mb-4">{{ __('Basic') }}</h3>
             <div class="grid gap-6 md:grid-cols-2">
@@ -121,6 +140,7 @@
                 </div>
             </div>
         </section>
+        @endif
     </div>
 
     <div x-show="tab === 'content'" x-cloak class="space-y-8">
@@ -149,7 +169,7 @@
     </div>
 
     <div x-show="tab === 'images'" x-cloak class="space-y-8">
-        @include('operations.services.partials.image-seo-tab', ['service' => $service])
+        @include('operations.services.partials.image-seo-tab', ['service' => $service, 'catalogKind' => $catalogKind])
     </div>
 
     <div x-show="tab === 'media'" x-cloak class="space-y-8">
@@ -286,7 +306,7 @@
     </div>
 
     <div x-show="tab === 'trust'" x-cloak class="space-y-8">
-        @include('operations.services.partials.trust-tab', ['service' => $service])
+        @include('operations.services.partials.trust-tab', ['service' => $service, 'catalogKind' => $catalogKind])
     </div>
 
     <div x-show="tab === 'aeo'" x-cloak class="space-y-8">
@@ -378,6 +398,13 @@
     </div>
 
     <div x-show="tab === 'geo'" x-cloak class="space-y-8">
+        @if ($catalogKind !== 'service')
+            @include('operations.catalog.partials.geo-catalog', [
+                'service' => $service,
+                'catalogKind' => $catalogKind,
+                'parentService' => $parentService ?? null,
+            ])
+        @else
         <section class="mom-card p-6">
             <h3 class="mom-section-title mb-4">{{ __('GEO — serviceable pincodes') }}</h3>
             <p class="mom-body-text mb-4 max-w-3xl">{{ __('Select existing coverage areas from your pin code directory. No manual pin strings.') }}</p>
@@ -429,9 +456,17 @@
                 </div>
             </div>
         </section>
+        @endif
     </div>
 
     <div x-show="tab === 'publishing'" x-cloak class="space-y-8">
+        @if ($catalogKind !== 'service')
+            @include('operations.catalog.partials.publishing-catalog', [
+                'service' => $service,
+                'catalogKind' => $catalogKind,
+                'detailPages' => $detailPages ?? collect(),
+            ])
+        @else
         <section class="mom-card p-6">
             <h3 class="mom-section-title mb-4">{{ __('Publishing') }}</h3>
             <div class="grid gap-6 md:grid-cols-2">
@@ -481,18 +516,35 @@
                 </div>
             </div>
         </section>
+        @endif
     </div>
 
     @if ($mode === 'edit')
         <div x-show="tab === 'sub_services'" x-cloak class="space-y-8">
-            @include('operations.services.partials.tab-sub-services', [
-                'service' => $service,
-                'subServices' => $subServices ?? collect(),
-            ])
+            @if ($catalogKind === 'category')
+                @include('operations.catalog.partials.tab-category-services', ['subServices' => $subServices ?? collect()])
+            @elseif ($catalogKind === 'service')
+                @include('operations.services.partials.tab-sub-services', [
+                    'service' => $service,
+                    'subServices' => $subServices ?? collect(),
+                ])
+            @else
+                <section class="mom-card p-6">
+                    <h3 class="mom-section-title mb-2">{{ __('Sub-services') }}</h3>
+                    <p class="mom-subtext">{{ __('Nested sub-services are managed on the parent service.') }}</p>
+                </section>
+            @endif
         </div>
 
         <div x-show="tab === 'reviews'" x-cloak class="space-y-8">
-            @include('operations.services.partials.tab-reviews', ['serviceReviews' => $serviceReviews ?? collect()])
+            @if ($catalogKind === 'service')
+                @include('operations.services.partials.tab-reviews', ['serviceReviews' => $serviceReviews ?? collect()])
+            @else
+                <section class="mom-card p-6">
+                    <h3 class="mom-section-title mb-2">{{ __('Reviews') }}</h3>
+                    <p class="mom-subtext">{{ __('Reviews are collected on parent services. Open the parent service Reviews tab to moderate.') }}</p>
+                </section>
+            @endif
         </div>
     @endif
 

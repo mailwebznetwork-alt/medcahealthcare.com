@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ServiceVisibility;
+use App\Models\Concerns\HasCatalogMasterFields;
 use Database\Factories\ServiceCategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,10 +31,36 @@ use Illuminate\Support\Str;
     'show_on_contact',
     'page_id',
     'internal_links_snapshot',
+    'short_summary',
+    'key_benefits',
+    'eligibility',
+    'process_steps',
+    'ai_summary',
+    'procedures',
+    'specialized_care',
+    'shifts',
+    'price_range',
+    'featured_image',
+    'featured_media_id',
+    'icon',
+    'icon_media_id',
+    'gallery',
+    'gallery_media_ids',
+    'gallery_meta',
+    'image_alt',
+    'featured_image_meta',
+    'trust_signals',
+    'optimization_snapshot',
+    'target_keywords',
+    'ai_keywords',
+    'quality_score',
+    'publish_status',
+    'custom_fields',
 ])]
 class ServiceCategory extends Model
 {
     /** @use HasFactory<ServiceCategoryFactory> */
+    use HasCatalogMasterFields;
     use HasFactory;
     use SoftDeletes;
 
@@ -73,7 +100,7 @@ class ServiceCategory extends Model
      */
     protected function casts(): array
     {
-        return [
+        return array_merge([
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'show_on_homepage' => 'boolean',
@@ -84,7 +111,7 @@ class ServiceCategory extends Model
             'page_id' => 'integer',
             'visibility' => ServiceVisibility::class,
             'internal_links_snapshot' => 'array',
-        ];
+        ], $this->catalogMasterFieldCasts());
     }
 
     /**

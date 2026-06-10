@@ -1,7 +1,9 @@
 @php
+    use App\Services\Public\PublicDisplayNameResolver;
+
     $sub = $subService ?? null;
     $parent = $sub?->service;
-    $headline = $sub?->seo?->h1 ?: $sub?->title;
+    $headline = $sub ? app(PublicDisplayNameResolver::class)->subServiceHeadline($sub) : '';
     $summary = $sub?->short_summary ?: $sub?->description ?: $sub?->seo?->meta_description;
 @endphp
 @if ($sub)

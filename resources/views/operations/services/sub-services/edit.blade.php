@@ -24,10 +24,13 @@
 
     <h2 class="mom-section-title mb-6">{{ __('Edit sub-service') }}</h2>
 
-    <form action="{{ route('operations.services.sub-services.update', [$service, $subService]) }}" method="post" class="space-y-6">
+    <form action="{{ route('operations.services.sub-services.update', [$service, $subService]) }}" method="post" enctype="multipart/form-data" class="space-y-6">
         @csrf
         @method('PUT')
-        @include('operations.services.sub-services._form', ['mode' => 'edit', 'service' => $service, 'subService' => $subService])
+        @include('operations.services._form', array_merge(
+            ['mode' => 'edit', 'subService' => $subService, 'parentService' => $service],
+            compact('service', 'catalogKind', 'linkedDetailPage', 'detailPages', 'pinCodes', 'optimizationScores', 'seoRecommendations', 'locationPageCount', 'activeTab', 'categoryOptions', 'serviceCatalog', 'selectedRelatedCodes', 'serviceReviews', 'subServices')
+        ))
         <div class="flex flex-wrap gap-3">
             <x-primary-button variant="mom" type="submit">{{ __('Save changes') }}</x-primary-button>
             <a href="{{ route('operations.services.sub-services.index', $service) }}" class="mom-cta-ghost">{{ __('All sub-services') }}</a>

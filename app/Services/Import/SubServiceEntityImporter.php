@@ -15,6 +15,14 @@ use App\Services\Governance\SubServiceCreationGuard;
 
 final class SubServiceEntityImporter extends AbstractSpreadsheetImporter
 {
+    public function __construct(
+        SpreadsheetReader $reader,
+        ImportBatchRecorder $recorder,
+        private readonly ImportCatalogContentMapper $contentMapper,
+    ) {
+        parent::__construct($reader, $recorder);
+    }
+
     public function entityKey(): string
     {
         return 'sub_services';
@@ -28,11 +36,15 @@ final class SubServiceEntityImporter extends AbstractSpreadsheetImporter
     protected function optionalColumns(): array
     {
         return [
-            'description', 'short_summary', 'sort_order', 'is_featured', 'is_top_rated',
+            'description', 'short_summary', 'key_benefits', 'eligibility', 'process_steps', 'ai_summary',
+            'procedures', 'specialized_care', 'shifts', 'price_range', 'trust_signals',
+            'target_keywords', 'ai_keywords', 'sort_order', 'is_featured', 'is_top_rated',
             'is_active', 'show_on_homepage', 'show_on_about', 'show_on_contact',
             'publish_status', 'visibility', 'meta_title', 'meta_description',
-            'focus_keywords', 'secondary_keywords', 'faq_pairs', 'ai_summary',
-            'h1', 'h2_lines', 'h3_lines', 'schema_json_override',
+            'focus_keywords', 'secondary_keywords', 'canonical_url', 'robots_index',
+            'og_title', 'og_description', 'og_image', 'search_intent', 'ai_context',
+            'faq_pairs', 'h1', 'h2_lines', 'h3_lines', 'schema_type', 'schema_json_override',
+            'featured_image_url', 'icon_url', 'gallery_image_urls', 'image_alt',
         ];
     }
 
@@ -108,12 +120,10 @@ final class SubServiceEntityImporter extends AbstractSpreadsheetImporter
 
         $previous = $existing?->toArray();
 
-        $attrs = [
+        $attrs = array_merge([
             'service_id' => $parent->id,
             'sub_service_code' => $subCode,
             'title' => $title,
-            'description' => $row['description'] ?? null,
-            'short_summary' => $row['short_summary'] ?? null,
             'sort_order' => filled($row['sort_order'] ?? null) ? (int) $row['sort_order'] : 0,
             'is_active' => ImportSupport::parseBool($row['is_active'] ?? null, true),
             'is_featured' => ImportSupport::parseBool($row['is_featured'] ?? null),
@@ -121,10 +131,9 @@ final class SubServiceEntityImporter extends AbstractSpreadsheetImporter
             'show_on_homepage' => ImportSupport::parseBool($row['show_on_homepage'] ?? null),
             'show_on_about' => ImportSupport::parseBool($row['show_on_about'] ?? null),
             'show_on_contact' => ImportSupport::parseBool($row['show_on_contact'] ?? null),
-            'ai_summary' => $row['ai_summary'] ?? null,
             'publish_status' => PublishStatus::tryFrom(strtolower($row['publish_status'] ?? '')) ?? PublishStatus::Published,
             'visibility' => ServiceVisibility::tryFrom(strtolower($row['visibility'] ?? '')) ?? ServiceVisibility::Public,
-        ];
+        ], $this->contentMapper->contentAttributes($row));
 
         if ($existing === null) {
             $sub = SubService::query()->create($attrs);
@@ -151,18 +160,23 @@ final class SubServiceEntityImporter extends AbstractSpreadsheetImporter
      */
     private function syncSeo(SubService $sub, array $row): void
     {
-        $entityTags = array_filter([
-            'h2_lines' => $row['h2_lines'] ?? null,
-            'h3_lines' => $row['h3_lines'] ?? null,
-        ], static fn ($v) => $v !== null && $v !== '');
-
         $seoFields = array_filter([
             'meta_title' => $row['meta_title'] ?? null,
             'meta_description' => $row['meta_description'] ?? null,
             'focus_keywords' => ImportSupport::parseKeywords($row['focus_keywords'] ?? null),
             'secondary_keywords' => ImportSupport::parseKeywords($row['secondary_keywords'] ?? null),
+            'canonical_url' => $row['canonical_url'] ?? null,
+            'robots_index' => array_key_exists('robots_index', $row)
+                ? ImportSupport::parseBool($row['robots_index'], true)
+                : null,
+            'og_title' => $row['og_title'] ?? null,
+            'og_description' => $row['og_description'] ?? null,
+            'og_image' => $row['og_image'] ?? null,
             'h1' => $row['h1'] ?? null,
-            'entity_tags' => $entityTags !== [] ? $entityTags : null,
+            'h2' => ImportSupport::normalizeLineArray($row['h2_lines'] ?? null) ?: null,
+            'h3' => ImportSupport::normalizeLineArray($row['h3_lines'] ?? null) ?: null,
+            'search_intent' => $row['search_intent'] ?? null,
+            'ai_context' => $row['ai_context'] ?? null,
         ], fn ($v) => $v !== null && $v !== '');
 
         if ($seoFields === []) {
@@ -177,14 +191,19 @@ final class SubServiceEntityImporter extends AbstractSpreadsheetImporter
      */
     private function syncSchema(SubService $sub, array $row): void
     {
+        $schemaType = $row['schema_type'] ?? null;
         $override = ImportSupport::parseJson($row['schema_json_override'] ?? null);
-        if ($override === null) {
+
+        if (($schemaType === null || $schemaType === '') && $override === null) {
             return;
         }
 
         SubServiceSchema::query()->updateOrCreate(
             ['sub_service_id' => $sub->id],
-            ['schema_type' => 'Service', 'schema_json' => $override]
+            [
+                'schema_type' => filled($schemaType) ? $schemaType : 'Service',
+                'schema_json' => $override ?? [],
+            ]
         );
     }
 

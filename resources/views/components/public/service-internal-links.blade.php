@@ -1,6 +1,23 @@
 @props(['links' => []])
 
 @php
+    use App\Models\Service;
+    use App\Models\ServiceCategory;
+    use App\Services\Content\ContentRenderContext;
+    use App\Support\ProductCategoryContext;
+
+    $renderContext = app(ContentRenderContext::class)->all();
+    $contextService = $renderContext['service'] ?? null;
+    $contextCategory = $renderContext['category'] ?? $renderContext['serviceCategory'] ?? null;
+    $isProductCategory = ProductCategoryContext::isCategory($contextCategory instanceof ServiceCategory ? $contextCategory : null)
+        || ($contextService instanceof Service && ProductCategoryContext::isService($contextService));
+
+    $formatTitle = static function (?string $title) use ($isProductCategory): string {
+        $title = (string) ($title ?? '');
+
+        return $isProductCategory ? ProductCategoryContext::stripServicesLabel($title) : $title;
+    };
+
     $parentService = is_array($links['parent_service'] ?? null) ? $links['parent_service'] : null;
     $relatedCategories = is_array($links['related_categories'] ?? null) ? $links['related_categories'] : [];
     $relatedSubServices = is_array($links['related_sub_services'] ?? null) ? $links['related_sub_services'] : [];
@@ -54,12 +71,12 @@
 
     @if ($relatedServices !== [])
         <div class="space-y-4">
-            <h3 class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('Related services') }}</h3>
+            <h3 class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ $isProductCategory ? __('Related products') : __('Related services') }}</h3>
             <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($relatedServices as $item)
                     <li>
                         <a href="{{ $item['url'] ?? '#' }}" class="group flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-medca-primary/30 hover:shadow-md">
-                            <span class="text-base font-semibold text-slate-900 group-hover:text-medca-primary">{{ $item['title'] ?? '' }}</span>
+                            <span class="text-base font-semibold text-slate-900 group-hover:text-medca-primary">{{ $formatTitle($item['title'] ?? '') }}</span>
                             <span class="mt-3 text-sm font-semibold text-medca-primary">{{ __('View details') }} →</span>
                         </a>
                     </li>

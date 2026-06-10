@@ -28,6 +28,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'geo_signals',
     'aeo_signals',
     'entity_tags',
+    'h1',
+    'h2',
+    'h3',
+    'search_intent',
+    'schema_health_score',
+    'content_quality_score',
+    'local_seo_score',
+    'image_seo_score',
+    'seo_recommendations',
+    'geo_entities',
 ])]
 class ServiceCategorySeo extends Model
 {
@@ -46,6 +56,14 @@ class ServiceCategorySeo extends Model
             'geo_signals' => 'array',
             'aeo_signals' => 'array',
             'entity_tags' => 'array',
+            'h2' => 'array',
+            'h3' => 'array',
+            'schema_health_score' => 'integer',
+            'content_quality_score' => 'integer',
+            'local_seo_score' => 'integer',
+            'image_seo_score' => 'integer',
+            'seo_recommendations' => 'array',
+            'geo_entities' => 'array',
         ];
     }
 

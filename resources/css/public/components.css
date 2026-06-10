@@ -672,6 +672,102 @@ body.medca-public-surface .medca-header-top-bar p {
     }
 }
 
+/* Nested header dropdowns — explicit CSS (not reliant on Tailwind group-hover purge) */
+body.medca-public-surface .medca-site-header .medca-primary-nav,
+body.medca-public-surface .medca-site-header .medca-primary-nav ul,
+body.medca-public-surface .medca-site-header .medca-nav-item-dropdown {
+    overflow: visible;
+}
+
+body.medca-public-surface .medca-nav-item-dropdown {
+    position: relative;
+}
+
+body.medca-public-surface .medca-nav-dropdown,
+body.medca-public-surface .medca-nav-flyout {
+    position: absolute;
+    z-index: 60;
+    min-width: 12rem;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(0.25rem);
+    transition:
+        opacity 0.15s ease,
+        transform 0.15s ease,
+        visibility 0.15s ease;
+}
+
+body.medca-public-surface .medca-nav-dropdown {
+    left: 0;
+    top: 100%;
+    margin-top: 0;
+    padding: 0.5rem 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #fff;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+}
+
+body.medca-public-surface .medca-nav-flyout {
+    left: 100%;
+    top: 0;
+    margin-left: 0;
+    padding: 0.5rem 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #fff;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+}
+
+body.medca-public-surface .medca-nav-item-dropdown:hover > .medca-nav-dropdown,
+body.medca-public-surface .medca-nav-item-dropdown:focus-within > .medca-nav-dropdown,
+body.medca-public-surface .medca-nav-flyout-parent:hover > .medca-nav-flyout,
+body.medca-public-surface .medca-nav-flyout-parent:focus-within > .medca-nav-flyout {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+body.medca-public-surface .medca-nav-dropdown a,
+body.medca-public-surface .medca-nav-flyout a {
+    display: block;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--medca-primary);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+body.medca-public-surface .medca-nav-dropdown a:hover,
+body.medca-public-surface .medca-nav-flyout a:hover {
+    background: #f8fafc;
+}
+
+body.medca-public-surface .medca-nav-dropdown .medca-nav-dropdown-parent-link {
+    font-weight: 600;
+}
+
+body.medca-public-surface .medca-nav-flyout-parent {
+    position: relative;
+}
+
+body.medca-public-surface .medca-nav-flyout-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: var(--medca-primary);
+}
+
+body.medca-public-surface .medca-nav-flyout-trigger:hover {
+    background: #f8fafc;
+}
+
 /* Phase 8 — public header style presets (navigation resolver unchanged) */
 body.medca-public-surface .medca-header-classic {
     /* Default Medca stack — no overrides */

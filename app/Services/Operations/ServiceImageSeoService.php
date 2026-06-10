@@ -3,6 +3,8 @@
 namespace App\Services\Operations;
 
 use App\Models\Service;
+use App\Models\ServiceCategory;
+use App\Models\SubService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -60,6 +62,40 @@ class ServiceImageSeoService
 
         $galleryMeta = is_array($service->gallery_meta) ? $service->gallery_meta : [];
         $gallery = is_array($service->gallery) ? $service->gallery : [];
+        if ($gallery !== []) {
+            $withAlt = 0;
+            foreach ($gallery as $path) {
+                $meta = $galleryMeta[$path] ?? $galleryMeta[basename((string) $path)] ?? null;
+                if (is_array($meta) && filled($meta['alt'] ?? null)) {
+                    $withAlt++;
+                }
+            }
+            $score += (int) min(15, ($withAlt / max(1, count($gallery))) * 15);
+        }
+
+        return min(100, $score);
+    }
+
+    public function scoreCatalogEntity(ServiceCategory|SubService $entity): int
+    {
+        $score = 0;
+        $featured = is_array($entity->featured_image_meta) ? $entity->featured_image_meta : [];
+
+        if (filled($entity->featured_image)) {
+            $score += 25;
+        }
+        if (filled($featured['alt'] ?? $entity->image_alt)) {
+            $score += 30;
+        }
+        if (filled($featured['title'] ?? null)) {
+            $score += 15;
+        }
+        if (filled($featured['description'] ?? null)) {
+            $score += 15;
+        }
+
+        $galleryMeta = is_array($entity->gallery_meta) ? $entity->gallery_meta : [];
+        $gallery = is_array($entity->gallery) ? $entity->gallery : [];
         if ($gallery !== []) {
             $withAlt = 0;
             foreach ($gallery as $path) {

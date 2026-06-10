@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Careers\CareersController;
+use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Growth\AeoController;
 use App\Http\Controllers\Growth\CompetitorPageController;
@@ -472,6 +473,12 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:security
     Route::get('/security', [ModuleSurfaceController::class, 'show'])
         ->defaults('momModule', 'security')
         ->name('modules.security');
+});
+
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'role:admin,super_admin'])->prefix('admin/notifications')->name('admin.notifications.')->group(function () {
+    Route::get('/', [AdminNotificationController::class, 'index'])->name('index');
+    Route::post('/read-all', [AdminNotificationController::class, 'markAllRead'])->name('read-all');
+    Route::match(['get', 'patch'], '/{notification}/read', [AdminNotificationController::class, 'markRead'])->name('read');
 });
 
 Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings', 'role:admin,super_admin'])->group(function () {

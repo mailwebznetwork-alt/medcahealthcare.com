@@ -7,25 +7,31 @@ use App\Models\ServiceCategorySeo;
 
 final class ImportCategoryFieldMapper
 {
+    public function __construct(
+        private readonly ImportCatalogContentMapper $contentMapper,
+    ) {}
+
     /**
      * @param  array<string, string|null>  $row
      * @return array<string, mixed>
      */
     public function categoryAttributes(array $row, ?int $parentId): array
     {
-        return array_filter([
-            'name' => $row['name'] ?? null,
-            'code' => $row['code'] ?? null,
-            'slug' => $row['slug'] ?? null,
-            'description' => $row['description'] ?? null,
-            'parent_id' => $parentId,
-            'sort_order' => filled($row['sort_order'] ?? null) ? (int) $row['sort_order'] : null,
-            'is_active' => array_key_exists('is_active', $row) ? ImportSupport::parseBool($row['is_active'], true) : null,
-            'is_featured' => array_key_exists('is_featured', $row) ? ImportSupport::parseBool($row['is_featured']) : null,
-            'show_on_homepage' => array_key_exists('show_on_homepage', $row) ? ImportSupport::parseBool($row['show_on_homepage']) : null,
-            'show_on_about' => array_key_exists('show_on_about', $row) ? ImportSupport::parseBool($row['show_on_about']) : null,
-            'show_on_contact' => array_key_exists('show_on_contact', $row) ? ImportSupport::parseBool($row['show_on_contact']) : null,
-        ], static fn ($v) => $v !== null);
+        return array_filter(array_merge(
+            [
+                'name' => $row['name'] ?? null,
+                'code' => $row['code'] ?? null,
+                'slug' => $row['slug'] ?? null,
+                'parent_id' => $parentId,
+                'sort_order' => filled($row['sort_order'] ?? null) ? (int) $row['sort_order'] : null,
+                'is_active' => array_key_exists('is_active', $row) ? ImportSupport::parseBool($row['is_active'], true) : null,
+                'is_featured' => array_key_exists('is_featured', $row) ? ImportSupport::parseBool($row['is_featured']) : null,
+                'show_on_homepage' => array_key_exists('show_on_homepage', $row) ? ImportSupport::parseBool($row['show_on_homepage']) : null,
+                'show_on_about' => array_key_exists('show_on_about', $row) ? ImportSupport::parseBool($row['show_on_about']) : null,
+                'show_on_contact' => array_key_exists('show_on_contact', $row) ? ImportSupport::parseBool($row['show_on_contact']) : null,
+            ],
+            $this->contentMapper->contentAttributes($row),
+        ), static fn ($v) => $v !== null);
     }
 
     /**
@@ -34,7 +40,6 @@ final class ImportCategoryFieldMapper
     public function syncSeo(ServiceCategory $category, array $row): void
     {
         $entityTags = array_filter([
-            'h1' => $row['h1'] ?? null,
             'breadcrumb_title' => $row['breadcrumb_title'] ?? null,
         ], static fn ($v) => $v !== null && $v !== '');
 
@@ -52,6 +57,11 @@ final class ImportCategoryFieldMapper
             'og_image' => $row['og_image'] ?? null,
             'aeo_question' => $row['aeo_question'] ?? null,
             'aeo_answer' => $row['aeo_answer'] ?? null,
+            'h1' => $row['h1'] ?? null,
+            'h2' => self::lineArrayOrNull($row['h2_lines'] ?? null),
+            'h3' => self::lineArrayOrNull($row['h3_lines'] ?? null),
+            'search_intent' => $row['search_intent'] ?? null,
+            'ai_context' => $row['ai_context'] ?? null,
             'entity_tags' => $entityTags !== [] ? $entityTags : null,
         ], static fn ($v) => $v !== null && $v !== '');
 
@@ -63,5 +73,36 @@ final class ImportCategoryFieldMapper
             ['service_category_id' => $category->id],
             $seoFields
         );
+    }
+
+    /**
+     * @param  array<string, string|null>  $row
+     */
+    public function syncSchema(ServiceCategory $category, array $row): void
+    {
+        $schemaType = $row['schema_type'] ?? null;
+        $override = ImportSupport::parseJson($row['schema_json_override'] ?? null);
+
+        if (($schemaType === null || $schemaType === '') && $override === null) {
+            return;
+        }
+
+        \App\Models\ServiceCategorySchema::query()->updateOrCreate(
+            ['service_category_id' => $category->id],
+            [
+                'schema_type' => filled($schemaType) ? $schemaType : 'CollectionPage',
+                'schema_json' => $override ?? [],
+            ]
+        );
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    private static function lineArrayOrNull(mixed $value): ?array
+    {
+        $lines = ImportSupport::normalizeLineArray($value);
+
+        return $lines === [] ? null : $lines;
     }
 }

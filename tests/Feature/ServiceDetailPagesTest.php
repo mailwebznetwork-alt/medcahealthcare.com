@@ -80,9 +80,11 @@ it('creates and links a detail page via the provisioner', function () {
     expect($page->slug)->toBe('service-home-nursing')
         ->and($page->usesCanvasLayout())->toBeTrue()
         ->and($service->fresh()->detail_page_id)->toBe($page->id)
-        ->and($page->content)->toContain('service-detail-hero');
+        ->and($page->content)->toContain('service-detail-hero')
+        ->and($page->content)->toContain('service-detail-body');
 
     expect(Block::query()->where('block_slug', 'service-detail-hero')->exists())->toBeTrue();
+    expect(Block::query()->where('block_slug', 'service-detail-body')->exists())->toBeTrue();
 });
 
 it('renders the operations service edit form without a view error', function () {
@@ -188,6 +190,33 @@ it('shows each service own title not shared block section content', function () 
 it('uses service title when schema headline default is empty', function () {
     expect(BlockContent::get([], 'service-detail-hero', 'headline', 'Geriatric Care at Home'))
         ->toBe('Geriatric Care at Home');
+});
+
+it('renders database service fields in the detail body block', function () {
+    $service = Service::factory()->create([
+        'service_code' => 'wound-care-detail',
+        'title' => 'Wound Care',
+        'description' => '<p>Professional wound dressing at home.</p>',
+        'key_benefits' => ['Sterile technique', 'Daily monitoring'],
+        'eligibility' => ['Post-surgery patients'],
+        'process_steps' => ['Book visit', 'Nurse assignment', 'Ongoing care'],
+        'trust_signals' => ['Certified nurses'],
+        'publish_status' => PublishStatus::Published,
+        'visibility' => ServiceVisibility::Public,
+        'is_active' => true,
+    ]);
+
+    app(ServiceDetailPageProvisioner::class)->provision($service);
+
+    $this->get('/services/wound-care-detail')
+        ->assertSuccessful()
+        ->assertSee('data-service-detail-body', false)
+        ->assertSee('Key benefits', false)
+        ->assertSee('Sterile technique', false)
+        ->assertSee('How it works', false)
+        ->assertSee('Book visit', false)
+        ->assertSee('Who is this for?', false)
+        ->assertSee('Certified nurses', false);
 });
 
 it('renders service title instead of raw blade in the detail hero headline', function () {

@@ -37,7 +37,7 @@ final class ServiceEntityImporter extends AbstractSpreadsheetImporter
         return [
             'primary_category_code', 'category_codes', 'description', 'short_summary',
             'key_benefits', 'eligibility', 'process_steps', 'preparation', 'duration',
-            'requirements', 'deliverables', 'trust_signals', 'procedures', 'shifts',
+            'requirements', 'deliverables', 'trust_signals', 'procedures', 'specialized_care', 'shifts',
             'coverage_notes', 'emergency_coverage_notes', 'sort_order', 'is_active',
             'publish_status', 'visibility', 'meta_title', 'meta_description', 'focus_keywords',
             'secondary_keywords', 'canonical_url', 'robots_index', 'og_title', 'og_description',

@@ -8,95 +8,104 @@ use Illuminate\Support\Facades\Schema;
 
 class SiteNavigationResolver
 {
+    public function __construct(
+        private readonly SiteNavigationTreeService $treeService,
+        private readonly SiteNavigationCatalogMerger $catalogMerger,
+    ) {}
+
     /**
+     * Nested header menu for dropdown rendering.
+     *
+     * @return list<array{label: string, href: string|null, children: list<array<string, mixed>>}>
+     */
+    public function headerNav(): array
+    {
+        if (! Schema::hasTable('site_navigation_items')) {
+            return $this->defaultHeaderNav();
+        }
+
+        $tree = $this->treeService->publicNavForZone(SiteNavigationItem::ZONE_HEADER);
+
+        if ($tree === []) {
+            return $this->defaultHeaderNav();
+        }
+
+        return $this->catalogMerger->mergeCatalogUnderServices($tree, SiteNavigationItem::ZONE_HEADER);
+    }
+
+    /**
+     * Nested footer menu.
+     *
+     * @return list<array{label: string, href: string|null, children: list<array<string, mixed>>}>
+     */
+    public function footerNav(): array
+    {
+        if (! Schema::hasTable('site_navigation_items')) {
+            return [];
+        }
+
+        return $this->treeService->publicNavForZone(SiteNavigationItem::ZONE_FOOTER);
+    }
+
+    /**
+     * Flat header links (legacy consumers).
+     *
      * @return list<array{label: string, href: string}>
      */
     public function headerLinks(): array
     {
-        return once(function (): array {
-            if (! Schema::hasTable('site_navigation_items')) {
-                return $this->defaultHeaderLinks();
-            }
-
-            $rows = SiteNavigationItem::query()
-                ->where('zone', SiteNavigationItem::ZONE_HEADER)
-                ->orderBy('sort_order')
-                ->with('page')
-                ->get();
-
-            $links = [];
-            foreach ($rows as $row) {
-                $page = $row->page;
-                if ($page === null || ! $page->is_active) {
-                    continue;
-                }
-                $links[] = [
-                    'label' => $this->resolveNavLabel($row, $page),
-                    'href' => $this->resolveHref($page),
-                ];
-            }
-
-            if ($links === []) {
-                return $this->defaultHeaderLinks();
-            }
-
-            return $links;
-        });
+        return $this->flattenNav($this->headerNav());
     }
 
     /**
+     * Flat footer links (legacy consumers).
+     *
      * @return list<array{label: string, href: string}>
      */
     public function footerLinks(): array
     {
-        return once(function (): array {
-            if (! Schema::hasTable('site_navigation_items')) {
-                return [];
-            }
-
-            $rows = SiteNavigationItem::query()
-                ->where('zone', SiteNavigationItem::ZONE_FOOTER)
-                ->orderBy('sort_order')
-                ->with('page')
-                ->get();
-
-            $links = [];
-            foreach ($rows as $row) {
-                $page = $row->page;
-                if ($page === null || ! $page->is_active) {
-                    continue;
-                }
-                $links[] = [
-                    'label' => $this->resolveNavLabel($row, $page),
-                    'href' => $this->resolveHref($page),
-                ];
-            }
-
-            return $links;
-        });
+        return $this->flattenNav($this->footerNav());
     }
 
     /**
-     * Pages with the reserved slug 'home' resolve to '/' so the marketing root URL stays canonical.
+     * @param  list<array{label: string, href: string|null, children?: list<array<string, mixed>>}>  $nodes
+     * @return list<array{label: string, href: string}>
      */
-    protected function resolveHref(Page $page): string
+    protected function flattenNav(array $nodes): array
     {
-        if ($page->slug === 'home') {
-            return url('/');
+        $links = [];
+
+        foreach ($nodes as $node) {
+            $href = $node['href'] ?? null;
+            if (is_string($href) && $href !== '') {
+                $links[] = [
+                    'label' => (string) ($node['label'] ?? ''),
+                    'href' => $href,
+                ];
+            }
+
+            $children = is_array($node['children'] ?? null) ? $node['children'] : [];
+            if ($children !== []) {
+                array_push($links, ...$this->flattenNav($children));
+            }
         }
 
-        return $page->publicUrl();
+        return $links;
     }
 
-    protected function resolveNavLabel(SiteNavigationItem $row, Page $page): string
+    /**
+     * @return list<array{label: string, href: string|null, children: list<array<string, mixed>>}>
+     */
+    protected function defaultHeaderNav(): array
     {
-        $custom = $row->custom_label ?? null;
-
-        if ($custom !== null && trim((string) $custom) !== '') {
-            return trim((string) $custom);
-        }
-
-        return $page->title;
+        return array_map(
+            static fn (array $link): array => [
+                'label' => $link['label'],
+                'href' => $link['href'],
+                'children' => [],
+            ],
+            $this->defaultHeaderLinks(),
+        );
     }
 
     /**
@@ -139,7 +148,7 @@ class SiteNavigationResolver
                 ->first();
 
             if ($page instanceof Page) {
-                return $this->resolveHref($page);
+                return app(SiteNavigationLinkResolver::class)->pageHref($page);
             }
         }
 

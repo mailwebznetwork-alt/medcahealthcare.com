@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Contracts\Deployment\AiDeploymentAdvisoryInterface;
 use App\Http\Controllers\Public\LeadCaptureController;
+use App\Models\AdminNotification;
 use App\Models\Block;
 use App\Models\Blog;
 use App\Models\BusinessProfile;
@@ -36,6 +37,7 @@ use App\Observers\SubServiceObserver;
 use App\Observers\ServiceLocationPageObserver;
 use App\Observers\ServiceObserver;
 use App\Observers\SiteKeywordRankingObserver;
+use App\Policies\AdminNotificationPolicy;
 use App\Policies\BlockPolicy;
 use App\Policies\BlogPolicy;
 use App\Policies\CompetitorPolicy;
@@ -148,6 +150,7 @@ class AppServiceProvider extends ServiceProvider
             ?>";
         });
 
+        Gate::policy(AdminNotification::class, AdminNotificationPolicy::class);
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(PinCode::class, PinCodePolicy::class);
         Gate::policy(Service::class, ServicePolicy::class);

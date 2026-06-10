@@ -49,6 +49,24 @@ it('prefers live service title over stale cms page title for location pages', fu
         ->and($meta['prefer_live_schema'])->toBeTrue();
 });
 
+it('strips legacy top-rated prefix from service headlines', function () {
+    $service = Service::factory()->create([
+        'service_code' => 'SRV-EQUIP-1',
+        'title' => 'Hospital Care Equipment',
+    ]);
+
+    $service->seo()->updateOrCreate(
+        ['service_id' => $service->id],
+        [
+            'h1' => 'Top-Rated Hospital Care Equipment Services',
+            'meta_title' => 'Hospital Care Equipment',
+        ],
+    );
+
+    expect(app(PublicDisplayNameResolver::class)->serviceHeadline($service->fresh()))
+        ->toBe('Hospital Care Equipment Services');
+});
+
 it('uses live category name for category document meta', function () {
     $category = ServiceCategory::factory()->create([
         'code' => 'cat-lab',

@@ -1,6 +1,6 @@
 # MEDCA HEALTH CARE — Go-Live Certification (Phase 4)
 
-**Generated:** 2026-06-08T16:04:04+00:00
+**Generated:** 2026-06-10T10:26:46+00:00
 **Decision:** **NO-GO**
 **Certified:** NO
 
@@ -8,38 +8,43 @@
 
 | Dimension | Score |
 |-----------|------:|
-| Architecture | 79 |
-| Data | 85 |
-| SEO | 100 |
-| GEO | 67 |
-| AEO | 100 |
+| Architecture | 53 |
+| Data | 12 |
+| SEO | 60 |
+| GEO | 10 |
+| AEO | 17 |
 | Performance | 100 |
 | Tracking | 50 |
-| Discovery | 92 |
-| **Launch** | **84** |
+| Discovery | 40 |
+| **Launch** | **43** |
 
 ## Go-Live Checklist
 
 | Area | Status |
 |------|--------|
 | Content | FAIL |
-| SEO | PASS |
+| SEO | FAIL |
 | GEO | FAIL |
-| AEO | PASS |
+| AEO | FAIL |
 | Schema | FAIL |
-| Discovery | PASS |
+| Discovery | FAIL |
 | Tracking | FAIL |
 | Performance | PASS |
-| Lead Flow | PASS |
+| Lead Flow | FAIL |
 
 ## Critical Issues
 
 - Section [page_generation] failed certification
+- Section [discovery] failed certification
+- Section [change_pincode] failed certification
 - Section [matrix] failed certification
+- Security: import_audit_trail — 0 committed batches
+- Section [services] — insufficient published services
 
 ## Warnings
 
 - GTM/GA4/Search Console not fully configured — configure before marketing launch
+- Enable ai_discovery_enabled in SeoTechnical for full AI endpoint readiness
 
 ## Recommendations
 
@@ -49,74 +54,73 @@
 
 ## Section Details
 
-### Import system — FAIL (67%)
+### Import system — FAIL (50%)
 - FAIL: production_csv_files — /var/www/medca_healthcare/storage/imports/production
 - FAIL: preview_pipeline — categories.csv preview
+- FAIL: audit_trail — 0 import batches
 
-### Categories — PASS (97%)
-- FAIL: active_count — 6 active categories
+### Categories — FAIL (0%)
+- FAIL: active_count — 0 active categories
 
-### Services — PASS (93%)
-- FAIL: detach-pin-svc_faq — 0 FAQs
-- FAIL: detach-pin-svc_locations — pincode mappings
-- FAIL: dolore-cum-33626_faq — 0 FAQs
-- FAIL: dolore-cum-33626_locations — pincode mappings
+### Services — FAIL (0%)
+- FAIL: published_count — 0 published services
 
-### Sub services — FAIL (81%)
-- FAIL: blood-test_page — CMS page
-- FAIL: ecg-at-home_page — CMS page
-- FAIL: thyroid-test_page — CMS page
-- FAIL: xray-at-home_page — CMS page
+### Sub services — FAIL (0%)
+- FAIL: sub_service_count — 0 sub-services
 
-### Locations — FAIL (73%)
-- FAIL: 560997_coverage — coverage text
-- FAIL: 560997_landmarks — 0
-- FAIL: 560997_hospitals — 0
-- FAIL: 560997_faqs — location FAQs
-- FAIL: 752761_coverage — coverage text
-- FAIL: 752761_landmarks — 0
-- FAIL: 752761_hospitals — 0
-- FAIL: 752761_faqs — location FAQs
-- FAIL: 560101_coverage — coverage text
-- FAIL: 560101_landmarks — 0
-- FAIL: 560101_hospitals — 0
-- FAIL: 560101_faqs — location FAQs
-- FAIL: 061285_coverage — coverage text
-- FAIL: 061285_landmarks — 0
-- FAIL: 061285_hospitals — 0
-- FAIL: 061285_faqs — location FAQs
-- FAIL: 290107_coverage — coverage text
-- FAIL: 290107_landmarks — 0
-- FAIL: 290107_hospitals — 0
-- FAIL: 290107_faqs — location FAQs
+### Locations — FAIL (0%)
+- FAIL: location_pages — 0 indexable location pages
 - FAIL: geo_readiness — geo enrichment score
 
-### Matrix — FAIL (80%)
-- FAIL: services_have_pins — 2 services without pins
+### Matrix — FAIL (60%)
+- FAIL: matrix_count — 0 mappings
+- FAIL: visible_mappings — visible pivots exist
 
-### Page generation — FAIL (71%)
-- FAIL: category_pages — 6 category pages
+### Page generation — FAIL (29%)
+- FAIL: category_pages — 0 category pages
+- FAIL: service_pages — 0 service pages
 - FAIL: sub_service_pages — 0 sub-service pages
+- FAIL: location_pages — 0 location pages
+- FAIL: generated_pages — 0 generated
 
-### Discovery — PASS (100%)
+### Discovery — FAIL (0%)
+- FAIL: category_discovery — 0 categories
+- FAIL: service_discovery — 0 services
+- FAIL: sub_service_discovery — 0 sub-services
+- FAIL: location_discovery — 0 locations
+- FAIL: pincode_discovery — missing
 
-### Change pincode — PASS (100%)
+### Change pincode — FAIL (20%)
+- FAIL: pincode_switch — We do not service that pincode yet.
+- FAIL: discovery_refresh — discovery payload
+- FAIL: pincode_search — 0 results
+- FAIL: session_persistence — current pincode
 
-### Internal linking — FAIL (75%)
-- FAIL: service_to_location — related locations
+### Internal linking — PASS (100%)
 
-### Seo — PASS (100%)
+### Seo — FAIL (60%)
+- FAIL: services_have_meta — service meta titles
+- FAIL: canonical_paths — meta descriptions
 
-### Geo — FAIL (60%)
-- FAIL: coverage_text — 14 with coverage
-- FAIL: full_geo_coverage — 14/19 enriched
+### Geo — FAIL (20%)
+- FAIL: landmarks_populated — 0 pincodes
+- FAIL: hospitals_populated — 0 pincodes
+- FAIL: full_geo_coverage — 0/0 enriched
+- FAIL: location_pages_indexable — 0 pages
 
-### Aeo — PASS (100%)
+### Aeo — FAIL (17%)
+- FAIL: category_faqs — 0 FAQs
+- FAIL: service_faqs — 0 FAQs
+- FAIL: sub_service_faqs — 0 FAQs
+- FAIL: location_faqs — 0 FAQs
+- FAIL: faq_total — 0 total FAQs
 
-### Schema — FAIL (83%)
-- FAIL: service_has_FAQPage — FAQPage
+### Schema — FAIL (50%)
+- FAIL: pages_with_schema — 7 pages
 
-### Ai discoverability — PASS (100%)
+### Ai discoverability — FAIL (60%)
+- FAIL: entity_relationships — category-service links
+- FAIL: faq_readiness — service FAQs for AI overviews
 
 ### Performance — PASS (100%)
 
@@ -125,5 +129,6 @@
 - FAIL: ga4 — GA4 measurement ID
 - FAIL: search_console — GSC verification token
 
-### Security integrity — PASS (100%)
+### Security integrity — FAIL (80%)
+- FAIL: import_audit_trail — 0 committed batches
 

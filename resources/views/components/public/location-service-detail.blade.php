@@ -10,6 +10,7 @@
     use App\Models\ServiceLocationPage;
     use App\Services\Operations\ServicePublicUrlBuilder;
     use App\Services\Public\PublicDisplayNameResolver;
+    use App\Support\ProductCategoryContext;
 
     if (! $service instanceof Service) {
         return;
@@ -44,7 +45,11 @@
 
     $serviceUrl = route('public.services.show', $service->service_code);
     $displayNames = app(PublicDisplayNameResolver::class);
+    $isProductCategory = ProductCategoryContext::isService($service);
     $serviceHeadline = $displayNames->serviceHeadline($service);
+    if ($isProductCategory) {
+        $serviceHeadline = ProductCategoryContext::stripServicesLabel($serviceHeadline);
+    }
 @endphp
 
 <article {{ $attributes->merge(['class' => 'rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:p-8']) }} data-location-service="{{ $service->service_code }}">
@@ -115,7 +120,7 @@
             @endif
             @if ($shifts !== [])
                 <section class="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                    <h4 class="text-sm font-semibold text-slate-900">{{ __('Service timing') }}</h4>
+                    <h4 class="text-sm font-semibold text-slate-900">{{ $isProductCategory ? __('Availability') : __('Service timing') }}</h4>
                     <ul class="mt-2 space-y-1 text-sm text-slate-600">
                         @foreach (array_slice($shifts, 0, 6) as $item)
                             <li>{{ $item }}</li>
@@ -147,7 +152,7 @@
             </a>
         @endif
         <a href="{{ $serviceUrl }}" class="text-sm font-semibold text-slate-700 underline underline-offset-2 hover:text-medca-primary">
-            {{ __('Full service details') }} →
+            {{ $isProductCategory ? __('Full product details') : __('Full service details') }} →
         </a>
     </div>
 </article>

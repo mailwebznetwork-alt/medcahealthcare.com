@@ -9,6 +9,7 @@ use App\Models\ServiceCategory;
 use App\Models\ServiceLocationPage;
 use App\Models\SubService;
 use App\Services\Operations\ServiceLocationPageProvisioner;
+use App\Support\DisplayLabelSanitizer;
 use App\Support\ServicePageOverrides;
 
 /**
@@ -25,7 +26,7 @@ class PublicDisplayNameResolver
     {
         $service->loadMissing('seo');
 
-        return trim((string) ($service->seo?->h1 ?: $service->title));
+        return DisplayLabelSanitizer::clean(trim((string) ($service->seo?->h1 ?: $service->title)));
     }
 
     public function serviceMetaTitle(Service $service): string
@@ -47,7 +48,7 @@ class PublicDisplayNameResolver
     {
         $category->loadMissing('seo');
 
-        return trim((string) ($category->seo?->h1 ?: $category->name));
+        return DisplayLabelSanitizer::clean(trim((string) ($category->seo?->h1 ?: $category->name)));
     }
 
     public function categoryMetaTitle(ServiceCategory $category): string
@@ -84,7 +85,7 @@ class PublicDisplayNameResolver
     {
         $sub->loadMissing('seo');
 
-        return trim((string) ($sub->seo?->h1 ?: $sub->title));
+        return DisplayLabelSanitizer::clean(trim((string) ($sub->seo?->h1 ?: $sub->title)));
     }
 
     public function subServiceMetaTitle(SubService $sub): string

@@ -114,7 +114,7 @@ class PublicPagePresenter
      */
     public function variablesForServiceDetail(Service $service): array
     {
-        $service->loadMissing(['seo', 'faqs', 'pincodes', 'subServices' => fn ($q) => $q->publicListing()]);
+        $service->loadMissing(['seo', 'faqs', 'pincodes', 'categories', 'subServices' => fn ($q) => $q->publicListing()]);
 
         return [
             'service' => $service,
