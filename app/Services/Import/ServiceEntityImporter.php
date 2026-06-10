@@ -10,6 +10,7 @@ use App\Models\ServiceFaq;
 use App\Services\Governance\MasterDataProtection;
 use App\Services\Governance\MasterDataAudit;
 use App\Services\Governance\ServiceCreationGuard;
+use App\Support\FakerContentGuard;
 
 final class ServiceEntityImporter extends AbstractSpreadsheetImporter
 {
@@ -81,6 +82,11 @@ final class ServiceEntityImporter extends AbstractSpreadsheetImporter
         $title = trim((string) ($row['title'] ?? ''));
         if ($code === '' || $title === '') {
             return ['action' => 'failed', 'error' => __('Missing service_code or title.')];
+        }
+
+        $fakerGuard = app(FakerContentGuard::class);
+        if ($fakerGuard->applies() && $fakerGuard->isCatalogFaker($title, $code, $row['description'] ?? $row['short_summary'] ?? null)) {
+            return ['action' => 'skipped', 'error' => $fakerGuard->validationMessage()];
         }
 
         if (! app(MasterDataProtection::class)->allowsWrite('import')) {

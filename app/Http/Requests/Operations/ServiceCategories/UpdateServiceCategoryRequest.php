@@ -9,6 +9,7 @@ use App\Http\Requests\Operations\Concerns\ValidatesCatalogExtendedFields;
 use App\Http\Requests\Operations\Services\Concerns\NormalizesServiceKeywordArrays;
 use App\Http\Requests\Operations\Services\Concerns\NormalizesServiceListingLines;
 use App\Models\ServiceCategory;
+use App\Rules\RejectFakerContent;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -67,16 +68,17 @@ class UpdateServiceCategoryRequest extends FormRequest
         $category = $this->route('service_category');
 
         return $this->architectPrepareRules(array_merge([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', new RejectFakerContent],
             'code' => [
                 'required',
                 'string',
                 'max:120',
                 'regex:/^[a-z][a-z0-9-]*$/',
+                new RejectFakerContent,
             ],
-            'slug' => ['nullable', 'string', 'max:120'],
-            'description' => ['nullable', 'string'],
-            'short_summary' => ['nullable', 'string', 'max:65535'],
+            'slug' => ['nullable', 'string', 'max:120', new RejectFakerContent],
+            'description' => ['nullable', 'string', new RejectFakerContent],
+            'short_summary' => ['nullable', 'string', 'max:65535', new RejectFakerContent],
             'price_range' => ['nullable', 'string', 'max:120'],
             'parent_id' => [
                 'nullable',

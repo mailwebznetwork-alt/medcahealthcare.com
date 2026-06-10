@@ -73,6 +73,10 @@ class AdminNotificationPresenter
     {
         $action = strtolower($action);
 
+        if (str_contains($action, 'failure') || str_contains($action, 'blocked') || str_contains($action, 'password')) {
+            return 'alert';
+        }
+
         if (preg_match('/(?:^|_)(delete|deleted|removed|destroy)(?:_|$)/', $action) === 1) {
             return 'removed';
         }
@@ -83,10 +87,6 @@ class AdminNotificationPresenter
 
         if (preg_match('/(?:^|_)(update|updated|toggle|sync|reorder|save)(?:_|$)/', $action) === 1) {
             return 'updated';
-        }
-
-        if (str_contains($action, 'failure') || str_contains($action, 'blocked')) {
-            return 'alert';
         }
 
         return 'changed';
@@ -110,6 +110,13 @@ class AdminNotificationPresenter
 
             if (preg_match('/\bpage ID (\d+)\b/i', $description, $matches) === 1) {
                 return route('site-architect.pages.index', absolute: false).'?highlight='.$matches[1];
+            }
+
+            if (preg_match('/OPERATIONS\.([A-Z_]+)\s+bulk/i', $description, $matches) === 1) {
+                $subPath = config('notifications.operations_urls.'.$matches[1]);
+                if (is_string($subPath) && $subPath !== '') {
+                    return $subPath;
+                }
             }
         }
 

@@ -28,6 +28,7 @@ use App\Models\SiteKeywordRanking;
 use App\Models\ThemeConfiguration;
 use App\Models\User;
 use App\Observers\BlogObserver;
+use App\Observers\UserObserver;
 use App\Observers\CompetitorTrackingObserver;
 use App\Observers\LeadObserver;
 use App\Observers\PageObserver;
@@ -74,6 +75,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
@@ -122,6 +124,16 @@ class AppServiceProvider extends ServiceProvider
         $this->ensurePublicLeadRouteIsRegistered();
 
         $this->configureRateLimiting();
+
+        Password::defaults(function (): Password {
+            $rule = Password::min(12)->mixedCase()->numbers();
+
+            if (config('app.env') === 'production') {
+                $rule = $rule->symbols()->uncompromised();
+            }
+
+            return $rule;
+        });
 
         Blade::precompiler(function (string $value): string {
             return preg_replace_callback(
@@ -178,6 +190,7 @@ class AppServiceProvider extends ServiceProvider
         CompetitorTracking::observe(CompetitorTrackingObserver::class);
         SiteKeywordRanking::observe(SiteKeywordRankingObserver::class);
         Lead::observe(LeadObserver::class);
+        User::observe(UserObserver::class);
 
         View::composer('layouts.app', function ($view): void {
             $view->with('marketingSettings', MarketingSetting::current());

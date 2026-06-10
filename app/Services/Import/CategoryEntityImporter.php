@@ -9,6 +9,7 @@ use App\Models\ServiceCategoryFaq;
 use App\Services\Governance\CategoryCreationGuard;
 use App\Services\Governance\MasterDataAudit;
 use App\Services\Governance\MasterDataProtection;
+use App\Support\FakerContentGuard;
 use Illuminate\Support\Str;
 
 final class CategoryEntityImporter extends AbstractSpreadsheetImporter
@@ -68,6 +69,11 @@ final class CategoryEntityImporter extends AbstractSpreadsheetImporter
         $name = trim((string) ($row['name'] ?? ''));
         if ($code === '' || $name === '') {
             return ['action' => 'failed', 'error' => __('Missing code or name.')];
+        }
+
+        $fakerGuard = app(FakerContentGuard::class);
+        if ($fakerGuard->applies() && $fakerGuard->isCatalogFaker($name, $code, $row['description'] ?? null)) {
+            return ['action' => 'skipped', 'error' => $fakerGuard->validationMessage()];
         }
 
         if (! app(MasterDataProtection::class)->allowsWrite('import')) {

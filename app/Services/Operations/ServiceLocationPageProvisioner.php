@@ -303,12 +303,50 @@ class ServiceLocationPageProvisioner
 
     public function deleteAllForService(Service $service): void
     {
-        ServiceLocationPage::query()
-            ->where('service_id', $service->id)
-            ->with(['page', 'service', 'pincode'])
-            ->each(function (ServiceLocationPage $row): void {
-                $this->removeMappingAndPage($row);
-            });
+        $this->bulkDeleteLocationArtifactsForServiceIds([$service->id]);
+    }
+
+    /**
+     * @param  list<int>  $serviceIds
+     */
+    public function bulkDeleteLocationArtifactsForServiceIds(array $serviceIds): int
+    {
+        if ($serviceIds === []) {
+            return 0;
+        }
+
+        $mappings = ServiceLocationPage::query()
+            ->whereIn('service_id', $serviceIds)
+            ->with(['service:id,service_code', 'pincode:id,pincode'])
+            ->get();
+
+        if ($mappings->isEmpty()) {
+            return 0;
+        }
+
+        $pageIds = $mappings->pluck('page_id')->filter()->unique()->values()->all();
+
+        $registryKeys = $mappings
+            ->map(fn (ServiceLocationPage $mapping): ?string => $mapping->service && $mapping->pincode
+                ? 'location:'.$mapping->service->service_code.':'.$mapping->pincode->pincode
+                : null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($registryKeys !== []) {
+            PageRegistry::query()->whereIn('registry_key', $registryKeys)->delete();
+        }
+
+        if ($pageIds !== []) {
+            PageRegistry::query()->whereIn('page_id', $pageIds)->delete();
+            Page::query()->whereIn('id', $pageIds)->delete();
+        }
+
+        ServiceLocationPage::query()->whereIn('service_id', $serviceIds)->delete();
+
+        return $mappings->count();
     }
 
     public function locationMetaTitle(Service $service, PinCode $pin): string

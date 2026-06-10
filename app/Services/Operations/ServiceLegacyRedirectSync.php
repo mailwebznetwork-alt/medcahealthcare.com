@@ -47,23 +47,45 @@ class ServiceLegacyRedirectSync
 
     public function removeForService(Service $service): void
     {
-        $slugs = [];
-        if ($service->detail_page_id !== null) {
-            $page = $service->detailPage;
-            if ($page !== null) {
-                $slugs[] = $page->slug;
-            }
+        $this->bulkRemoveForServiceIds([$service->id]);
+    }
+
+    /**
+     * @param  list<int>  $serviceIds
+     */
+    public function bulkRemoveForServiceIds(array $serviceIds): void
+    {
+        if ($serviceIds === []) {
+            return;
         }
-        $slugs[] = app(ServiceDetailPageProvisioner::class)->suggestedSlug($service);
 
-        ServiceLocationPage::query()
-            ->where('service_id', $service->id)
+        $detailProvisioner = app(ServiceDetailPageProvisioner::class);
+        $slugs = [];
+
+        Service::query()
+            ->whereIn('id', $serviceIds)
+            ->with('detailPage:id,slug')
+            ->get(['id', 'service_code', 'detail_page_id'])
+            ->each(function (Service $service) use ($detailProvisioner, &$slugs): void {
+                if ($service->detailPage !== null && filled($service->detailPage->slug)) {
+                    $slugs[] = $service->detailPage->slug;
+                }
+
+                $slugs[] = $detailProvisioner->suggestedSlug($service);
+            });
+
+        $locationSlugs = ServiceLocationPage::query()
+            ->whereIn('service_id', $serviceIds)
             ->pluck('slug')
-            ->each(fn (string $s) => $slugs[] = $s);
+            ->all();
 
-        SiteSlugRedirect::query()
-            ->whereIn('from_slug', array_filter($slugs))
-            ->delete();
+        $all = array_values(array_unique(array_filter(array_merge($slugs, $locationSlugs))));
+
+        if ($all === []) {
+            return;
+        }
+
+        SiteSlugRedirect::query()->whereIn('from_slug', $all)->delete();
     }
 
     private function upsertRedirect(string $fromSlug, string $absoluteTarget): void

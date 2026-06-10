@@ -7,7 +7,11 @@ use App\Models\Service;
 use App\Services\Governance\AdminDeletionGuard;
 use App\Services\Governance\MasterDataAudit;
 use App\Services\Governance\DownstreamArtifactPurger;
+use App\Models\PageElement;
+use App\Models\PageSeo;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 final class ServiceLifecycle
@@ -65,23 +69,82 @@ final class ServiceLifecycle
 
     public function delete(Service $service): void
     {
-        DB::transaction(function () use ($service): void {
-            $this->deletePublicPath($service->featured_image);
-            $this->deletePublicPath($service->icon);
-            if (is_array($service->gallery)) {
-                foreach ($service->gallery as $path) {
-                    $this->deletePublicPath($path);
-                }
-            }
+        $this->deleteMany(collect([$service]), 'ui');
+        $this->purger->purgeAfterCatalogEntityChange();
+    }
 
-            $this->deletionGuard->recordServiceDeletion($service, 'ui');
-            $this->orchestrator->teardown($service);
-            $this->purger->purgeForDeletedService($service);
-            $service->delete();
-            $this->audit->serviceDeleted($service, 'ui');
+    /**
+     * @param  Collection<int, Service>|iterable<int, Service>  $services
+     */
+    public function deleteMany(iterable $services, string $source = 'bulk'): int
+    {
+        $collection = $services instanceof Collection ? $services : collect($services);
+
+        if ($collection->isEmpty()) {
+            return 0;
+        }
+
+        $serviceIds = $collection->pluck('id')->all();
+        $deleted = 0;
+
+        Service::withoutEvents(function () use ($collection, $serviceIds, $source, &$deleted): void {
+            DB::transaction(function () use ($collection, $serviceIds, $source, &$deleted): void {
+                $this->orchestrator->bulkTeardown($serviceIds, $collection);
+                $this->purgeGrowthArtifactsForServices($collection);
+
+                foreach ($collection as $service) {
+                    $this->deleteServiceMedia($service);
+                    $this->deletionGuard->recordServiceDeletion($service, $source);
+                    $service->delete();
+                    $this->audit->serviceDeleted($service, $source);
+                    $deleted++;
+                }
+            });
         });
 
-        $this->purger->purgeAfterCatalogEntityChange();
+        if ($deleted > 0 && $source === 'bulk') {
+            $this->purger->purgeAfterBulkCatalogDeletion();
+        }
+
+        return $deleted;
+    }
+
+    /**
+     * @param  Collection<int, Service>  $services
+     */
+    private function purgeGrowthArtifactsForServices(Collection $services): void
+    {
+        $slugPaths = $services
+            ->map(fn (Service $service): string => 'services/'.ltrim((string) $service->service_code, '/'))
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($slugPaths === []) {
+            return;
+        }
+
+        if (Schema::hasTable('page_seo')) {
+            PageSeo::query()->whereIn('page_slug', $slugPaths)->delete();
+        }
+
+        if (Schema::hasTable('page_elements')) {
+            PageElement::query()->whereIn('page_slug', $slugPaths)->delete();
+        }
+    }
+
+    private function deleteServiceMedia(Service $service): void
+    {
+        $this->deletePublicPath($service->featured_image);
+        $this->deletePublicPath($service->icon);
+
+        if (! is_array($service->gallery)) {
+            return;
+        }
+
+        foreach ($service->gallery as $path) {
+            $this->deletePublicPath($path);
+        }
     }
 
     private function deletePublicPath(?string $path): void

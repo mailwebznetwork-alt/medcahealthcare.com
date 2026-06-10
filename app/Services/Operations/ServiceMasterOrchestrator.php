@@ -4,6 +4,7 @@ namespace App\Services\Operations;
 
 use App\Models\Service;
 use App\Support\ServicePageOverrides;
+use Illuminate\Support\Collection;
 
 /**
  * Central pipeline: Service → SEO/AEO/GEO/Schema → auto pages → URLs → links → sitemap data.
@@ -81,8 +82,17 @@ class ServiceMasterOrchestrator
 
     public function teardown(Service $service): void
     {
-        $this->legacyRedirects->removeForService($service);
-        $this->locationPageProvisioner->deleteAllForService($service);
-        $this->detailPageProvisioner->deleteOwnedPage($service);
+        $this->bulkTeardown([$service->id], collect([$service]));
+    }
+
+    /**
+     * @param  list<int>  $serviceIds
+     * @param  Collection<int, Service>  $services
+     */
+    public function bulkTeardown(array $serviceIds, Collection $services): void
+    {
+        $this->legacyRedirects->bulkRemoveForServiceIds($serviceIds);
+        $this->locationPageProvisioner->bulkDeleteLocationArtifactsForServiceIds($serviceIds);
+        $this->detailPageProvisioner->bulkDeleteOwnedPagesForServices($services);
     }
 }

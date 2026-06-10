@@ -2,47 +2,26 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Lead ingest API key (POST /api/leads)
-    |--------------------------------------------------------------------------
-    | Clients must send header: X-API-KEY: <LEAD_API_KEY>
-    */
-    'lead_api_key' => env('LEAD_API_KEY'),
+    'headers' => [
+        'enabled' => env('SECURITY_HEADERS_ENABLED', true),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Declarative firewall / edge rules (Security workspace)
-    |--------------------------------------------------------------------------
-    | Operational enforcement lives in middleware and infrastructure; this list
-    | is the operator-facing summary shown under Security → Firewall rules.
-    */
+        'hsts_max_age' => (int) env('SECURITY_HSTS_MAX_AGE', 31536000),
 
-    'firewall_rules' => [
-        [
-            'name' => 'Public lead ingest',
-            'scope' => 'POST /api/leads',
-            'rule' => 'X-API-KEY header (LEAD_API_KEY) + rate limited per IP (throttle:api_leads, 5/min)',
-            'status' => 'active',
-        ],
-        [
-            'name' => 'Payment webhook',
-            'scope' => 'POST /api/payments/notify',
-            'rule' => 'HMAC-SHA256 body signature when SETTINGS_PAYMENT_INGEST_HMAC_SECRET is set; optional bearer fallback',
-            'status' => 'active',
-        ],
-        [
-            'name' => 'Authenticated API',
-            'scope' => '/api/admin/*',
-            'rule' => 'Laravel Sanctum (session SPA + personal access tokens)',
-            'status' => 'active',
-        ],
-        [
-            'name' => 'Staff RBAC',
-            'scope' => 'Web routes',
-            'rule' => 'Module grants + role middleware (HTML 403 vs JSON by Accept)',
-            'status' => 'active',
-        ],
+        /*
+        | Relaxed CSP for Livewire, Alpine, Vite, and Google Fonts.
+        | Tighten script-src once inline scripts are eliminated.
+        */
+        'content_security_policy' => env('SECURITY_CSP', implode('; ', [
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+            "font-src 'self' https://fonts.gstatic.com data:",
+            "img-src 'self' data: blob: https:",
+            "connect-src 'self' https:",
+            "frame-ancestors 'self'",
+            "base-uri 'self'",
+            "form-action 'self'",
+        ])),
     ],
 
 ];

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Concerns;
 
+use App\Services\ActivityLogService;
 use App\Services\Bulk\BulkActionService;
 
 trait InteractsWithBulkActions
@@ -55,6 +56,15 @@ trait InteractsWithBulkActions
 
         $destructive = ($this->bulkGovernancePreview['requires_delete_confirmation'] ?? false) === true;
         if ($destructive && strtoupper(trim($this->bulkDeleteConfirmText)) !== 'DELETE') {
+            $resourceConfig = config('bulk_actions.resources')[$this->bulkResourceKey()] ?? [];
+            $module = is_array($resourceConfig) ? (string) ($resourceConfig['module'] ?? 'operations') : 'operations';
+
+            app(ActivityLogService::class)->log(
+                'bulk_delete_blocked',
+                $module,
+                strtoupper($this->bulkResourceKey()).' bulk delete blocked: confirmation text mismatch.',
+            );
+
             $this->addError('bulkDeleteConfirmText', __('Type DELETE to confirm this irreversible action.'));
 
             return;
@@ -82,6 +92,16 @@ trait InteractsWithBulkActions
             );
         } catch (\Throwable $exception) {
             report($exception);
+
+            $resourceConfig = config('bulk_actions.resources')[$this->bulkResourceKey()] ?? [];
+            $module = is_array($resourceConfig) ? (string) ($resourceConfig['module'] ?? 'operations') : 'operations';
+
+            app(ActivityLogService::class)->log(
+                'bulk_action_failed',
+                $module,
+                strtoupper($this->bulkResourceKey()).' bulk '.$this->bulkPendingAction.' failed: '.$exception->getMessage(),
+            );
+
             session()->flash('error', __('Bulk action failed. Please try again or delete in smaller batches.'));
             $this->cancelBulkAction();
 

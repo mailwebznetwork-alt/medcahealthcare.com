@@ -20,7 +20,7 @@ class AdminNotificationService
         }
 
         $payload = $this->presenter->present($action, $module, $description, $actorUserId);
-        $recipientIds = $this->recipientResolver->resolve($actorUserId);
+        $recipientIds = $this->recipientResolver->resolve($actorUserId, $action, $module);
 
         if ($recipientIds->isEmpty()) {
             return;

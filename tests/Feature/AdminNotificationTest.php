@@ -30,6 +30,55 @@ it('fans out admin notifications to other admins when activity is logged', funct
         ->and($notification->actor_user_id)->toBe($actor->id);
 });
 
+it('notifies the sole admin when they perform critical bulk deletes', function () {
+    $soleAdmin = User::factory()->create(['role' => 'super_admin']);
+
+    $this->actingAs($soleAdmin);
+
+    app(ActivityLogService::class)->log(
+        'bulk_delete',
+        'operations',
+        'OPERATIONS.PIN_CODES bulk delete: processed=10, skipped=0 by user '.$soleAdmin->id,
+    );
+
+    expect(AdminNotification::query()->where('recipient_user_id', $soleAdmin->id)->count())->toBe(1);
+
+    $notification = AdminNotification::query()->where('recipient_user_id', $soleAdmin->id)->first();
+
+    expect($notification->title)->toBe('Bulk operation removed')
+        ->and($notification->url)->toBe('/operations/pin-codes');
+});
+
+it('notifies the actor when bulk delete confirmation fails', function () {
+    $soleAdmin = User::factory()->create(['role' => 'super_admin']);
+
+    $this->actingAs($soleAdmin);
+
+    app(ActivityLogService::class)->log(
+        'bulk_delete_blocked',
+        'operations',
+        'OPERATIONS.SERVICES bulk delete blocked: confirmation text mismatch.',
+    );
+
+    expect(AdminNotification::query()->where('recipient_user_id', $soleAdmin->id)->count())->toBe(1);
+
+    $notification = AdminNotification::query()->where('recipient_user_id', $soleAdmin->id)->first();
+
+    expect($notification->title)->toBe('Bulk operation alert');
+});
+
+it('notifies the sole admin on failed login attempts', function () {
+    $soleAdmin = User::factory()->create(['role' => 'super_admin']);
+
+    app(ActivityLogService::class)->log(
+        'login_failure',
+        'auth',
+        'Failed login for email attacker@example.com from IP 203.0.113.1.',
+    );
+
+    expect(AdminNotification::query()->where('recipient_user_id', $soleAdmin->id)->count())->toBe(1);
+});
+
 it('does not fan out muted activity actions', function () {
     $actor = User::factory()->create(['role' => 'admin']);
     User::factory()->create(['role' => 'super_admin']);

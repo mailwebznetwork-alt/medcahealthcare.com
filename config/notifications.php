@@ -10,6 +10,19 @@ return [
     | These activity log actions will not generate admin notifications.
     |
     */
+    /*
+    |--------------------------------------------------------------------------
+    | Actions that always notify the actor (sole-admin awareness)
+    |--------------------------------------------------------------------------
+    */
+    'actor_notify_actions' => [
+        'bulk_delete',
+        'bulk_delete_blocked',
+        'bulk_action_failed',
+        'login_failure',
+        'password_changed',
+    ],
+
     'muted_actions' => [
         'login_success',
         'logout',
@@ -86,6 +99,21 @@ return [
         'vacancy' => 'Job vacancy',
         'lead' => 'Lead',
         'competitor' => 'Competitor',
+        'bulk' => 'Bulk operation',
+        'login' => 'Login',
+        'password' => 'Password',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Operations sub-module URLs (bulk delete deep links)
+    |--------------------------------------------------------------------------
+    */
+    'operations_urls' => [
+        'PIN_CODES' => '/operations/pin-codes',
+        'SERVICES' => '/operations/services',
+        'SERVICE_CATEGORIES' => '/operations/service-categories',
+        'SUB_SERVICES' => '/operations/sub-services',
     ],
 
     /*

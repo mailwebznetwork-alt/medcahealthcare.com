@@ -24,8 +24,10 @@ final class PinCodeMasterDataAudit
 
     public function deleted(PinCode $pinCode, string $source, ?string $reason = null): void
     {
-        $description = 'Pincode deleted'.($reason ? ": {$reason}" : '.');
-        $this->log('pincode_deleted', $pinCode, $source, $description);
+        if ($source !== 'bulk') {
+            $description = 'Pincode deleted'.($reason ? ": {$reason}" : '.');
+            $this->log('pincode_deleted', $pinCode, $source, $description);
+        }
 
         $this->automatedAudit->log(
             process: $source,

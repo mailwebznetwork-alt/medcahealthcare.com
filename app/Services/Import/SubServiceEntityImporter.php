@@ -12,6 +12,7 @@ use App\Models\SubServiceSeo;
 use App\Services\Governance\MasterDataAudit;
 use App\Services\Governance\MasterDataProtection;
 use App\Services\Governance\SubServiceCreationGuard;
+use App\Support\FakerContentGuard;
 
 final class SubServiceEntityImporter extends AbstractSpreadsheetImporter
 {
@@ -94,6 +95,11 @@ final class SubServiceEntityImporter extends AbstractSpreadsheetImporter
 
         if ($subCode === '' || $title === '') {
             return ['action' => 'failed', 'error' => __('Missing sub_service_code or title.')];
+        }
+
+        $fakerGuard = app(FakerContentGuard::class);
+        if ($fakerGuard->applies() && $fakerGuard->isCatalogFaker($title, $subCode, $row['description'] ?? $row['short_summary'] ?? null)) {
+            return ['action' => 'skipped', 'error' => $fakerGuard->validationMessage()];
         }
 
         if (! app(MasterDataProtection::class)->allowsWrite('import')) {

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Operations\ServiceCategories;
 
 use App\Http\Requests\Concerns\InteractsWithArchitectSavePolicy;
 use App\Models\ServiceCategory;
+use App\Rules\RejectFakerContent;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -46,14 +47,15 @@ class StoreServiceCategoryRequest extends FormRequest
     public function rules(): array
     {
         return $this->architectPrepareRules([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', new RejectFakerContent],
             'code' => [
                 'required',
                 'string',
                 'max:120',
                 'regex:/^[a-z][a-z0-9-]*$/',
+                new RejectFakerContent,
             ],
-            'description' => ['nullable', 'string', 'max:65535'],
+            'description' => ['nullable', 'string', 'max:65535', new RejectFakerContent],
             'parent_id' => ['nullable', 'integer', 'exists:service_categories,id'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['boolean'],

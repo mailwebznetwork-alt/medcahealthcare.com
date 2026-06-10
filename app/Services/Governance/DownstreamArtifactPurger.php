@@ -189,9 +189,9 @@ class DownstreamArtifactPurger
     }
 
     /**
-     * After bulk pin-code delete, location pages and mappings are already removed in SQL batches.
+     * After bulk catalog deletes, related pages and mappings are already removed in SQL batches.
      */
-    public function purgeAfterBulkPinCodeDeletion(): array
+    public function purgeAfterBulkCatalogDeletion(): array
     {
         $registry = $this->purgeRegistryOrphans();
 
@@ -205,6 +205,12 @@ class DownstreamArtifactPurger
             'category_pages_removed' => 0,
             'issues' => $registry['issues'],
         ];
+    }
+
+    /** @deprecated Use purgeAfterBulkCatalogDeletion() */
+    public function purgeAfterBulkPinCodeDeletion(): array
+    {
+        return $this->purgeAfterBulkCatalogDeletion();
     }
 
     /**

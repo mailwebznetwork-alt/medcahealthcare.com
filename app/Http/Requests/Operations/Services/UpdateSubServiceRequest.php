@@ -10,6 +10,7 @@ use App\Http\Requests\Operations\Services\Concerns\NormalizesServiceKeywordArray
 use App\Http\Requests\Operations\Services\Concerns\NormalizesServiceListingLines;
 use App\Models\Service;
 use App\Models\SubService;
+use App\Rules\RejectFakerContent;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -83,10 +84,11 @@ class UpdateSubServiceRequest extends FormRequest
                 Rule::unique('sub_services', 'sub_service_code')
                     ->where('service_id', $service->id)
                     ->ignore($subService->id),
+                new RejectFakerContent,
             ],
-            'title' => ['required', 'string', 'max:255'],
-            'short_summary' => ['nullable', 'string', 'max:65535'],
-            'description' => ['nullable', 'string'],
+            'title' => ['required', 'string', 'max:255', new RejectFakerContent],
+            'short_summary' => ['nullable', 'string', 'max:65535', new RejectFakerContent],
+            'description' => ['nullable', 'string', new RejectFakerContent],
             'price_range' => ['nullable', 'string', 'max:120'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],

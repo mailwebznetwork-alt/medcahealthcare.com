@@ -6,6 +6,7 @@ use App\Enums\PublishStatus;
 use App\Enums\ServiceVisibility;
 use App\Models\Service;
 use App\Models\SubService;
+use App\Rules\RejectFakerContent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -42,10 +43,11 @@ class StoreSubServiceRequest extends FormRequest
                 'max:120',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
                 Rule::unique('sub_services', 'sub_service_code')->where('service_id', $service->id),
+                new RejectFakerContent,
             ],
-            'title' => ['required', 'string', 'max:255'],
-            'short_summary' => ['nullable', 'string', 'max:500'],
-            'description' => ['nullable', 'string'],
+            'title' => ['required', 'string', 'max:255', new RejectFakerContent],
+            'short_summary' => ['nullable', 'string', 'max:500', new RejectFakerContent],
+            'description' => ['nullable', 'string', new RejectFakerContent],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
             'is_featured' => ['nullable', 'boolean'],

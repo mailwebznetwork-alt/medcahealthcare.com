@@ -82,6 +82,10 @@ class BulkActionService
             return $this->executePinCodeBulkDelete($ids, $user, $config);
         }
 
+        if ($resourceKey === 'operations.services' && $action === 'delete') {
+            return $this->executeServiceBulkDelete($ids, $user, $config);
+        }
+
         /** @var class-string<Model> $modelClass */
         $modelClass = $config['model'];
         $processed = 0;
@@ -274,6 +278,42 @@ class BulkActionService
      * @param  array<string, mixed>  $config
      * @return array{processed: int, skipped: int, message: string}
      */
+    /**
+     * @param  list<int>  $ids
+     * @param  array<string, mixed>  $config
+     * @return array{processed: int, skipped: int, message: string}
+     */
+    private function executeServiceBulkDelete(array $ids, User $user, array $config): array
+    {
+        @ini_set('memory_limit', '256M');
+        set_time_limit(300);
+
+        $eligible = Service::query()
+            ->whereIn('id', $ids)
+            ->get()
+            ->filter(fn (Service $service): bool => $user->can('delete', $service));
+
+        $skipped = count($ids) - $eligible->count();
+        $processed = $this->serviceLifecycle->deleteMany($eligible, 'bulk');
+
+        $module = is_string($config['module'] ?? null) ? $config['module'] : 'operations';
+
+        $this->activityLog->log(
+            'bulk_delete',
+            $module,
+            'OPERATIONS.SERVICES bulk delete: processed='.$processed.', skipped='.$skipped.' by user '.$user->id,
+        );
+
+        return [
+            'processed' => $processed,
+            'skipped' => $skipped,
+            'message' => __('Bulk delete complete. :processed removed, :skipped skipped.', [
+                'processed' => $processed,
+                'skipped' => $skipped,
+            ]),
+        ];
+    }
+
     private function executePinCodeBulkDelete(array $ids, User $user, array $config): array
     {
         set_time_limit(300);

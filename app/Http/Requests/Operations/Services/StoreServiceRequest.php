@@ -9,6 +9,7 @@ use App\Http\Requests\Operations\Services\Concerns\NormalizesServiceListingLines
 use App\Http\Requests\Operations\Services\Concerns\ValidatesServiceExtendedFields;
 use App\Http\Requests\Concerns\InteractsWithArchitectSavePolicy;
 use App\Models\Service;
+use App\Rules\RejectFakerContent;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -78,8 +79,8 @@ class StoreServiceRequest extends FormRequest
     public function rules(): array
     {
         return $this->architectPrepareRules([
-            'title' => ['required', 'string', 'max:255'],
-            'service_code' => ['required', 'string', 'max:120', 'regex:/^[a-zA-Z][a-zA-Z0-9_-]*$/'],
+            'title' => ['required', 'string', 'max:255', new RejectFakerContent],
+            'service_code' => ['required', 'string', 'max:120', 'regex:/^[a-zA-Z][a-zA-Z0-9_-]*$/', new RejectFakerContent],
             'price_range' => ['nullable', 'string', 'max:120'],
             'is_active' => ['boolean'],
             'is_featured' => ['boolean'],
@@ -91,8 +92,8 @@ class StoreServiceRequest extends FormRequest
             'pincodes.*' => ['integer', 'exists:pin_codes,id'],
             'category_ids' => ['nullable', 'array'],
             'category_ids.*' => ['integer', 'exists:service_categories,id'],
-            'short_summary' => ['nullable', 'string', 'max:65535'],
-            'description' => ['nullable', 'string'],
+            'short_summary' => ['nullable', 'string', 'max:65535', new RejectFakerContent],
+            'description' => ['nullable', 'string', new RejectFakerContent],
             'procedures_lines' => ['nullable', 'string'],
             'procedures' => ['nullable', 'array'],
             'procedures.*' => ['string', 'max:500'],

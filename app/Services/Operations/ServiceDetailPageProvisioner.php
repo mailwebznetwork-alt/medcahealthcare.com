@@ -8,7 +8,9 @@ use App\Enums\PageLayoutMode;
 use App\Enums\PublishStatus;
 use App\Models\Block;
 use App\Models\Page;
+use App\Models\PageRegistry;
 use App\Models\Service;
+use Illuminate\Support\Collection;
 use App\Services\Governance\AdminAuthorityGuard;
 use App\Services\Governance\AdminDeletionGuard;
 use App\Support\ServicePageOverrides;
@@ -147,18 +149,51 @@ class ServiceDetailPageProvisioner
      */
     public function deleteOwnedPage(Service $service): void
     {
-        $page = $this->findOwnedPage($service, null);
+        $this->bulkDeleteOwnedPagesForServices(collect([$service]));
+    }
 
-        if ($page === null) {
+    /**
+     * @param  Collection<int, Service>  $services
+     */
+    public function bulkDeleteOwnedPagesForServices(Collection $services): void
+    {
+        if ($services->isEmpty()) {
             return;
         }
 
-        if (! $this->pageIsOwnedByService($page, $service)) {
-            return;
+        $serviceIds = $services->pluck('id')->all();
+        $detailPageIds = $services->pluck('detail_page_id')->filter()->map(fn ($id) => (int) $id)->unique()->values()->all();
+        $suggestedSlugs = $services
+            ->map(fn (Service $service): string => $this->suggestedSlug($service))
+            ->unique()
+            ->values()
+            ->all();
+
+        $extraPageIds = $suggestedSlugs === []
+            ? []
+            : Page::query()->whereIn('slug', $suggestedSlugs)->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+        $pageIds = array_values(array_unique(array_merge($detailPageIds, $extraPageIds)));
+
+        $registryKeys = $services
+            ->map(fn (Service $service): string => 'service:'.$service->service_code)
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($registryKeys !== []) {
+            PageRegistry::query()->whereIn('registry_key', $registryKeys)->delete();
         }
 
-        app(\App\Services\Governance\DownstreamArtifactPurger::class)->purgeForDeletedService($service);
-        $page->delete();
+        PageRegistry::query()
+            ->where('entity_type', 'service')
+            ->whereIn('entity_id', $serviceIds)
+            ->delete();
+
+        if ($pageIds !== []) {
+            PageRegistry::query()->whereIn('page_id', $pageIds)->delete();
+            Page::query()->whereIn('id', $pageIds)->delete();
+        }
     }
 
     public function pageIsOwnedByService(Page $page, Service $service): bool

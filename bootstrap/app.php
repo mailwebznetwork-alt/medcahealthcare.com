@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(append: [
+            \App\Http\Middleware\SecurityHeaders::class,
             \App\Http\Middleware\EnsurePincodeDetected::class,
             \App\Http\Middleware\CaptureMarketingAttributionMiddleware::class,
         ]);

@@ -55,7 +55,7 @@ final class PinCodeDeletionService
         });
 
         if ($deleted > 0) {
-            $this->purger->purgeAfterBulkPinCodeDeletion();
+            $this->purger->purgeAfterBulkCatalogDeletion();
         }
 
         return $deleted;

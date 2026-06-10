@@ -120,11 +120,13 @@ final class MasterDataAudit
         string $description,
         ?string $reason = null,
     ): void {
-        $this->activityLog->log(
-            $action,
-            'operations',
-            "{$description} [{$recordKey}] source={$source} user=".(auth()->id() ?? 'system'),
-        );
+        if ($source !== 'bulk') {
+            $this->activityLog->log(
+                $action,
+                'operations',
+                "{$description} [{$recordKey}] source={$source} user=".(auth()->id() ?? 'system'),
+            );
+        }
 
         $this->automatedAudit->log(
             process: $source,
