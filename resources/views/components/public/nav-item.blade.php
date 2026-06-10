@@ -5,6 +5,7 @@
     'navLinkActive' => '',
     'isMobile' => false,
     'showBorder' => false,
+    'depth' => 0,
 ])
 
 @php
@@ -16,19 +17,24 @@
 @endphp
 
 @if ($isMobile)
+    @php
+        $mobileRowStyle = 'padding-left: '.(0.25 + ($depth * 1)).'rem';
+        $mobileRowClass = 'flex w-full min-h-[52px] items-center gap-3 border-b border-slate-100 pr-1 text-sm font-medium uppercase tracking-[0.05em] text-medca-primary';
+    @endphp
     @if ($hasChildren)
-        <div x-data="{ open: false }" class="border-b border-slate-100">
+        <div x-data="{ open: false }">
             <button
                 type="button"
                 @click="open = !open"
-                class="flex w-full min-h-[52px] items-center justify-between px-1 text-sm font-medium uppercase tracking-[0.05em] text-medca-primary"
+                class="{{ $mobileRowClass }} justify-between text-left"
+                style="{{ $mobileRowStyle }}"
             >
-                <span>{{ $label }}</span>
-                <span x-text="open ? '−' : '+'"></span>
+                <span class="min-w-0 flex-1 leading-snug">{{ $label }}</span>
+                <span class="shrink-0 text-base leading-none" x-text="open ? '−' : '+'" aria-hidden="true"></span>
             </button>
-            <div x-show="open" x-cloak class="pb-2 pl-4">
+            <div x-show="open" x-cloak class="pb-1">
                 @foreach ($children as $child)
-                    <x-public.nav-item :item="$child" :is-mobile="true" />
+                    <x-public.nav-item :item="$child" :is-mobile="true" :depth="$depth + 1" />
                 @endforeach
             </div>
         </div>
@@ -36,9 +42,10 @@
         <a
             href="{{ $href ?? '#' }}"
             @if ($isCurrent) aria-current="page" @endif
-            class="flex min-h-[52px] items-center border-b border-slate-100 px-1 text-sm font-medium uppercase tracking-[0.05em] {{ $isCurrent ? $navLinkActive : 'text-medca-primary hover:text-medca-primary-hover' }}"
+            class="{{ $mobileRowClass }} {{ $isCurrent ? $navLinkActive : 'hover:text-medca-primary-hover' }}"
+            style="{{ $mobileRowStyle }}"
         >
-            {{ $label }}
+            <span class="min-w-0 flex-1 leading-snug">{{ $label }}</span>
         </a>
     @endif
 @else
