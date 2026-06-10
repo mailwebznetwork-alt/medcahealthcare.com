@@ -62,6 +62,28 @@ it('renders bulk selection controls on the pin codes directory', function () {
         ->assertSee('aria-label="'.__('Select row').'"', false);
 });
 
+it('bulk deletes a large pin code selection in one batch', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'role' => 'manager',
+        'module_access' => collect(ModuleAccess::keys())
+            ->mapWithKeys(fn (string $k) => [$k => $k === ModuleAccess::OPERATIONS])
+            ->all(),
+    ]);
+
+    PinCode::factory()->count(25)->create(['city' => 'Bangalore']);
+
+    Livewire::actingAs($user)
+        ->test(Directory::class)
+        ->call('selectAllRows')
+        ->call('openBulkAction', 'delete')
+        ->set('bulkDeleteConfirmText', 'DELETE')
+        ->call('confirmBulkAction')
+        ->assertHasNoErrors();
+
+    expect(PinCode::query()->count())->toBe(0);
+});
+
 it('bulk deletes all pin codes when select all is used', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),

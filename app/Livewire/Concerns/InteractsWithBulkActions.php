@@ -73,12 +73,20 @@ trait InteractsWithBulkActions
             return;
         }
 
-        $result = $service->execute(
-            $this->bulkResourceKey(),
-            $ids,
-            $this->bulkPendingAction,
-            auth()->user(),
-        );
+        try {
+            $result = $service->execute(
+                $this->bulkResourceKey(),
+                $ids,
+                $this->bulkPendingAction,
+                auth()->user(),
+            );
+        } catch (\Throwable $exception) {
+            report($exception);
+            session()->flash('error', __('Bulk action failed. Please try again or delete in smaller batches.'));
+            $this->cancelBulkAction();
+
+            return;
+        }
 
         session()->flash('status', $result['message']);
         $this->deselectAllRows();

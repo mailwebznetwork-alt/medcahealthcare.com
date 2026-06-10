@@ -78,6 +78,10 @@ class BulkActionService
             return ['processed' => 0, 'skipped' => count($ids), 'message' => __('Action not allowed for this resource.')];
         }
 
+        if ($resourceKey === 'operations.pin_codes' && $action === 'delete') {
+            return $this->executePinCodeBulkDelete($ids, $user, $config);
+        }
+
         /** @var class-string<Model> $modelClass */
         $modelClass = $config['model'];
         $processed = 0;
@@ -263,6 +267,41 @@ class BulkActionService
         $this->pinCodeDeletionService->delete($pinCode, 'bulk');
 
         return true;
+    }
+
+    /**
+     * @param  list<int>  $ids
+     * @param  array<string, mixed>  $config
+     * @return array{processed: int, skipped: int, message: string}
+     */
+    private function executePinCodeBulkDelete(array $ids, User $user, array $config): array
+    {
+        set_time_limit(300);
+
+        $eligible = PinCode::query()
+            ->whereIn('id', $ids)
+            ->get()
+            ->filter(fn (PinCode $pinCode): bool => $user->can('delete', $pinCode));
+
+        $skipped = count($ids) - $eligible->count();
+        $processed = $this->pinCodeDeletionService->deleteMany($eligible, 'bulk');
+
+        $module = is_string($config['module'] ?? null) ? $config['module'] : 'operations';
+
+        $this->activityLog->log(
+            'bulk_delete',
+            $module,
+            'OPERATIONS.PIN_CODES bulk delete: processed='.$processed.', skipped='.$skipped.' by user '.$user->id,
+        );
+
+        return [
+            'processed' => $processed,
+            'skipped' => $skipped,
+            'message' => __('Bulk delete complete. :processed removed, :skipped skipped.', [
+                'processed' => $processed,
+                'skipped' => $skipped,
+            ]),
+        ];
     }
 
     private function executeServiceAction(Service $service, string $action, User $user, string $resourceKey): bool

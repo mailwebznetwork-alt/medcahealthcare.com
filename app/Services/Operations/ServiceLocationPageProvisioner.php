@@ -6,6 +6,7 @@ use App\Enums\PageCategory;
 use App\Enums\PageLayoutMode;
 use App\Enums\PublishStatus;
 use App\Models\Page;
+use App\Models\PageRegistry;
 use App\Models\PinCode;
 use App\Models\Service;
 use App\Models\ServiceLocationPage;
@@ -110,17 +111,50 @@ class ServiceLocationPageProvisioner
 
     public function deleteAllForPincode(PinCode $pin): int
     {
-        $removed = 0;
+        return $this->bulkDeleteLocationArtifactsForPinIds([$pin->id]);
+    }
 
-        ServiceLocationPage::query()
-            ->where('pincode_id', $pin->id)
-            ->with(['page', 'service', 'pincode'])
-            ->each(function (ServiceLocationPage $row) use (&$removed): void {
-                $this->removeMappingAndPage($row);
-                $removed++;
-            });
+    /**
+     * @param  list<int>  $pinIds
+     */
+    public function bulkDeleteLocationArtifactsForPinIds(array $pinIds): int
+    {
+        if ($pinIds === []) {
+            return 0;
+        }
 
-        return $removed;
+        $mappings = ServiceLocationPage::query()
+            ->whereIn('pincode_id', $pinIds)
+            ->with(['service:id,service_code', 'pincode:id,pincode'])
+            ->get();
+
+        if ($mappings->isEmpty()) {
+            return 0;
+        }
+
+        $pageIds = $mappings->pluck('page_id')->filter()->unique()->values()->all();
+
+        $registryKeys = $mappings
+            ->map(fn (ServiceLocationPage $mapping): ?string => $mapping->service && $mapping->pincode
+                ? 'location:'.$mapping->service->service_code.':'.$mapping->pincode->pincode
+                : null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($registryKeys !== []) {
+            PageRegistry::query()->whereIn('registry_key', $registryKeys)->delete();
+        }
+
+        if ($pageIds !== []) {
+            PageRegistry::query()->whereIn('page_id', $pageIds)->delete();
+            Page::query()->whereIn('id', $pageIds)->delete();
+        }
+
+        ServiceLocationPage::query()->whereIn('pincode_id', $pinIds)->delete();
+
+        return $mappings->count();
     }
 
     public function removeMappingAndPage(ServiceLocationPage $mapping): void
