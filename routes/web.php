@@ -145,6 +145,11 @@ Route::get('/p/{slug}', function (string $slug) {
         return redirect($legacyTarget, 301);
     }
 
+    $templateRedirect = \App\Support\InternalTemplatePageRedirects::redirectPathFor($slug);
+    if ($templateRedirect !== null) {
+        return redirect($templateRedirect, 302);
+    }
+
     $page = Page::query()->where('slug', $slug)->first();
 
     if ($page !== null && $page->is_active) {

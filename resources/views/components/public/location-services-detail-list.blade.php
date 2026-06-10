@@ -2,7 +2,6 @@
     'services',
     'pinCode' => null,
     'pinCodeRecord' => null,
-    'sectionTitle' => null,
     'emptyMessage' => null,
 ])
 
@@ -13,15 +12,10 @@
         ? $pinCode
         : ($pinCodeRecord instanceof PinCode ? $pinCodeRecord : null);
 
-    $sectionTitle = $sectionTitle ?? __('Healthcare services in your area');
     $emptyMessage = $emptyMessage ?? __('No published services are mapped to this pincode yet.');
 @endphp
 
 <section {{ $attributes->merge(['class' => 'space-y-6']) }} data-location-services-detail>
-    @if (filled($sectionTitle) && $services->isNotEmpty())
-        <h2 class="text-2xl font-semibold text-slate-900 md:text-3xl">{{ $sectionTitle }}</h2>
-    @endif
-
     @if ($services->isEmpty())
         <p class="text-sm text-slate-600">{{ $emptyMessage }}</p>
     @else

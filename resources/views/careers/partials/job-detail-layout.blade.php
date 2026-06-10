@@ -1,7 +1,13 @@
 @php
-    /** @var \App\Models\Vacancy $vacancy */
+    /** @var \App\Models\Vacancy|null $vacancy */
 @endphp
 
+@if (! $vacancy)
+    <x-public.section class="bg-slate-50" data-careers-job-detail>
+        <p class="text-sm text-slate-600">{{ __('Open roles are listed on our careers page.') }}</p>
+        <a href="{{ url('/careers') }}" class="mt-4 inline-flex text-sm font-semibold text-medca-primary hover:underline">{{ __('View open roles') }} →</a>
+    </x-public.section>
+@else
 <x-public.section class="bg-slate-50" data-careers-job-detail>
         <header class="border-b border-slate-200 pb-8">
             <p class="text-xs text-slate-500">{{ config('careers.organization_name') }}</p>
@@ -56,3 +62,4 @@
             </aside>
         </div>
 </x-public.section>
+@endif

@@ -1,3 +1,9 @@
+@php
+    use App\Services\Public\PublicDisplayNameResolver;
+
+    $displayNames = app(PublicDisplayNameResolver::class);
+@endphp
+
 <div class="space-y-8">
     <x-public.location-heading-with-pincode
         :eyebrow="$eyebrow"
@@ -24,7 +30,7 @@
                 <li>
                     <a href="{{ route('public.service-categories.show', $category->code) }}" class="group flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-medca-primary/30 hover:shadow-md">
                         <span class="text-[10px] font-semibold uppercase tracking-wide text-medca-primary">{{ __('Care category') }}</span>
-                        <h3 class="mt-1 text-base font-semibold text-slate-900 group-hover:text-medca-primary">{{ $category->name }}</h3>
+                        <h3 class="mt-1 text-base font-semibold text-slate-900 group-hover:text-medca-primary">{{ $displayNames->categoryHeadline($category) }}</h3>
                         @if (filled($category->description))
                             <p class="medca-card-body mt-2 flex-1">{{ \Illuminate\Support\Str::limit(strip_tags($category->description), 120) }}</p>
                         @endif

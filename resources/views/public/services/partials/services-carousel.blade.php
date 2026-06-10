@@ -1,6 +1,9 @@
 @php
+    use App\Services\Public\PublicDisplayNameResolver;
+
     /** @var \Illuminate\Support\Collection<int, \App\Models\Service>|\Illuminate\Support\Enumerable<int, \App\Models\Service> $services */
     $sectionTitle = $sectionTitle ?? null;
+    $displayNames = app(PublicDisplayNameResolver::class);
 @endphp
 
 @if ($services->isNotEmpty())
@@ -20,7 +23,7 @@
                         class="medca-svc-carousel-card"
                         role="listitem"
                     >
-                        <h3>{{ $service->title }}</h3>
+                        <h3>{{ $displayNames->serviceHeadline($service) }}</h3>
                         @if (filled($service->short_summary))
                             <p>{{ \Illuminate\Support\Str::limit(strip_tags($service->short_summary), 120) }}</p>
                         @endif

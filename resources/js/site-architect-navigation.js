@@ -1,3 +1,5 @@
+import { onBackendDomUpdate, SORTABLE_INTERACTIVE_FILTER } from './livewire-dom-hooks';
+
 function readZoneIds(zone) {
     const el = document.querySelector(`[data-nav-zone="${zone}"]`);
     if (!el) {
@@ -20,8 +22,7 @@ async function bindNavigationSortables() {
         return;
     }
 
-    const wid = lwRoot.getAttribute('wire:id');
-    const component = window.Livewire.find(wid);
+    const component = window.Livewire.find(lwRoot.getAttribute('wire:id'));
     if (!component) {
         return;
     }
@@ -38,7 +39,9 @@ async function bindNavigationSortables() {
             group: 'site-navigation',
             animation: 150,
             draggable: '[data-page-id]',
-            filter: 'input,textarea,button,select,option',
+            delay: 120,
+            delayOnTouchOnly: true,
+            filter: SORTABLE_INTERACTIVE_FILTER,
             preventOnFilter: false,
             onEnd: () => {
                 component.call(
@@ -51,19 +54,4 @@ async function bindNavigationSortables() {
     });
 }
 
-document.addEventListener('livewire:init', () => {
-    window.Livewire.hook('morph.updated', () => {
-        if (!document.getElementById('site-navigation-root')) {
-            return;
-        }
-        requestAnimationFrame(() => {
-            bindNavigationSortables();
-        });
-    });
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    requestAnimationFrame(() => {
-        bindNavigationSortables();
-    });
-});
+onBackendDomUpdate(bindNavigationSortables);

@@ -28,7 +28,6 @@
             <x-public.location-services-detail-list
                 :services="$services"
                 :pin-code-record="$pin"
-                :section-title="$sectionTitle"
                 :empty-message="$category
                     ? __('No published :category services are mapped to this pincode yet.', ['category' => $category->name])
                     : ($contextService

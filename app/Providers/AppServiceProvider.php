@@ -84,6 +84,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ServiceContextCollector::class);
         $this->app->singleton(ContentRenderContext::class);
         $this->app->singleton(ServiceBindingRegistry::class);
+        $this->app->singleton(\App\Services\Content\ServiceBindingResolver::class);
+        $this->app->singleton(\App\Services\Content\BlockBoundServicesResolver::class);
 
         $this->app->bind(
             AiDeploymentAdvisoryInterface::class,

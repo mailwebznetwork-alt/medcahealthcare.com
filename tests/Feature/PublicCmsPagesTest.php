@@ -112,3 +112,18 @@ it('exposes vacancies in block blade via render context on the careers page', fu
         ->assertSuccessful()
         ->assertSee('Blade Listed Role', false);
 });
+
+it('redirects internal careers job detail template away from direct /p/ access', function () {
+    Page::query()->updateOrCreate(
+        ['slug' => config('careers.job_detail_page_slug')],
+        [
+            'title' => 'Job detail layout',
+            'content' => '{{block:careers-job-detail-layout}}',
+            'is_active' => true,
+            'layout_mode' => PageLayoutMode::Canvas,
+        ]
+    );
+
+    $this->get('/p/'.config('careers.job_detail_page_slug'))
+        ->assertRedirect('/careers');
+});

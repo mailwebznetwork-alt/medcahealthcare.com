@@ -59,7 +59,7 @@ class LocationAreaController extends Controller
         $hasCategoryContext = $category instanceof ServiceCategory;
         $hasServiceContext = $contextService instanceof Service;
 
-        [$title, $intro, $sectionTitle] = $this->headlinesForContext(
+        [$title, $intro] = $this->headlinesForContext(
             $area,
             $pin,
             $category,
@@ -91,7 +91,6 @@ class LocationAreaController extends Controller
             'breadcrumbs' => $breadcrumbs,
             'title' => $title,
             'intro' => $intro,
-            'sectionTitle' => $sectionTitle,
             'showNearYouBlock' => $hasCategoryContext || $hasServiceContext,
             'nearYouPayload' => app(PublicPagePresenter::class)->nearYouPayload(),
         ]);
@@ -135,7 +134,7 @@ class LocationAreaController extends Controller
     }
 
     /**
-     * @return array{0: string, 1: string, 2: string}
+     * @return array{0: string, 1: string}
      */
     private function headlinesForContext(
         string $area,
@@ -155,7 +154,6 @@ class LocationAreaController extends Controller
                     'area' => $area,
                     'pin' => $pin->pincode,
                 ]),
-                __(':category services in your area', ['category' => $categoryName]),
             ];
         }
 
@@ -169,7 +167,6 @@ class LocationAreaController extends Controller
                     'area' => $area,
                     'pin' => $pin->pincode,
                 ]),
-                __(':service in your area', ['service' => $serviceName]),
             ];
         }
 
@@ -179,7 +176,6 @@ class LocationAreaController extends Controller
                 'area' => $area,
                 'pin' => $pin->pincode,
             ]),
-            __('Healthcare services in your area'),
         ];
     }
 

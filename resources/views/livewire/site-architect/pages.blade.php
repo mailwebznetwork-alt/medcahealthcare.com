@@ -301,12 +301,13 @@
                             class="flex flex-wrap items-center justify-between gap-2 rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-nested)] px-3 py-2 text-sm text-[var(--text-primary)]"
                         >
                             <span class="flex items-center gap-2 font-medium">
-                                <button
-                                    type="button"
+                                <span
+                                    role="button"
+                                    tabindex="0"
                                     data-sortable-handle
-                                    class="cursor-grab px-1 text-[var(--text-muted)] active:cursor-grabbing"
+                                    class="cursor-grab select-none px-1 text-[var(--text-muted)] active:cursor-grabbing"
                                     aria-label="{{ __('Drag to reorder') }}"
-                                >⋮⋮</button>
+                                >⋮⋮</span>
                                 @if ($part['type'] === 'block')
                                     {{ app(\App\Services\SiteArchitect\PageSectionCatalog::class)->displayNameForSlug($part['slug']) }}
                                 @else

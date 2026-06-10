@@ -2,13 +2,14 @@
 
 namespace App\Services;
 
-use App\Enums\PublishStatus;
-use App\Enums\ServiceVisibility;
 use App\Models\Block;
 use App\Models\Page;
 use App\Models\Service;
+use App\Services\Content\BlockBoundServicesResolver;
 use App\Services\Content\ContentRenderContext;
 use App\Services\Content\ServiceBindingRegistry;
+use App\Services\Content\ServiceBindingResolver;
+use App\Services\Content\ServiceTokenPattern;
 use App\Services\Deployment\BlockSectionWrapperBuilder;
 use App\Services\Deployment\BlockSettingsResolver;
 use App\Services\Deployment\GlobalContentInterpolator;
@@ -39,7 +40,7 @@ class ContentParser
      * from a block's code before Blade::render so they do not leak as raw
      * text to the rendered page.
      */
-    private const string SERVICE_TOKEN_PATTERN = '/\{\{\s*service\s*:\s*([^}]+?)\s*\}\}/';
+    private const string SERVICE_TOKEN_PATTERN = ServiceTokenPattern::PATTERN;
 
     /** @var array<string, Block|null> */
     private static array $blockCache = [];
@@ -215,6 +216,7 @@ class ContentParser
 
         $code = app(GlobalContentInterpolator::class)->interpolate($code);
 
+        $orderedServices = app(BlockBoundServicesResolver::class)->orderedForBlockCode($code, $blockSlug);
         $serviceVars = self::loadServiceVariablesFromBlockCode($code);
 
         $bladeReadyCode = self::parseInternal(
@@ -222,7 +224,7 @@ class ContentParser
             $depth + 1
         );
 
-        $html = Blade::render($bladeReadyCode, self::buildBlockRenderVariables($serviceVars));
+        $html = Blade::render($bladeReadyCode, self::buildBlockRenderVariables($serviceVars, $orderedServices));
 
         return self::wrapBlockOutput($html, $customCss, $blockSlug);
     }
@@ -264,9 +266,9 @@ class ContentParser
      * @param  array<string, Service>  $serviceVars
      * @return array<string, mixed>
      */
-    public static function buildBlockRenderVariables(array $serviceVars): array
+    public static function buildBlockRenderVariables(array $serviceVars, ?Collection $orderedServices = null): array
     {
-        $services = collect(array_values($serviceVars))->filter(fn ($v): bool => $v instanceof Service);
+        $services = $orderedServices ?? collect(array_values($serviceVars))->filter(fn ($v): bool => $v instanceof Service);
 
         $variables = array_merge(
             self::blockRenderDefaults(),
@@ -371,6 +373,7 @@ class ContentParser
 
         $code = app(GlobalContentInterpolator::class)->interpolate($code);
 
+        $orderedServices = app(BlockBoundServicesResolver::class)->orderedForBlockCode($code, $blockSlug);
         $serviceVars = self::loadServiceVariablesFromBlockCode($code);
 
         $bladeReadyCode = self::parseInternal(
@@ -379,7 +382,7 @@ class ContentParser
         );
 
         $html = Blade::render($bladeReadyCode, array_merge(
-            self::buildBlockRenderVariables($serviceVars),
+            self::buildBlockRenderVariables($serviceVars, $orderedServices),
             $extraVariables
         ));
 
@@ -418,35 +421,12 @@ class ContentParser
     private static function loadServiceVariablesFromBlockCode(string $code): array
     {
         $vars = [];
+        $resolver = app(ServiceBindingResolver::class);
 
-        if (preg_match_all(self::SERVICE_TOKEN_PATTERN, $code, $matches) === false) {
-            return $vars;
-        }
-
-        foreach ($matches[1] ?? [] as $rawCode) {
-            $serviceCode = trim((string) $rawCode);
-            if ($serviceCode === '') {
-                continue;
-            }
-
-            $registry = app(ServiceBindingRegistry::class);
-            $service = $registry->get($serviceCode);
-
+        foreach ($resolver->extractTokens($code) as $token) {
+            $service = $resolver->resolveForBlock($token);
             if ($service === null) {
-                $service = Service::findForBlockBinding($serviceCode);
-                if ($service === null) {
-                    continue;
-                }
-
-                $service->loadMissing(['seo', 'faqs', 'pincodes']);
-                $registry->remember($serviceCode, $service);
-            }
-
-            if (
-                $service->publish_status === PublishStatus::Published
-                && $service->visibility === ServiceVisibility::Public
-            ) {
-                self::registerWithCollector($service);
+                continue;
             }
 
             $vars[$service->bladeVariableName()] = $service;
@@ -457,22 +437,6 @@ class ContentParser
 
     private static function registerServiceTokenWithCollector(string $serviceCode): void
     {
-        $service = Service::findPublishedByCode($serviceCode);
-        if ($service === null) {
-            return;
-        }
-
-        $service->loadMissing(['seo', 'faqs', 'pincodes']);
-        self::registerWithCollector($service);
-    }
-
-    private static function registerWithCollector(Service $service): void
-    {
-        try {
-            app(ServiceContextCollector::class)->register($service);
-        } catch (\Throwable) {
-            // Collector is best-effort — if the container is misconfigured
-            // (e.g., during early bootstrap), token rendering must not fail.
-        }
+        app(ServiceBindingResolver::class)->resolvePublishedForHead($serviceCode);
     }
 }

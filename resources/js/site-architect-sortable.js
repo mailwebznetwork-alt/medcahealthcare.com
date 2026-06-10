@@ -1,3 +1,5 @@
+import { onBackendDomUpdate, SORTABLE_INTERACTIVE_FILTER } from './livewire-dom-hooks';
+
 function readOrderedKeys(listEl, itemSelector, keyAttr) {
     return [...listEl.querySelectorAll(itemSelector)]
         .map((node) => node.getAttribute(keyAttr))
@@ -38,7 +40,9 @@ async function bindSortableList(listEl) {
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
         dragClass: 'sortable-drag',
-        filter: 'input,textarea,button,select,option,a',
+        delay: 120,
+        delayOnTouchOnly: true,
+        filter: SORTABLE_INTERACTIVE_FILTER,
         preventOnFilter: false,
         onEnd: () => {
             const ordered = readOrderedKeys(listEl, itemSelector, keyAttr);
@@ -53,12 +57,4 @@ function bindAllSortables() {
     });
 }
 
-document.addEventListener('livewire:init', () => {
-    window.Livewire.hook('morph.updated', () => {
-        requestAnimationFrame(() => bindAllSortables());
-    });
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    requestAnimationFrame(() => bindAllSortables());
-});
+onBackendDomUpdate(bindAllSortables);

@@ -1,11 +1,17 @@
 @extends('layouts.app')
 
-@section('title', $category->name.' — '.config('medca.brand_name'))
+@php
+    use App\Services\Public\PublicDisplayNameResolver;
+
+    $displayNames = app(PublicDisplayNameResolver::class);
+@endphp
+
+@section('title', $displayNames->categoryMetaTitle($category).' — '.config('medca.brand_name'))
 
 @section('content')
     <x-public.location-page-hero
         :eyebrow="__('Category')"
-        :headline="$category->name"
+        :headline="$displayNames->categoryHeadline($category)"
         :subline="$category->description"
         :show-pincode="false"
         :show-actions="true"
@@ -20,11 +26,11 @@
             ];
             if ($category->parent) {
                 $categoryBreadcrumbItems[] = [
-                    'label' => $category->parent->name,
+                    'label' => $displayNames->categoryHeadline($category->parent),
                     'url' => route('public.service-categories.show', $category->parent->code),
                 ];
             }
-            $categoryBreadcrumbItems[] = ['label' => $category->name, 'url' => '#'];
+            $categoryBreadcrumbItems[] = ['label' => $displayNames->categoryHeadline($category), 'url' => '#'];
         @endphp
         <x-public.breadcrumbs :items="$categoryBreadcrumbItems" />
 
@@ -32,7 +38,7 @@
             <div class="mt-6 flex flex-wrap gap-2" aria-label="{{ __('Related categories') }}">
                 @foreach ($siblingCategories as $sibling)
                     <a href="{{ route('public.service-categories.show', $sibling->code) }}" class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-700 hover:border-medca-primary/40 hover:text-medca-primary">
-                        {{ $sibling->name }}
+                        {{ $displayNames->categoryHeadline($sibling) }}
                     </a>
                 @endforeach
             </div>
@@ -56,7 +62,7 @@
                 @forelse ($services as $service)
                     <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                         <h2 class="text-lg font-semibold">
-                            <a href="{{ route('public.services.show', $service->service_code) }}" class="text-slate-900 hover:text-medca-primary">{{ $service->title }}</a>
+                            <a href="{{ route('public.services.show', $service->service_code) }}" class="text-slate-900 hover:text-medca-primary">{{ $displayNames->serviceHeadline($service) }}</a>
                         </h2>
                         @if ($service->short_summary)
                             <p class="mt-2 line-clamp-3 text-sm text-slate-600">{{ $service->short_summary }}</p>

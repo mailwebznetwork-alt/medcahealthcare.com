@@ -76,5 +76,5 @@
         </section>
         @endif
     </div>
-</div>
+    </x-public.section>
 @endsection

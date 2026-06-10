@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Collection;
  */
 class ServiceInsertCatalog
 {
-    public const string SERVICE_TOKEN_PATTERN = '/\{\{\s*service\s*:\s*([^}]+?)\s*\}\}/';
+    public const string SERVICE_TOKEN_PATTERN = \App\Services\Content\ServiceTokenPattern::PATTERN;
 
     /**
      * @return Collection<int, Service>
