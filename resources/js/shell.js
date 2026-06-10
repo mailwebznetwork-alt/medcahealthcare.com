@@ -1,11 +1,16 @@
 import { createIcons } from 'lucide';
 import {
     Activity,
+    ArrowLeft,
+    Bell,
     BriefcaseBusiness,
+    Check,
+    ListChecks,
     ChevronRight,
     CircleUser,
     Database,
     DraftingCompass,
+    ExternalLink,
     FileChartColumn,
     FolderKanban,
     Gauge,
@@ -13,12 +18,14 @@ import {
     Layers,
     LayoutDashboard,
     LineChart,
+    List,
     LogOut,
     MapPin,
     Megaphone,
     Orbit,
     Pencil,
     PanelLeft,
+    Plus,
     Search,
     Server,
     Settings,
@@ -33,14 +40,20 @@ import {
     UsersRound,
     Workflow,
 } from 'lucide';
+import { onBackendDomUpdate } from './livewire-dom-hooks';
 
 const lucideIcons = {
     Activity,
+    ArrowLeft,
+    Bell,
     BriefcaseBusiness,
+    Check,
+    ListChecks,
     ChevronRight,
     CircleUser,
     Database,
     DraftingCompass,
+    ExternalLink,
     FileChartColumn,
     FolderKanban,
     Gauge,
@@ -48,12 +61,14 @@ const lucideIcons = {
     Layers,
     LayoutDashboard,
     LineChart,
+    List,
     LogOut,
     MapPin,
     Megaphone,
     Orbit,
     Pencil,
     PanelLeft,
+    Plus,
     Search,
     Server,
     Settings,
@@ -92,6 +107,7 @@ function scheduleLucideIcons() {
 }
 
 scheduleLucideIcons();
+onBackendDomUpdate(bootIcons);
 
 document.addEventListener('livewire:navigated', () => {
     bootIcons();

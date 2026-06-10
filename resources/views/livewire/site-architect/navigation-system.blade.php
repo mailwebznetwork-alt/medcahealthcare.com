@@ -117,12 +117,12 @@
         </button>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-2">
-        <div class="mom-card p-6">
+    <div class="flex w-full flex-col gap-6">
+        <div class="mom-card w-full p-6">
             <h3 class="mom-section-title mb-3">{{ __('Header menu tree') }}</h3>
             @include('livewire.site-architect.partials.navigation-tree', ['nodes' => $headerTree, 'zone' => 'header', 'depth' => 0, 'pathPrefix' => []])
         </div>
-        <div class="mom-card p-6">
+        <div class="mom-card w-full p-6">
             <h3 class="mom-section-title mb-3">{{ __('Footer menu tree') }}</h3>
             @include('livewire.site-architect.partials.navigation-tree', ['nodes' => $footerTree, 'zone' => 'footer', 'depth' => 0, 'pathPrefix' => []])
         </div>

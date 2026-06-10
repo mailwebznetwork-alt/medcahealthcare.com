@@ -42,7 +42,7 @@
                     title="{{ __('Mark all read') }}"
                     aria-label="{{ __('Mark all read') }}"
                 >
-                    <i data-lucide="checks" class="h-4 w-4"></i>
+                    <i data-lucide="list-checks" class="h-4 w-4"></i>
                 </button>
             @endif
         </div>
