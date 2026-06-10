@@ -26,13 +26,13 @@ class UserLocationService
     {
         $authUser = auth()->user();
         if ($authUser instanceof User && filled($authUser->pincode)) {
-            return $this->normalizePincode((string) $authUser->pincode);
+            return $this->resolveStoredPincode((string) $authUser->pincode);
         }
 
         $sessionPin = Session::get($this->sessionKey());
 
         return is_string($sessionPin) && $sessionPin !== ''
-            ? $this->normalizePincode($sessionPin)
+            ? $this->resolveStoredPincode($sessionPin)
             : null;
     }
 
@@ -143,9 +143,37 @@ class UserLocationService
         }
     }
 
+    public function forgetPincode(): void
+    {
+        Session::forget($this->sessionKey());
+
+        $user = auth()->user();
+        if ($user instanceof User && filled($user->pincode)) {
+            $user->forceFill(['pincode' => null])->saveQuietly();
+        }
+    }
+
     public function normalizePincode(string $pincode): string
     {
         return preg_replace('/\D/', '', trim($pincode)) ?? '';
+    }
+
+    private function resolveStoredPincode(string $pincode): ?string
+    {
+        $normalized = $this->normalizePincode($pincode);
+        if (strlen($normalized) !== 6) {
+            $this->forgetPincode();
+
+            return null;
+        }
+
+        if ($this->resolveServiceablePincode($normalized) === null) {
+            $this->forgetPincode();
+
+            return null;
+        }
+
+        return $normalized;
     }
 
     public function resolveServiceablePincode(string $pincode): ?string

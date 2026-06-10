@@ -5,7 +5,14 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="theme-color" content="{{ config('medca.theme_color') }}">
-        <style>[x-cloak]{display:none!important}</style>
+        <style>
+            [x-cloak]{display:none!important}
+            html.medca-public-root,
+            body.medca-public-surface {
+                overflow-x: clip;
+                max-width: 100%;
+            }
+        </style>
         @stack('meta')
         @isset($vacancy)
             @php

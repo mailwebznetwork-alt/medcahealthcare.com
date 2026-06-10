@@ -54,20 +54,22 @@
         'border-l border-solid border-slate-300' => $showBorder,
     ])>
         @if ($hasChildren)
-            <button
-                type="button"
-                class="{{ $navLinkBase }} {{ $navLinkDefault }} gap-1"
-                aria-haspopup="true"
-                aria-expanded="false"
-            >
-                {{ $label }}
-                <svg class="h-3 w-3 opacity-70" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd"/></svg>
-            </button>
-            <ul class="medca-nav-dropdown" role="menu">
-                @foreach ($children as $child)
-                    @include('components.public.nav-dropdown-item', ['item' => $child, 'depth' => 0])
-                @endforeach
-            </ul>
+            <div class="medca-nav-dropdown-anchor relative inline-flex">
+                <button
+                    type="button"
+                    class="{{ $navLinkBase }} {{ $navLinkDefault }} gap-1"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                >
+                    {{ $label }}
+                    <svg class="h-3 w-3 opacity-70" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd"/></svg>
+                </button>
+                <ul class="medca-nav-dropdown" role="menu">
+                    @foreach ($children as $child)
+                        @include('components.public.nav-dropdown-item', ['item' => $child, 'depth' => 0])
+                    @endforeach
+                </ul>
+            </div>
         @else
             <a
                 href="{{ $href ?? '#' }}"

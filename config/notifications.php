@@ -21,6 +21,7 @@ return [
         'bulk_action_failed',
         'login_failure',
         'password_changed',
+        'password_change_failed',
     ],
 
     'muted_actions' => [

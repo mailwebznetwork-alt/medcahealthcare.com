@@ -34,7 +34,7 @@ return [
 
     'profile_readonly_names' => array_values(array_filter(array_unique(array_map(
         static fn (string $n): string => strtolower(trim($n)),
-        explode(',', (string) env('USER_MANAGEMENT_PROFILE_READONLY_NAMES', 'WDJERRIE'))
+        explode(',', (string) env('USER_MANAGEMENT_PROFILE_READONLY_NAMES', 'MOMJERRIE'))
     )))),
 
 ];

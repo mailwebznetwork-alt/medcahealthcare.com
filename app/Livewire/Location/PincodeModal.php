@@ -116,13 +116,41 @@ class PincodeModal extends Component
             return;
         }
 
+        session()->flash('status', __('Location updated to pincode :pin.', ['pin' => $resolved]));
+
         $this->open = false;
         $this->dispatch('pincode-updated', pincode: $resolved);
 
-        $redirectUrl = $redirects->resolveAfterSwitch($this->redirectContextRequest(), $resolved);
+        $redirectUrl = $this->redirectUrlWithPinRefresh(
+            $redirects->resolveAfterSwitch($this->redirectContextRequest(), $resolved),
+            $resolved,
+        );
 
-        // Full page load required — wire:navigate does not re-render service-location heroes.
+        // Full page load required — wire:navigate and same-URL hash redirects do not refresh content.
         $this->redirect($redirectUrl, navigate: false);
+    }
+
+    private function redirectUrlWithPinRefresh(string $url, string $pincode): string
+    {
+        $parts = parse_url($url);
+        $query = [];
+
+        if (! empty($parts['query'])) {
+            parse_str($parts['query'], $query);
+        }
+
+        $query['pin'] = $pincode;
+
+        $path = $parts['path'] ?? '/';
+        $fragment = isset($parts['fragment']) ? '#'.$parts['fragment'] : '';
+
+        if (isset($parts['scheme'], $parts['host'])) {
+            $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+
+            return $parts['scheme'].'://'.$parts['host'].$port.$path.'?'.http_build_query($query).$fragment;
+        }
+
+        return $path.'?'.http_build_query($query).$fragment;
     }
 
     private function refreshRedirectContext(?string $contextPath = null): void

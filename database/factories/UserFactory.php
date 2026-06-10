@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Models\User;
 use App\ModuleAccess;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
@@ -13,14 +12,9 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
+    protected static ?string $password = null;
 
     /**
-     * Define the model's default state.
-     *
      * @return array<string, mixed>
      */
     public function definition(): array
@@ -32,30 +26,56 @@ class UserFactory extends Factory
             'phone' => null,
             'profile_image_path' => null,
             'role_label' => null,
-            'is_active' => true,
             'last_login_at' => null,
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'password' => static::$password ?? 'password',
+            'role' => 'editor',
             'module_access' => ModuleAccess::defaultGrants(),
+            'is_active' => true,
+            'remember_token' => Str::random(10),
         ];
     }
 
     /**
-     * Root super administrator (email matches config root_account.email).
+     * @param  array<string, mixed>  $attributes
      */
+    public function newModel(array $attributes = []): User
+    {
+        $sensitiveKeys = [
+            'password',
+            'role',
+            'role_label',
+            'module_access',
+            'is_active',
+            'remember_token',
+            'email_verified_at',
+        ];
+
+        $sensitive = [];
+        foreach ($sensitiveKeys as $key) {
+            if (array_key_exists($key, $attributes)) {
+                $sensitive[$key] = $attributes[$key];
+                unset($attributes[$key]);
+            }
+        }
+
+        $model = new User;
+        $model->fill($attributes);
+        $model->forceFill($sensitive);
+
+        return $model;
+    }
+
     public function rootSuperAdmin(): static
     {
         return $this->state(fn (array $attributes) => [
             'email' => config('root_account.email', 'wdjerrie@markonminds.test'),
-            'name' => 'WDJERRIE',
+            'name' => 'MOMJERRIE',
             'role_label' => 'Root Super Admin',
+            'role' => 'super_admin',
             'module_access' => ModuleAccess::defaultGrants(),
         ]);
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
     public function unverified(): static
     {
         return $this->state(fn (array $attributes) => [

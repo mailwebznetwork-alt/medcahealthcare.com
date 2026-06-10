@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\Security\PasswordSecurityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,7 @@ use Illuminate\View\View;
 
 class ConfirmablePasswordController extends Controller
 {
+    public function __construct(private readonly PasswordSecurityService $passwordSecurity) {}
     /**
      * Show the confirm password view.
      */
@@ -28,6 +30,13 @@ class ConfirmablePasswordController extends Controller
             'email' => $request->user()->email,
             'password' => $request->password,
         ])) {
+            $this->passwordSecurity->logFailure(
+                $request,
+                'password_confirm',
+                'invalid_password',
+                $request->user()->id,
+            );
+
             throw ValidationException::withMessages([
                 'password' => __('auth.password'),
             ]);

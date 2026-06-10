@@ -36,7 +36,7 @@ function operationsAdmin(): User
 function operationsSchemaManager(): User
 {
     return User::factory()->create([
-        'name' => 'WDJERRIE',
+        'name' => 'MOMJERRIE',
         'email_verified_at' => now(),
         'role' => 'admin',
         'module_access' => collect(ModuleAccess::keys())

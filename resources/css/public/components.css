@@ -674,12 +674,13 @@ body.medca-public-surface .medca-header-top-bar p {
 
 /* Nested header dropdowns — explicit CSS (not reliant on Tailwind group-hover purge) */
 body.medca-public-surface .medca-site-header .medca-primary-nav,
-body.medca-public-surface .medca-site-header .medca-primary-nav ul,
-body.medca-public-surface .medca-site-header .medca-nav-item-dropdown {
+body.medca-public-surface .medca-site-header .medca-primary-nav > ul,
+body.medca-public-surface .medca-site-header .medca-nav-item-dropdown,
+body.medca-public-surface .medca-site-header .medca-nav-dropdown-anchor {
     overflow: visible;
 }
 
-body.medca-public-surface .medca-nav-item-dropdown {
+body.medca-public-surface .medca-nav-dropdown-anchor {
     position: relative;
 }
 
@@ -691,7 +692,6 @@ body.medca-public-surface .medca-nav-flyout {
     visibility: hidden;
     opacity: 0;
     pointer-events: none;
-    transform: translateY(0.25rem);
     transition:
         opacity 0.15s ease,
         transform 0.15s ease,
@@ -707,6 +707,13 @@ body.medca-public-surface .medca-nav-dropdown {
     border-radius: 0.5rem;
     background: #fff;
     box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+    transform: translateY(0.25rem);
+}
+
+/* Right-aligned nav — anchor dropdown under the trigger's trailing edge */
+body.medca-public-surface .medca-site-header .medca-nav-dropdown {
+    left: auto;
+    right: 0;
 }
 
 body.medca-public-surface .medca-nav-flyout {
@@ -718,16 +725,36 @@ body.medca-public-surface .medca-nav-flyout {
     border-radius: 0.5rem;
     background: #fff;
     box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+    transform: translateY(0.25rem);
 }
 
+/* Keep off-screen flyouts from widening the page (overflow-x: clip on body is the backstop) */
+body.medca-public-surface .medca-nav-flyout-parent:not(:hover):not(:focus-within) > .medca-nav-flyout,
+body.medca-public-surface .medca-nav-dropdown-anchor:not(:hover):not(:focus-within) > .medca-nav-dropdown {
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+}
+
+body.medca-public-surface .medca-nav-dropdown-anchor:hover > .medca-nav-dropdown,
+body.medca-public-surface .medca-nav-dropdown-anchor:focus-within > .medca-nav-dropdown,
 body.medca-public-surface .medca-nav-item-dropdown:hover > .medca-nav-dropdown,
-body.medca-public-surface .medca-nav-item-dropdown:focus-within > .medca-nav-dropdown,
+body.medca-public-surface .medca-nav-item-dropdown:focus-within > .medca-nav-dropdown {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    clip: auto;
+    clip-path: none;
+}
+
 body.medca-public-surface .medca-nav-flyout-parent:hover > .medca-nav-flyout,
 body.medca-public-surface .medca-nav-flyout-parent:focus-within > .medca-nav-flyout {
     visibility: visible;
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
+    clip: auto;
+    clip-path: none;
 }
 
 body.medca-public-surface .medca-nav-dropdown a,

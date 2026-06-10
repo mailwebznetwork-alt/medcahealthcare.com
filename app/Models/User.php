@@ -16,7 +16,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'phone', 'pincode', 'password', 'profile_image_path', 'role_label', 'role', 'module_access', 'is_active'])]
+#[Fillable(['name', 'email', 'phone', 'pincode', 'profile_image_path', 'role_label'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -50,6 +50,43 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isRootSuperAdmin(): bool
     {
         return RootAccount::isRootUser($this);
+    }
+
+    /**
+     * Defense-in-depth gate for backend access (custom admin — Filament is not used).
+     * Route middleware (`auth`, `active`, `module:*`, `role:*`) remains authoritative.
+     */
+    public function canAccessPanel(string $panel = 'admin'): bool
+    {
+        if ($panel !== 'admin') {
+            return false;
+        }
+
+        if (! $this->is_active) {
+            return false;
+        }
+
+        $role = strtolower(trim((string) ($this->role ?? '')));
+
+        if ($role === '' && $this->isRootSuperAdmin()) {
+            $role = 'super_admin';
+        }
+
+        return in_array($role, ['viewer', 'editor', 'manager', 'admin', 'super_admin'], true);
+    }
+
+    /**
+     * Strict gate for integration admin API routes (admin + super_admin only).
+     */
+    public function canAccessIntegrationsAdmin(): bool
+    {
+        if (! $this->is_active) {
+            return false;
+        }
+
+        $role = strtolower(trim((string) ($this->role ?? '')));
+
+        return in_array($role, ['admin', 'super_admin'], true);
     }
 
     public function canBypassArchitectSaveConstraints(): bool

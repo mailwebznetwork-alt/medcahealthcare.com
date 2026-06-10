@@ -19,13 +19,41 @@
     $navDrawerTriggerClass = 'inline-flex items-center justify-center rounded-lg border border-clinical-200 bg-white p-2 text-medca-primary shadow-sm transition-colors duration-200 hover:border-clinical-300 hover:bg-clinical-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-clinical-500/40';
 @endphp
 
-{{-- Desktop nav 15px — inline so it applies without waiting on Vite rebuild --}}
+{{-- Desktop nav — inline so critical layout applies without waiting on Vite rebuild --}}
 <style>
     @media (min-width: 768px) {
         body.medca-public-surface .medca-site-header .medca-primary-nav-link {
             font-size: 15px !important;
             line-height: 1.3125rem !important;
         }
+    }
+
+    body.medca-public-surface .medca-nav-dropdown-anchor {
+        position: relative;
+    }
+
+    body.medca-public-surface .medca-site-header .medca-nav-dropdown {
+        left: auto;
+        right: 0;
+        transform: translateY(0.25rem);
+    }
+
+    body.medca-public-surface .medca-site-header .medca-nav-dropdown .medca-nav-flyout {
+        left: 100%;
+        right: auto;
+    }
+
+    body.medca-public-surface .medca-nav-dropdown-anchor:hover > .medca-nav-dropdown,
+    body.medca-public-surface .medca-nav-dropdown-anchor:focus-within > .medca-nav-dropdown,
+    body.medca-public-surface .medca-nav-flyout-parent:hover > .medca-nav-flyout,
+    body.medca-public-surface .medca-nav-flyout-parent:focus-within > .medca-nav-flyout {
+        clip: auto;
+        clip-path: none;
+    }
+
+    body.medca-public-surface .medca-nav-dropdown-anchor:hover > .medca-nav-dropdown,
+    body.medca-public-surface .medca-nav-dropdown-anchor:focus-within > .medca-nav-dropdown {
+        transform: translateY(0);
     }
 </style>
 

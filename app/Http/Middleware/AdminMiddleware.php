@@ -36,14 +36,12 @@ class AdminMiddleware
             return redirect()->guest(route('login'));
         }
 
-        $role = trim((string) ($user->role ?? ''));
-        $allowedRoles = ['admin', 'super_admin'];
-
-        if (! in_array($role, $allowedRoles, true)) {
+        if (! $user->canAccessIntegrationsAdmin()) {
+            $role = trim((string) ($user->role ?? ''));
             $this->activityLogService->log(
                 'role_violation',
                 'integrations',
-                sprintf('User %d blocked by admin middleware.', (int) $user->id)
+                sprintf('User %d (role=%s) blocked by admin middleware.', (int) $user->id, $role)
             );
 
             if ($this->wantsJsonResponse($request)) {

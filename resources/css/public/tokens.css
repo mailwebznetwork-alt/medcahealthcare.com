@@ -7,6 +7,7 @@ html.medca-public-root {
     scroll-padding-top: 8rem;
     /* Prevent header/content horizontal shift when scrollbar appears between pages */
     scrollbar-gutter: stable;
+    overflow-x: clip;
 }
 
 html.medca-public-root * {
@@ -25,6 +26,7 @@ html.medca-public-root * {
  * See config/theme.php for the full token map.
  */
 body.medca-public-surface {
+    overflow-x: clip;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;

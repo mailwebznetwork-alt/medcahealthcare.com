@@ -145,7 +145,7 @@ it('hides the root super administrator from the index by default', function () {
     config([
         'user_management.hide_root_account_in_directory' => true,
         'user_management.profile_readonly_emails' => [],
-        'user_management.profile_readonly_names' => ['wdjerrie'],
+        'user_management.profile_readonly_names' => ['momjerrie'],
     ]);
 
     $root = User::factory()->rootSuperAdmin()->create([

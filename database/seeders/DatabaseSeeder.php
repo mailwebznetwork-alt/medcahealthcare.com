@@ -20,9 +20,18 @@ class DatabaseSeeder extends Seeder
         $password = env('SEED_ADMIN_PASSWORD');
 
         if (is_string($email) && $email !== '' && is_string($password) && $password !== '') {
-            User::updateOrCreate(
-                ['email' => $email],
-                [
+            $existing = User::query()->where('email', $email)->first();
+
+            if ($existing !== null) {
+                $allowPasswordReset = filter_var(env('ALLOW_SEED_ADMIN_PASSWORD_RESET', false), FILTER_VALIDATE_BOOL);
+
+                if (app()->environment('production') && ! $allowPasswordReset) {
+                    $this->command?->warn('Skipped admin password reset in production (set ALLOW_SEED_ADMIN_PASSWORD_RESET=true to override).');
+
+                    return;
+                }
+
+                $existing->forceFill([
                     'name' => (string) env('SEED_ADMIN_NAME', 'Admin'),
                     'password' => $password,
                     'email_verified_at' => now(),
@@ -30,8 +39,25 @@ class DatabaseSeeder extends Seeder
                     'role_label' => 'Super Admin',
                     'is_active' => true,
                     'module_access' => ModuleAccess::defaultGrants(),
-                ]
-            );
+                ])->save();
+
+                return;
+            }
+
+            $user = new User;
+            $user->fill([
+                'name' => (string) env('SEED_ADMIN_NAME', 'Admin'),
+                'email' => $email,
+            ]);
+            $user->forceFill([
+                'password' => $password,
+                'email_verified_at' => now(),
+                'role' => 'super_admin',
+                'role_label' => 'Super Admin',
+                'is_active' => true,
+                'module_access' => ModuleAccess::defaultGrants(),
+            ]);
+            $user->save();
 
             return;
         }

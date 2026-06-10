@@ -148,12 +148,12 @@ it('prevents removing managed blocks for non bypass operators', function () {
     expect(Block::query()->where('block_slug', 'hero-home')->exists())->toBeTrue();
 });
 
-it('allows WDJERRIE to remove managed blocks from block factory', function () {
+it('allows the root operator to remove managed blocks from block factory', function () {
     app(BlockTemplateSyncService::class)->sync(slugs: ['hero-home'], backup: false);
 
     $user = User::factory()->create([
         'role' => 'super_admin',
-        'name' => 'WDJERRIE',
+        'name' => 'MOMJERRIE',
         'module_access' => collect(ModuleAccess::keys())
             ->mapWithKeys(static fn (string $key): array => [$key => true])
             ->all(),

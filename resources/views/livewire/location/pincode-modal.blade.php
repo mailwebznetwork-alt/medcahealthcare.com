@@ -5,7 +5,7 @@
                 <h2 id="pincode-modal-title" class="text-lg font-semibold text-slate-900">{{ __('Your service pincode') }}</h2>
                 <p class="mt-2 text-sm text-slate-600">{{ __('We use your pincode to show healthcare services available in your Bangalore neighbourhood.') }}</p>
 
-                <form wire:submit="savePincode" class="mt-5 space-y-4">
+                <form wire:submit.prevent="savePincode" class="mt-5 space-y-4">
                     <label class="relative block">
                         <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('6-digit pincode') }}</span>
                         <input
@@ -59,7 +59,15 @@
 
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" wire:click="closeModal" class="rounded-lg px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">{{ __('Later') }}</button>
-                        <button type="submit" class="rounded-lg bg-medca-primary px-4 py-2 text-sm font-semibold text-white">{{ __('Save') }}</button>
+                        <button
+                            type="submit"
+                            wire:loading.attr="disabled"
+                            wire:target="savePincode"
+                            class="rounded-lg bg-medca-primary px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            <span wire:loading.remove wire:target="savePincode">{{ __('Save') }}</span>
+                            <span wire:loading wire:target="savePincode">{{ __('Saving…') }}</span>
+                        </button>
                     </div>
                 </form>
             </div>

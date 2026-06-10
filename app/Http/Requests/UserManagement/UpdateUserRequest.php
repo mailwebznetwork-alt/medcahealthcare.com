@@ -6,12 +6,13 @@ use App\Models\User;
 use App\Rules\ProductionStaffEmail;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class UpdateUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user() !== null;
     }
 
     protected function prepareForValidation(): void
@@ -40,9 +41,32 @@ class UpdateUserRequest extends FormRequest
             'profile_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,msword', 'max:2048'],
             'remove_profile_image' => ['sometimes', 'boolean'],
             'role' => ['required', 'string', 'in:super_admin,admin,manager,editor,viewer'],
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'password' => ['nullable', Password::defaults(), 'confirmed'],
+            'admin_password' => ['required_with:password', 'string'],
             'module_access' => ['nullable', 'array'],
             'is_active' => ['sometimes', 'boolean'],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator): void {
+            /** @var User|null $actor */
+            $actor = $this->user();
+            if ($actor === null) {
+                return;
+            }
+
+            $newRole = (string) $this->input('role', '');
+            $actorRole = strtolower(trim((string) ($actor->role ?? '')));
+
+            if ($actorRole === 'manager' && in_array($newRole, ['admin', 'super_admin'], true)) {
+                $validator->errors()->add('role', __('Managers cannot assign administrator roles.'));
+            }
+
+            if ($newRole === 'super_admin' && $actorRole !== 'super_admin' && ! $actor->isRootSuperAdmin()) {
+                $validator->errors()->add('role', __('Only a super administrator can assign the super admin role.'));
+            }
+        });
     }
 }

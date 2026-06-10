@@ -370,7 +370,7 @@ class BlockFactory extends Component
         $block = Block::query()->findOrFail($id);
 
         if ($block->is_managed && ! $this->architectSaveBypassEligible()) {
-            session()->flash('error', __('Managed blocks cannot be removed here. Duplicate to create an editable copy, or use a WDJERRIE account to remove from the database.'));
+            session()->flash('error', __('Managed blocks cannot be removed here. Duplicate to create an editable copy, or use the root super-admin account to remove from the database.'));
 
             return;
         }

@@ -291,5 +291,15 @@ class AppServiceProvider extends ServiceProvider
 
             return Limit::perMinute($limit)->by($request->ip());
         });
+
+        RateLimiter::for('password_reset', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip().'|'.mb_strtolower((string) $request->input('email', '')));
+        });
+
+        RateLimiter::for('password_change', function (Request $request) {
+            $userId = $request->user()?->id ?? 'guest';
+
+            return Limit::perMinute(5)->by($userId.'|'.$request->ip());
+        });
     }
 }

@@ -5,6 +5,12 @@
 @endphp
 
 <div class="space-y-8">
+    @if (session('status') && is_string(session('status')))
+        <p class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900" role="status">
+            {{ session('status') }}
+        </p>
+    @endif
+
     <x-public.location-heading-with-pincode
         :eyebrow="$eyebrow"
         :headline="$headline"

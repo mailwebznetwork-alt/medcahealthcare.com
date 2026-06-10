@@ -59,12 +59,18 @@
                     </div>
                     <div>
                         <x-input-label for="password" :value="__('New password (optional)')" />
-                        <x-text-input id="password" name="password" type="password" class="mt-1 block w-full" variant="mom" />
+                        <x-text-input id="password" name="password" type="password" class="mt-1 block w-full" autocomplete="new-password" variant="mom" />
                         <x-input-error class="mt-2" :messages="$errors->get('password')" />
                     </div>
                     <div>
                         <x-input-label for="password_confirmation" :value="__('Confirm new password')" />
-                        <x-text-input id="password_confirmation" name="password_confirmation" type="password" class="mt-1 block w-full" variant="mom" />
+                        <x-text-input id="password_confirmation" name="password_confirmation" type="password" class="mt-1 block w-full" autocomplete="new-password" variant="mom" />
+                    </div>
+                    <div class="sm:col-span-2">
+                        <x-input-label for="admin_password" :value="__('Your password (required when setting a new password)')" />
+                        <x-text-input id="admin_password" name="admin_password" type="password" class="mt-1 block w-full" autocomplete="current-password" variant="mom" />
+                        <p class="mom-subtext mt-1">{{ __('Confirms you authorized this password change.') }}</p>
+                        <x-input-error class="mt-2" :messages="$errors->get('admin_password')" />
                     </div>
                     <div class="sm:col-span-2">
                         <x-input-label for="profile_image" :value="__('Profile image')" />

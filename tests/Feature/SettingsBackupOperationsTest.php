@@ -22,7 +22,7 @@ function backupOperatorUser(): User
         'email_verified_at' => now(),
         'module_access' => settingsBackupAllModulesOn(),
         'role' => 'super_admin',
-        'name' => 'WDJERRIE',
+        'name' => 'MOMJERRIE',
     ]);
 }
 
@@ -96,12 +96,12 @@ it('redirects restore when archive is not a valid full-site backup zip', functio
 
 describe('BackupOperator', function () {
     beforeEach(function (): void {
-        Config::set('settings.backup_operator_names', ['wdjerrie', 'ops']);
+        Config::set('settings.backup_operator_names', ['momjerrie', 'ops']);
     });
 
     it('allows super_admin when normalized name matches', function (): void {
         $user = User::factory()->make([
-            'name' => 'WDJERRIE',
+            'name' => 'MOMJERRIE',
             'role' => 'super_admin',
         ]);
 
@@ -119,7 +119,7 @@ describe('BackupOperator', function () {
 
     it('denies non-super_admin even when name matches', function (): void {
         $user = User::factory()->make([
-            'name' => 'WDJERRIE',
+            'name' => 'MOMJERRIE',
             'role' => 'admin',
         ]);
 

@@ -142,5 +142,27 @@ it('redirects from the pincode modal on a service-location page', function () {
         ->set('redirectContextPath', '/services/elder-care/btm-2nd-stage')
         ->set('pincode', '560076')
         ->call('savePincode')
-        ->assertRedirect($arekereMapping->fresh()->publicUrl());
+        ->assertRedirect($arekereMapping->fresh()->publicUrl().'?pin=560076');
+});
+
+it('forces a hard reload when saving pincode on the locations page', function () {
+    PinCode::factory()->create([
+        'pincode' => '560001',
+        'area_name' => 'MG Road',
+        'is_active' => true,
+        'is_serviceable' => true,
+    ]);
+
+    Livewire::test(PincodeModal::class)
+        ->set('redirectContextPath', '/locations')
+        ->set('pincode', '560001')
+        ->call('savePincode')
+        ->assertRedirect(url('/locations').'?pin=560001#near-you');
+});
+
+it('clears stale session pincodes that were removed from the catalog', function () {
+    Session::put(config('location.session_key'), '560107');
+
+    expect(app(\App\Services\UserLocationService::class)->currentPincode())->toBeNull()
+        ->and(Session::get(config('location.session_key')))->toBeNull();
 });

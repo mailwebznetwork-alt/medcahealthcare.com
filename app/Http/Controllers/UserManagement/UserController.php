@@ -9,18 +9,21 @@ use App\Models\User;
 use App\ModuleAccess;
 use App\Services\ActivityLogService;
 use App\Services\Integrations\OutboundWebhookDispatcher;
+use App\Services\Security\PasswordSecurityService;
 use App\Support\RootAccount;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class UserController extends Controller
 {
-    public function __construct(private readonly ActivityLogService $activityLogService) {}
+    public function __construct(
+        private readonly ActivityLogService $activityLogService,
+        private readonly PasswordSecurityService $passwordSecurity,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -80,13 +83,15 @@ class UserController extends Controller
         $user->fill([
             'name' => $request->validated('name'),
             'email' => $request->validated('email'),
+        ]);
+        $user->forceFill([
             'role' => $role,
             'role_label' => $this->roleLabelFor($role),
             'email_verified_at' => now(),
             'is_active' => true,
             'module_access' => ModuleAccess::defaultGrants(),
         ]);
-        $user->password = Hash::make($request->validated('password'));
+        $user->password = $request->validated('password');
 
         if ($request->hasFile('profile_image')) {
             $file = $request->file('profile_image');
@@ -152,13 +157,18 @@ class UserController extends Controller
         $user->fill([
             'name' => $request->validated('name'),
             'email' => $request->validated('email'),
-            'role' => $request->validated('role'),
             'phone' => $request->validated('phone'),
             'role_label' => $request->validated('role_label'),
         ]);
+        $user->forceFill([
+            'role' => $request->validated('role'),
+        ]);
 
-        if ($request->filled('password')) {
-            $user->password = Hash::make((string) $request->validated('password'));
+        $plainPassword = $request->filled('password') ? (string) $request->validated('password') : null;
+
+        if ($plainPassword !== null) {
+            $this->passwordSecurity->assertActorPassword($request);
+            $user->password = $plainPassword;
         }
 
         if (! $user->isRootSuperAdmin()) {
@@ -213,6 +223,16 @@ class UserController extends Controller
         }
 
         $user->save();
+
+        if ($plainPassword !== null) {
+            $this->passwordSecurity->finalizePasswordChange(
+                $user,
+                $plainPassword,
+                'user_management_admin_reset',
+                (int) $request->user()->id,
+            );
+        }
+
         $this->activityLogService->log(
             'user_update',
             'user_management',
@@ -262,7 +282,7 @@ class UserController extends Controller
     {
         $this->authorize('changeActiveState', $user);
 
-        $user->update(['is_active' => true]);
+        $user->forceFill(['is_active' => true])->save();
 
         return redirect()->route('user-management.index')->with('status', 'user-activated');
     }
@@ -271,7 +291,7 @@ class UserController extends Controller
     {
         $this->authorize('changeActiveState', $user);
 
-        $user->update(['is_active' => false]);
+        $user->forceFill(['is_active' => false])->save();
 
         return redirect()->route('user-management.index')->with('status', 'user-deactivated');
     }

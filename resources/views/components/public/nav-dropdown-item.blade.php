@@ -13,7 +13,7 @@
             @else
                 <span class="font-medium">{{ $label }}</span>
             @endif
-            <span class="text-xs text-slate-400" aria-hidden="true">›</span>
+            <span class="ms-2 shrink-0 text-xs text-slate-400" aria-hidden="true">›</span>
         </div>
         <ul class="medca-nav-flyout" role="menu">
             @foreach ($children as $child)

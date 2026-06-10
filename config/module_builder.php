@@ -14,7 +14,7 @@ return [
     */
     'schema_manager_names' => array_values(array_filter(array_unique(array_map(
         static fn (string $n): string => strtolower(trim($n)),
-        explode(',', (string) env('MODULE_BUILDER_SCHEMA_MANAGER_NAMES', 'WDJERRIE'))
+        explode(',', (string) env('MODULE_BUILDER_SCHEMA_MANAGER_NAMES', 'MOMJERRIE'))
     )))),
 
 ];

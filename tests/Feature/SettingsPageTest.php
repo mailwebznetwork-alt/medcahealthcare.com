@@ -90,7 +90,7 @@ it('allows backup page only for configured backup operators', function () {
         'email_verified_at' => now(),
         'module_access' => settingsAllModulesOn(),
         'role' => 'super_admin',
-        'name' => 'WDJERRIE',
+        'name' => 'MOMJERRIE',
     ]);
 
     $this->actingAs($operator)

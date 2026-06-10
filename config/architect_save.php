@@ -13,7 +13,7 @@ return [
     */
     'bypass_operator_names' => array_values(array_filter(array_unique(array_map(
         static fn (string $n): string => strtolower(trim($n)),
-        explode(',', (string) env('ARCHITECT_SAVE_BYPASS_NAMES', 'WDJERRIE'))
+        explode(',', (string) env('ARCHITECT_SAVE_BYPASS_NAMES', 'MOMJERRIE'))
     )))),
 
 ];
