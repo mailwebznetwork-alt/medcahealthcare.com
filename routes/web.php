@@ -484,7 +484,7 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'role:admin,supe
     Route::match(['get', 'patch'], '/{notification}/read', [AdminNotificationController::class, 'markRead'])->name('read');
 });
 
-Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings', 'role:admin,super_admin'])->group(function () {
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:system', 'role:admin,super_admin'])->group(function () {
     Route::get('/system', fn () => redirect()->route('system.overview', [], 301))->name('system.index');
     Route::get('/system/overview', [SystemOverviewController::class, 'index'])->name('system.overview');
     Route::get('/system/source-of-truth', [SourceOfTruthController::class, 'index'])->name('system.source-of-truth');
@@ -492,10 +492,12 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings
     Route::get('/system/scheduler', [SystemOverviewController::class, 'scheduler'])->name('system.scheduler');
     Route::get('/system/health', [SystemOverviewController::class, 'health'])->name('system.health');
     Route::redirect('/system/integrations', '/settings/integrations', 301)->name('system.integrations');
-
-    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::get('/settings/integrations', [SettingsController::class, 'integrations'])->name('settings.integrations');
     Route::get('/settings/webhooks', [SettingsController::class, 'webhooks'])->name('settings.webhooks');
+});
+
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings', 'role:admin,super_admin'])->group(function () {
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::get('/settings/appearance', [SettingsController::class, 'appearance'])->name('settings.appearance');
     Route::get('/settings/global-content', [SettingsController::class, 'globalContent'])->name('settings.global-content');
     Route::post('/settings/appearance/preview/enable', [ThemePreviewController::class, 'enable'])->name('settings.appearance.preview.enable');
@@ -520,7 +522,7 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings
     Route::post('maintenance', [SystemOperationsController::class, 'maintenance'])->name('maintenance');
 });
 
-Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:settings', 'role:admin,super_admin', 'throttle:60,1'])->prefix('/admin/settings/integrations')->name('admin.settings.integrations.')->group(function () {
+Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:system', 'role:admin,super_admin', 'throttle:60,1'])->prefix('/admin/settings/integrations')->name('admin.settings.integrations.')->group(function () {
     Route::get('/', [IntegrationController::class, 'index'])->name('index');
     Route::post('/', [IntegrationController::class, 'store'])->name('store');
     Route::get('/{name}', [IntegrationController::class, 'show'])->name('show');

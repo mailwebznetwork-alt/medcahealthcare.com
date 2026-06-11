@@ -58,46 +58,64 @@
     <body
         class="mom-body font-sans antialiased text-[var(--text-primary)]"
         x-data="{ mobileNav: false }"
+        x-effect="document.documentElement.classList.toggle('mom-mobile-nav-open', mobileNav)"
         @keydown.escape.window="mobileNav = false"
+        @close-mobile-nav.window="mobileNav = false"
     >
         <div class="mom-noise" aria-hidden="true"></div>
 
-        {{-- Mobile overlay --}}
-        <div
-            x-show="mobileNav"
-            x-transition.opacity.duration.320ms
-            class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
-            style="display: none;"
-            @click="mobileNav = false"
-        ></div>
-
-        <div id="mom-shell" class="relative z-10 flex min-h-screen">
-            {{-- Sidebar --}}
+        <div id="mom-shell" class="mom-shell flex h-[100dvh] max-h-[100dvh] min-h-0 w-full overflow-hidden">
+            {{-- Sidebar — fixed drawer on mobile, flex column on desktop --}}
             <aside
-                class="mom-sidebar-pane fixed inset-y-0 left-0 z-50 flex min-h-0 w-[260px] -translate-x-full flex-col border-r border-[var(--border-panel-soft)] transition-transform duration-320 ease-premium lg:sticky lg:top-0 lg:h-screen lg:max-h-[100dvh] lg:shrink-0 lg:self-start lg:translate-x-0"
+                class="mom-sidebar-pane mom-mobile-drawer fixed inset-y-0 left-0 z-[60] flex min-h-0 w-[80vw] max-w-[280px] -translate-x-full flex-col border-r border-[var(--border-panel-soft)] transition-transform duration-320 ease-premium lg:relative lg:inset-auto lg:z-auto lg:h-full lg:w-[260px] lg:max-w-none lg:shrink-0 lg:translate-x-0"
                 :class="{ '!translate-x-0': mobileNav }"
+                @keydown.escape.window="mobileNav = false"
             >
-                <div class="flex h-[72px] shrink-0 items-center gap-3 border-b border-[var(--border-panel-soft)] px-6">
+                <div class="flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-[var(--border-panel-soft)] px-4 lg:px-6">
                     <span class="text-[calc(1.125rem*1.3)] font-semibold leading-tight tracking-tight text-mom-wordmark">{{ config('app.name', 'MarkOnMinds') }}</span>
+                    <button
+                        type="button"
+                        class="mom-mobile-menu-toggle flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border-panel-soft)] text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(197,160,89,0.2)] hover:text-[var(--text-primary)] lg:hidden"
+                        @click="mobileNav = false"
+                        aria-label="{{ __('Close navigation') }}"
+                    >
+                        <i data-lucide="x" class="h-[18px] w-[18px]"></i>
+                    </button>
                 </div>
 
                 <x-mom-sidebar-nav :user="$user" />
             </aside>
 
+            {{-- Mobile overlay — inside shell, below drawer, above content --}}
+            <div
+                x-show="mobileNav"
+                x-transition.opacity.duration.320ms
+                class="mom-mobile-drawer-overlay pointer-events-auto fixed inset-0 z-[50] lg:hidden"
+                style="display: none;"
+                @click="mobileNav = false"
+                aria-hidden="true"
+            ></div>
+
             {{-- Main column: neutral app canvas; warm text scope optional --}}
-            <div class="mom-content-pane mom-main-matte-brown-fg flex min-w-0 flex-1 flex-col lg:ml-0">
+            <div class="mom-content-pane mom-main-matte-brown-fg flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
                 {{-- Topbar --}}
                 <header
-                    class="mom-topbar-scrim sticky top-0 z-30 flex h-[72px] items-center gap-6 border-b border-[var(--border-panel-soft)] px-8 shadow-mom-surface backdrop-blur-xl backdrop-saturate-150"
+                    class="mom-topbar-scrim mom-sticky-topbar flex min-h-[72px] shrink-0 items-center gap-3 border-b border-[var(--border-panel-soft)] px-4 shadow-mom-surface sm:gap-6 sm:px-6 lg:px-8"
                 >
                     <button
                         type="button"
-                        class="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-panel-soft)] text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(197,160,89,0.2)] hover:text-[var(--text-primary)] lg:hidden"
+                        class="mom-mobile-menu-toggle flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--border-panel-soft)] text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:border-[rgba(197,160,89,0.2)] hover:text-[var(--text-primary)] lg:hidden"
                         @click="mobileNav = true"
-                        aria-label="Open navigation"
+                        aria-label="{{ __('Open navigation') }}"
+                        :aria-expanded="mobileNav"
                     >
                         <i data-lucide="panel-left" class="h-[18px] w-[18px]"></i>
                     </button>
+
+                    <div class="min-w-0 flex-1 lg:hidden">
+                        <h1 class="mom-mobile-topbar-title mom-title-page truncate">{{ $resolvedTitle }}</h1>
+                        <p class="mom-subtext mt-0.5 truncate text-xs">{{ $resolvedWelcome }}</p>
+                    </div>
 
                     <div class="hidden min-w-0 flex-1 md:block">
                         <h1 class="mom-title-page truncate">{{ $resolvedTitle }}</h1>
@@ -208,7 +226,7 @@
                     </div>
                 </header>
 
-                <main class="mom-backend-main flex-1 px-8 py-8">
+                <main class="mom-backend-main mom-scroll-main min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
                     {{ $slot }}
                 </main>
             </div>

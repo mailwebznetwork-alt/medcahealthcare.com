@@ -39,7 +39,7 @@
 @endphp
 
 <nav
-    class="mom-sidebar-nav-scroll flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-6 custom-scrollbar"
+    class="mom-sidebar-nav-scroll flex h-[calc(100dvh-72px)] min-h-0 flex-1 flex-col overflow-y-auto px-3 py-6 custom-scrollbar lg:h-[calc(100vh-72px)]"
     role="navigation"
     aria-label="{{ __('Application') }}"
     data-mom-nav-root
@@ -68,7 +68,7 @@
                             'mom-sidebar-link mom-nav-active text-mom-gold transition-all duration-320 ease-premium' => $active,
                             'mom-sidebar-link text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:shadow-[0_0_22px_rgba(197,160,89,0.06)]' => ! $active,
                         ])
-                        @click="mobileNav = false"
+                        @click="$dispatch('close-mobile-nav')"
                     >
                         <span class="mom-sidebar-link__icon {{ $active ? '' : 'opacity-80' }}" aria-hidden="true">
                             <i data-lucide="{{ $navNode['icon'] }}"></i>
@@ -109,7 +109,7 @@
                                 'mom-sidebar-link mom-nav-active text-mom-gold transition-all duration-320 ease-premium' => $childActive,
                                 'mom-sidebar-link text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]' => ! $childActive,
                             ])
-                            @click="mobileNav = false"
+                            @click="$dispatch('close-mobile-nav')"
                         >
                             <span class="mom-sidebar-link__icon {{ $childActive ? '' : 'opacity-80' }}" aria-hidden="true">
                                 <i data-lucide="{{ $child['icon'] }}"></i>

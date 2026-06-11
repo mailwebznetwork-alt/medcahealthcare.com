@@ -5,3 +5,5 @@
 @import '../shared/tailwind.css';
 @import '../markonminds.css';
 @import './components.css';
+@import './mobile-ux.css';
+@import './sticky-shell.css';

@@ -1,0 +1,42 @@
+/**
+ * Admin mobile UX — drawer, touch targets, responsive toolbars.
+ * Colors and branding unchanged; layout and interaction only.
+ */
+
+.mom-mobile-drawer-overlay {
+    background: rgba(0, 0, 0, 0.55);
+    touch-action: none;
+}
+
+html.mom-mobile-nav-open,
+html.mom-mobile-nav-open body {
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: none;
+}
+
+html.mom-mobile-nav-open .mom-scroll-main {
+    overflow: hidden;
+}
+
+@media (max-width: 1023px) {
+    .mom-backend-main {
+        max-width: 100%;
+    }
+
+    .mom-mobile-menu-toggle {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .mom-sidebar-link {
+        min-height: 44px;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+}
+
+.mom-mobile-topbar-title {
+    font-size: 1rem;
+    line-height: 1.25;
+}

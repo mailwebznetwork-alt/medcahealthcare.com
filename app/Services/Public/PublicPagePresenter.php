@@ -67,7 +67,7 @@ class PublicPagePresenter
 
         $query = Service::query()
             ->localizedListing($pincode)
-            ->with(['seo', 'pincodes', 'categories', 'faqs']);
+            ->with(['seo', 'categories', 'faqs']);
 
         if ($limit > 0) {
             $query->limit($limit);

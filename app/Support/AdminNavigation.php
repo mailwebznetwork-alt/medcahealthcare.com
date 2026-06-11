@@ -6,13 +6,11 @@ use App\ModuleAccess;
 
 /**
  * Supplemental admin navigation (sidebar order, access aliases, active route patterns).
- *
- * System uses the same module grant as Settings ({@see ModuleAccess::SETTINGS}) without
- * adding a new persisted module_access key (User Management remains unchanged).
  */
 final class AdminNavigation
 {
-    public const string SYSTEM_NAV_KEY = 'system';
+    /** @deprecated Use {@see ModuleAccess::SYSTEM} */
+    public const string SYSTEM_NAV_KEY = ModuleAccess::SYSTEM;
 
     /**
      * Top-level sidebar order (keys from {@see ModuleAccess::navigation()} + supplemental).
@@ -29,7 +27,7 @@ final class AdminNavigation
             ModuleAccess::GROWTH_CENTER,
             ModuleAccess::USER_MANAGEMENT,
             ModuleAccess::SECURITY,
-            self::SYSTEM_NAV_KEY,
+            ModuleAccess::SYSTEM,
             ModuleAccess::SETTINGS,
         ];
     }
@@ -54,7 +52,7 @@ final class AdminNavigation
             [
                 ModuleAccess::USER_MANAGEMENT,
                 ModuleAccess::SECURITY,
-                self::SYSTEM_NAV_KEY,
+                ModuleAccess::SYSTEM,
                 ModuleAccess::SETTINGS,
             ],
         ];
@@ -65,10 +63,7 @@ final class AdminNavigation
      */
     public static function accessModuleKey(string $navKey): string
     {
-        return match ($navKey) {
-            self::SYSTEM_NAV_KEY => ModuleAccess::SETTINGS,
-            default => $navKey,
-        };
+        return $navKey;
     }
 
     /**
@@ -78,13 +73,7 @@ final class AdminNavigation
      */
     public static function supplementalTopLevel(): array
     {
-        return [
-            self::SYSTEM_NAV_KEY => [
-                'label' => 'System',
-                'icon' => 'server',
-                'route' => 'system.index',
-            ],
-        ];
+        return [];
     }
 
     /**
@@ -124,7 +113,7 @@ final class AdminNavigation
             ModuleAccess::SECURITY => [
                 'modules.security',
             ],
-            self::SYSTEM_NAV_KEY => [
+            ModuleAccess::SYSTEM => [
                 'system.*',
                 'settings.integrations',
                 'settings.webhooks',

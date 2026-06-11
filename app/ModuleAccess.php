@@ -21,6 +21,8 @@ final class ModuleAccess
 
     public const string SECURITY = 'security';
 
+    public const string SYSTEM = 'system';
+
     public const string SETTINGS = 'settings';
 
     /**
@@ -36,6 +38,7 @@ final class ModuleAccess
             self::GROWTH_CENTER,
             self::USER_MANAGEMENT,
             self::SECURITY,
+            self::SYSTEM,
             self::SETTINGS,
         ];
     }
@@ -98,6 +101,11 @@ final class ModuleAccess
                 'icon' => 'shield-check',
                 'route' => 'modules.security',
             ],
+            self::SYSTEM => [
+                'label' => 'System',
+                'icon' => 'server',
+                'route' => 'system.index',
+            ],
             self::SETTINGS => [
                 'label' => 'Settings',
                 'icon' => 'settings',
@@ -139,6 +147,10 @@ final class ModuleAccess
             self::SECURITY => [
                 'label' => 'Security',
                 'description' => 'Posture, access boundaries, and compliance signals.',
+            ],
+            self::SYSTEM => [
+                'label' => 'System',
+                'description' => 'Platform health, queue, scheduler, integrations, and webhooks.',
             ],
             self::SETTINGS => [
                 'label' => 'Settings',

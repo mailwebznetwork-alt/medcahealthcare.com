@@ -274,6 +274,6 @@ class ServicePublicController extends Controller
     {
         return Service::query()
             ->localizedListing($pincode)
-            ->with(['seo', 'pincodes']);
+            ->with(['seo']);
     }
 }

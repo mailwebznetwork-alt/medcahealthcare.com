@@ -21,7 +21,7 @@ it('defines nested navigation for all primary modules except dashboard', functio
         ModuleAccess::GROWTH_CENTER,
         ModuleAccess::USER_MANAGEMENT,
         ModuleAccess::SECURITY,
-        AdminNavigation::SYSTEM_NAV_KEY,
+        ModuleAccess::SYSTEM,
         ModuleAccess::SETTINGS,
     )->and(ModuleSidebarNavigation::nestedModuleKeys())->not->toContain(ModuleAccess::DASHBOARD);
 });

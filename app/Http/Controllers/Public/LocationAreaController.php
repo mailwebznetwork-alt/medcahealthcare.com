@@ -103,7 +103,7 @@ class LocationAreaController extends Controller
     {
         $query = Service::query()
             ->localizedListing($pin->pincode)
-            ->with(['seo', 'pincodes', 'categories', 'faqs']);
+            ->with(['seo', 'categories', 'faqs']);
 
         if ($category instanceof ServiceCategory) {
             $query->whereHas('categories', fn ($q) => $q->where('service_categories.id', $category->id));

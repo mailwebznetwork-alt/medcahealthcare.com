@@ -31,10 +31,13 @@ it('aliases site architect sections and presets paths', function () {
         ->assertRedirect('/site-architect/block-presets');
 });
 
-it('exposes system overview for settings module grant without new module key', function () {
+it('exposes system overview for system module grant', function () {
     $user = User::factory()->create([
         'role' => 'admin',
-        'module_access' => array_merge(ModuleAccess::defaultGrants(), ['settings' => true]),
+        'module_access' => array_merge(ModuleAccess::defaultGrants(), [
+            ModuleAccess::SYSTEM => true,
+            ModuleAccess::SETTINGS => false,
+        ]),
     ]);
 
     $this->actingAs($user)
@@ -62,19 +65,22 @@ it('serves growth war room at canonical path', function () {
         ->assertSuccessful();
 });
 
-it('does not add system to persisted module access keys', function () {
-    expect(ModuleAccess::keys())->not->toContain('system');
+it('adds system to persisted module access keys', function () {
+    expect(ModuleAccess::keys())->toContain(ModuleAccess::SYSTEM);
 });
 
-it('shows supplemental system nav when user has settings access', function () {
+it('shows system nav when user has system access', function () {
     $user = User::factory()->create([
         'role' => 'admin',
-        'module_access' => array_fill_keys(ModuleAccess::keys(), true),
+        'module_access' => array_merge(ModuleAccess::defaultGrants(), [
+            ModuleAccess::SYSTEM => true,
+            ModuleAccess::SETTINGS => false,
+        ]),
     ]);
 
     $keys = collect($user->visibleSidebarNodes())
         ->pluck('key')
         ->all();
 
-    expect($keys)->toContain('system');
+    expect($keys)->toContain(ModuleAccess::SYSTEM);
 });

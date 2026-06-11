@@ -22,7 +22,7 @@ final class ModuleSidebarNavigation
             ModuleAccess::GROWTH_CENTER,
             ModuleAccess::USER_MANAGEMENT,
             ModuleAccess::SECURITY,
-            AdminNavigation::SYSTEM_NAV_KEY,
+            ModuleAccess::SYSTEM,
             ModuleAccess::SETTINGS,
         ];
     }
@@ -72,7 +72,7 @@ final class ModuleSidebarNavigation
             ModuleAccess::GROWTH_CENTER => ['intelligence', 'organic'],
             ModuleAccess::USER_MANAGEMENT => ['directory'],
             ModuleAccess::SECURITY => ['monitoring'],
-            AdminNavigation::SYSTEM_NAV_KEY => ['platform'],
+            ModuleAccess::SYSTEM => ['platform'],
             ModuleAccess::SETTINGS => ['brand'],
             default => [],
         };
@@ -94,7 +94,7 @@ final class ModuleSidebarNavigation
             ModuleAccess::GROWTH_CENTER => self::growthCenterGroups(),
             ModuleAccess::USER_MANAGEMENT => self::userManagementGroups($user),
             ModuleAccess::SECURITY => self::securityGroups(),
-            AdminNavigation::SYSTEM_NAV_KEY => self::systemGroups(),
+            ModuleAccess::SYSTEM => self::systemGroups(),
             ModuleAccess::SETTINGS => self::settingsGroups($user),
             default => [],
         };

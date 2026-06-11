@@ -42,7 +42,7 @@
                 'mom-sidebar-link min-w-0 flex-1 mom-nav-active text-mom-gold transition-all duration-320 ease-premium' => $moduleActive,
                 'mom-sidebar-link min-w-0 flex-1 text-[var(--text-secondary)] transition-all duration-320 ease-premium hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]' => ! $moduleActive,
             ])
-            @click="mobileNav = false"
+            @click="$dispatch('close-mobile-nav')"
         >
             <span class="mom-sidebar-link__icon {{ $moduleActive ? '' : 'opacity-80' }}" aria-hidden="true">
                 <i data-lucide="{{ $meta['icon'] }}"></i>
@@ -88,7 +88,7 @@
                                     'mom-sidebar-module__child-link block rounded-mom-chrome px-3 py-2 transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]',
                                     'is-active' => $item['active'],
                                 ])
-                                @click="mobileNav = false"
+                                @click="$dispatch('close-mobile-nav')"
                             >
                                 <span class="flex items-center gap-2">
                                     <span>{{ $item['label'] }}</span>

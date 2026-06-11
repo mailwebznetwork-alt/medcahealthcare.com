@@ -42,7 +42,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'module_map' => [
-        'integrations' => 'settings',
+        'integrations' => 'system',
         'auth' => 'security',
     ],
 
@@ -76,7 +76,7 @@ return [
         'security' => '/security',
         'marketing' => '/marketing/dashboard',
         'growth_center' => '/growth-center/competitors',
-        'system' => '/settings/system',
+        'system' => '/system/overview',
         'dashboard' => '/dashboard',
     ],
 
