@@ -21,6 +21,149 @@ class PinCodeSpreadsheetImporter extends AbstractSpreadsheetImporter
         return $this;
     }
 
+    public function upsertExisting(): bool
+    {
+        return $this->upsertExisting;
+    }
+
+    /**
+     * @param  array{headers: list<string>, rows: list<list<string|null>>, total_data_rows: int}  $parsed
+     * @return array{
+     *     total_rows: int,
+     *     unique_pincodes: int,
+     *     duplicate_rows: int,
+     *     invalid_rows: int,
+     *     would_create: int,
+     *     would_update: int,
+     *     would_restore: int,
+     *     would_skip: int
+     * }
+     */
+    public function summarizeParsed(array $parsed): array
+    {
+        $deduped = $this->dedupeParsedRowsByPincode($parsed);
+        $stats = [
+            'total_rows' => 0,
+            'unique_pincodes' => 0,
+            'duplicate_rows' => 0,
+            'invalid_rows' => 0,
+            'would_create' => 0,
+            'would_update' => 0,
+            'would_restore' => 0,
+            'would_skip' => 0,
+        ];
+
+        $line = 1;
+        $seenPins = [];
+        foreach ($parsed['rows'] as $rawRow) {
+            $line++;
+            $mapped = $this->reader->mapRow($parsed['headers'], $rawRow);
+            if ($this->rowIsBlank($mapped)) {
+                continue;
+            }
+
+            $stats['total_rows']++;
+            $pin = $this->normalizePincode($mapped['pincode'] ?? null);
+            if ($pin === null) {
+                $stats['invalid_rows']++;
+
+                continue;
+            }
+
+            if (isset($seenPins[$pin])) {
+                $stats['duplicate_rows']++;
+            }
+            $seenPins[$pin] = true;
+        }
+
+        $line = 1;
+        foreach ($deduped['rows'] as $rawRow) {
+            $line++;
+            $mapped = $this->reader->mapRow($deduped['headers'], $rawRow);
+            if ($this->rowIsBlank($mapped)) {
+                continue;
+            }
+
+            $preview = $this->previewRow($mapped, $line);
+            $stats['unique_pincodes']++;
+
+            match ($preview['status']) {
+                'ready' => $stats['would_create']++,
+                'update' => $this->isRestorePreview($mapped) ? $stats['would_restore']++ : $stats['would_update']++,
+                'duplicate' => $stats['would_skip']++,
+                default => null,
+            };
+        }
+
+        return $stats;
+    }
+
+    /**
+     * @param  array{headers: list<string>, rows: list<list<string|null>>, total_data_rows: int}  $parsed
+     * @return array{valid: bool, errors: list<string>, rows: list<array<string, mixed>>, total_data_rows: int}
+     */
+    public function previewParsed(array $parsed, int $limit = 25): array
+    {
+        return parent::previewParsed($this->dedupeParsedRowsByPincode($parsed), $limit);
+    }
+
+    /**
+     * @param  array{headers: list<string>, rows: list<list<string|null>>, total_data_rows: int}  $parsed
+     * @return array{created: int, updated: int, skipped: int, failed: int, errors: list<string>}
+     */
+    public function importParsed(array $parsed): array
+    {
+        return parent::importParsed($this->dedupeParsedRowsByPincode($parsed));
+    }
+
+    /**
+     * Collapse repeated pincode rows — last row wins (common in exported workbooks).
+     *
+     * @param  array{headers: list<string>, rows: list<list<string|null>>, total_data_rows: int}  $parsed
+     * @return array{headers: list<string>, rows: list<list<string|null>>, total_data_rows: int}
+     */
+    private function dedupeParsedRowsByPincode(array $parsed): array
+    {
+        $headers = $parsed['headers'];
+        $invalidRows = [];
+        $lastByPin = [];
+
+        foreach ($parsed['rows'] as $rawRow) {
+            $mapped = $this->reader->mapRow($headers, $rawRow);
+            if ($this->rowIsBlank($mapped)) {
+                continue;
+            }
+
+            $pin = $this->normalizePincode($mapped['pincode'] ?? null);
+            if ($pin === null) {
+                $invalidRows[] = $rawRow;
+
+                continue;
+            }
+
+            $lastByPin[$pin] = $rawRow;
+        }
+
+        $parsed['rows'] = array_merge($invalidRows, array_values($lastByPin));
+        $parsed['total_data_rows'] = count($parsed['rows']);
+
+        return $parsed;
+    }
+
+    /**
+     * @param  array<string, string|null>  $row
+     */
+    private function isRestorePreview(array $row): bool
+    {
+        $pin = $this->normalizePincode($row['pincode'] ?? null);
+        if ($pin === null) {
+            return false;
+        }
+
+        return PinCode::withTrashed()->where('pincode', $pin)->whereNotNull('deleted_at')->exists()
+            && ! PinCode::query()->where('pincode', $pin)->exists();
+    }
+
     public function entityKey(): string
     {
         return 'pincodes';

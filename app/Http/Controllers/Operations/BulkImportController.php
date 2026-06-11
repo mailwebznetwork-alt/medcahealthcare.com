@@ -9,6 +9,7 @@ use App\Models\Service;
 use App\Services\Import\ImportPipeline;
 use App\Services\Import\ImportRegistry;
 use App\Services\Import\ImportRollbackService;
+use App\Services\Import\StagedImportCommitService;
 use App\Services\Import\WorkbookImportOrchestrator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -139,12 +140,8 @@ class BulkImportController extends Controller
 
     public function confirm(
         Request $request,
-        ImportPipeline $pipeline,
-        WorkbookImportOrchestrator $workbooks,
+        StagedImportCommitService $committer,
     ): RedirectResponse {
-        @set_time_limit((int) config('import_registry.workflow.commit_time_limit', 600));
-        @ini_set('max_execution_time', (string) config('import_registry.workflow.commit_time_limit', 600));
-
         $staging = session(self::STAGING_KEY);
         if (! is_array($staging) || empty($staging['path'])) {
             return redirect()->to($this->returnUrl())->withErrors(['file' => __('Upload and preview a file before confirming.')]);
@@ -161,40 +158,11 @@ class BulkImportController extends Controller
             return redirect()->to($this->returnUrl())->withErrors(['file' => __('Staged file no longer available.')]);
         }
 
-        $mode = $staging['mode'] ?? 'entity';
-        if ($mode === 'workbook' && ! empty($staging['workbook'])) {
-            $result = $workbooks->commit(
-                $staging['workbook'],
-                $absolute,
-                $request->user()?->id,
-                $staging['original_filename'] ?? null,
-                false,
-            );
-
-            $touchedEntities = $result['touched_entities'] ?? [];
-            if ($touchedEntities !== []) {
-                $this->dispatchImportPostSync($touchedEntities);
-                $result['post_sync_pending'] = true;
-            }
-        } else {
-            if (empty($staging['entity'])) {
-                return redirect()->to($this->returnUrl())->withErrors(['file' => __('Missing import entity.')]);
-            }
-
-            $result = $pipeline->commit(
-                $staging['entity'],
-                $absolute,
-                $request->user()?->id,
-                $staging['original_filename'] ?? null,
-                false,
-            );
-
-            $entity = (string) $staging['entity'];
-            if (($result['created'] ?? 0) > 0 || ($result['updated'] ?? 0) > 0) {
-                $this->dispatchImportPostSync([$entity]);
-                $result['post_sync_pending'] = true;
-            }
+        if ($this->shouldCommitAsync($staging)) {
+            return $this->dispatchAsyncCommit($request, $staging);
         }
+
+        $result = $committer->commit($staging, $request->user()?->id);
 
         Storage::disk('local')->delete($staging['path']);
         $this->discardStaging($request);
@@ -293,23 +261,81 @@ class BulkImportController extends Controller
     }
 
     /**
-     * @param  list<string>  $entities
+     * @param  array<string, mixed>  $staging
      */
-    private function dispatchImportPostSync(array $entities): void
+    private function shouldCommitAsync(array $staging): bool
     {
-        $entities = array_values(array_filter($entities));
-        if ($entities === []) {
-            return;
+        if (! config('import_registry.workflow.async_commit', true)) {
+            return false;
         }
 
-        $args = implode(' ', array_map('escapeshellarg', $entities));
-        $command = sprintf(
-            'cd %s && php artisan medca:import-post-sync %s >> %s 2>&1 &',
-            escapeshellarg(base_path()),
-            $args,
-            escapeshellarg(storage_path('logs/import-post-sync.log'))
-        );
+        if (($staging['mode'] ?? '') === 'workbook') {
+            return true;
+        }
 
-        exec($command);
+        $threshold = (int) config('import_registry.workflow.async_commit_row_threshold', 50);
+
+        return (int) ($staging['total_data_rows'] ?? 0) >= $threshold;
+    }
+
+    /**
+     * @param  array<string, mixed>  $staging
+     */
+    private function dispatchAsyncCommit(Request $request, array $staging): RedirectResponse
+    {
+        $leanStaging = $this->leanStagingPayload($staging);
+        $userId = $request->user()?->id;
+        $rows = (int) ($staging['total_data_rows'] ?? 0);
+        $filename = $staging['original_filename'] ?? null;
+
+        // Drop heavy preview payload from session before redirect (prevents slow session writes).
+        $request->session()->forget(self::STAGING_KEY);
+
+        // Run import after the HTTP response is sent — nginx gets an instant redirect (no 504).
+        app()->terminating(function () use ($leanStaging, $userId): void {
+            try {
+                $result = app(StagedImportCommitService::class)->commit($leanStaging, $userId);
+
+                if (isset($leanStaging['path']) && is_string($leanStaging['path'])) {
+                    Storage::disk('local')->delete($leanStaging['path']);
+                }
+
+                \Illuminate\Support\Facades\Log::info('Background bulk import finished', [
+                    'created' => $result['created'] ?? 0,
+                    'updated' => $result['updated'] ?? 0,
+                    'skipped' => $result['skipped'] ?? 0,
+                    'failed' => $result['failed'] ?? 0,
+                ]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Background bulk import failed: '.$e->getMessage(), [
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
+        });
+
+        return redirect()
+            ->to($this->returnUrl())
+            ->with('import_async_started', [
+                'rows' => $rows,
+                'filename' => $filename,
+            ]);
+    }
+
+    /**
+     * Keep only fields required for commit — omit preview blobs stored in session.
+     *
+     * @param  array<string, mixed>  $staging
+     * @return array<string, mixed>
+     */
+    private function leanStagingPayload(array $staging): array
+    {
+        return array_filter([
+            'mode' => $staging['mode'] ?? null,
+            'workbook' => $staging['workbook'] ?? null,
+            'entity' => $staging['entity'] ?? null,
+            'path' => $staging['path'] ?? null,
+            'original_filename' => $staging['original_filename'] ?? null,
+            'total_data_rows' => $staging['total_data_rows'] ?? null,
+        ], fn ($value) => $value !== null && $value !== '');
     }
 }

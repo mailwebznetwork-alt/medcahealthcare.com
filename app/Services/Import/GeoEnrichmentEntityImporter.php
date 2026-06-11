@@ -18,6 +18,57 @@ final class GeoEnrichmentEntityImporter extends AbstractSpreadsheetImporter
         return 'geo';
     }
 
+    /**
+     * @param  array{headers: list<string>, rows: list<list<string|null>>, total_data_rows: int}  $parsed
+     * @return array{valid: bool, errors: list<string>, rows: list<array<string, mixed>>, total_data_rows: int}
+     */
+    public function previewParsed(array $parsed, int $limit = 25): array
+    {
+        return parent::previewParsed($this->dedupeParsedRowsByPincode($parsed), $limit);
+    }
+
+    /**
+     * @param  array{headers: list<string>, rows: list<list<string|null>>, total_data_rows: int}  $parsed
+     * @return array{created: int, updated: int, skipped: int, failed: int, errors: list<string>}
+     */
+    public function importParsed(array $parsed): array
+    {
+        return parent::importParsed($this->dedupeParsedRowsByPincode($parsed));
+    }
+
+    /**
+     * @param  array{headers: list<string>, rows: list<list<string|null>>, total_data_rows: int}  $parsed
+     * @return array{headers: list<string>, rows: list<list<string|null>>, total_data_rows: int}
+     */
+    private function dedupeParsedRowsByPincode(array $parsed): array
+    {
+        $headers = $parsed['headers'];
+        $invalidRows = [];
+        $lastByPin = [];
+
+        foreach ($parsed['rows'] as $rawRow) {
+            $mapped = $this->reader->mapRow($headers, $rawRow);
+            if ($this->rowIsBlank($mapped)) {
+                continue;
+            }
+
+            $pin = trim((string) ($mapped['pincode'] ?? ''));
+            $normalized = preg_replace('/\D/', '', $pin) ?? '';
+            if ($normalized === '' || strlen($normalized) < 6) {
+                $invalidRows[] = $rawRow;
+
+                continue;
+            }
+
+            $lastByPin[$normalized] = $rawRow;
+        }
+
+        $parsed['rows'] = array_merge($invalidRows, array_values($lastByPin));
+        $parsed['total_data_rows'] = count($parsed['rows']);
+
+        return $parsed;
+    }
+
     protected function requiredColumns(): array
     {
         return ['pincode'];

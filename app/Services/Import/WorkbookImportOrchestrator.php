@@ -119,6 +119,13 @@ final class WorkbookImportOrchestrator
 
             $certification = $this->certifyHeaders($workbookKey, $sheetKey, $parsed['headers']);
 
+            $importSummary = null;
+            if ($entityKey === 'pincodes' && $importer instanceof PinCodeSpreadsheetImporter) {
+                $importSummary = $importer->summarizeParsed($parsed);
+            } elseif ($entityKey === 'pincodes' && method_exists($importer, 'summarizeParsed')) {
+                $importSummary = $importer->summarizeParsed($parsed);
+            }
+
             $sheets[] = [
                 'sheet_key' => $sheetKey,
                 'sheet_name' => $resolvedName,
@@ -129,6 +136,7 @@ final class WorkbookImportOrchestrator
                 'total_data_rows' => $sheetPreview['total_data_rows'],
                 'missing_columns' => $certification['missing'],
                 'extra_columns' => $certification['extra'],
+                'import_summary' => $importSummary,
             ];
 
             $totalRows += $sheetPreview['total_data_rows'];
@@ -273,11 +281,9 @@ final class WorkbookImportOrchestrator
 
             $entityKey = (string) ($sheetMeta['entity'] ?? '');
             $parsed = $this->reader->read($source, $resolvedName);
-            $upsertPincodes = false;
-            if ($workbookKey === 'pincodes' && $entityKey === 'pincodes') {
-                $upsertPincodes = app(\App\Services\Governance\MasterDataProtection::class)
-                    ->pincodeUpsertEnabled((bool) ($options['force_upsert'] ?? false));
-            }
+            $upsertPincodes = $workbookKey === 'pincodes'
+                && $entityKey === 'pincodes'
+                && app(\App\Services\Governance\MasterDataProtection::class)->pincodeWorkbookUpsertEnabled();
 
             $result = $this->pipeline->commit(
                 $entityKey,
@@ -365,6 +371,15 @@ final class WorkbookImportOrchestrator
     private function resolveImporter(string $entityKey, string $workbookKey): EntityImporter
     {
         $importer = $this->registry->resolve($entityKey);
+
+        if (
+            $workbookKey === 'pincodes'
+            && $entityKey === 'pincodes'
+            && $importer instanceof PinCodeSpreadsheetImporter
+            && app(\App\Services\Governance\MasterDataProtection::class)->pincodeWorkbookUpsertEnabled()
+        ) {
+            $importer->withUpsert(true);
+        }
 
         return $importer;
     }

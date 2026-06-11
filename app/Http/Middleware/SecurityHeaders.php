@@ -23,7 +23,7 @@ class SecurityHeaders
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
         $response->headers->set('X-XSS-Protection', '0');
 
-        if ($request->secure() || config('app.env') === 'production') {
+        if ($request->secure() && config('security.headers.hsts_enabled', true)) {
             $maxAge = (int) config('security.headers.hsts_max_age', 31536000);
             $response->headers->set('Strict-Transport-Security', "max-age={$maxAge}; includeSubDomains");
         }

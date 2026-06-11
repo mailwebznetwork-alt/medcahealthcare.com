@@ -181,6 +181,8 @@ it('creates a pin code from the form', function () {
 });
 
 it('imports pincodes workbook after preview and confirm', function () {
+    config(['import_registry.workflow.async_commit' => false]);
+
     PinCode::factory()->create(['pincode' => '560001', 'area_name' => 'Existing', 'city' => 'Bangalore']);
 
     $user = User::factory()->create([
@@ -226,6 +228,49 @@ it('imports pincodes workbook after preview and confirm', function () {
     expect(PinCode::query()->where('pincode', '560002')->exists())->toBeTrue()
         ->and(PinCode::query()->where('pincode', '560001')->count())->toBe(1)
         ->and(ImportBatch::query()->where('entity_key', 'pincodes')->exists())->toBeTrue();
+});
+
+it('queues large workbook imports asynchronously to avoid gateway timeout', function () {
+    PinCode::factory()->create(['pincode' => '560001', 'area_name' => 'Existing', 'city' => 'Bangalore']);
+
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'role' => 'manager',
+        'module_access' => collect(ModuleAccess::keys())
+            ->mapWithKeys(fn (string $k) => [$k => $k === ModuleAccess::OPERATIONS])
+            ->all(),
+    ]);
+
+    $path = storage_path('framework/testing/pincodes-async.xlsx');
+    pinCodesTestWorkbook($path, [
+        'Pincodes' => [
+            ['pincode', 'area_name', 'city'],
+            ['560001', 'Updated Area', 'Bangalore'],
+        ],
+    ]);
+
+    $this->actingAs($user);
+
+    $this->from(route('operations.pin-codes.bulk-import'))
+        ->post(route('operations.pin-codes.bulk-import.preview'), [
+            'import_mode' => 'workbook',
+            'workbook' => 'pincodes',
+            'file' => new UploadedFile(
+                $path,
+                'pincodes.xlsx',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                null,
+                true
+            ),
+        ])
+        ->assertRedirect(route('operations.pin-codes.bulk-import'))
+        ->assertSessionHas('bulk_import_staging');
+
+    $this->post(route('operations.pin-codes.bulk-import.confirm'))
+        ->assertRedirect(route('operations.pin-codes.bulk-import'))
+        ->assertSessionHas('import_async_started');
+
+    expect(PinCode::query()->where('pincode', '560001')->value('area_name'))->toBe('Updated Area');
 });
 
 it('rejects workbook preview when required columns are missing', function () {

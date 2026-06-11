@@ -21,6 +21,10 @@ final class MasterDataProtection
         return in_array($source, ['ui', 'import'], true);
     }
 
+    /**
+     * Single-entity pincode imports (CSV upload, legacy path).
+     * Workbook imports always upsert — see pincodeWorkbookUpsertEnabled().
+     */
     public function pincodeUpsertEnabled(bool $forceUpsert = false): bool
     {
         if ($forceUpsert) {
@@ -41,5 +45,14 @@ final class MasterDataProtection
         }
 
         return ! app()->isProduction();
+    }
+
+    /**
+     * Master pincodes.xlsx workbook imports (Operations UI / CLI).
+     * Always update existing rows — documented in MASTER-XLS-GUIDE.md.
+     */
+    public function pincodeWorkbookUpsertEnabled(): bool
+    {
+        return true;
     }
 }

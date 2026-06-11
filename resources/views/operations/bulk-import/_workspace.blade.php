@@ -8,6 +8,22 @@
     $templateRoute = fn (string $key): string => route('operations.bulk-import.templates.download', $key);
 @endphp
 
+@if (session('import_async_started'))
+    @php $async = session('import_async_started'); @endphp
+    <div class="mom-card mb-8 border border-[rgba(59,130,246,0.35)] p-5" role="status">
+        <p class="mom-section-title text-sky-300">{{ __('Import running in background') }}</p>
+        <p class="mom-body-text mt-2 text-[var(--text-secondary)]">
+            {{ __('Your file (:file, :n rows) is importing now. This avoids gateway timeouts on large workbooks.', [
+                'file' => $async['filename'] ?? __('workbook'),
+                'n' => number_format((int) ($async['rows'] ?? 0)),
+            ]) }}
+        </p>
+        <p class="mom-body-text mt-2 text-[var(--text-secondary)]">
+            {{ __('Refresh this page in 1–2 minutes and check Import history below for batch results.') }}
+        </p>
+    </div>
+@endif
+
 @if (session('import_result'))
     @php $r = session('import_result'); @endphp
     <div class="mom-card mb-8 border border-[rgba(34,197,94,0.25)] p-5" role="status">
@@ -66,6 +82,19 @@
                     </p>
                     <p class="mom-micro mt-1">
                         {{ $sheet['total_data_rows'] ?? 0 }} {{ __('rows') }}
+                        @if (! empty($sheet['import_summary']))
+                            @php $s = $sheet['import_summary']; @endphp
+                            · {{ __(':unique unique pincodes', ['unique' => number_format((int) ($s['unique_pincodes'] ?? 0))]) }}
+                            @if (($s['duplicate_rows'] ?? 0) > 0)
+                                · {{ __(':n duplicate rows collapsed (last row wins)', ['n' => number_format((int) $s['duplicate_rows'])]) }}
+                            @endif
+                            · {{ __('Commit forecast: :create create, :update update, :restore restore, :skip skip', [
+                                'create' => number_format((int) ($s['would_create'] ?? 0)),
+                                'update' => number_format((int) ($s['would_update'] ?? 0)),
+                                'restore' => number_format((int) ($s['would_restore'] ?? 0)),
+                                'skip' => number_format((int) ($s['would_skip'] ?? 0)),
+                            ]) }}
+                        @endif
                         @if (! empty($sheet['missing_columns']))
                             · {{ __('Missing template columns: :n', ['n' => count($sheet['missing_columns'])]) }}
                         @endif
