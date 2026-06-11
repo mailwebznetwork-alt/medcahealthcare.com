@@ -2,6 +2,8 @@
 
 namespace App\Services\Seo;
 
+use App\Models\Page;
+
 /**
  * Canonical SEO ownership hierarchy (Operations-first).
  *
@@ -41,5 +43,30 @@ final class SeoOwnershipGuard
     public static function generatedSchemaSource(): string
     {
         return 'unified_json_ld_graph_builder';
+    }
+
+    public static function skipAutofillOnGeneratedPages(): bool
+    {
+        return (bool) config('seo_ownership.skip_autofill_on_generated_pages', true);
+    }
+
+    public static function skipLocationMetaDuplicates(): bool
+    {
+        return (bool) config('seo_ownership.skip_location_meta_duplicates', true);
+    }
+
+    public static function skipPageSeoForGeneratedPages(): bool
+    {
+        return (bool) config('seo_ownership.skip_page_seo_for_generated_pages', true);
+    }
+
+    public static function hideSeoEditingOnGeneratedPages(): bool
+    {
+        return (bool) config('seo_ownership.hide_seo_editing_on_generated_pages', true);
+    }
+
+    public static function isGeneratedPage(?Page $page): bool
+    {
+        return $page !== null && $page->page_source === 'generated';
     }
 }

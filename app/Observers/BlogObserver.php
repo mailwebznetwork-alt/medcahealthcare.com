@@ -6,6 +6,7 @@ use App\Models\Blog;
 use App\Models\PageElement;
 use App\Models\PageSeo;
 use App\Services\Growth\ContentSeoAutoFillService;
+use App\Services\Growth\SitemapRegenerationDispatcher;
 use App\Support\PostPublishGrowthSync;
 use Illuminate\Support\Facades\Schema;
 
@@ -13,6 +14,7 @@ class BlogObserver
 {
     public function __construct(
         private readonly ContentSeoAutoFillService $contentSeoAutoFill,
+        private readonly SitemapRegenerationDispatcher $sitemapDispatcher,
     ) {}
 
     public function saving(Blog $blog): void
@@ -24,6 +26,7 @@ class BlogObserver
     {
         $this->contentSeoAutoFill->syncBlogGrowthArtifacts($blog);
         PostPublishGrowthSync::defer();
+        $this->sitemapDispatcher->dispatch();
     }
 
     public function deleted(Blog $blog): void

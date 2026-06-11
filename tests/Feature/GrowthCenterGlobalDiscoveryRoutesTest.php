@@ -39,6 +39,8 @@ it('serves global robots and llm endpoints', function () {
 });
 
 it('serves sitemap and discovery payload using page and geo data', function () {
+    config(['sitemap.cache_enabled' => false]);
+
     if (! Schema::hasTable('business_profiles') || ! Schema::hasTable('page_seo') || ! Schema::hasTable('page_elements') || ! Schema::hasTable('pin_codes')) {
         $this->markTestSkipped('Growth Center architecture tables are not migrated.');
     }
@@ -92,10 +94,10 @@ it('serves sitemap and discovery payload using page and geo data', function () {
 
     $this->get('/sitemap.xml')
         ->assertSuccessful()
-        ->assertSee(url('/sitemap-pages.xml'))
+        ->assertSee(url('/sitemap-static-pages.xml'))
         ->assertSee(url('/sitemap-services.xml'));
 
-    $this->get('/sitemap-pages.xml')
+    $this->get('/sitemap-static-pages.xml')
         ->assertSuccessful()
         ->assertSee(url('/locations/560076'))
         ->assertDontSee(url('/services/home-care'));
@@ -133,7 +135,7 @@ it('returns 404 for sitemap when sitemap is disabled', function () {
 
     $this->get('/sitemap.xml')->assertNotFound();
 
-    $this->get('/sitemap-pages.xml')->assertNotFound();
+    $this->get('/sitemap-static-pages.xml')->assertNotFound();
 });
 
 it('returns 404 for ai-discovery when discovery is disabled', function () {

@@ -60,6 +60,8 @@ class Pages extends Component
 
     public string $slug = '';
 
+    public string $page_source = '';
+
     public bool $is_active = false;
 
     public string $layout_mode = 'contained';
@@ -379,6 +381,7 @@ class Pages extends Component
 
         $this->title = $page->title;
         $this->slug = $page->slug;
+        $this->page_source = (string) ($page->page_source ?? '');
         $this->is_active = $page->is_active;
         $this->layout_mode = $page->layout_mode?->value ?? PageLayoutMode::Contained->value;
         $this->meta_title = (string) ($page->meta_title ?? '');
@@ -1504,6 +1507,7 @@ class Pages extends Component
     {
         $this->title = '';
         $this->slug = '';
+        $this->page_source = '';
         $this->is_active = false;
         $this->layout_mode = PageLayoutMode::Contained->value;
         $this->meta_title = '';

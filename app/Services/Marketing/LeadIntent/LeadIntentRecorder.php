@@ -38,7 +38,7 @@ class LeadIntentRecorder
             $intentType,
         );
 
-        return LeadIntentEvent::query()->create([
+        return LeadIntentEvent::query()->create(array_merge([
             'intent_type' => $intentType,
             'channel' => $channel,
             'attribution_bucket' => $bucket,
@@ -52,7 +52,7 @@ class LeadIntentRecorder
             'meta' => $this->mapper->metaFromMarketingClick($event) ?: null,
             'session_fingerprint' => $event->session_fingerprint,
             'occurred_at' => $event->occurred_at ?? now(),
-        ]);
+        ], $this->attributionForeignKeysFromClick($event)));
     }
 
     public function recordFromLead(Lead $lead): ?LeadIntentEvent
@@ -76,7 +76,7 @@ class LeadIntentRecorder
             $lead,
         );
 
-        return LeadIntentEvent::query()->create([
+        return LeadIntentEvent::query()->create(array_merge([
             'intent_type' => $intentType,
             'channel' => $channel,
             'attribution_bucket' => $bucket,
@@ -91,7 +91,35 @@ class LeadIntentRecorder
                 'service' => $lead->service,
             ],
             'occurred_at' => $lead->created_at ?? now(),
-        ]);
+        ], $this->attributionForeignKeysFromLead($lead)));
+    }
+
+    /**
+     * @return array<string, int|null>
+     */
+    private function attributionForeignKeysFromClick(MarketingClickEvent $event): array
+    {
+        return array_filter([
+            'marketing_attribution_session_id' => $event->marketing_attribution_session_id,
+            'page_id' => $event->page_id,
+            'service_id' => $event->service_id,
+            'pin_code_id' => $event->pin_code_id,
+            'service_location_page_id' => $event->service_location_page_id,
+        ], fn ($value) => $value !== null);
+    }
+
+    /**
+     * @return array<string, int|null>
+     */
+    private function attributionForeignKeysFromLead(Lead $lead): array
+    {
+        return array_filter([
+            'marketing_attribution_session_id' => $lead->marketing_attribution_session_id,
+            'page_id' => $lead->page_id,
+            'service_id' => $lead->service_id,
+            'pin_code_id' => $lead->pin_code_id,
+            'service_location_page_id' => $lead->service_location_page_id,
+        ], fn ($value) => $value !== null);
     }
 
     private function enabled(): bool

@@ -58,15 +58,17 @@ class ServiceMasterPageSync
         $area = $pin->area_name ?: $pin->locality ?: $pin->city ?: $pin->pincode;
         $title = app(ServiceLocationPageProvisioner::class)->locationTitle($service, $pin);
 
-        $locationAttributes = ServicePageOverrides::filterAutomatedAttributes($page, [
-            'meta_title' => mb_substr(($service->seo?->meta_title ?: $service->title).' — '.$area, 0, 255),
-            'meta_description' => app(ServiceLocationPageProvisioner::class)->localMetaDescription($service, $pin)
-                ?? mb_substr($intro, 0, 320),
-            'h1' => $title,
-        ]);
+        if (! \App\Services\Seo\SeoOwnershipGuard::skipLocationMetaDuplicates()) {
+            $locationAttributes = ServicePageOverrides::filterAutomatedAttributes($page, [
+                'meta_title' => mb_substr(($service->seo?->meta_title ?: $service->title).' — '.$area, 0, 255),
+                'meta_description' => app(ServiceLocationPageProvisioner::class)->localMetaDescription($service, $pin)
+                    ?? mb_substr($intro, 0, 320),
+                'h1' => $title,
+            ]);
 
-        if ($locationAttributes !== []) {
-            $page->forceFill($locationAttributes);
+            if ($locationAttributes !== []) {
+                $page->forceFill($locationAttributes);
+            }
         }
 
         if (! ServicePageOverrides::aeoOverride($page)) {

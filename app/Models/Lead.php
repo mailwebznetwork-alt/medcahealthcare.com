@@ -51,6 +51,10 @@ class Lead extends Model
         'region',
         'city',
         'pin_code_id',
+        'marketing_attribution_session_id',
+        'page_id',
+        'service_id',
+        'service_location_page_id',
         'status',
         'pipeline_stage',
         'pipeline_stage_changed_at',
@@ -103,7 +107,27 @@ class Lead extends Model
 
     public function pinCode(): BelongsTo
     {
-        return $this->belongsTo(PinCode::class);
+        return $this->belongsTo(PinCode::class, 'pin_code_id');
+    }
+
+    public function attributionSession(): BelongsTo
+    {
+        return $this->belongsTo(MarketingAttributionSession::class, 'marketing_attribution_session_id');
+    }
+
+    public function page(): BelongsTo
+    {
+        return $this->belongsTo(Page::class);
+    }
+
+    public function serviceRelation(): BelongsTo
+    {
+        return $this->belongsTo(Service::class, 'service_id');
+    }
+
+    public function serviceLocationPage(): BelongsTo
+    {
+        return $this->belongsTo(ServiceLocationPage::class);
     }
 
     public function pipelineHistories(): HasMany

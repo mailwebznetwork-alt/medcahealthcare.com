@@ -131,6 +131,8 @@ final class ModuleSidebarNavigation
                     self::item('operations.services.index', __('Services'), request()->routeIs('operations.services.*')),
                     self::item('operations.service-categories.index', __('Categories'), request()->routeIs('operations.service-categories.*')),
                     self::item('operations.bookings.index', __('Bookings'), request()->routeIs('operations.bookings.*')),
+                    self::item('operations.admissions.index', __('Admissions'), request()->routeIs('operations.admissions.*')),
+                    self::item('operations.revenue-events.index', __('Revenue'), request()->routeIs('operations.revenue-events.*')),
                 ],
             ],
         ];

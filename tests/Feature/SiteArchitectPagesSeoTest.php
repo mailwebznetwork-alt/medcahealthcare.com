@@ -53,9 +53,9 @@ it('lists active CMS pages in the pages segment sitemap', function () {
 
     $this->get('/sitemap.xml')
         ->assertSuccessful()
-        ->assertSee(url('/sitemap-pages.xml'));
+        ->assertSee(url('/sitemap-static-pages.xml'));
 
-    $this->get('/sitemap-pages.xml')
+    $this->get('/sitemap-static-pages.xml')
         ->assertSuccessful()
         ->assertSee(url('/p/sitemap-cms-page'));
 });

@@ -40,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => CheckRole::class,
             'auto.logout' => AutoLogout::class,
             'payment.ingest.signature' => VerifyPaymentIngestSignature::class,
+            'exotel.webhook.signature' => \App\Http\Middleware\VerifyExotelWebhookSignature::class,
             'backup.operator' => EnsureBackupOperator::class,
             'pincode.detected' => \App\Http\Middleware\EnsurePincodeDetected::class,
         ]);

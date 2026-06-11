@@ -9,6 +9,8 @@ use App\Models\ServiceCategory;
 use App\Models\ServiceLocationPage;
 use App\Models\SubService;
 use App\Services\Operations\ServiceLocationPageProvisioner;
+use App\Services\Seo\DataDrivenSeoResolver;
+use App\Services\Seo\SeoOwnershipGuard;
 use App\Support\DisplayLabelSanitizer;
 use App\Support\ServicePageOverrides;
 
@@ -20,6 +22,7 @@ class PublicDisplayNameResolver
 {
     public function __construct(
         private readonly ServiceLocationPageProvisioner $locationProvisioner,
+        private readonly DataDrivenSeoResolver $dataDrivenSeo,
     ) {}
 
     public function serviceHeadline(Service $service): string
@@ -110,6 +113,21 @@ class PublicDisplayNameResolver
         $preferLiveSchema = $page !== null
             && $page->page_source === 'generated'
             && ! ServicePageOverrides::geoOverride($page);
+
+        $useDataDriven = config('seo_rules.enabled', true)
+            && ($mapping !== null || SeoOwnershipGuard::isGeneratedPage($page));
+
+        if ($useDataDriven) {
+            $resolved = $this->dataDrivenSeo->resolve($page, $service, $category, $mapping, $subService);
+            if ($resolved !== null && ! $seoLocked) {
+                return [
+                    'title' => $titleLocked && filled($page?->title) ? (string) $page->title : $resolved['title'],
+                    'meta_title' => $resolved['meta_title'],
+                    'meta_description' => $resolved['meta_description'],
+                    'prefer_live_schema' => $preferLiveSchema,
+                ];
+            }
+        }
 
         if ($mapping !== null && $service !== null && $mapping->pincode instanceof PinCode) {
             $pin = $mapping->pincode;

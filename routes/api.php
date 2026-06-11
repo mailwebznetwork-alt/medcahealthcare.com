@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\Growth\CompetitorController;
 use App\Http\Controllers\Api\Operations\ServiceCategoryApiController;
 use App\Http\Controllers\Api\LeadController;
+use App\Http\Controllers\Api\ExotelWebhookController;
 use App\Http\Controllers\Api\PaymentNotificationController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,9 @@ Route::prefix('admin/operations/service-categories')
 
 Route::post('/payments/notify', [PaymentNotificationController::class, 'store'])
     ->middleware(['throttle:payments_notify', 'payment.ingest.signature']);
+
+Route::post('/integrations/exotel/webhook', [ExotelWebhookController::class, 'store'])
+    ->middleware(['throttle:60,1', 'exotel.webhook.signature']);
 
 Route::prefix('admin/growth/competitors')->middleware(['auth:sanctum', 'active', 'module:growth_center'])->group(function () {
     Route::get('/', [CompetitorController::class, 'index']);

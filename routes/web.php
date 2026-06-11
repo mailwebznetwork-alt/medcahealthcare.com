@@ -54,7 +54,7 @@ Route::get('/robots.txt', [SeoController::class, 'robotsTxt'])->name('public.rob
 Route::get('/sitemap', [\App\Http\Controllers\Public\HtmlSitemapController::class, 'index'])->name('public.sitemap.html');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemapXml'])->name('public.sitemap');
 Route::get('/sitemap-{segment}.xml', [SeoController::class, 'sitemapSegmentXml'])
-    ->where('segment', 'pages|blogs|services|images')
+    ->where('segment', '[a-z0-9]+(?:-[a-z0-9]+)*')
     ->name('public.sitemap.segment');
 Route::get('/llm.txt', [AeoController::class, 'llmTxt'])->name('public.llm');
 Route::get('/ai-discovery', [AeoController::class, 'discovery'])->name('public.ai-discovery');
@@ -356,6 +356,9 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
             return view('operations.bookings.show-shell', ['lead' => $lead]);
         })->name('show');
     });
+
+    Route::view('/operations/admissions', 'operations.admissions.index-shell')->name('operations.admissions.index');
+    Route::view('/operations/revenue-events', 'operations.revenue-events.index-shell')->name('operations.revenue-events.index');
 });
 
 Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:marketing', 'role:manager,admin,super_admin'])->group(function () {

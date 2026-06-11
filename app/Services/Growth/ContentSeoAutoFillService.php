@@ -25,6 +25,11 @@ class ContentSeoAutoFillService
             return;
         }
 
+        if (\App\Services\Seo\SeoOwnershipGuard::skipAutofillOnGeneratedPages()
+            && \App\Services\Seo\SeoOwnershipGuard::isGeneratedPage($page)) {
+            return;
+        }
+
         $fillEmptyOnly = (bool) config('growth.content_seo_fill_only_empty', true);
         $plain = $this->plainExcerptFromHtml((string) $page->content);
         $gemini = $this->maybeGeminiPayloadForPageOrBlog($page->title, $plain, $fillEmptyOnly, [
@@ -120,6 +125,11 @@ class ContentSeoAutoFillService
     public function syncPageGrowthArtifacts(Page $page): void
     {
         if (! config('growth.content_seo_auto_fill', true)) {
+            return;
+        }
+
+        if (\App\Services\Seo\SeoOwnershipGuard::skipPageSeoForGeneratedPages()
+            && \App\Services\Seo\SeoOwnershipGuard::isGeneratedPage($page)) {
             return;
         }
 

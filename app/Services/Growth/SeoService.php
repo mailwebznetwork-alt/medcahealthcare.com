@@ -12,7 +12,9 @@ use App\Models\PageSeo;
 use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
 use App\Models\Service;
+use App\Models\ServiceCategory;
 use App\Models\ServiceLocationPage;
+use App\Models\SubService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -158,10 +160,10 @@ class SeoService
      */
     public function generateSitemapIndex(): string
     {
-        $segments = ['pages', 'blogs', 'services', 'images'];
+        $files = $this->sitemapIndexFiles();
 
-        $entries = collect($segments)->map(function (string $segment): string {
-            $loc = e(url('/sitemap-'.$segment.'.xml'));
+        $entries = $files->map(function (string $file): string {
+            $loc = e(url('/'.$file));
 
             return "    <sitemap>\n        <loc>{$loc}</loc>\n    </sitemap>";
         })->implode("\n");
@@ -172,6 +174,73 @@ class SeoService
             $entries,
             '</sitemapindex>',
         ]);
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    public function sitemapIndexFiles(): Collection
+    {
+        if (config('sitemap.paginated_enabled', true)) {
+            $files = collect([
+                'sitemap-static-pages.xml',
+                'sitemap-blogs.xml',
+                'sitemap-services.xml',
+                'sitemap-categories.xml',
+                'sitemap-subservices.xml',
+                'sitemap-images.xml',
+            ]);
+
+            for ($i = 1; $i <= $this->locationSitemapChunkCount(); $i++) {
+                $files->push(sprintf('sitemap-locations-%03d.xml', $i));
+            }
+
+            return $files->values();
+        }
+
+        return collect(['sitemap-pages.xml', 'sitemap-blogs.xml', 'sitemap-services.xml', 'sitemap-images.xml']);
+    }
+
+    public function locationSitemapChunkCount(): int
+    {
+        $total = $this->collectLocationPaths()->count();
+        $chunk = max(1, (int) config('sitemap.location_chunk_size', 10000));
+
+        return max(1, (int) ceil($total / $chunk));
+    }
+
+    public function generateStaticPagesSitemapXml(): string
+    {
+        return $this->buildStandardUrlsetXml($this->collectStaticPagePaths());
+    }
+
+    public function generateServiceDetailsSitemapXml(): string
+    {
+        return $this->buildStandardUrlsetXml(
+            $this->collectServiceDetailPaths()
+                ->merge($this->legacyGrowthServicePaths())
+                ->unique()
+                ->values()
+        );
+    }
+
+    public function generateCategoriesSitemapXml(): string
+    {
+        return $this->buildStandardUrlsetXml($this->collectCategoryPaths());
+    }
+
+    public function generateSubservicesSitemapXml(): string
+    {
+        return $this->buildStandardUrlsetXml($this->collectSubServicePaths());
+    }
+
+    public function generateLocationChunkSitemapXml(int $chunk): string
+    {
+        $chunkSize = max(1, (int) config('sitemap.location_chunk_size', 10000));
+        $offset = ($chunk - 1) * $chunkSize;
+        $paths = $this->collectLocationPaths()->slice($offset, $chunkSize)->values();
+
+        return $this->buildStandardUrlsetXml($paths);
     }
 
     /**
@@ -306,52 +375,123 @@ class SeoService
      */
     protected function collectServiceSegmentPaths(): Collection
     {
-        $growthPaths = collect();
-
-        if (Schema::hasTable('page_seo')) {
-            $growthPaths = PageSeo::query()
-                ->whereNotNull('page_slug')
-                ->where('page_slug', 'like', 'services/%')
-                ->pluck('page_slug');
-        }
-
-        $servicePaths = collect();
-
-        if (Schema::hasTable('services')) {
-            $servicePaths = Service::query()
-                ->where('is_active', true)
-                ->where('publish_status', PublishStatus::Published)
-                ->where('visibility', ServiceVisibility::Public)
-                ->pluck('service_code')
-                ->map(fn (string $code): string => '/services/'.$code);
-
-            if (Schema::hasTable('service_location_pages')) {
-                $locationPaths = ServiceLocationPage::query()
-                    ->whereNotNull('location_slug')
-                    ->where('is_indexable', true)
-                    ->with(['service', 'page'])
-                    ->get()
-                    ->filter(fn (ServiceLocationPage $row): bool => $row->isPubliclyIndexable())
-                    ->map(function (ServiceLocationPage $row): string {
-                        $row->loadMissing(['service', 'pincode']);
-
-                        if (config('services_master.public_url_include_pincode', false) && $row->pincode !== null) {
-                            $city = $row->city_slug ?: app(\App\Services\Operations\ServicePublicUrlBuilder::class)->citySlugForPin($row->pincode);
-
-                            return '/services/'.$row->service->service_code.'/'.$city.'/'.$row->pincode->pincode;
-                        }
-
-                        return '/services/'.$row->service->service_code.'/'.$row->location_slug;
-                    });
-
-                $servicePaths = $servicePaths->merge($locationPaths);
-            }
-        }
-
-        return $growthPaths
-            ->merge($servicePaths)
+        return $this->collectServiceDetailPaths()
+            ->merge($this->collectLocationPaths())
+            ->merge($this->legacyGrowthServicePaths())
             ->unique()
             ->values();
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    protected function collectServiceDetailPaths(): Collection
+    {
+        if (! Schema::hasTable('services')) {
+            return collect();
+        }
+
+        return Service::query()
+            ->where('is_active', true)
+            ->where('publish_status', PublishStatus::Published)
+            ->where('visibility', ServiceVisibility::Public)
+            ->pluck('service_code')
+            ->map(fn (string $code): string => '/services/'.$code)
+            ->values();
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    protected function collectLocationPaths(): Collection
+    {
+        if (! Schema::hasTable('service_location_pages')) {
+            return collect();
+        }
+
+        return ServiceLocationPage::query()
+            ->whereNotNull('location_slug')
+            ->where('is_indexable', true)
+            ->with(['service', 'page', 'pincode'])
+            ->get()
+            ->filter(fn (ServiceLocationPage $row): bool => $row->isPubliclyIndexable())
+            ->map(function (ServiceLocationPage $row): string {
+                $row->loadMissing(['service', 'pincode']);
+
+                if (config('services_master.public_url_include_pincode', false) && $row->pincode !== null) {
+                    $city = $row->city_slug ?: app(\App\Services\Operations\ServicePublicUrlBuilder::class)->citySlugForPin($row->pincode);
+
+                    return '/services/'.$row->service->service_code.'/'.$city.'/'.$row->pincode->pincode;
+                }
+
+                return '/services/'.$row->service->service_code.'/'.$row->location_slug;
+            })
+            ->unique()
+            ->values();
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    protected function collectCategoryPaths(): Collection
+    {
+        if (! Schema::hasTable('service_categories')) {
+            return collect();
+        }
+
+        return ServiceCategory::query()
+            ->where('is_active', true)
+            ->pluck('code')
+            ->map(fn (string $code): string => '/service-categories/'.$code)
+            ->values();
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    protected function collectSubServicePaths(): Collection
+    {
+        if (! Schema::hasTable('sub_services') || ! Schema::hasTable('services')) {
+            return collect();
+        }
+
+        return SubService::query()
+            ->publicListing()
+            ->with('service')
+            ->get()
+            ->filter(fn (SubService $sub): bool => $sub->service !== null && $sub->service->isListedPublicly())
+            ->map(fn (SubService $sub): string => $sub->publicUrl())
+            ->map(fn (string $url): string => parse_url($url, PHP_URL_PATH) ?: $url)
+            ->unique()
+            ->values();
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    protected function collectStaticPagePaths(): Collection
+    {
+        return collect(['/', '/about-us', '/contact', '/services-catalog'])
+            ->merge($this->pageLevelUrlsExcludingServicesPrefix())
+            ->merge($this->cmsPageUrls())
+            ->merge($this->geoLevelUrls())
+            ->unique()
+            ->values();
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    protected function legacyGrowthServicePaths(): Collection
+    {
+        if (! Schema::hasTable('page_seo')) {
+            return collect();
+        }
+
+        return PageSeo::query()
+            ->whereNotNull('page_slug')
+            ->where('page_slug', 'like', 'services/%')
+            ->pluck('page_slug');
     }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Enums\LeadPipelineStage;
 use App\Models\Lead;
+use App\Services\Marketing\Attribution\CallAttributionStitcher;
 use App\Services\Marketing\LeadIntent\LeadIntentRecorder;
 use App\Services\Marketing\Pipeline\LeadPipelineService;
 use Illuminate\Support\Facades\Schema;
@@ -13,6 +14,7 @@ class LeadObserver
     public function __construct(
         private readonly LeadPipelineService $pipelineService,
         private readonly LeadIntentRecorder $leadIntentRecorder,
+        private readonly CallAttributionStitcher $callAttributionStitcher,
     ) {}
 
     public function created(Lead $lead): void
@@ -26,6 +28,10 @@ class LeadObserver
         }
 
         $this->leadIntentRecorder->recordFromLead($lead);
+
+        if (config('marketing_attribution.enabled', true) && request() instanceof \Illuminate\Http\Request) {
+            $this->callAttributionStitcher->stitchLead($lead, request());
+        }
     }
 
     public function updated(Lead $lead): void

@@ -330,6 +330,16 @@
                 </ul>
             </section>
 
+            @php
+                $hideGeneratedSeo = \App\Services\Seo\SeoOwnershipGuard::hideSeoEditingOnGeneratedPages()
+                    && ($page_source ?? '') === 'generated';
+            @endphp
+            @if ($hideGeneratedSeo)
+                <section class="mom-card p-6">
+                    <h3 class="mom-section-title mb-2">{{ __('SEO') }}</h3>
+                    <p class="mom-subtext">{{ __('This page is auto-generated. SEO is resolved at runtime from service, pincode, and SEO rules — edit the Operations service master or pincode data instead.') }}</p>
+                </section>
+            @else
             <section class="mom-card p-6">
                 <h3 class="mom-section-title mb-4">{{ __('SEO') }}</h3>
 
@@ -546,7 +556,9 @@
                     </div>
                 </div>
             </section>
+            @endif
 
+            @if (! $hideGeneratedSeo)
             <section class="mom-card p-6">
                 <h3 class="mom-section-title mb-4">{{ __('On-page SEO checklist') }}</h3>
                 <p class="mom-subtext mb-4">{{ __('Meta length, canonical, OG social layer, and keyword alignment — heuristic signals similar to Rank Math-style guidance.') }}</p>
@@ -568,6 +580,7 @@
                     @endif
                 @endif
             </section>
+            @endif
 
             <section class="mom-card p-6">
                 <h3 class="mom-section-title mb-4">{{ __('AEO+ / LLM readiness') }}</h3>

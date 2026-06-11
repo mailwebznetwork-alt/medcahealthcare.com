@@ -8,6 +8,7 @@ use App\Models\Service;
 use App\Services\Governance\AdminDeletionGuard;
 use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Growth\ContentSeoAutoFillService;
+use App\Services\Growth\SitemapRegenerationDispatcher;
 use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Operations\InternalLinkRefreshDispatcher;
 use App\Support\PostPublishGrowthSync;
@@ -20,6 +21,7 @@ class ServiceObserver
         private readonly InternalLinkRefreshDispatcher $linkRefreshDispatcher,
         private readonly AdminDeletionGuard $deletionGuard,
         private readonly DownstreamArtifactPurger $purger,
+        private readonly SitemapRegenerationDispatcher $sitemapDispatcher,
     ) {}
 
     public function saved(Service $service): void
@@ -35,6 +37,7 @@ class ServiceObserver
         $this->contentSeoAutoFill->applyAndSyncService($service);
         PostPublishGrowthSync::defer();
         $this->linkRefreshDispatcher->dispatchForService($service->id);
+        $this->sitemapDispatcher->dispatch();
     }
 
     public function deleted(Service $service): void

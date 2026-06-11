@@ -18,6 +18,11 @@ class LeadIntentEvent extends Model
         'campaign',
         'landing_page',
         'service_page',
+        'marketing_attribution_session_id',
+        'page_id',
+        'service_id',
+        'pin_code_id',
+        'service_location_page_id',
         'lead_id',
         'marketing_click_event_id',
         'meta',
@@ -43,5 +48,15 @@ class LeadIntentEvent extends Model
     public function marketingClickEvent(): BelongsTo
     {
         return $this->belongsTo(MarketingClickEvent::class);
+    }
+
+    public function attributionSession(): BelongsTo
+    {
+        return $this->belongsTo(MarketingAttributionSession::class, 'marketing_attribution_session_id');
+    }
+
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
     }
 }

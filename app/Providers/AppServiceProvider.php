@@ -42,7 +42,11 @@ use App\Policies\AdminNotificationPolicy;
 use App\Policies\BlockPolicy;
 use App\Policies\BlogPolicy;
 use App\Policies\CompetitorPolicy;
+use App\Models\Admission;
+use App\Models\RevenueEvent;
+use App\Policies\AdmissionPolicy;
 use App\Policies\LeadPolicy;
+use App\Policies\RevenueEventPolicy;
 use App\Policies\MarketingCampaignPolicy;
 use App\Policies\MarketingSettingPolicy;
 use App\Policies\MediaPolicy;
@@ -177,6 +181,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(MarketingSetting::class, MarketingSettingPolicy::class);
         Gate::policy(MarketingCampaign::class, MarketingCampaignPolicy::class);
         Gate::policy(Lead::class, LeadPolicy::class);
+        Gate::policy(Admission::class, AdmissionPolicy::class);
+        Gate::policy(RevenueEvent::class, RevenueEventPolicy::class);
         Gate::policy(Competitor::class, CompetitorPolicy::class);
         Gate::policy(Review::class, ReviewPolicy::class);
 

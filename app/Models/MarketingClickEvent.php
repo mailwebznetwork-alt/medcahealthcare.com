@@ -20,6 +20,11 @@ class MarketingClickEvent extends Model
         'browser',
         'operating_system',
         'session_fingerprint',
+        'marketing_attribution_session_id',
+        'page_id',
+        'service_id',
+        'pin_code_id',
+        'service_location_page_id',
         'lead_id',
         'meta',
         'occurred_at',
@@ -36,5 +41,25 @@ class MarketingClickEvent extends Model
     public function lead(): BelongsTo
     {
         return $this->belongsTo(Lead::class);
+    }
+
+    public function attributionSession(): BelongsTo
+    {
+        return $this->belongsTo(MarketingAttributionSession::class, 'marketing_attribution_session_id');
+    }
+
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
+    }
+
+    public function pinCode(): BelongsTo
+    {
+        return $this->belongsTo(PinCode::class, 'pin_code_id');
+    }
+
+    public function serviceLocationPage(): BelongsTo
+    {
+        return $this->belongsTo(ServiceLocationPage::class);
     }
 }

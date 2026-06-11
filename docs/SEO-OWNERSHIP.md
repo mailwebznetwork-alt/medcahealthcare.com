@@ -45,3 +45,15 @@ Implemented in `config/services_master.php` → `seo_ownership`.
 - `App\Services\Seo\SeoOwnershipGuard`
 - `App\Services\Operations\ServiceSeoOwnership` (page override detection)
 - `App\Services\Growth\ContentSeoAutoFillService` (Growth mirror gate)
+
+## Phase 8–9 flags (`config/seo_ownership.php`, `config/seo_rules.php`)
+
+| Flag | Env | Effect |
+|------|-----|--------|
+| Skip autofill on generated pages | `SEO_SKIP_AUTOFILL_GENERATED` | Observers skip CMS autofill for `page_source=generated` |
+| Skip location meta duplicates | `SEO_SKIP_LOCATION_META_DUPLICATES` | `ServiceMasterPageSync` no longer writes location `meta_*` to `pages` |
+| Skip `page_seo` mirror | `SEO_SKIP_PAGE_SEO_GENERATED` | No Growth `page_seo` rows for generated pages |
+| Hide SEO editor | `SEO_HIDE_EDITING_GENERATED` | Site Architect read-only notice |
+| Data-driven SEO | `SEO_DATA_DRIVEN_ENABLED` | `DataDrivenSeoResolver` at public read time |
+
+Static CMS pages continue to use `pages.meta_*`. Service pages use `service_seo`. Location pages use runtime rules + provisioner (no per-page SEO storage).
