@@ -30,7 +30,8 @@ final class ServicePincodeCoverageService
         $pinIds = $this->normalizePinIds($pinIds);
         $previousIds = $category->pincodes()->pluck('pin_codes.id')->map(fn ($id) => (int) $id)->all();
         $removedIds = array_values(array_diff($previousIds, $pinIds));
-        $addedIds = array_values(array_diff($pinIds, $previousIds));
+
+        $affectedServiceIds = [];
 
         foreach ($removedIds as $pinId) {
             $pin = PinCode::query()->find($pinId);
@@ -42,10 +43,13 @@ final class ServicePincodeCoverageService
                 AdminRemovedMapping::recordCategoryPincodeRemoval($category->code, $pin->pincode, $source);
             }
 
-            $this->stripPincodeFromCategoryServices($category, $pin);
+            $affectedServiceIds = array_merge(
+                $affectedServiceIds,
+                $this->stripPincodeFromCategoryServices($category, $pin),
+            );
         }
 
-        foreach ($addedIds as $pinId) {
+        foreach (array_values(array_diff($pinIds, $previousIds)) as $pinId) {
             $pin = PinCode::query()->find($pinId);
             if ($pin !== null) {
                 AdminRemovedMapping::clearCategoryPincodeRemoval($category->code, $pin->pincode);
@@ -53,12 +57,18 @@ final class ServicePincodeCoverageService
         }
 
         $category->pincodes()->sync($pinIds);
-        $this->propagateCategoryToServices($category);
+        $affectedServiceIds = array_merge($affectedServiceIds, $this->propagateCategoryToServices($category));
+
+        $this->reconcileAffectedServices($affectedServiceIds);
     }
 
-    public function propagateCategoryToServices(ServiceCategory $category): void
+    /**
+     * @return list<int>
+     */
+    public function propagateCategoryToServices(ServiceCategory $category): array
     {
         $category->loadMissing('services');
+        $affected = [];
 
         foreach ($category->services as $service) {
             $primary = $service->primaryCategory();
@@ -66,11 +76,14 @@ final class ServicePincodeCoverageService
                 continue;
             }
 
-            $this->reconcileServicePincodes($service, 'category');
+            $this->reconcileServicePincodes($service, 'category', reconcileMatrix: false);
+            $affected[] = (int) $service->id;
         }
+
+        return $affected;
     }
 
-    public function reconcileServicePincodes(Service $service, string $trigger = 'system'): void
+    public function reconcileServicePincodes(Service $service, string $trigger = 'system', bool $reconcileMatrix = true): void
     {
         $service->loadMissing(['pincodes', 'categories']);
         $primary = $service->primaryCategory();
@@ -88,7 +101,10 @@ final class ServicePincodeCoverageService
         $targetIds = $this->mappingProtection->filterAttachablePinIds($service, $targetIds, $trigger);
 
         $this->syncServicePivot($service, $targetIds, $categoryPinIds);
-        $this->matrixReconciler->reconcile($service->fresh(['pincodes', 'categories']));
+
+        if ($reconcileMatrix) {
+            $this->deferMatrixReconcile($service);
+        }
     }
 
     /**
@@ -110,7 +126,7 @@ final class ServicePincodeCoverageService
         $targetIds = $this->mappingProtection->filterAttachablePinIds($service, $targetIds, $source);
 
         $this->syncServicePivot($service, $targetIds, $categoryPinIds);
-        $this->matrixReconciler->reconcile($service->fresh(['pincodes', 'categories']));
+        $this->deferMatrixReconcile($service);
     }
 
     /**
@@ -154,9 +170,13 @@ final class ServicePincodeCoverageService
         return $ids;
     }
 
-    private function stripPincodeFromCategoryServices(ServiceCategory $category, PinCode $pin): void
+    /**
+     * @return list<int>
+     */
+    private function stripPincodeFromCategoryServices(ServiceCategory $category, PinCode $pin): array
     {
         $category->loadMissing('services');
+        $affected = [];
 
         foreach ($category->services as $service) {
             $primary = $service->primaryCategory();
@@ -166,8 +186,39 @@ final class ServicePincodeCoverageService
 
             AdminRemovedMapping::clearServicePincodeRemoval($service->service_code, $pin->pincode);
             $service->pincodes()->detach($pin->id);
-            $this->matrixReconciler->reconcile($service->fresh(['pincodes', 'categories']));
+            $affected[] = (int) $service->id;
         }
+
+        return $affected;
+    }
+
+    /**
+     * @param  list<int>  $serviceIds
+     */
+    private function reconcileAffectedServices(array $serviceIds): void
+    {
+        $serviceIds = array_values(array_unique(array_filter(array_map('intval', $serviceIds))));
+        if ($serviceIds === []) {
+            return;
+        }
+
+        $reconciler = $this->matrixReconciler;
+        dispatch(function () use ($reconciler, $serviceIds): void {
+            $reconciler->reconcileMany($serviceIds);
+        })->afterResponse();
+    }
+
+    private function deferMatrixReconcile(Service $service): void
+    {
+        $serviceId = (int) $service->id;
+        $reconciler = $this->matrixReconciler;
+
+        dispatch(function () use ($reconciler, $serviceId): void {
+            $fresh = Service::query()->find($serviceId);
+            if ($fresh !== null) {
+                $reconciler->reconcile($fresh);
+            }
+        })->afterResponse();
     }
 
     /**

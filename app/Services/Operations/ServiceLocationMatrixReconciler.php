@@ -29,7 +29,7 @@ class ServiceLocationMatrixReconciler
      *   issues: list<string>
      * }
      */
-    public function reconcile(?Service $onlyService = null): array
+    public function reconcile(?Service $onlyService = null, bool $purgeCatalogOrphans = true): array
     {
         $report = [
             'services_processed' => 0,
@@ -90,9 +90,63 @@ class ServiceLocationMatrixReconciler
             }
         }
 
-        app(DownstreamArtifactPurger::class)->purgeAllCatalogOrphans();
+        if ($purgeCatalogOrphans) {
+            app(DownstreamArtifactPurger::class)->purgeAllCatalogOrphans();
+        }
 
         return $report;
+    }
+
+    /**
+     * @param  iterable<int, Service|int|null>  $services
+     */
+    public function reconcileMany(iterable $services, bool $purgeCatalogOrphans = true): array
+    {
+        $merged = [
+            'services_processed' => 0,
+            'pages_provisioned' => 0,
+            'pages_updated' => 0,
+            'pages_removed' => 0,
+            'pages_deactivated' => 0,
+            'indexable_count' => 0,
+            'sitemap_eligible' => 0,
+            'issues' => [],
+        ];
+
+        $batch = [];
+        foreach ($services as $service) {
+            if (is_int($service)) {
+                $service = Service::query()->find($service);
+            }
+
+            if ($service instanceof Service) {
+                $batch[$service->id] = $service;
+            }
+        }
+
+        if ($batch === []) {
+            return $merged;
+        }
+
+        $lastId = array_key_last($batch);
+        foreach ($batch as $id => $service) {
+            $partial = $this->reconcile($service, purgeCatalogOrphans: false);
+            foreach (array_keys($merged) as $key) {
+                if ($key === 'issues') {
+                    $merged['issues'] = array_merge($merged['issues'], $partial['issues']);
+
+                    continue;
+                }
+
+                $merged[$key] += $partial[$key];
+            }
+        }
+
+        if ($purgeCatalogOrphans) {
+            app(DownstreamArtifactPurger::class)->purgeAllCatalogOrphans();
+        }
+
+        return $merged;
     }
 
     /**
