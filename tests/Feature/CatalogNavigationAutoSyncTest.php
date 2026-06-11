@@ -55,6 +55,35 @@ it('auto-populates services dropdown from the live catalog', function () {
     expect(collect($serviceNode['children'])->pluck('label'))->toContain('Auto Nav Sub Service');
 });
 
+it('renders services header link to the services page when the dropdown has catalog children', function () {
+    $servicesPage = Page::factory()->create(['slug' => 'services', 'title' => 'Services', 'is_active' => true]);
+
+    SiteNavigationItem::query()->create([
+        'zone' => SiteNavigationItem::ZONE_HEADER,
+        'item_type' => SiteNavigationItem::TYPE_PAGE,
+        'page_id' => $servicesPage->id,
+        'sort_order' => 0,
+        'custom_label' => 'Services',
+    ]);
+
+    ServiceCategory::factory()->create([
+        'name' => 'Linked Category',
+        'code' => 'linked-cat',
+        'is_active' => true,
+    ]);
+
+    $html = view('components.public.nav-item', [
+        'item' => collect(app(SiteNavigationResolver::class)->headerNav())->firstWhere('label', 'Services'),
+        'navLinkBase' => 'medca-primary-nav-link',
+        'navLinkDefault' => 'text-medca-primary',
+        'navLinkActive' => 'text-active',
+    ])->render();
+
+    expect($html)
+        ->toContain('href="'.url('/services').'"', false)
+        ->not->toContain('<button', false);
+});
+
 it('reflects catalog removals in the services dropdown immediately', function () {
     $servicesPage = Page::factory()->create(['slug' => 'services', 'title' => 'Services', 'is_active' => true]);
 

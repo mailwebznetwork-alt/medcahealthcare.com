@@ -79,13 +79,12 @@ final class AdminMetricLinks
 
     public static function sourceOfTruthMetric(string $key): string
     {
-        return match ($key) {
-            'orphan_registry' => self::sourceOfTruth('source-of-truth-orphans'),
-            'admin_overrides' => self::sourceOfTruth('source-of-truth-governance'),
-            'registry_rows', 'pages', 'synced_pages', 'generated', 'manual', 'planned', 'tombstones', 'protected_pages'
-                => self::siteArchitectPages(),
-            default => self::sourceOfTruth(),
-        };
+        return self::sourceOfTruthList($key);
+    }
+
+    public static function sourceOfTruthList(string $metric): string
+    {
+        return route('system.source-of-truth', ['list' => $metric]);
     }
 
     public static function userManagement(?User $user = null): string

@@ -13,7 +13,8 @@
     $href = $item['href'] ?? null;
     $label = $item['label'] ?? '';
     $hasChildren = $children !== [];
-    $isCurrent = $href ? \App\Support\PublicNav::isCurrent($href) : false;
+    $isNavigable = is_string($href) && $href !== '' && $href !== '#';
+    $isCurrent = $isNavigable ? \App\Support\PublicNav::isCurrent($href) : false;
 @endphp
 
 @if ($isMobile)
@@ -23,15 +24,37 @@
     @endphp
     @if ($hasChildren)
         <div x-data="{ open: false }">
-            <button
-                type="button"
-                @click="open = !open"
-                class="{{ $mobileRowClass }} justify-between text-left"
-                style="{{ $mobileRowStyle }}"
-            >
-                <span class="min-w-0 flex-1 leading-snug">{{ $label }}</span>
-                <span class="shrink-0 text-base leading-none" x-text="open ? '−' : '+'" aria-hidden="true"></span>
-            </button>
+            <div class="flex w-full items-stretch border-b border-slate-100">
+                @if ($isNavigable)
+                    <a
+                        href="{{ $href }}"
+                        @if ($isCurrent) aria-current="page" @endif
+                        class="{{ $mobileRowClass }} min-w-0 flex-1 border-b-0 {{ $isCurrent ? $navLinkActive : 'hover:text-medca-primary-hover' }}"
+                        style="{{ $mobileRowStyle }}"
+                    >
+                        <span class="min-w-0 flex-1 leading-snug">{{ $label }}</span>
+                    </a>
+                    <button
+                        type="button"
+                        @click="open = !open"
+                        class="inline-flex min-h-[52px] shrink-0 items-center justify-center border-l border-slate-100 px-4 text-base font-medium text-medca-primary"
+                        :aria-expanded="open"
+                        aria-label="{{ __('Expand :label menu', ['label' => $label]) }}"
+                    >
+                        <span aria-hidden="true" x-text="open ? '−' : '+'"></span>
+                    </button>
+                @else
+                    <button
+                        type="button"
+                        @click="open = !open"
+                        class="{{ $mobileRowClass }} w-full justify-between text-left"
+                        style="{{ $mobileRowStyle }}"
+                    >
+                        <span class="min-w-0 flex-1 leading-snug">{{ $label }}</span>
+                        <span class="shrink-0 text-base leading-none" x-text="open ? '−' : '+'" aria-hidden="true"></span>
+                    </button>
+                @endif
+            </div>
             <div x-show="open" x-cloak class="pb-1">
                 @foreach ($children as $child)
                     <x-public.nav-item :item="$child" :is-mobile="true" :depth="$depth + 1" />
@@ -55,15 +78,27 @@
     ])>
         @if ($hasChildren)
             <div class="medca-nav-dropdown-anchor relative inline-flex">
-                <button
-                    type="button"
-                    class="{{ $navLinkBase }} {{ $navLinkDefault }} gap-1"
-                    aria-haspopup="true"
-                    aria-expanded="false"
-                >
-                    {{ $label }}
-                    <svg class="h-3 w-3 opacity-70" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd"/></svg>
-                </button>
+                @if ($isNavigable)
+                    <a
+                        href="{{ $href }}"
+                        @if ($isCurrent) aria-current="page" @endif
+                        class="{{ $navLinkBase }} {{ $isCurrent ? $navLinkActive : $navLinkDefault }} gap-1"
+                        aria-haspopup="true"
+                    >
+                        {{ $label }}
+                        <svg class="h-3 w-3 opacity-70" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd"/></svg>
+                    </a>
+                @else
+                    <button
+                        type="button"
+                        class="{{ $navLinkBase }} {{ $navLinkDefault }} gap-1"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                    >
+                        {{ $label }}
+                        <svg class="h-3 w-3 opacity-70" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd"/></svg>
+                    </button>
+                @endif
                 <ul class="medca-nav-dropdown" role="menu">
                     @foreach ($children as $child)
                         @include('components.public.nav-dropdown-item', ['item' => $child, 'depth' => 0])

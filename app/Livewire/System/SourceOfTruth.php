@@ -4,12 +4,16 @@ namespace App\Livewire\System;
 
 use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Governance\SourceOfTruthDashboardService;
+use App\Services\Governance\SourceOfTruthListService;
 use App\Services\Governance\UniversalPageRegistry;
 use Illuminate\View\View;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class SourceOfTruth extends Component
 {
+    use WithPagination;
+
     public ?string $flash = null;
 
     public string $flashType = 'success';
@@ -17,9 +21,25 @@ class SourceOfTruth extends Component
     /** @var array<string, mixed> */
     public array $report = [];
 
+    public ?string $list = null;
+
+    protected $queryString = [
+        'list' => ['except' => null],
+    ];
+
     public function mount(SourceOfTruthDashboardService $dashboard): void
     {
-        $this->refreshReport($dashboard);
+        $this->list = request()->query('list');
+
+        if ($this->list !== null && ! SourceOfTruthListService::supports($this->list)) {
+            $this->redirectRoute('system.source-of-truth', navigate: true);
+
+            return;
+        }
+
+        if ($this->list === null) {
+            $this->refreshReport($dashboard);
+        }
     }
 
     public function refreshReport(SourceOfTruthDashboardService $dashboard): void
@@ -62,8 +82,28 @@ class SourceOfTruth extends Component
         $this->refreshReport($dashboard);
     }
 
-    public function render(): View
+    public function isListMode(): bool
     {
+        return $this->list !== null && SourceOfTruthListService::supports($this->list);
+    }
+
+    public function render(
+        SourceOfTruthDashboardService $dashboard,
+        SourceOfTruthListService $lists,
+    ): View {
+        if ($this->isListMode()) {
+            return view('livewire.system.source-of-truth', [
+                'listRows' => $lists->paginate($this->list),
+                'listLabel' => $lists->label($this->list),
+                'listColumns' => $lists->columns($this->list),
+                'listKey' => $this->list,
+            ]);
+        }
+
+        if ($this->report === []) {
+            $this->report = $dashboard->report();
+        }
+
         return view('livewire.system.source-of-truth');
     }
 }

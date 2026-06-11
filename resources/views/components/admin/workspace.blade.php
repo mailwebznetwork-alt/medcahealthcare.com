@@ -7,7 +7,7 @@
 
 @php
     $hasToolbar = isset($toolbar);
-    $resolvedContentClass = $contentClass ?? ($hasToolbar ? 'mt-8' : 'mt-10');
+    $resolvedContentClass = $contentClass ?? ($hasToolbar ? 'mt-0' : 'mt-10');
 @endphp
 
 <x-app-layout
@@ -26,7 +26,7 @@
         @endisset
 
         @isset($toolbar)
-            <div class="mom-backend-toolbar-row mom-sticky-toolbar sticky top-[72px] z-20 -mx-8 px-8 py-3.5">
+            <div class="mom-backend-toolbar-row mom-sticky-toolbar sticky top-0 z-20 -mx-4 mb-6 border-b border-[var(--border-tabstrip-divider)] bg-[var(--bg-app)] px-4 py-3.5 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
                 {{ $toolbar }}
             </div>
         @endisset

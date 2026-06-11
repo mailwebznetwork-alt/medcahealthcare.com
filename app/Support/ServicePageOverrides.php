@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Page;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Page-level admin authority flags — automated sync must not overwrite protected fields.
@@ -57,20 +58,18 @@ final class ServicePageOverrides
 
     public static function countPagesWithAdminAuthority(): int
     {
-        $count = 0;
+        return (int) self::adminAuthorityQuery()->count();
+    }
 
-        Page::query()
-            ->select(['id', 'deployment_meta_json'])
-            ->orderBy('id')
-            ->chunkById(100, function ($pages) use (&$count): void {
-                foreach ($pages as $page) {
-                    if (self::adminAuthorityActive($page)) {
-                        $count++;
-                    }
-                }
-            });
-
-        return $count;
+    public static function adminAuthorityQuery(): Builder
+    {
+        return Page::query()->where(function (Builder $query): void {
+            foreach (['title_override', 'content_override', 'layout_override', 'theme_override', 'seo_override', 'aeo_override', 'geo_override'] as $flag) {
+                $query->orWhereRaw(
+                    "json_extract(deployment_meta_json, '$.service_master.{$flag}') = true"
+                );
+            }
+        })->orderByDesc('id');
     }
 
     /**

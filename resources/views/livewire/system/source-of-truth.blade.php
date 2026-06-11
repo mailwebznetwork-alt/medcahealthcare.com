@@ -36,6 +36,14 @@
         </div>
     @endif
 
+    @if ($this->isListMode())
+        @include('livewire.system.partials.source-of-truth-list', [
+            'listRows' => $listRows,
+            'listLabel' => $listLabel,
+            'listColumns' => $listColumns,
+            'listKey' => $listKey,
+        ])
+    @else
     <div class="flex flex-wrap items-center justify-between gap-4">
         <article class="mom-card flex-1 min-w-[16rem] px-5 py-4">
             <p class="mom-micro">{{ __('Last registry sync') }}</p>
@@ -236,5 +244,6 @@
                 @endif
             </article>
         </div>
+    @endif
     @endif
 </div>

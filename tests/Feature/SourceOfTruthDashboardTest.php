@@ -1,10 +1,12 @@
 <?php
 
 use App\Livewire\System\SourceOfTruth;
+use App\Models\AdminDeletionTombstone;
 use App\Models\Page;
 use App\Models\PageRegistry;
 use App\Models\User;
 use App\ModuleAccess;
+use App\Support\AdminMetricLinks;
 use Database\Seeders\ThemePresetSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -107,4 +109,31 @@ it('can purge orphan registry rows from the dashboard', function () {
         ->assertSet('flashType', 'success');
 
     expect(PageRegistry::query()->where('registry_key', 'location:orphan-service:000000')->exists())->toBeFalse();
+});
+
+it('links source of truth metrics to filtered record lists', function () {
+    $user = sourceOfTruthAdmin();
+
+    $this->actingAs($user)
+        ->get(route('system.source-of-truth'))
+        ->assertSuccessful()
+        ->assertSee('href="'.AdminMetricLinks::sourceOfTruthList('tombstones').'"', false)
+        ->assertSee('href="'.AdminMetricLinks::sourceOfTruthList('registry_rows').'"', false)
+        ->assertSee('href="'.AdminMetricLinks::sourceOfTruthList('pages').'"', false);
+});
+
+it('renders tombstone records from the metric drill-down list', function () {
+    AdminDeletionTombstone::query()->create([
+        'entity_type' => 'service',
+        'natural_key' => 'tombstone-drilldown-test',
+        'deleted_at' => now(),
+        'source' => 'ui',
+        'reason' => 'Test deletion',
+    ]);
+
+    $this->actingAs(sourceOfTruthAdmin())
+        ->get(route('system.source-of-truth', ['list' => 'tombstones']))
+        ->assertSuccessful()
+        ->assertSee('tombstone-drilldown-test', false)
+        ->assertSee(__('Back to Source of Truth'), false);
 });
