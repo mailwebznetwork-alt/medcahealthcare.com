@@ -16,6 +16,7 @@ use App\ModuleAccess;
 use App\Services\DynamicModules\LegacyManagedModuleRegistry;
 use App\Repositories\Operations\ServiceCategoryRepository;
 use App\Services\Operations\ServiceCategoryService;
+use App\Services\Operations\BackgroundMatrixReconcileDispatcher;
 use App\Services\Operations\ServicePincodeCoverageService;
 use App\Services\Operations\ServiceDetailPageProvisioner;
 use App\Services\Operations\ServiceDetailPageSeoSync;
@@ -141,6 +142,8 @@ class ServiceController extends Controller
             return $service->fresh(['pincodes', 'seo', 'faqs', 'schema', 'detailPage']);
         });
 
+        app(BackgroundMatrixReconcileDispatcher::class)->dispatchOne((int) $service->id);
+
         return $this->redirectAfterServiceSave($request, $service, __('Service created.'));
     }
 
@@ -264,6 +267,8 @@ class ServiceController extends Controller
                 );
             }
         });
+
+        app(BackgroundMatrixReconcileDispatcher::class)->dispatchOne((int) $service->id);
 
         return $this->redirectAfterServiceSave($request, $service, __('Service updated.'));
     }

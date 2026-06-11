@@ -7,6 +7,8 @@ use App\Http\Requests\Operations\ServiceCategories\StoreServiceCategoryRequest;
 use App\Http\Requests\Operations\ServiceCategories\UpdateServiceCategoryRequest;
 use App\Models\ServiceCategory;
 use App\Repositories\Operations\ServiceCategoryRepository;
+use App\Services\Operations\BackgroundCategoryOrchestratorDispatcher;
+use App\Services\Operations\BackgroundMatrixReconcileDispatcher;
 use App\Services\Operations\CatalogFormViewData;
 use App\Services\Operations\CatalogMasterPersister;
 use App\Services\Operations\ServiceCategoryService;
@@ -72,9 +74,17 @@ class ServiceCategoryController extends Controller
     {
         $data = $request->validated();
 
-        DB::transaction(function () use ($request, $data, $service_category): void {
-            $this->catalogPersister->persistCategory($service_category, $request, $data);
+        $persistResult = DB::transaction(function () use ($request, $data, $service_category) {
+            return $this->catalogPersister->persistCategory($service_category, $request, $data);
         });
+
+        if ($persistResult->reconcileServiceIds !== []) {
+            app(BackgroundMatrixReconcileDispatcher::class)->dispatchMany($persistResult->reconcileServiceIds);
+        }
+
+        if ($persistResult->runCategoryOrchestrator) {
+            app(BackgroundCategoryOrchestratorDispatcher::class)->dispatch((int) $persistResult->category->id);
+        }
 
         $tab = (string) $request->input('active_tab', $request->query('tab', 'basic'));
         $params = ['service_category' => $service_category->fresh()];

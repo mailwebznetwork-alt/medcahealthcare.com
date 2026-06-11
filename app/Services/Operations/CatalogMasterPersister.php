@@ -25,8 +25,10 @@ class CatalogMasterPersister
     /**
      * @param  array<string, mixed>  $data
      */
-    public function persistCategory(ServiceCategory $category, Request $request, array $data): ServiceCategory
+    public function persistCategory(ServiceCategory $category, Request $request, array $data): CatalogPersistResult
     {
+        $reconcileServiceIds = [];
+
         $category->fill(array_merge(
             $this->categoryCoreAttributes($data, $request),
             $this->contentAttributesFromValidated($data),
@@ -40,7 +42,7 @@ class CatalogMasterPersister
         $this->syncCategorySchema($category, $data['schema_type'] ?? null, $data['schema_json'] ?? null);
 
         if (array_key_exists('pincodes', $data)) {
-            app(ServicePincodeCoverageService::class)->syncCategoryPincodes(
+            $reconcileServiceIds = app(ServicePincodeCoverageService::class)->syncCategoryPincodes(
                 $category,
                 is_array($data['pincodes']) ? $data['pincodes'] : [],
                 'ui',
@@ -49,9 +51,12 @@ class CatalogMasterPersister
 
         $category = $category->fresh(['seo', 'faqs', 'schema', 'pincodes']);
         $this->optimizationScorer->scoreAndPersist($category);
-        app(CategoryMasterOrchestrator::class)->sync($category);
 
-        return $category->fresh(['seo', 'faqs', 'schema', 'pincodes']);
+        return new CatalogPersistResult(
+            category: $category->fresh(['seo', 'faqs', 'schema', 'pincodes']),
+            reconcileServiceIds: $reconcileServiceIds,
+            runCategoryOrchestrator: true,
+        );
     }
 
     /**

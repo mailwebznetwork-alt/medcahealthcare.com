@@ -19,13 +19,13 @@ final class ServicePincodeCoverageService
     public function __construct(
         private readonly MappingProtectionService $mappingProtection,
         private readonly PinCodeCreationGuard $pinCodeGuard,
-        private readonly BackgroundMatrixReconcileDispatcher $backgroundReconciler,
     ) {}
 
     /**
      * @param  list<int|string>  $pinIds
+     * @return list<int> Service IDs needing location-matrix reconciliation (deferred post-commit).
      */
-    public function syncCategoryPincodes(ServiceCategory $category, array $pinIds, string $source = 'ui'): void
+    public function syncCategoryPincodes(ServiceCategory $category, array $pinIds, string $source = 'ui'): array
     {
         $pinIds = $this->normalizePinIds($pinIds);
         $previousIds = $category->pincodes()->pluck('pin_codes.id')->map(fn ($id) => (int) $id)->all();
@@ -59,7 +59,7 @@ final class ServicePincodeCoverageService
         $category->pincodes()->sync($pinIds);
         $affectedServiceIds = array_merge($affectedServiceIds, $this->propagateCategoryToServices($category));
 
-        $this->reconcileAffectedServices($affectedServiceIds);
+        return array_values(array_unique($affectedServiceIds));
     }
 
     /**
@@ -76,14 +76,14 @@ final class ServicePincodeCoverageService
                 continue;
             }
 
-            $this->reconcileServicePincodes($service, 'category', reconcileMatrix: false);
+            $this->reconcileServicePincodes($service, 'category');
             $affected[] = (int) $service->id;
         }
 
         return $affected;
     }
 
-    public function reconcileServicePincodes(Service $service, string $trigger = 'system', bool $reconcileMatrix = true): void
+    public function reconcileServicePincodes(Service $service, string $trigger = 'system'): void
     {
         $service->loadMissing(['pincodes', 'categories']);
         $primary = $service->primaryCategory();
@@ -102,9 +102,6 @@ final class ServicePincodeCoverageService
 
         $this->syncServicePivot($service, $targetIds, $categoryPinIds);
 
-        if ($reconcileMatrix) {
-            $this->deferMatrixReconcile($service);
-        }
     }
 
     /**
@@ -126,7 +123,6 @@ final class ServicePincodeCoverageService
         $targetIds = $this->mappingProtection->filterAttachablePinIds($service, $targetIds, $source);
 
         $this->syncServicePivot($service, $targetIds, $categoryPinIds);
-        $this->deferMatrixReconcile($service);
     }
 
     /**
@@ -190,24 +186,6 @@ final class ServicePincodeCoverageService
         }
 
         return $affected;
-    }
-
-    /**
-     * @param  list<int>  $serviceIds
-     */
-    private function reconcileAffectedServices(array $serviceIds): void
-    {
-        $serviceIds = array_values(array_unique(array_filter(array_map('intval', $serviceIds))));
-        if ($serviceIds === []) {
-            return;
-        }
-
-        $this->backgroundReconciler->dispatchMany($serviceIds);
-    }
-
-    private function deferMatrixReconcile(Service $service): void
-    {
-        $this->backgroundReconciler->dispatchOne((int) $service->id);
     }
 
     /**

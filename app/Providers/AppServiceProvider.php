@@ -125,6 +125,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (config('database.default') === 'sqlite') {
+            try {
+                \Illuminate\Support\Facades\DB::connection()->getPdo()->exec('PRAGMA journal_mode=WAL;');
+                \Illuminate\Support\Facades\DB::connection()->getPdo()->exec('PRAGMA busy_timeout=30000;');
+            } catch (\Throwable) {
+                // Ignore if connection is not ready during early boot.
+            }
+        }
+
         $this->ensurePublicLeadRouteIsRegistered();
 
         $this->configureRateLimiting();
