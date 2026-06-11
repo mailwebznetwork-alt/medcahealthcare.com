@@ -92,6 +92,7 @@ class StoreServiceRequest extends FormRequest
             'pincodes.*' => ['integer', 'exists:pin_codes,id'],
             'category_ids' => ['nullable', 'array'],
             'category_ids.*' => ['integer', 'exists:service_categories,id'],
+            'primary_category_id' => ['nullable', 'integer', 'exists:service_categories,id'],
             'short_summary' => ['nullable', 'string', 'max:65535', new RejectFakerContent],
             'description' => ['nullable', 'string', new RejectFakerContent],
             'procedures_lines' => ['nullable', 'string'],

@@ -95,6 +95,8 @@ class UpdateServiceCategoryRequest extends FormRequest
             'show_on_about' => ['boolean'],
             'show_on_contact' => ['boolean'],
             'page_id' => ['nullable', 'integer', 'exists:pages,id'],
+            'pincodes' => ['nullable', 'array'],
+            'pincodes.*' => ['integer', 'exists:pin_codes,id'],
             'procedures_lines' => ['nullable', 'string'],
             'procedures' => ['nullable', 'array'],
             'procedures.*' => ['string', 'max:500'],

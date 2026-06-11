@@ -16,6 +16,7 @@ use App\ModuleAccess;
 use App\Services\DynamicModules\LegacyManagedModuleRegistry;
 use App\Repositories\Operations\ServiceCategoryRepository;
 use App\Services\Operations\ServiceCategoryService;
+use App\Services\Operations\ServicePincodeCoverageService;
 use App\Services\Operations\ServiceDetailPageProvisioner;
 use App\Services\Operations\ServiceDetailPageSeoSync;
 use App\Services\Operations\ServiceGeminiAssistant;
@@ -115,8 +116,12 @@ class ServiceController extends Controller
             $this->syncMedia($request, $service);
             $service->save();
 
-            $this->syncPincodes($service, $data['pincodes'] ?? []);
-            $this->categoryService->syncServiceCategories($service, $data['category_ids'] ?? []);
+            $this->categoryService->syncServiceCategories(
+                $service,
+                $data['category_ids'] ?? [],
+                filled($data['primary_category_id'] ?? null) ? (int) $data['primary_category_id'] : null,
+            );
+            app(ServicePincodeCoverageService::class)->applyServiceGeoSelection($service, $data['pincodes'] ?? []);
             $this->syncSeo($service, is_array($data['seo'] ?? null) ? $data['seo'] : []);
             $this->syncFaqs($service, is_array($data['faqs'] ?? null) ? $data['faqs'] : []);
             $this->syncSchema($service, $data['schema_type'] ?? null, $data['schema_json'] ?? null);
@@ -236,8 +241,12 @@ class ServiceController extends Controller
             $this->syncMedia($request, $service);
             $service->save();
 
-            $this->syncPincodes($service, $data['pincodes'] ?? []);
-            $this->categoryService->syncServiceCategories($service, $data['category_ids'] ?? []);
+            $this->categoryService->syncServiceCategories(
+                $service,
+                $data['category_ids'] ?? [],
+                filled($data['primary_category_id'] ?? null) ? (int) $data['primary_category_id'] : null,
+            );
+            app(ServicePincodeCoverageService::class)->applyServiceGeoSelection($service, $data['pincodes'] ?? []);
             $this->syncSeo($service, is_array($data['seo'] ?? null) ? $data['seo'] : []);
             $this->syncFaqs($service, is_array($data['faqs'] ?? null) ? $data['faqs'] : []);
             $this->syncSchema($service, $data['schema_type'] ?? null, $data['schema_json'] ?? null);

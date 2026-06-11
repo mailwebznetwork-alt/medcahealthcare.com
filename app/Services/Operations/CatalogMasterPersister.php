@@ -39,11 +39,19 @@ class CatalogMasterPersister
         $this->syncCategoryFaqs($category, is_array($data['faqs'] ?? null) ? $data['faqs'] : []);
         $this->syncCategorySchema($category, $data['schema_type'] ?? null, $data['schema_json'] ?? null);
 
-        $category = $category->fresh(['seo', 'faqs', 'schema']);
+        if (array_key_exists('pincodes', $data)) {
+            app(ServicePincodeCoverageService::class)->syncCategoryPincodes(
+                $category,
+                is_array($data['pincodes']) ? $data['pincodes'] : [],
+                'ui',
+            );
+        }
+
+        $category = $category->fresh(['seo', 'faqs', 'schema', 'pincodes']);
         $this->optimizationScorer->scoreAndPersist($category);
         app(CategoryMasterOrchestrator::class)->sync($category);
 
-        return $category->fresh(['seo', 'faqs', 'schema']);
+        return $category->fresh(['seo', 'faqs', 'schema', 'pincodes']);
     }
 
     /**
@@ -73,11 +81,18 @@ class CatalogMasterPersister
         $this->syncSubServiceFaqs($subService, is_array($data['faqs'] ?? null) ? $data['faqs'] : []);
         $this->syncSubServiceSchema($subService, $data['schema_type'] ?? null, $data['schema_json'] ?? null);
 
-        $subService = $subService->fresh(['seo', 'faqs', 'schema', 'service']);
+        if (array_key_exists('pincodes', $data)) {
+            app(ServicePincodeCoverageService::class)->syncSubServiceExclusions(
+                $subService,
+                is_array($data['pincodes']) ? $data['pincodes'] : [],
+            );
+        }
+
+        $subService = $subService->fresh(['seo', 'faqs', 'schema', 'service', 'pincodeExclusions']);
         $this->optimizationScorer->scoreAndPersist($subService);
         app(SubServiceMasterOrchestrator::class)->sync($subService);
 
-        return $subService->fresh(['seo', 'faqs', 'schema', 'service']);
+        return $subService->fresh(['seo', 'faqs', 'schema', 'service', 'pincodeExclusions']);
     }
 
     /**

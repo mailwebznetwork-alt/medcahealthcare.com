@@ -22,12 +22,7 @@
                 @endforeach
             </select>
         </div>
-        @if ($catalogKind !== 'sub_service')
-            <div>
-                <x-input-label for="sort_order" :value="__('Sort order')" variant="mom" />
-                <x-text-input id="sort_order" name="sort_order" type="number" class="mt-2 block w-full" :value="old('sort_order', $entity->sort_order)" variant="mom" />
-            </div>
-        @endif
+        {{-- sort_order lives on the Basic tab for categories and sub-services; duplicate fields here overwrote user edits on save --}}
         <div class="md:col-span-2">
             <x-input-label for="page_id" :value="__('Linked discovery page')" variant="mom" />
             <select id="page_id" name="page_id" class="rounded-mom-chrome mt-2 block w-full border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">

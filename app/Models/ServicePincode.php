@@ -8,6 +8,10 @@ class ServicePincode extends Pivot
 {
     protected $table = 'service_pincodes';
 
+    public const SOURCE_CATEGORY = 'category';
+
+    public const SOURCE_MANUAL = 'manual';
+
     protected function casts(): array
     {
         return [

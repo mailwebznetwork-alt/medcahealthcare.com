@@ -121,6 +121,37 @@ class SubService extends Model
     }
 
     /**
+     * @return HasMany<SubServicePincodeExclusion, $this>
+     */
+    public function pincodeExclusions(): HasMany
+    {
+        return $this->hasMany(SubServicePincodeExclusion::class);
+    }
+
+    /**
+     * Parent service pincodes not excluded for this sub-service.
+     *
+     * @return list<int>
+     */
+    public function includedPincodeIds(): array
+    {
+        $this->loadMissing(['service.pincodes', 'pincodeExclusions']);
+
+        if ($this->service === null) {
+            return [];
+        }
+
+        $excluded = $this->pincodeExclusions->pluck('pincode_id')->map(fn ($id) => (int) $id)->all();
+
+        return $this->service->pincodes
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->reject(fn (int $id): bool => in_array($id, $excluded, true))
+            ->values()
+            ->all();
+    }
+
+    /**
      * When promoted to a full standalone service.
      */
     public function standaloneService(): BelongsTo

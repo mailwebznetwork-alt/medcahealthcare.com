@@ -254,6 +254,7 @@ class Service extends Model
         return $this->belongsToMany(PinCode::class, 'service_pincodes', 'service_id', 'pincode_id')
             ->using(ServicePincode::class)
             ->withPivot([
+                'pin_source',
                 'priority',
                 'is_visible',
                 'is_featured',
@@ -274,7 +275,17 @@ class Service extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(ServiceCategory::class, 'service_category_map', 'service_id', 'service_category_id')
+            ->withPivot(['is_primary'])
             ->withTimestamps();
+    }
+
+    public function primaryCategory(): ?ServiceCategory
+    {
+        $this->loadMissing('categories');
+
+        $primary = $this->categories->firstWhere(fn (ServiceCategory $category): bool => (bool) $category->pivot?->is_primary);
+
+        return $primary ?? $this->categories->first();
     }
 
     /**

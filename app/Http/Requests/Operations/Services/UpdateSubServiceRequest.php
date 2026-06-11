@@ -100,6 +100,8 @@ class UpdateSubServiceRequest extends FormRequest
             'publish_status' => ['required', Rule::enum(PublishStatus::class)],
             'visibility' => ['required', Rule::enum(ServiceVisibility::class)],
             'page_id' => ['nullable', 'integer', 'exists:pages,id'],
+            'pincodes' => ['nullable', 'array'],
+            'pincodes.*' => ['integer', 'exists:pin_codes,id'],
             'procedures_lines' => ['nullable', 'string'],
             'procedures' => ['nullable', 'array'],
             'procedures.*' => ['string', 'max:500'],

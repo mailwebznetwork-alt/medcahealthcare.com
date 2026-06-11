@@ -136,7 +136,20 @@ class ServiceCategory extends Model
     public function services(): BelongsToMany
     {
         return $this->belongsToMany(Service::class, 'service_category_map', 'service_category_id', 'service_id')
+            ->withPivot(['is_primary'])
             ->withTimestamps();
+    }
+
+    /**
+     * @return BelongsToMany<PinCode, $this>
+     */
+    public function pincodes(): BelongsToMany
+    {
+        return $this->belongsToMany(PinCode::class, 'category_pincodes', 'service_category_id', 'pincode_id')
+            ->using(CategoryPincode::class)
+            ->withPivot(['priority', 'is_visible'])
+            ->withTimestamps()
+            ->orderByPivot('priority', 'desc');
     }
 
     /**

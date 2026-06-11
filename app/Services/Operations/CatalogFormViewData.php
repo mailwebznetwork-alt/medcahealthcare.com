@@ -24,13 +24,18 @@ class CatalogFormViewData
      */
     public function forCategory(Request $request, ServiceCategory $category): array
     {
-        $category->loadMissing(['seo', 'faqs', 'schema', 'services', 'linkedPage']);
+        $category->loadMissing(['seo', 'faqs', 'schema', 'services', 'linkedPage', 'pincodes']);
         $linkedPage = $category->linkedPage;
+        $categoryPinDefaults = $category->pincodes?->pluck('id')->all() ?? [];
 
         return [
             'category' => $category,
             'service' => $category,
             'catalogKind' => 'category',
+            'selectedPinIds' => array_map(
+                static fn ($v) => (int) $v,
+                old('pincodes', $categoryPinDefaults),
+            ),
             'parentOptions' => app(ServiceCategoryRepository::class)->parentOptions($category->id),
             'linkedDetailPage' => $linkedPage,
             'patternDetailPage' => null,
@@ -56,12 +61,18 @@ class CatalogFormViewData
      */
     public function forSubService(Request $request, Service $parent, SubService $subService): array
     {
-        $subService->loadMissing(['seo', 'faqs', 'schema', 'linkedPage', 'service.pincodes']);
+        $subService->loadMissing(['seo', 'faqs', 'schema', 'linkedPage', 'service.pincodes', 'pincodeExclusions']);
+        $parent->loadMissing('pincodes');
         $linkedPage = $subService->linkedPage;
 
         return [
             'service' => $subService,
             'parentService' => $parent,
+            'pinCodes' => $parent->pincodes,
+            'selectedPinIds' => array_map(
+                static fn ($v) => (int) $v,
+                old('pincodes', $subService->includedPincodeIds()),
+            ),
             'subService' => $subService,
             'catalogKind' => 'sub_service',
             'linkedDetailPage' => $linkedPage,

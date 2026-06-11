@@ -21,6 +21,14 @@
         $categoryIdDefaults = $service->categories?->pluck('id')->all() ?? [];
     }
     $selectedCategoryIds = array_map(static fn ($v) => (int) $v, old('category_ids', $categoryIdDefaults));
+    $primaryCategoryDefault = 0;
+    if ($catalogKind === 'service' && $service->exists) {
+        $service->loadMissing('categories');
+        $primaryCategoryDefault = (int) ($service->categories->firstWhere(fn ($cat) => (bool) $cat->pivot?->is_primary)?->id
+            ?? $service->categories->first()?->id
+            ?? 0);
+    }
+    $selectedPrimaryCategoryId = (int) old('primary_category_id', $primaryCategoryDefault);
     $service->loadMissing(['seo', 'schema', 'faqs']);
     $seo = $service->seo;
     $schema = $service->schema;
@@ -115,7 +123,7 @@
                 </div>
                 <div class="md:col-span-2" x-data="{ catQ: '' }">
                     <x-input-label for="category_ids" :value="__('Categories')" variant="mom" />
-                    <p class="mom-subtext mt-1">{{ __('Assign one or more categories for navigation and filtering. Does not change service SEO.') }}</p>
+                    <p class="mom-subtext mt-1">{{ __('Assign categories for navigation. The primary category controls inherited pincodes (no union across categories).') }}</p>
                     @if ($categoryOptions->isEmpty())
                         <p class="mt-3 text-sm text-[var(--text-muted)]">
                             {{ __('No categories yet.') }}
@@ -128,6 +136,7 @@
                                 @php $blob = strtolower($cat->name.' '.$cat->code); @endphp
                                 <label x-show="!catQ || @js($blob).includes(catQ.toLowerCase())" class="flex items-start gap-2 text-sm">
                                     <input type="checkbox" name="category_ids[]" value="{{ $cat->id }}" class="mt-1 rounded" @checked(in_array((int) $cat->id, $selectedCategoryIds, true)) />
+                                    <input type="radio" name="primary_category_id" value="{{ $cat->id }}" class="mt-1 rounded-full border-[rgba(255,255,255,0.15)]" title="{{ __('Primary category (pincodes)') }}" @checked($selectedPrimaryCategoryId === (int) $cat->id) />
                                     <span>
                                         <span class="font-medium text-[var(--text-primary)]">{{ $cat->name }}</span>
                                         <span class="block font-mono text-[10px] text-[var(--text-muted)]">{{ $cat->code }}</span>
@@ -405,57 +414,12 @@
                 'parentService' => $parentService ?? null,
             ])
         @else
-        <section class="mom-card p-6">
-            <h3 class="mom-section-title mb-4">{{ __('GEO — serviceable pincodes') }}</h3>
-            <p class="mom-body-text mb-4 max-w-3xl">{{ __('Select existing coverage areas from your pin code directory. No manual pin strings.') }}</p>
-            <div
-                x-data="{
-                    q: '',
-                    setAll(checked) {
-                        this.$refs.pinList.querySelectorAll('[data-pin-checkbox]').forEach((el) => { el.checked = checked; });
-                    },
-                    setVisible(checked) {
-                        this.$refs.pinList.querySelectorAll('label').forEach((label) => {
-                            if (label.offsetParent === null) {
-                                return;
-                            }
-                            const input = label.querySelector('[data-pin-checkbox]');
-                            if (input) {
-                                input.checked = checked;
-                            }
-                        });
-                    },
-                }"
-                class="space-y-3"
-            >
-                <div class="flex flex-wrap items-center gap-2">
-                    <input type="search" x-model="q" class="min-w-[12rem] flex-1 rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner" placeholder="{{ __('Filter by pincode, area, city…') }}" autocomplete="off" />
-                    <button type="button" class="mom-cta-compact mom-cta-ghost text-xs" @click="setAll(true)">{{ __('Select all') }}</button>
-                    <button type="button" class="mom-cta-compact mom-cta-ghost text-xs" x-show="q.trim() !== ''" x-cloak @click="setVisible(true)">{{ __('Select filtered') }}</button>
-                    <button type="button" class="mom-cta-compact mom-cta-ghost text-xs" @click="setAll(false)">{{ __('Clear all') }}</button>
-                </div>
-                <div x-ref="pinList" class="custom-scrollbar max-h-72 overflow-y-auto rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(0,0,0,0.12)] p-3">
-                    @forelse ($pinCodes as $pc)
-                        @php $blob = strtolower($pc->pincode.' '.$pc->area_name.' '.$pc->city.' '.(string) $pc->locality); @endphp
-                        <label class="flex cursor-pointer gap-3 rounded px-2 py-1.5 hover:bg-[var(--bg-hover)]" x-show='q.trim() === "" || {{ json_encode($blob) }}.toLowerCase().includes(q.toLowerCase())'>
-                            <input type="checkbox" name="pincodes[]" value="{{ $pc->id }}" data-pin-checkbox class="mt-1 rounded border-[rgba(255,255,255,0.15)]" @checked(in_array((int) $pc->id, $selectedPinIds, true)) />
-                            <span class="text-sm text-[var(--text-secondary)]">
-                                <span class="font-mono text-[var(--text-primary)]">{{ $pc->pincode }}</span>
-                                — {{ $pc->area_name }}, {{ $pc->city }}
-                                @if ($pc->locality)
-                                    <span class="text-[var(--text-muted)]">({{ $pc->locality }})</span>
-                                @endif
-                            </span>
-                        </label>
-                    @empty
-                        <p class="mom-subtext text-sm">
-                            {{ __('No pin codes in the directory yet.') }}
-                            <a href="{{ route('operations.pin-codes.directory') }}" class="text-[var(--accent)] underline underline-offset-2">{{ __('Open pin code directory') }}</a>
-                        </p>
-                    @endforelse
-                </div>
-            </div>
-        </section>
+            @include('operations.partials.pincode-checklist', [
+                'pinCodes' => $pinCodes,
+                'selectedPinIds' => $selectedPinIds,
+                'title' => __('GEO — serviceable pincodes'),
+                'description' => __('Primary category pincodes are inherited. Add or remove pincodes here to override for this service only.'),
+            ])
         @endif
     </div>
 

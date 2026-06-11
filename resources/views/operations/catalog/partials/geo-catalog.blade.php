@@ -8,18 +8,25 @@
     };
 @endphp
 
+@if ($catalogKind === 'category')
+    @include('operations.partials.pincode-checklist', [
+        'pinCodes' => $pinCodes ?? collect(),
+        'selectedPinIds' => $selectedPinIds ?? [],
+        'title' => __('GEO — category pincodes (master)'),
+        'description' => __('Master coverage for this category. Applies to all services whose primary category is this one. You can still override on individual services.'),
+    ])
+@elseif ($catalogKind === 'sub_service' && isset($parentService))
+    @include('operations.partials.pincode-checklist', [
+        'pinCodes' => $pinCodes ?? collect(),
+        'selectedPinIds' => $selectedPinIds ?? [],
+        'title' => __('GEO — sub-service coverage'),
+        'description' => __('Inherited from parent service :title. Uncheck a pincode to exclude it from this sub-service only.', ['title' => $parentService->title]),
+    ])
+@endif
+
 <section class="mom-card p-6">
     <h3 class="mom-section-title mb-4">{{ __('GEO — location signals') }}</h3>
-    @if ($catalogKind === 'sub_service' && isset($parentService))
-        <p class="mom-subtext mb-4 max-w-3xl">{{ __('Sub-services inherit serviceable areas from the parent service (:title). Edit pincodes on the parent service GEO tab.', ['title' => $parentService->title]) }}</p>
-        <ul class="space-y-2 text-sm text-[var(--text-secondary)]">
-            @forelse ($parentService->pincodes ?? [] as $pc)
-                <li><span class="font-mono text-[var(--text-primary)]">{{ $pc->pincode }}</span> — {{ $pc->area_name }}, {{ $pc->city }}</li>
-            @empty
-                <li class="mom-subtext">{{ __('No pincodes on parent service yet.') }}</li>
-            @endforelse
-        </ul>
-    @else
+    @if ($catalogKind === 'category')
         <p class="mom-subtext mb-4 max-w-3xl">{{ __('GEO entities and signals for category discovery pages and local relevance.') }}</p>
     @endif
     <div class="mt-6 grid gap-6">

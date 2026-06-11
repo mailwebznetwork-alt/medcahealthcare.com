@@ -82,14 +82,31 @@ class ServiceCategoryService
     /**
      * @param  list<int|string>  $categoryIds
      */
-    public function syncServiceCategories(\App\Models\Service $service, array $categoryIds): void
+    public function syncServiceCategories(\App\Models\Service $service, array $categoryIds, ?int $primaryCategoryId = null): void
     {
         $ids = array_values(array_unique(array_filter(array_map(
             static fn (mixed $id): int => (int) $id,
             $categoryIds
         ), static fn (int $id): bool => $id > 0)));
 
-        $service->categories()->sync($ids);
+        if ($ids === []) {
+            $service->categories()->sync([]);
+
+            return;
+        }
+
+        if ($primaryCategoryId === null || ! in_array($primaryCategoryId, $ids, true)) {
+            $primaryCategoryId = $ids[0];
+        }
+
+        $syncPayload = [];
+        foreach ($ids as $id) {
+            $syncPayload[$id] = ['is_primary' => $id === $primaryCategoryId];
+        }
+
+        $service->categories()->sync($syncPayload);
+
+        app(ServicePincodeCoverageService::class)->reconcileServicePincodes($service->fresh(['categories', 'pincodes']));
     }
 
     /**

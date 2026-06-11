@@ -152,6 +152,32 @@ it('renders sub-service edit page with master tabs', function () {
         ->assertSee('Schema', false);
 });
 
+it('persists sort order when updating a category from the basic tab', function () {
+    $user = User::factory()->create([
+        'role' => 'admin',
+        'module_access' => ModuleAccess::defaultGrants(),
+    ]);
+
+    $category = ServiceCategory::factory()->create([
+        'name' => 'Caregiver Services',
+        'code' => 'cat-caregiver-services',
+        'sort_order' => 0,
+    ]);
+
+    $this->actingAs($user)
+        ->put(route('operations.service-categories.update', $category), [
+            'name' => 'Caregiver Services',
+            'code' => 'cat-caregiver-services',
+            'sort_order' => 12,
+            'publish_status' => 'published',
+            'visibility' => 'public',
+            'is_active' => '1',
+        ])
+        ->assertRedirect(route('operations.service-categories.edit', $category));
+
+    expect($category->fresh()->sort_order)->toBe(12);
+});
+
 it('persists full catalog master fields when updating a category', function () {
     $user = User::factory()->create([
         'role' => 'admin',
