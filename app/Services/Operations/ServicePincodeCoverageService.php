@@ -19,7 +19,7 @@ final class ServicePincodeCoverageService
     public function __construct(
         private readonly MappingProtectionService $mappingProtection,
         private readonly PinCodeCreationGuard $pinCodeGuard,
-        private readonly ServiceLocationMatrixReconciler $matrixReconciler,
+        private readonly BackgroundMatrixReconcileDispatcher $backgroundReconciler,
     ) {}
 
     /**
@@ -202,23 +202,12 @@ final class ServicePincodeCoverageService
             return;
         }
 
-        $reconciler = $this->matrixReconciler;
-        dispatch(function () use ($reconciler, $serviceIds): void {
-            $reconciler->reconcileMany($serviceIds);
-        })->afterResponse();
+        $this->backgroundReconciler->dispatchMany($serviceIds);
     }
 
     private function deferMatrixReconcile(Service $service): void
     {
-        $serviceId = (int) $service->id;
-        $reconciler = $this->matrixReconciler;
-
-        dispatch(function () use ($reconciler, $serviceId): void {
-            $fresh = Service::query()->find($serviceId);
-            if ($fresh !== null) {
-                $reconciler->reconcile($fresh);
-            }
-        })->afterResponse();
+        $this->backgroundReconciler->dispatchOne((int) $service->id);
     }
 
     /**

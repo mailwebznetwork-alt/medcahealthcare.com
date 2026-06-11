@@ -31,6 +31,10 @@ class UpdateServiceCategoryRequest extends FormRequest
 
         $this->normalizeServiceListingLines();
         $this->normalizeServiceKeywordArrays();
+
+        $this->merge([
+            'pincodes' => array_map('intval', (array) $this->input('pincodes', [])),
+        ]);
     }
 
     public function authorize(): bool
