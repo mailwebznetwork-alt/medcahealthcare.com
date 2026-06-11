@@ -8,10 +8,14 @@
     $catalogKind = $catalogKind ?? 'service';
     $activeTab = $activeTab ?? 'basic';
     $detailPages = isset($detailPages) ? $detailPages : collect();
-    $pincodeDefaults = [];
-    if ($catalogKind === 'service' && $service->exists && method_exists($service, 'pincodes')) {
-        $service->loadMissing('pincodes');
-        $pincodeDefaults = $service->pincodes?->pluck('id')->all() ?? [];
+    $pincodeDefaults = is_array($selectedPinIds ?? null) ? $selectedPinIds : [];
+    if ($pincodeDefaults === [] && $service->exists) {
+        if (in_array($catalogKind, ['service', 'category'], true) && method_exists($service, 'pincodes')) {
+            $service->loadMissing('pincodes');
+            $pincodeDefaults = $service->pincodes?->pluck('id')->all() ?? [];
+        } elseif ($catalogKind === 'sub_service' && isset($subService) && method_exists($subService, 'includedPincodeIds')) {
+            $pincodeDefaults = $subService->includedPincodeIds();
+        }
     }
     $selectedPinIds = array_map(static fn ($v) => (int) $v, old('pincodes', $pincodeDefaults));
     $categoryOptions = $categoryOptions ?? collect();
@@ -412,6 +416,8 @@
                 'service' => $service,
                 'catalogKind' => $catalogKind,
                 'parentService' => $parentService ?? null,
+                'pinCodes' => $pinCodes ?? collect(),
+                'selectedPinIds' => $selectedPinIds ?? [],
             ])
         @else
             @include('operations.partials.pincode-checklist', [

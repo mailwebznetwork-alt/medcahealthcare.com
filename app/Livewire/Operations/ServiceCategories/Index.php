@@ -63,7 +63,7 @@ class Index extends Component
     {
         $query = ServiceCategory::query()
             ->with(['parent:id,name,code'])
-            ->withCount('services')
+            ->withCount(['services', 'pincodes'])
             ->ordered();
 
         if ($term = trim($this->q)) {

@@ -67,7 +67,8 @@
                         <th class="px-5 py-3">{{ __('Name') }}</th>
                         <th class="px-5 py-3">{{ __('Code') }}</th>
                         <th class="px-5 py-3">{{ __('Parent') }}</th>
-                        <th class="px-5 py-3">{{ __('Services (all areas)') }}</th>
+                        <th class="px-5 py-3">{{ __('Services') }}</th>
+                        <th class="px-5 py-3">{{ __('Areas (GEO)') }}</th>
                         <th class="px-5 py-3">{{ __('Sort') }}</th>
                         <th class="px-5 py-3">{{ __('Status') }}</th>
                         <th class="px-5 py-3 text-end">{{ __('Actions') }}</th>
@@ -82,12 +83,38 @@
                             <td class="px-5 py-3 font-medium">{{ $category->name }}</td>
                             <td class="px-5 py-3 font-mono text-xs text-[var(--text-secondary)]">{{ $category->code }}</td>
                             <td class="px-5 py-3 text-[var(--text-secondary)]">{{ $category->parent?->name ?? '—' }}</td>
-                            <td class="px-5 py-3">{{ $category->services_count }}</td>
+                            <td class="px-5 py-3">
+                                @if ($category->services_count > 0)
+                                    <a href="{{ route('operations.services.index', ['category_ids' => [$category->id]]) }}" class="font-medium text-mom-gold hover:underline">
+                                        {{ number_format($category->services_count) }}
+                                    </a>
+                                @else
+                                    <span class="text-[var(--text-muted)]">0</span>
+                                @endif
+                            </td>
+                            <td class="px-5 py-3">
+                                @if ($category->pincodes_count > 0)
+                                    <a href="{{ route('operations.service-categories.edit', ['service_category' => $category, 'tab' => 'geo']) }}" class="font-medium text-mom-gold hover:underline" title="{{ __('Category GEO master pincodes') }}">
+                                        {{ number_format($category->pincodes_count) }}
+                                    </a>
+                                @else
+                                    <a href="{{ route('operations.service-categories.edit', ['service_category' => $category, 'tab' => 'geo']) }}" class="text-[var(--text-muted)] hover:text-mom-gold hover:underline" title="{{ __('No GEO areas — assign pincodes') }}">
+                                        —
+                                    </a>
+                                @endif
+                            </td>
                             <td class="px-5 py-3 text-[var(--text-muted)]">{{ $category->sort_order }}</td>
                             <td class="px-5 py-3">
-                                <span class="rounded-mom-chrome border border-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] uppercase {{ $category->is_active ? 'text-[var(--success)]' : 'text-[var(--text-muted)]' }}">
-                                    {{ $category->is_active ? __('Active') : __('Inactive') }}
-                                </span>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <span class="rounded-mom-chrome border border-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] uppercase {{ $category->is_active ? 'text-[var(--success)]' : 'text-[var(--text-muted)]' }}">
+                                        {{ $category->is_active ? __('Active') : __('Inactive') }}
+                                    </span>
+                                    @if ($category->visibility?->value === 'public')
+                                        <span class="rounded-mom-chrome border border-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] uppercase text-[var(--text-secondary)]">
+                                            {{ __('Public') }}
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-5 py-3 text-end">
                                 <div class="flex flex-wrap justify-end gap-2">
@@ -105,7 +132,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-5 py-10 text-center text-[var(--text-muted)]">
+                            <td colspan="9" class="px-5 py-10 text-center text-[var(--text-muted)]">
                                 <p>{{ __('No categories yet.') }}</p>
                                 @can('create', \App\Models\ServiceCategory::class)
                                     <a href="{{ route('operations.service-categories.create') }}" class="mom-cta-primary mt-4 inline-flex">{{ __('Add category') }}</a>

@@ -220,8 +220,7 @@ it('persists full catalog master fields when updating a category', function () {
         ->and($category->seo?->meta_title)->toBe('Doctor Visits Bangalore')
         ->and($category->seo?->h1)->toBe('Doctor Visits')
         ->and($category->faqs)->toHaveCount(1)
-        ->and($category->schema)->not->toBeNull()
-        ->and($category->optimization_snapshot)->toBeArray();
+        ->and($category->schema)->not->toBeNull();
 });
 
 it('exposes category picker api for operations module', function () {

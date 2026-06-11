@@ -25,13 +25,34 @@ final class ServicePincodeCoverageService
      * @param  list<int|string>  $pinIds
      * @return list<int> Service IDs needing location-matrix reconciliation (deferred post-commit).
      */
-    public function syncCategoryPincodes(ServiceCategory $category, array $pinIds, string $source = 'ui'): array
+    public function syncCategoryPincodes(ServiceCategory $category, array $pinIds, string $source = 'ui', bool $deferServicePropagation = false): array
     {
         $pinIds = $this->normalizePinIds($pinIds);
         $previousIds = $category->pincodes()->pluck('pin_codes.id')->map(fn ($id) => (int) $id)->all();
         $removedIds = array_values(array_diff($previousIds, $pinIds));
 
         $affectedServiceIds = [];
+
+        if ($deferServicePropagation) {
+            foreach ($removedIds as $pinId) {
+                $pin = PinCode::query()->find($pinId);
+                if ($pin !== null && $source === 'ui') {
+                    AdminRemovedMapping::recordCategoryPincodeRemoval($category->code, $pin->pincode, $source);
+                }
+            }
+
+            foreach (array_values(array_diff($pinIds, $previousIds)) as $pinId) {
+                $pin = PinCode::query()->find($pinId);
+                if ($pin !== null) {
+                    AdminRemovedMapping::clearCategoryPincodeRemoval($category->code, $pin->pincode);
+                }
+            }
+
+            $category->pincodes()->sync($pinIds);
+            $this->clearCategoryPincodeRemovalsForAssignedPins($category, $pinIds);
+
+            return $this->primaryCategoryServiceIds($category);
+        }
 
         foreach ($removedIds as $pinId) {
             $pin = PinCode::query()->find($pinId);
@@ -57,6 +78,7 @@ final class ServicePincodeCoverageService
         }
 
         $category->pincodes()->sync($pinIds);
+        $this->clearCategoryPincodeRemovalsForAssignedPins($category, $pinIds);
         $affectedServiceIds = array_merge($affectedServiceIds, $this->propagateCategoryToServices($category));
 
         return array_values(array_unique($affectedServiceIds));
@@ -76,7 +98,7 @@ final class ServicePincodeCoverageService
                 continue;
             }
 
-            $this->reconcileServicePincodes($service, 'category');
+            $this->reconcileServicePincodes($service, 'ui');
             $affected[] = (int) $service->id;
         }
 
@@ -101,7 +123,7 @@ final class ServicePincodeCoverageService
         $targetIds = $this->mappingProtection->filterAttachablePinIds($service, $targetIds, $trigger);
 
         $this->syncServicePivot($service, $targetIds, $categoryPinIds);
-
+        $this->reconcileSubServiceExclusionsForService($service);
     }
 
     /**
@@ -123,6 +145,7 @@ final class ServicePincodeCoverageService
         $targetIds = $this->mappingProtection->filterAttachablePinIds($service, $targetIds, $source);
 
         $this->syncServicePivot($service, $targetIds, $categoryPinIds);
+        $this->reconcileSubServiceExclusionsForService($service);
     }
 
     /**
@@ -145,6 +168,37 @@ final class ServicePincodeCoverageService
         foreach ($excludedIds as $pinId) {
             $subService->pincodeExclusions()->firstOrCreate(['pincode_id' => $pinId]);
         }
+    }
+
+    /**
+     * @param  list<int>  $pinIds
+     */
+    private function clearCategoryPincodeRemovalsForAssignedPins(ServiceCategory $category, array $pinIds): void
+    {
+        foreach ($pinIds as $pinId) {
+            $pin = PinCode::query()->find($pinId);
+            if ($pin !== null) {
+                AdminRemovedMapping::clearCategoryPincodeRemoval($category->code, $pin->pincode);
+            }
+        }
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function primaryCategoryServiceIds(ServiceCategory $category): array
+    {
+        $category->loadMissing('services');
+        $ids = [];
+
+        foreach ($category->services as $service) {
+            $primary = $service->primaryCategory();
+            if ($primary !== null && (int) $primary->id === (int) $category->id) {
+                $ids[] = (int) $service->id;
+            }
+        }
+
+        return array_values(array_unique($ids));
     }
 
     /**
@@ -204,6 +258,27 @@ final class ServicePincodeCoverageService
         }
 
         $service->pincodes()->sync($payload);
+    }
+
+    /**
+     * Drop sub-service exclusions that no longer exist on the parent service.
+     */
+    private function reconcileSubServiceExclusionsForService(Service $service): void
+    {
+        $service->loadMissing(['subServices', 'pincodes']);
+        $parentPinIds = $service->pincodes->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+        if ($parentPinIds === []) {
+            foreach ($service->subServices as $subService) {
+                $subService->pincodeExclusions()->delete();
+            }
+
+            return;
+        }
+
+        foreach ($service->subServices as $subService) {
+            $subService->pincodeExclusions()->whereNotIn('pincode_id', $parentPinIds)->delete();
+        }
     }
 
     /**

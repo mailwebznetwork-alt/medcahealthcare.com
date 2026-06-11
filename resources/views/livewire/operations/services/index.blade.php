@@ -72,6 +72,8 @@
                         <th class="px-5 py-3">{{ __('Title') }}</th>
                         <th class="px-5 py-3">{{ __('Service code') }}</th>
                         <th class="px-5 py-3">{{ __('Categories') }}</th>
+                        <th class="px-5 py-3">{{ __('Sub-services') }}</th>
+                        <th class="px-5 py-3">{{ __('Areas (GEO)') }}</th>
                         <th class="px-5 py-3">{{ __('Active') }}</th>
                         <th class="px-5 py-3">{{ __('Publish') }}</th>
                         <th class="px-5 py-3">{{ __('Featured') }}</th>
@@ -90,6 +92,28 @@
                             <td class="px-5 py-3 font-mono text-xs text-[var(--text-secondary)]">{{ $service->service_code }}</td>
                             <td class="max-w-[14rem] px-5 py-3">
                                 @include('operations.services.partials.category-badges', ['service' => $service])
+                            </td>
+                            <td class="px-5 py-3">
+                                @if ($service->sub_services_count > 0)
+                                    <a href="{{ route('operations.services.edit', ['service' => $service, 'tab' => 'sub_services']) }}" class="font-medium text-mom-gold hover:underline">
+                                        {{ number_format($service->sub_services_count) }}
+                                    </a>
+                                @else
+                                    <a href="{{ route('operations.services.edit', ['service' => $service, 'tab' => 'sub_services']) }}" class="text-[var(--text-muted)] hover:text-mom-gold hover:underline" title="{{ __('No sub-services yet') }}">
+                                        —
+                                    </a>
+                                @endif
+                            </td>
+                            <td class="px-5 py-3">
+                                @if ($service->pincodes_count > 0)
+                                    <a href="{{ route('operations.services.edit', ['service' => $service, 'tab' => 'geo']) }}" class="font-medium text-mom-gold hover:underline" title="{{ __('Serviceable pincodes') }}">
+                                        {{ number_format($service->pincodes_count) }}
+                                    </a>
+                                @else
+                                    <a href="{{ route('operations.services.edit', ['service' => $service, 'tab' => 'geo']) }}" class="text-[var(--text-muted)] hover:text-mom-gold hover:underline" title="{{ __('No GEO areas — assign pincodes') }}">
+                                        —
+                                    </a>
+                                @endif
                             </td>
                             <td class="px-5 py-3">
                                 <span class="rounded-mom-chrome border border-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] uppercase">{{ $service->is_active ? __('Yes') : __('No') }}</span>
@@ -113,7 +137,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="px-5 py-10 text-center text-[var(--text-muted)]">
+                            <td colspan="12" class="px-5 py-10 text-center text-[var(--text-muted)]">
                                 <p>{{ __('No services yet.') }}</p>
                                 <a href="{{ route('operations.services.create') }}" class="mom-cta-primary mt-4 inline-flex">{{ __('Create service') }}</a>
                             </td>

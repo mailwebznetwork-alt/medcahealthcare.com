@@ -10,6 +10,7 @@ use App\Models\SubService;
 use App\Models\SubServiceFaq;
 use App\Models\SubServiceSchema;
 use App\Models\SubServiceSeo;
+use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Media\CatalogMediaAttacher;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -27,6 +28,16 @@ class CatalogMasterPersister
      */
     public function persistCategory(ServiceCategory $category, Request $request, array $data): CatalogPersistResult
     {
+        return app(ImportSideEffectsGate::class)->run(function () use ($category, $request, $data): CatalogPersistResult {
+            return $this->persistCategoryWithoutObserverSync($category, $request, $data);
+        });
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function persistCategoryWithoutObserverSync(ServiceCategory $category, Request $request, array $data): CatalogPersistResult
+    {
         $reconcileServiceIds = [];
 
         $category->fill(array_merge(
@@ -35,10 +46,15 @@ class CatalogMasterPersister
         ));
 
         $this->mediaAttacher->syncFromRequest($request, $category, 'categories');
-        $category->save();
+        $category->saveQuietly();
 
         $this->syncCategorySeo($category, is_array($data['seo'] ?? null) ? $data['seo'] : []);
-        $this->syncCategoryFaqs($category, is_array($data['faqs'] ?? null) ? $data['faqs'] : []);
+
+        $faqRows = is_array($data['faqs'] ?? null) ? $data['faqs'] : [];
+        if ($this->shouldSyncFaqs($category, $faqRows)) {
+            $this->syncCategoryFaqs($category, $faqRows);
+        }
+
         $this->syncCategorySchema($category, $data['schema_type'] ?? null, $data['schema_json'] ?? null);
 
         if (array_key_exists('pincodes', $data)) {
@@ -46,11 +62,9 @@ class CatalogMasterPersister
                 $category,
                 is_array($data['pincodes']) ? $data['pincodes'] : [],
                 'ui',
+                deferServicePropagation: ! app()->environment('testing'),
             );
         }
-
-        $category = $category->fresh(['seo', 'faqs', 'schema', 'pincodes']);
-        $this->optimizationScorer->scoreAndPersist($category);
 
         return new CatalogPersistResult(
             category: $category->fresh(['seo', 'faqs', 'schema', 'pincodes']),
@@ -208,6 +222,24 @@ class CatalogMasterPersister
             'aeo_question' => $seoInput['aeo_question'] ?? null,
             'aeo_answer' => $seoInput['aeo_answer'] ?? null,
         ], static fn ($v) => $v !== null && $v !== '');
+    }
+
+    /**
+     * @param  list<array{question?: string, answer?: string}>  $rows
+     */
+    private function shouldSyncFaqs(Model $owner, array $rows): bool
+    {
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            if (trim((string) ($row['question'] ?? '')) !== '' || trim((string) ($row['answer'] ?? '')) !== '') {
+                return true;
+            }
+        }
+
+        return $owner->faqs()->exists();
     }
 
     /**

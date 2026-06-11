@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\ServiceCategory;
+use App\Services\Operations\CatalogOptimizationScorer;
 use App\Services\Operations\CategoryMasterOrchestrator;
 use Illuminate\Console\Command;
 
@@ -12,7 +13,7 @@ class SyncCategoryMasterCommand extends Command
 
     protected $description = 'Run category discovery + page sync outside the HTTP request';
 
-    public function handle(CategoryMasterOrchestrator $orchestrator): int
+    public function handle(CategoryMasterOrchestrator $orchestrator, CatalogOptimizationScorer $scorer): int
     {
         $category = ServiceCategory::query()->find((int) $this->argument('category'));
         if ($category === null) {
@@ -22,6 +23,7 @@ class SyncCategoryMasterCommand extends Command
         }
 
         $orchestrator->sync($category);
+        $scorer->scoreAndPersist($category->fresh(['seo', 'faqs', 'schema', 'pincodes']));
         $this->info("Category master sync complete: {$category->code}");
 
         return self::SUCCESS;

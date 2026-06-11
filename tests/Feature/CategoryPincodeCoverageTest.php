@@ -83,6 +83,29 @@ it('updates category pincodes through the operations UI', function () {
         ->and($service->fresh()->pincodes->pluck('id')->all())->toBe([$pin->id]);
 });
 
+it('propagates category pincodes to sub-services through the parent service', function () {
+    $category = ServiceCategory::factory()->create(['code' => 'care-team']);
+    $pinA = PinCode::factory()->create(['pincode' => '560120', 'is_active' => true, 'is_serviceable' => true]);
+    $pinB = PinCode::factory()->create(['pincode' => '560121', 'is_active' => true, 'is_serviceable' => true]);
+    $service = Service::factory()->create(['service_code' => 'care-visit']);
+    $service->categories()->sync([$category->id => ['is_primary' => true]]);
+    $sub = SubService::query()->create([
+        'service_id' => $service->id,
+        'sub_service_code' => 'day-shift',
+        'title' => 'Day Shift',
+        'is_active' => true,
+        'publish_status' => 'published',
+        'visibility' => 'public',
+    ]);
+
+    $coverage = app(ServicePincodeCoverageService::class);
+    $coverage->syncCategoryPincodes($category, [$pinA->id, $pinB->id], 'ui', deferServicePropagation: true);
+    $coverage->propagateCategoryToServices($category->fresh());
+
+    expect($service->fresh()->pincodes->pluck('id')->all())->toEqualCanonicalizing([$pinA->id, $pinB->id])
+        ->and($sub->fresh()->includedPincodeIds())->toEqualCanonicalizing([$pinA->id, $pinB->id]);
+});
+
 it('stores sub-service pincode exclusions without changing parent service coverage', function () {
     $user = User::factory()->create([
         'role' => 'admin',

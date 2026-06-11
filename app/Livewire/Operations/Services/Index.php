@@ -79,7 +79,10 @@ class Index extends Component
 
     private function filteredQuery(): Builder
     {
-        $query = Service::query()->with('categories')->orderByDesc('updated_at');
+        $query = Service::query()
+            ->with('categories')
+            ->withCount(['subServices', 'pincodes'])
+            ->orderByDesc('updated_at');
 
         if ($term = trim($this->q)) {
             $query->where(function ($q) use ($term): void {

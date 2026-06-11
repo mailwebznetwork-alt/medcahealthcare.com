@@ -22,14 +22,14 @@ final class BackgroundMatrixReconcileDispatcher
         $artisan = base_path('artisan');
         $php = PHP_BINARY;
 
+        // Brief pause so the HTTP transaction can release SQLite before the child writes.
+        $command = 'sleep 2 && '.$php.' '.escapeshellarg($artisan)
+            .' medca:reconcile-service-location-matrix'
+            .' --service-ids='.escapeshellarg(implode(',', $serviceIds));
+
         Process::path(base_path())
             ->timeout(3600)
-            ->start([
-                $php,
-                $artisan,
-                'medca:reconcile-service-location-matrix',
-                '--service-ids='.implode(',', $serviceIds),
-            ]);
+            ->start(['bash', '-c', $command]);
     }
 
     public function dispatchOne(int $serviceId): void
