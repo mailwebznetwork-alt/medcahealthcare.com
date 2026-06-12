@@ -55,6 +55,12 @@ class ServiceMasterOrchestrator
             ['canonical_url' => $this->urlBuilder->serviceUrl($service)]
         );
 
+        if (! ServiceGeneratedPageEligibility::serviceMayHavePages($service)) {
+            $this->purgeGeneratedPagesForService($service);
+
+            return;
+        }
+
         $detailPage = $this->detailPageProvisioner->syncFromService($service, $previousServiceCode);
         $detailAttributes = ServicePageOverrides::filterAutomatedAttributes($detailPage, [
             'page_category' => \App\Enums\PageCategory::Service,
@@ -78,6 +84,8 @@ class ServiceMasterOrchestrator
         if ($service->detailPage !== null) {
             app(\App\Services\Governance\UniversalPageRegistry::class)->upsertServiceEntry($service);
         }
+
+        $this->syncSubServicePages($service);
     }
 
     public function teardown(Service $service): void
@@ -94,5 +102,35 @@ class ServiceMasterOrchestrator
         $this->legacyRedirects->bulkRemoveForServiceIds($serviceIds);
         $this->locationPageProvisioner->bulkDeleteLocationArtifactsForServiceIds($serviceIds);
         $this->detailPageProvisioner->bulkDeleteOwnedPagesForServices($services);
+    }
+
+    private function purgeGeneratedPagesForService(Service $service): void
+    {
+        $this->legacyRedirects->bulkRemoveForServiceIds([$service->id]);
+        $this->locationPageProvisioner->bulkDeleteLocationArtifactsForServiceIds([$service->id]);
+        $this->detailPageProvisioner->deleteOwnedPage($service);
+
+        if ($service->detail_page_id !== null) {
+            $service->forceFill(['detail_page_id' => null])->saveQuietly();
+        }
+
+        $service->loadMissing('subServices');
+        foreach ($service->subServices as $sub) {
+            app(SubServicePageProvisioner::class)->deleteOwnedPage($sub);
+        }
+    }
+
+    private function syncSubServicePages(Service $service): void
+    {
+        if (! config('phase2_discovery.auto_sync_sub_service_pages', true)) {
+            return;
+        }
+
+        $service->loadMissing('subServices');
+        $orchestrator = app(SubServiceMasterOrchestrator::class);
+
+        foreach ($service->subServices as $sub) {
+            $orchestrator->sync($sub);
+        }
     }
 }

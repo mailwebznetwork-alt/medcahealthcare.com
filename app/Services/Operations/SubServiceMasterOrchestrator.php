@@ -16,6 +16,12 @@ class SubServiceMasterOrchestrator
             return;
         }
 
+        if (! ServiceGeneratedPageEligibility::subServiceMayHavePages($sub)) {
+            $this->pageProvisioner->deleteOwnedPage($sub);
+
+            return;
+        }
+
         $this->pageProvisioner->syncFromSubService($sub->fresh(['seo', 'faqs', 'schema', 'service']));
     }
 

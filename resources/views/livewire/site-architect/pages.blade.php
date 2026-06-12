@@ -613,18 +613,42 @@
             </section>
 
             <section class="mom-card p-6">
-                <h3 class="mom-section-title mb-4">{{ __('GEO (PIN codes)') }}</h3>
-                <p class="mom-subtext mb-4">{{ __('Select coverage PINs; area and city are read-only from the directory.') }}</p>
+                <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <h3 class="mom-section-title">{{ __('GEO (PIN codes)') }}</h3>
+                        <p class="mom-subtext mt-1">{{ __('Select coverage PINs; area and city are read-only from the directory.') }}</p>
+                    </div>
+                    <p class="mom-micro text-[var(--text-muted)]">
+                        {{ count($selectedPinIds) }} {{ __('selected') }}
+                        · {{ $pinCodes->count() }} {{ __('total') }}
+                    </p>
+                </div>
+                <div class="mb-3 flex flex-wrap items-center gap-2">
+                    <input
+                        type="search"
+                        wire:model.live.debounce.300ms="pinCodeFilter"
+                        class="min-w-[12rem] flex-1 rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)]"
+                        placeholder="{{ __('Filter by pincode, area, city…') }}"
+                        autocomplete="off"
+                    />
+                    <button type="button" wire:click="selectAllPinCodes" class="mom-cta-compact mom-cta-ghost text-xs">{{ __('Select all') }}</button>
+                    @if (trim($pinCodeFilter) !== '')
+                        <button type="button" wire:click="selectFilteredPinCodes" class="mom-cta-compact mom-cta-ghost text-xs">{{ __('Select filtered') }}</button>
+                    @endif
+                    <button type="button" wire:click="clearAllPinCodes" class="mom-cta-compact mom-cta-ghost text-xs">{{ __('Clear all') }}</button>
+                </div>
                 <div class="custom-scrollbar max-h-64 overflow-y-auto rounded-mom-chrome border border-[var(--border-panel-soft)] p-3">
-                    @foreach ($pinCodes as $pc)
-                        <label class="flex cursor-pointer gap-3 border-b border-[color:var(--border-tabstrip-divider)] py-2 last:border-0">
+                    @forelse ($visiblePinCodes as $pc)
+                        <label wire:key="pin-{{ $pc->id }}" class="flex cursor-pointer gap-3 border-b border-[color:var(--border-tabstrip-divider)] py-2 last:border-0">
                             <input type="checkbox" wire:model.live="selectedPinIds" value="{{ $pc->id }}" class="mt-1 rounded border-[rgba(255,255,255,0.15)]" />
                             <span class="text-sm">
                                 <span class="font-mono text-[var(--text-primary)]">{{ $pc->pincode }}</span>
                                 — {{ $pc->area_name }}, {{ $pc->city ?? '—' }}
                             </span>
                         </label>
-                    @endforeach
+                    @empty
+                        <p class="mom-subtext text-sm">{{ __('No pin codes match your filter.') }}</p>
+                    @endforelse
                 </div>
 
                 @foreach ($selectedPinIds as $pid)

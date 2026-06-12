@@ -44,19 +44,31 @@
                         $label = $definition['label'] ?? str_replace('_', ' ', $integration->name);
                         $fields = $definition['fields'] ?? [];
                         $decrypted = $credentialVault->decrypt($integration->credentials);
+                        $configuredFieldCount = collect(array_keys($fields))
+                            ->filter(fn (string $field): bool => filled($decrypted[$field] ?? null))
+                            ->count();
+                        $isConfigured = $fields !== [] && $configuredFieldCount === count($fields);
+                        $configureOpen = $isConfigured || $errors->hasAny(collect(array_keys($fields))->map(fn (string $field): string => "credentials.$field")->all());
                     @endphp
                     <tr>
                         <td class="px-4 py-3">{{ $label }}</td>
                         <td class="px-4 py-3">{{ str_replace('_', ' ', $integration->type) }}</td>
                         <td class="px-4 py-3">
-                            <span class="{{ $integration->is_enabled ? 'text-[var(--success)]' : 'text-[var(--text-muted)]' }}">
-                                {{ $integration->is_enabled ? __('Enabled') : __('Disabled') }}
-                            </span>
+                            <div class="space-y-1">
+                                <span class="{{ $integration->is_enabled ? 'text-[var(--success)]' : 'text-[var(--text-muted)]' }}">
+                                    {{ $integration->is_enabled ? __('Enabled') : __('Disabled') }}
+                                </span>
+                                @if ($fields !== [])
+                                    <p class="mom-micro {{ $isConfigured ? 'text-[var(--success)]' : 'text-[var(--warning)]' }}">
+                                        {{ $isConfigured ? __('Configured') : __('Not configured') }}
+                                    </p>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-4 py-3">{{ $integration->last_used_at?->timezone(config('app.timezone'))->format('Y-m-d H:i') ?? __('Never') }}</td>
                         <td class="px-4 py-3">
                             <div class="flex flex-wrap gap-2">
-                                <details class="inline-block">
+                                <details class="inline-block" @if ($configureOpen) open @endif>
                                     <summary class="mom-cta-primary cursor-pointer mom-cta-compact">{{ __('Configure') }}</summary>
                                     <div class="mt-3 {{ $integration->name === 'whatsapp' ? 'w-[40rem] max-w-[min(40rem,92vw)]' : 'w-[28rem]' }} rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[rgba(10,15,28,0.92)] p-4">
                                         @if ($integration->name === 'whatsapp')
@@ -66,15 +78,28 @@
                                             @csrf
                                             <input type="hidden" name="is_enabled" value="{{ $integration->is_enabled ? '1' : '0' }}">
                                             @foreach ($fields as $field => $rules)
+                                                @php
+                                                    $isSecret = str_contains($field, 'token') || str_contains($field, 'key') || str_contains($field, 'secret');
+                                                    $storedValue = (string) ($decrypted[$field] ?? '');
+                                                    $displayValue = (string) old("credentials.$field", $isSecret ? '' : $storedValue);
+                                                    $hasStoredSecret = $isSecret && $storedValue !== '' && ! filled(old("credentials.$field"));
+                                                @endphp
                                                 <label class="block">
                                                     <span class="mom-micro mb-1 block">{{ str_replace('_', ' ', $field) }}</span>
                                                     <input
-                                                        type="{{ str_contains($field, 'token') || str_contains($field, 'key') || str_contains($field, 'secret') ? 'password' : 'text' }}"
+                                                        type="{{ $isSecret ? 'password' : 'text' }}"
                                                         name="credentials[{{ $field }}]"
-                                                        value="{{ old("credentials.$field", $decrypted[$field] ?? '') }}"
+                                                        value="{{ $displayValue }}"
+                                                        @if ($hasStoredSecret) placeholder="{{ __('Saved — leave blank to keep current value') }}" @endif
                                                         class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]"
                                                         autocomplete="off"
                                                     >
+                                                    @if ($hasStoredSecret)
+                                                        <span class="mom-micro mt-1 block text-[var(--success)]">{{ __('Current value saved.') }}</span>
+                                                    @endif
+                                                    @error("credentials.$field")
+                                                        <span class="mom-micro mt-1 block text-[var(--danger)]">{{ $message }}</span>
+                                                    @enderror
                                                 </label>
                                             @endforeach
                                             <button type="submit" class="mom-cta-primary mom-cta-compact">{{ __('Save') }}</button>

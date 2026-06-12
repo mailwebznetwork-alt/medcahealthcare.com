@@ -109,6 +109,66 @@ final class BlockContent
         return $value !== '' ? $value : ($fallback ?? '');
     }
 
+    /**
+     * Prefer explicit block copy, then global content, then schema default.
+     */
+    public static function globalOrBlock(array $blockSettings, string $blockSlug, string $blockKey, string $globalKey, ?string $default = null): string
+    {
+        $explicit = self::explicitBlockContent($blockSettings, $blockKey);
+        if ($explicit !== null) {
+            return $explicit;
+        }
+
+        $global = self::global($globalKey, '');
+        if ($global !== '') {
+            return $global;
+        }
+
+        return self::get($blockSettings, $blockSlug, $blockKey, $default);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function globalLinesOrBlock(array $blockSettings, string $blockSlug, string $blockKey, string $globalKey): array
+    {
+        $explicit = self::explicitBlockContent($blockSettings, $blockKey);
+        if ($explicit !== null) {
+            return array_values(array_filter(array_map('trim', explode("\n", $explicit))));
+        }
+
+        $globalLines = self::linesFromGlobal($globalKey);
+        if ($globalLines !== []) {
+            return $globalLines;
+        }
+
+        return self::lines($blockSettings, $blockSlug, $blockKey);
+    }
+
+    private static function explicitBlockContent(array $blockSettings, string $blockKey): ?string
+    {
+        $content = is_array($blockSettings['content'] ?? null) ? $blockSettings['content'] : [];
+        $value = $content[$blockKey] ?? null;
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+        if ($trimmed === '' || self::isBladePlaceholder($trimmed)) {
+            return null;
+        }
+
+        return $trimmed;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function linesFromGlobal(string $globalKey): array
+    {
+        return array_values(array_filter(array_map('trim', explode("\n", self::global($globalKey)))));
+    }
+
     public static function telHref(?string $fallback = null): string
     {
         $tel = trim(self::global('phone_tel'));

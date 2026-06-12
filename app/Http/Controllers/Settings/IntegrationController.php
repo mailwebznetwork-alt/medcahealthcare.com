@@ -218,6 +218,19 @@ class IntegrationController extends Controller
 
         try {
             $nextEnabledState = ! $integration->is_enabled;
+
+            if ($nextEnabledState && ! $this->integrationHasRequiredCredentials($integration)) {
+                if (! $request->expectsJson()) {
+                    return redirect()
+                        ->route('settings.integrations')
+                        ->withErrors(['integration' => __('Configure and save required credentials before enabling ":name".', [
+                            'name' => $integration->name,
+                        ])]);
+                }
+
+                return $this->error('Configure required credentials before enabling this integration.', 422);
+            }
+
             DB::transaction(function () use ($integration, $nextEnabledState): void {
                 $integration->forceFill(['is_enabled' => $nextEnabledState])->save();
 
@@ -468,6 +481,28 @@ class IntegrationController extends Controller
         }
 
         return $rules;
+    }
+
+    private function integrationHasRequiredCredentials(Integration $integration): bool
+    {
+        $definition = $this->registry->get($integration->name);
+        if (! is_array($definition)) {
+            return true;
+        }
+
+        $decrypted = $this->credentialVault->decrypt($integration->credentials);
+        foreach ((array) ($definition['fields'] ?? []) as $field => $rules) {
+            if (! in_array('required', (array) $rules, true)) {
+                continue;
+            }
+
+            $value = $decrypted[$field] ?? null;
+            if (! is_string($value) || trim($value) === '') {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function resolveCredentialsForUpdate(string $integrationName, array $existing, array $incoming): array

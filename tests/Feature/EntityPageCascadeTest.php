@@ -103,13 +103,15 @@ it('removes location pages when a service pincode is detached', function () {
 });
 
 it('deletes the owned category page when a category is deleted', function () {
+    $pin = PinCode::factory()->create(['pincode' => '560304', 'is_active' => true, 'is_serviceable' => true]);
     $category = ServiceCategory::factory()->create([
         'code' => 'cascade-cat',
         'name' => 'Cascade Category',
         'is_active' => true,
     ]);
+    $category->pincodes()->attach($pin->id);
 
-    $page = app(CategoryPageProvisioner::class)->syncFromCategory($category->fresh());
+    $page = app(CategoryPageProvisioner::class)->syncFromCategory($category->fresh(['pincodes']));
     $pageId = $page->id;
 
     $category->delete();
@@ -119,12 +121,14 @@ it('deletes the owned category page when a category is deleted', function () {
 });
 
 it('deletes the owned sub-service page when a sub-service is deleted', function () {
+    $pin = PinCode::factory()->create(['pincode' => '560305', 'is_active' => true, 'is_serviceable' => true]);
     $service = Service::factory()->create([
         'service_code' => 'parent-svc',
         'publish_status' => PublishStatus::Published,
         'visibility' => ServiceVisibility::Public,
         'is_active' => true,
     ]);
+    $service->pincodes()->attach($pin->id, ['is_visible' => true, 'priority' => 1]);
 
     $sub = SubService::query()->create([
         'service_id' => $service->id,
@@ -135,7 +139,7 @@ it('deletes the owned sub-service page when a sub-service is deleted', function 
         'is_active' => true,
     ]);
 
-    $page = app(SubServicePageProvisioner::class)->syncFromSubService($sub->fresh());
+    $page = app(SubServicePageProvisioner::class)->syncFromSubService($sub->fresh(['service']));
     $pageId = $page->id;
 
     $sub->delete();

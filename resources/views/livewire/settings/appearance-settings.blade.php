@@ -6,7 +6,7 @@
     @else
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex flex-wrap gap-2">
-                @foreach (['branding' => __('Branding'), 'colors' => __('Colors'), 'typography' => __('Typography'), 'buttons' => __('Buttons'), 'cards' => __('Cards'), 'header' => __('Header'), 'layout' => __('Layout'), 'presets' => __('Presets'), 'preview' => __('Preview')] as $key => $label)
+                @foreach (['branding' => __('Branding'), 'brand_story' => __('Brand story'), 'colors' => __('Colors'), 'typography' => __('Typography'), 'buttons' => __('Buttons'), 'cards' => __('Cards'), 'header' => __('Header'), 'layout' => __('Layout'), 'presets' => __('Presets'), 'preview' => __('Preview')] as $key => $label)
                     <button
                         type="button"
                         wire:click="setTab('{{ $key }}')"
@@ -45,6 +45,9 @@
 
         @if ($activeTab === 'branding')
             <x-admin.card :title="__('Branding')">
+                <p class="mom-body-text mb-4 text-[var(--text-secondary)]">
+                    {{ __('Visual identity and contact hooks. For mission, vision, and page copy use the Brand story tab or Settings → Global Content.') }}
+                </p>
                 <form wire:submit="saveBranding" class="grid gap-4 md:grid-cols-2">
                     <label class="block">
                         <span class="mom-label">{{ __('Company name') }}</span>
@@ -94,6 +97,46 @@
                     </div>
                 </form>
             </x-admin.card>
+        @endif
+
+        @if ($activeTab === 'brand_story')
+            @if (! $brandStoryReady)
+                <x-admin.card>
+                    <p class="mom-body-text text-[var(--text-secondary)]">{{ __('Run database migrations to enable brand story content.') }}</p>
+                </x-admin.card>
+            @else
+                <form wire:submit="saveBrandStory" class="space-y-6">
+                    @foreach ($brandStoryGroups as $groupKey => $group)
+                        <x-admin.card :title="$group['label']">
+                            @if ($group['description'] !== '')
+                                <p class="mom-body-text mb-4 text-[var(--text-secondary)]">{{ $group['description'] }}</p>
+                            @endif
+                            <div class="grid gap-4 md:grid-cols-2">
+                                @foreach ($group['fields'] as $key => $field)
+                                    <label @class(['block', 'md:col-span-2' => in_array($field['type'], ['textarea'], true)])>
+                                        <span class="mom-label">{{ $field['label'] }}</span>
+                                        <code class="mb-1 block text-xs text-mom-gold">{{ '{' . '{' . $key . '}' . '}' }}</code>
+                                        @if (! empty($field['hint']))
+                                            <span class="mb-1 block text-xs text-[var(--text-secondary)]">{{ $field['hint'] }}</span>
+                                        @endif
+                                        @if ($field['type'] === 'textarea')
+                                            <textarea wire:model="brandStory.{{ $key }}" rows="4" class="mom-input w-full"></textarea>
+                                        @else
+                                            <input type="text" wire:model="brandStory.{{ $key }}" class="mom-input w-full" />
+                                        @endif
+                                    </label>
+                                @endforeach
+                            </div>
+                        </x-admin.card>
+                    @endforeach
+                    <div>
+                        <button type="submit" class="mom-cta-compact mom-cta-primary">{{ __('Save brand story') }}</button>
+                        <p class="mom-body-text mt-2 text-xs text-[var(--text-secondary)]">
+                            {{ __('Saved immediately to the database — no theme publish required. Block overrides in Site Architect still take priority.') }}
+                        </p>
+                    </div>
+                </form>
+            @endif
         @endif
 
         @if ($activeTab === 'colors')

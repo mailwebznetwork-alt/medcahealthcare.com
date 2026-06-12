@@ -10,12 +10,15 @@ class ReconcileServiceLocationMatrixCommand extends Command
 {
     protected $signature = 'medca:reconcile-service-location-matrix
                             {--service= : Limit to one service_code}
-                            {--service-ids= : Comma-separated numeric service IDs}';
+                            {--service-ids= : Comma-separated numeric service IDs}
+                            {--refresh : Re-provision existing location pages (slower)}';
 
     protected $description = 'Reconcile service_pincodes pivot with location pages, indexability, and internal links';
 
     public function handle(ServiceLocationMatrixReconciler $reconciler): int
     {
+        $refreshExisting = (bool) $this->option('refresh');
+
         if ($rawIds = $this->option('service-ids')) {
             $ids = array_values(array_unique(array_filter(array_map(
                 static fn (mixed $id): int => (int) $id,
@@ -28,7 +31,7 @@ class ReconcileServiceLocationMatrixCommand extends Command
                 return self::FAILURE;
             }
 
-            $report = $reconciler->reconcileMany($ids);
+            $report = $reconciler->reconcileMany($ids, refreshExisting: $refreshExisting);
         } else {
             $service = null;
             if ($code = $this->option('service')) {
@@ -40,7 +43,7 @@ class ReconcileServiceLocationMatrixCommand extends Command
                 }
             }
 
-            $report = $reconciler->reconcile($service);
+            $report = $reconciler->reconcile($service, refreshExisting: $refreshExisting);
         }
 
         $this->table(

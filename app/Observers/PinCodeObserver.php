@@ -4,7 +4,7 @@ namespace App\Observers;
 
 use App\Models\PinCode;
 use App\Services\Governance\AdminDeletionGuard;
-use App\Services\Governance\DownstreamArtifactPurger;
+use App\Services\Operations\CatalogGeoCoverageEnforcer;
 use App\Services\Operations\InternalLinkRefreshDispatcher;
 use App\Services\Operations\ServiceLocationPageProvisioner;
 
@@ -14,7 +14,7 @@ class PinCodeObserver
         private readonly InternalLinkRefreshDispatcher $linkRefreshDispatcher,
         private readonly ServiceLocationPageProvisioner $locationPageProvisioner,
         private readonly AdminDeletionGuard $deletionGuard,
-        private readonly DownstreamArtifactPurger $purger,
+        private readonly CatalogGeoCoverageEnforcer $geoCoverageEnforcer,
     ) {}
 
     public function saved(PinCode $pinCode): void
@@ -34,11 +34,12 @@ class PinCodeObserver
     public function deleting(PinCode $pinCode): void
     {
         $this->locationPageProvisioner->deleteAllForPincode($pinCode);
+        $this->geoCoverageEnforcer->detachPivotsForPinIds([$pinCode->id]);
     }
 
     public function deleted(PinCode $pinCode): void
     {
-        $this->purger->purgeAfterCatalogEntityChange();
+        $this->geoCoverageEnforcer->enforceAfterGeoRemoval();
     }
 
     private function refreshMappedServices(PinCode $pinCode): void

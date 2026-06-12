@@ -91,7 +91,7 @@ class GlobalContentSettings extends Component
     public function render(GlobalContentVariableRepository $repository): View
     {
         return view('livewire.settings.global-content-settings', [
-            'definitions' => $repository->forEditor(),
+            'grouped' => $repository->forEditorGrouped(),
             'ready' => Schema::hasTable('global_content_variables'),
             'preview' => $repository->previewSample(),
             'snapshots' => $repository->snapshots(),

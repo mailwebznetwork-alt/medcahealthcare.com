@@ -13,13 +13,18 @@ class CategoryMasterOrchestrator
 
     public function sync(ServiceCategory $category): void
     {
+        $this->discoveryEngine->sync($category);
+
         if (! config('phase2_discovery.auto_sync_category_pages', true)) {
-            $this->discoveryEngine->sync($category);
+            return;
+        }
+
+        if (! ServiceGeneratedPageEligibility::categoryMayHavePages($category)) {
+            $this->pageProvisioner->deleteOwnedPage($category);
 
             return;
         }
 
-        $this->discoveryEngine->sync($category);
         $this->pageProvisioner->syncFromCategory($category->fresh(['seo', 'faqs', 'schema']));
     }
 

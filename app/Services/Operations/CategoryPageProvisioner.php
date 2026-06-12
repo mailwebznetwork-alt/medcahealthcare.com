@@ -55,6 +55,12 @@ class CategoryPageProvisioner
     {
         $category->loadMissing(['seo', 'faqs', 'schema']);
 
+        if (! ServiceGeneratedPageEligibility::categoryMayHavePages($category)) {
+            $this->deleteOwnedPage($category);
+
+            throw new \RuntimeException("Category is not eligible for generated pages: {$category->code}");
+        }
+
         $this->syncStarterBlocks();
 
         $page = $this->findOwnedPage($category);
@@ -64,7 +70,7 @@ class CategoryPageProvisioner
                 'title' => $category->name,
                 'slug' => $this->uniqueSlug($this->suggestedSlug($category)),
                 'content' => (string) config('phase2_discovery.category_page_content'),
-                'is_active' => $category->is_active && $category->isListedPublicly(),
+                'is_active' => true,
                 'layout_mode' => PageLayoutMode::Canvas,
                 'page_category' => PageCategory::Category,
                 'page_source' => 'generated',
@@ -74,7 +80,7 @@ class CategoryPageProvisioner
             $attributes = ServicePageOverrides::filterAutomatedAttributes($page, [
                 'title' => $category->name,
                 'slug' => $this->uniqueSlug($this->suggestedSlug($category), $page->id),
-                'is_active' => $category->is_active && $category->isListedPublicly(),
+                'is_active' => true,
                 'page_category' => PageCategory::Category,
             ]);
 
@@ -126,12 +132,14 @@ class CategoryPageProvisioner
     {
         $page = $this->findOwnedPage($category);
 
-        if ($page === null) {
-            return;
+        if ($page !== null) {
+            app(\App\Services\Governance\DownstreamArtifactPurger::class)->purgeForDeletedCategory($category);
+            $page->delete();
         }
 
-        app(\App\Services\Governance\DownstreamArtifactPurger::class)->purgeForDeletedCategory($category);
-        $page->delete();
+        if ($category->page_id !== null) {
+            $category->forceFill(['page_id' => null])->saveQuietly();
+        }
     }
 
     private function findOwnedPage(ServiceCategory $category): ?Page

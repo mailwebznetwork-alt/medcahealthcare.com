@@ -3,9 +3,12 @@
     $settings = is_array($blockSettings ?? null) ? $blockSettings : [];
     $heroMediaStyle = \App\Support\BlockMediaUrl::heroBackgroundStyle(is_array($blockMedia ?? null) ? $blockMedia : []);
     $heroAboutImage = \App\Support\BlockMediaUrl::first(is_array($blockMedia ?? null) ? $blockMedia : [], 'desktop_image', 'image', 'fallback_image');
-    $eyebrow = BlockContent::get($settings, 'hero-about', 'eyebrow');
-    $headline = BlockContent::get($settings, 'hero-about', 'headline');
-    $subheadline = BlockContent::get($settings, 'hero-about', 'subheadline');
+    $eyebrow = BlockContent::globalOrBlock($settings, 'hero-about', 'eyebrow', 'about_hero_eyebrow', 'About Medca');
+    $headline = BlockContent::globalOrBlock($settings, 'hero-about', 'headline', 'about_hero_headline', 'Doctor-led, family-centred home healthcare.');
+    $subheadline = BlockContent::globalOrBlock($settings, 'hero-about', 'subheadline', 'about_hero_subheadline');
+    if ($subheadline === '') {
+        $subheadline = BlockContent::global('company_description_long', BlockContent::get($settings, 'hero-about', 'subheadline'));
+    }
 @endphp
 <x-public.hero class="medca-hero-gradient text-white" style="{{ $heroMediaStyle ?? '' }}">
     @if ($heroAboutImage)

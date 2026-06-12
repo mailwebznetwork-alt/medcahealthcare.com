@@ -57,12 +57,13 @@ class CatalogMasterPersister
 
         $this->syncCategorySchema($category, $data['schema_type'] ?? null, $data['schema_json'] ?? null);
 
+        $reconcileServiceIds = [];
         if (array_key_exists('pincodes', $data)) {
             $reconcileServiceIds = app(ServicePincodeCoverageService::class)->syncCategoryPincodes(
                 $category,
                 is_array($data['pincodes']) ? $data['pincodes'] : [],
                 'ui',
-                deferServicePropagation: ! app()->environment('testing'),
+                deferServicePropagation: false,
             );
         }
 

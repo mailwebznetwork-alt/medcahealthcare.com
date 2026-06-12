@@ -60,6 +60,15 @@ class ServiceDetailPageProvisioner
             throw new \RuntimeException("Cannot provision deleted service: {$service->service_code}");
         }
 
+        if (! ServiceGeneratedPageEligibility::serviceMayHavePages($service)) {
+            $this->deleteOwnedPage($service);
+            if ($service->detail_page_id !== null) {
+                $service->forceFill(['detail_page_id' => null])->saveQuietly();
+            }
+
+            throw new \RuntimeException("Service is not eligible for generated pages: {$service->service_code}");
+        }
+
         $slug = $this->suggestedSlug($service);
 
         $page = Page::query()->where('slug', $slug)->first();
@@ -112,6 +121,15 @@ class ServiceDetailPageProvisioner
     {
         $service->loadMissing(['seo', 'faqs', 'schema']);
 
+        if (! ServiceGeneratedPageEligibility::serviceMayHavePages($service)) {
+            $this->deleteOwnedPage($service);
+            if ($service->detail_page_id !== null) {
+                $service->forceFill(['detail_page_id' => null])->saveQuietly();
+            }
+
+            throw new \RuntimeException("Service is not eligible for generated pages: {$service->service_code}");
+        }
+
         $page = $this->findOwnedPage($service, $previousServiceCode);
 
         if ($page === null) {
@@ -124,7 +142,7 @@ class ServiceDetailPageProvisioner
             'title' => $service->title,
             'slug' => $targetSlug,
             'page_category' => PageCategory::Service,
-            'is_active' => $service->is_active && $service->publish_status === PublishStatus::Published,
+            'is_active' => true,
             'meta_title' => $service->seo?->meta_title ?: $service->title,
             'meta_description' => $service->seo?->meta_description,
             'h1' => $service->seo?->h1 ?: $service->title,

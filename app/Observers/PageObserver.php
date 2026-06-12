@@ -7,6 +7,7 @@ use App\Models\PageElement;
 use App\Models\PageSeo;
 use App\Services\Growth\ContentSeoAutoFillService;
 use App\Services\Growth\SitemapRegenerationDispatcher;
+use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Seo\SeoOwnershipGuard;
 use App\Support\PostPublishGrowthSync;
 use Illuminate\Support\Facades\Schema;
@@ -29,6 +30,10 @@ class PageObserver
 
     public function saved(Page $page): void
     {
+        if (app(ImportSideEffectsGate::class)->suppressed()) {
+            return;
+        }
+
         if (! (SeoOwnershipGuard::skipPageSeoForGeneratedPages() && SeoOwnershipGuard::isGeneratedPage($page))) {
             $this->contentSeoAutoFill->syncPageGrowthArtifacts($page);
         }

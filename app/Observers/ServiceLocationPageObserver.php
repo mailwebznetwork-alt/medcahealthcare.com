@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\ServiceLocationPage;
 use App\Services\Growth\SitemapRegenerationDispatcher;
+use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Operations\InternalLinkRefreshDispatcher;
 
 class ServiceLocationPageObserver
@@ -15,12 +16,20 @@ class ServiceLocationPageObserver
 
     public function saved(ServiceLocationPage $mapping): void
     {
+        if (app(ImportSideEffectsGate::class)->suppressed()) {
+            return;
+        }
+
         $this->linkRefreshDispatcher->dispatchForService($mapping->service_id);
         $this->sitemapDispatcher->dispatch();
     }
 
     public function deleted(ServiceLocationPage $mapping): void
     {
+        if (app(ImportSideEffectsGate::class)->suppressed()) {
+            return;
+        }
+
         $this->linkRefreshDispatcher->dispatchForService($mapping->service_id);
         $this->sitemapDispatcher->dispatch();
     }

@@ -18,7 +18,7 @@
     </article>
     <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 class="text-base font-semibold text-slate-900">{{ BlockContent::get($settings, 'contact-info', 'hours_title') }}</h2>
-        <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ BlockContent::get($settings, 'contact-info', 'hours_body') }}</p>
+        <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ BlockContent::globalOrBlock($settings, 'contact-info', 'hours_body', 'business_hours') }}</p>
     </article>
     </div>
 </x-public.section>

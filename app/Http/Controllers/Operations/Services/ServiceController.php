@@ -122,7 +122,7 @@ class ServiceController extends Controller
                 $data['category_ids'] ?? [],
                 filled($data['primary_category_id'] ?? null) ? (int) $data['primary_category_id'] : null,
             );
-            app(ServicePincodeCoverageService::class)->applyServiceGeoSelection($service, $data['pincodes'] ?? []);
+            $this->syncServiceGeoCoverage($service, $data);
             $this->syncSeo($service, is_array($data['seo'] ?? null) ? $data['seo'] : []);
             $this->syncFaqs($service, is_array($data['faqs'] ?? null) ? $data['faqs'] : []);
             $this->syncSchema($service, $data['schema_type'] ?? null, $data['schema_json'] ?? null);
@@ -249,7 +249,7 @@ class ServiceController extends Controller
                 $data['category_ids'] ?? [],
                 filled($data['primary_category_id'] ?? null) ? (int) $data['primary_category_id'] : null,
             );
-            app(ServicePincodeCoverageService::class)->applyServiceGeoSelection($service, $data['pincodes'] ?? []);
+            $this->syncServiceGeoCoverage($service, $data);
             $this->syncSeo($service, is_array($data['seo'] ?? null) ? $data['seo'] : []);
             $this->syncFaqs($service, is_array($data['faqs'] ?? null) ? $data['faqs'] : []);
             $this->syncSchema($service, $data['schema_type'] ?? null, $data['schema_json'] ?? null);
@@ -694,6 +694,23 @@ class ServiceController extends Controller
                 ? $service->subServices()->ordered()->get()
                 : collect(),
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function syncServiceGeoCoverage(Service $service, array $data): void
+    {
+        $coverage = app(ServicePincodeCoverageService::class);
+
+        if (array_key_exists('pincodes', $data)) {
+            $coverage->applyServiceGeoSelection(
+                $service,
+                is_array($data['pincodes']) ? $data['pincodes'] : [],
+            );
+        }
+
+        $coverage->reconcileServicePincodes($service->fresh(['pincodes', 'categories']), 'ui');
     }
 
     private function redirectAfterServiceSave(Request $request, Service $service, string $message): RedirectResponse

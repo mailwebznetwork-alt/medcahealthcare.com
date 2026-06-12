@@ -134,6 +134,8 @@ class Pages extends Component
     /** @var list<int> */
     public array $selectedPinIds = [];
 
+    public string $pinCodeFilter = '';
+
     /** @var array<int, array{serviceability: bool, delivery_charge: ?string, location_keywords: string}> */
     public array $pinPivot = [];
 
@@ -329,11 +331,14 @@ class Pages extends Component
                 ->count();
         }
 
+        $visiblePinCodes = $this->filterPinCodeCollection($pinCodes);
+
         return view('livewire.site-architect.pages', [
             'pages' => $pages,
             'pageCategoryCounts' => $pageCategoryCounts,
             'serviceCodesByPageId' => $serviceCodesByPageId,
             'pinCodes' => $pinCodes,
+            'visiblePinCodes' => $visiblePinCodes,
             'moduleOptions' => $moduleOptions,
             'servicesForInsert' => $servicesForInsert,
             'serviceCatalogNonce' => $this->serviceCatalogNonce,
@@ -1249,6 +1254,41 @@ class Pages extends Component
         $this->selectedPinIds = array_values(array_unique(array_map('intval', $this->selectedPinIds)));
     }
 
+    public function selectAllPinCodes(): void
+    {
+        $ids = PinCode::query()
+            ->where('is_active', true)
+            ->orderBy('city')
+            ->orderBy('pincode')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $this->mergePinSelection($ids);
+    }
+
+    public function selectFilteredPinCodes(): void
+    {
+        $pinCodes = PinCode::query()
+            ->where('is_active', true)
+            ->orderBy('city')
+            ->orderBy('pincode')
+            ->get(['id', 'pincode', 'area_name', 'city']);
+
+        $ids = $this->filterPinCodeCollection($pinCodes)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $this->mergePinSelection($ids);
+    }
+
+    public function clearAllPinCodes(): void
+    {
+        $this->selectedPinIds = [];
+        $this->pinPivot = [];
+    }
+
     protected function ensurePinPivotDefaults(int $pinId): void
     {
         if (! isset($this->pinPivot[$pinId])) {
@@ -1258,6 +1298,43 @@ class Pages extends Component
                 'location_keywords' => '',
             ];
         }
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, PinCode>  $pinCodes
+     * @return \Illuminate\Support\Collection<int, PinCode>
+     */
+    protected function filterPinCodeCollection($pinCodes)
+    {
+        $needle = strtolower(trim($this->pinCodeFilter));
+        if ($needle === '') {
+            return $pinCodes;
+        }
+
+        return $pinCodes->filter(function (PinCode $pc) use ($needle): bool {
+            $blob = strtolower(trim(implode(' ', [
+                (string) $pc->pincode,
+                (string) $pc->area_name,
+                (string) ($pc->city ?? ''),
+            ])));
+
+            return str_contains($blob, $needle);
+        })->values();
+    }
+
+    /**
+     * @param  list<int>  $ids
+     */
+    protected function mergePinSelection(array $ids): void
+    {
+        foreach ($ids as $pid) {
+            $this->ensurePinPivotDefaults((int) $pid);
+        }
+
+        $this->selectedPinIds = array_values(array_unique(array_merge(
+            $this->selectedPinIds,
+            array_map('intval', $ids),
+        )));
     }
 
     /**
@@ -1541,6 +1618,7 @@ class Pages extends Component
         $this->faqRows = $this->padFaqRows([]);
         $this->contentParts = [];
         $this->selectedPinIds = [];
+        $this->pinCodeFilter = '';
         $this->pinPivot = [];
         $this->module_choice = '';
         $this->service_choice = '';

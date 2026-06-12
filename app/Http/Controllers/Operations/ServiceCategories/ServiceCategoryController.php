@@ -7,12 +7,10 @@ use App\Http\Requests\Operations\ServiceCategories\StoreServiceCategoryRequest;
 use App\Http\Requests\Operations\ServiceCategories\UpdateServiceCategoryRequest;
 use App\Models\ServiceCategory;
 use App\Repositories\Operations\ServiceCategoryRepository;
-use App\Services\Operations\BackgroundCategoryOrchestratorDispatcher;
 use App\Services\Operations\CatalogFormViewData;
 use App\Services\Operations\CatalogMasterPersister;
+use App\Services\Operations\CatalogOperationsCascade;
 use App\Services\Operations\ServiceCategoryService;
-use App\Services\Operations\ServiceLocationMatrixReconciler;
-use App\Services\Operations\ServicePincodeCoverageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -79,16 +77,11 @@ class ServiceCategoryController extends Controller
             return $this->catalogPersister->persistCategory($service_category, $request, $data);
         });
 
-        if ($persistResult->reconcileServiceIds !== []) {
-            app(ServicePincodeCoverageService::class)->propagateCategoryToServices($persistResult->category);
-            app(ServiceLocationMatrixReconciler::class)->reconcileMany(
-                $persistResult->reconcileServiceIds,
-                purgeCatalogOrphans: false,
-            );
-        }
-
         if ($persistResult->runCategoryOrchestrator) {
-            app(BackgroundCategoryOrchestratorDispatcher::class)->dispatch((int) $persistResult->category->id);
+            app(CatalogOperationsCascade::class)->afterCategorySaved(
+                $persistResult->category,
+                $persistResult->reconcileServiceIds,
+            );
         }
 
         $tab = (string) $request->input('active_tab', $request->query('tab', 'basic'));

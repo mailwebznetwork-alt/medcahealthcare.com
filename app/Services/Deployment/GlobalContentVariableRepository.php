@@ -94,7 +94,7 @@ class GlobalContentVariableRepository
     }
 
     /**
-     * @return array<string, array{label: string, value: string}>
+     * @return array<string, array{label: string, value: string, type: string, group: string, hint: ?string}>
      */
     public function forEditor(): array
     {
@@ -103,13 +103,76 @@ class GlobalContentVariableRepository
         $out = [];
 
         foreach ($definitions as $key => $meta) {
-            $out[$key] = [
-                'label' => (string) ($meta['label'] ?? $key),
-                'value' => $resolved[$key] ?? '',
-            ];
+            $out[$key] = $this->editorRow($key, is_array($meta) ? $meta : [], $resolved[$key] ?? '');
         }
 
         return $out;
+    }
+
+    /**
+     * @return array<string, array{label: string, description: string, fields: array<string, array{label: string, value: string, type: string, group: string, hint: ?string}>}>
+     */
+    public function forEditorGrouped(): array
+    {
+        $editor = $this->forEditor();
+        $groups = config('global_content_variables.groups', []);
+        $grouped = [];
+
+        foreach ($groups as $groupKey => $groupMeta) {
+            $grouped[$groupKey] = [
+                'label' => (string) ($groupMeta['label'] ?? $groupKey),
+                'description' => (string) ($groupMeta['description'] ?? ''),
+                'fields' => [],
+            ];
+        }
+
+        foreach ($editor as $key => $row) {
+            $group = $row['group'];
+            if (! isset($grouped[$group])) {
+                $grouped[$group] = [
+                    'label' => ucfirst(str_replace('_', ' ', $group)),
+                    'description' => '',
+                    'fields' => [],
+                ];
+            }
+
+            $grouped[$group]['fields'][$key] = $row;
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function keysForGroups(array $groupKeys): array
+    {
+        $definitions = config('global_content_variables.keys', []);
+        $keys = [];
+
+        foreach ($definitions as $key => $meta) {
+            $group = is_array($meta) ? (string) ($meta['group'] ?? 'identity') : 'identity';
+            if (in_array($group, $groupKeys, true)) {
+                $keys[] = $key;
+            }
+        }
+
+        return $keys;
+    }
+
+    /**
+     * @param  array<string, mixed>  $meta
+     * @return array{label: string, value: string, type: string, group: string, hint: ?string}
+     */
+    private function editorRow(string $key, array $meta, string $value): array
+    {
+        return [
+            'label' => (string) ($meta['label'] ?? $key),
+            'value' => $value,
+            'type' => (string) ($meta['type'] ?? 'text'),
+            'group' => (string) ($meta['group'] ?? 'identity'),
+            'hint' => isset($meta['hint']) ? (string) $meta['hint'] : null,
+        ];
     }
 
     /**

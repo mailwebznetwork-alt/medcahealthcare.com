@@ -3,18 +3,20 @@
     $lastSync = $report['last_sync'] ?? [];
     $governance = $report['governance'] ?? [];
     $registry = $report['registry'] ?? [];
+    $cascade = $report['cascade'] ?? [];
     $health = $report['health'] ?? [];
     $orphanRows = $report['orphan_rows'] ?? [];
     $issues = $health['issues'] ?? [];
     $checks = $health['checks'] ?? [];
 
     $metricCards = [
-        ['key' => 'registry_rows', 'label' => __('Registry rows'), 'value' => $metrics['registry_rows'] ?? 0],
-        ['key' => 'pages', 'label' => __('Pages'), 'value' => $metrics['pages'] ?? 0],
-        ['key' => 'synced_pages', 'label' => __('Synced pages'), 'value' => $metrics['synced_pages'] ?? 0],
-        ['key' => 'generated', 'label' => __('Generated'), 'value' => $metrics['generated'] ?? 0],
-        ['key' => 'manual', 'label' => __('Manual'), 'value' => $metrics['manual'] ?? 0],
-        ['key' => 'planned', 'label' => __('Planned'), 'value' => $metrics['planned'] ?? 0],
+        ['key' => 'pages', 'label' => __('CMS pages'), 'value' => $metrics['pages'] ?? 0],
+        ['key' => 'location_mappings', 'label' => __('Location pages'), 'value' => ($metrics['location_mappings'] ?? 0).' / '.($metrics['expected_location_pages'] ?? 0)],
+        ['key' => 'registry_rows', 'label' => __('Registry entries'), 'value' => $metrics['registry_rows'] ?? 0],
+        ['key' => 'distinct_registry_pages', 'label' => __('Pages in registry'), 'value' => $metrics['distinct_registry_pages'] ?? 0],
+        ['key' => 'generated', 'label' => __('Generated entries'), 'value' => $metrics['generated'] ?? 0],
+        ['key' => 'manual', 'label' => __('Manual entries'), 'value' => $metrics['manual'] ?? 0],
+        ['key' => 'planned', 'label' => __('Planned entries'), 'value' => $metrics['planned'] ?? 0],
         ['key' => 'orphan_registry', 'label' => __('Orphan registry'), 'value' => $metrics['orphan_registry'] ?? 0, 'warn' => ($metrics['orphan_registry'] ?? 0) > 0],
         ['key' => 'tombstones', 'label' => __('Tombstones'), 'value' => $metrics['tombstones'] ?? 0],
         ['key' => 'protected_pages', 'label' => __('Protected pages'), 'value' => $metrics['protected_pages'] ?? 0],
@@ -33,6 +35,17 @@
             role="status"
         >
             {{ $flash }}
+        </div>
+    @endif
+
+    @if (! empty($cascade['last_failure']['message']))
+        <div class="rounded-mom-chrome border border-[var(--danger)]/40 bg-[rgba(220,38,38,0.08)] px-4 py-3 text-sm text-[var(--text-primary)]" role="alert">
+            <p class="font-semibold text-[var(--danger)]">{{ __('Catalog cascade failed') }}</p>
+            <p class="mom-subtext mt-1">{{ $cascade['last_failure']['message'] }}</p>
+            <p class="mom-micro mt-2 text-[var(--text-muted)]">
+                {{ __('Scope') }}: {{ $cascade['last_failure']['scope'] ?? '—' }}
+                · {{ $cascade['last_failure']['at'] ?? '' }}
+            </p>
         </div>
     @endif
 
@@ -55,7 +68,7 @@
             @endif
             @if (! empty($lastSync['counts']['synced']))
                 <p class="mom-subtext mt-1">
-                    {{ __('Synced operations') }}: {{ number_format((int) $lastSync['counts']['synced']) }}
+                    {{ __('Registry entries synced') }}: {{ number_format((int) $lastSync['counts']['synced']) }}
                 </p>
             @endif
         </article>

@@ -14,8 +14,8 @@ final class PinCodeDeletionService
 {
     public function __construct(
         private readonly AdminDeletionGuard $deletionGuard,
-        private readonly DownstreamArtifactPurger $purger,
         private readonly PinCodeMasterDataAudit $audit,
+        private readonly CatalogGeoCoverageEnforcer $geoCoverageEnforcer,
     ) {}
 
     public function delete(PinCode $pinCode, string $source = 'ui', ?string $reason = null): void
@@ -44,6 +44,7 @@ final class PinCodeDeletionService
         PinCode::withoutEvents(function () use ($collection, $pinIds, $source, $reason, &$deleted): void {
             DB::transaction(function () use ($collection, $pinIds, $source, $reason, &$deleted): void {
                 app(ServiceLocationPageProvisioner::class)->bulkDeleteLocationArtifactsForPinIds($pinIds);
+                $this->geoCoverageEnforcer->detachPivotsForPinIds($pinIds);
 
                 foreach ($collection as $pinCode) {
                     $this->deletionGuard->recordPinCodeDeletion($pinCode, $source, $reason);
@@ -55,7 +56,7 @@ final class PinCodeDeletionService
         });
 
         if ($deleted > 0) {
-            $this->purger->purgeAfterBulkCatalogDeletion();
+            $this->geoCoverageEnforcer->enforceAfterGeoRemoval();
         }
 
         return $deleted;

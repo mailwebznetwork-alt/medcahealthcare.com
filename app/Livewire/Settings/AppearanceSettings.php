@@ -3,6 +3,7 @@
 namespace App\Livewire\Settings;
 
 use App\Models\ThemeConfiguration;
+use App\Services\Deployment\GlobalContentVariableRepository;
 use App\Services\Theme\ThemeColorNormalizer;
 use App\Services\Theme\ThemeConfigRepository;
 use App\Services\Theme\ThemeContrastValidator;
@@ -37,6 +38,9 @@ class AppearanceSettings extends Component
     /** @var array<string, mixed> */
     public array $branding = [];
 
+    /** @var array<string, string> */
+    public array $brandStory = [];
+
     /** @var array<string, mixed> */
     public array $typography = [];
 
@@ -68,6 +72,7 @@ class AppearanceSettings extends Component
     public function mount(
         ThemeConfigRepository $repository,
         ThemePresetRegistry $presetRegistry,
+        GlobalContentVariableRepository $globalContent,
     ): void {
         $user = auth()->user();
         if ($user === null || ! in_array(strtolower((string) $user->role), ['admin', 'super_admin'], true)) {
@@ -79,11 +84,12 @@ class AppearanceSettings extends Component
         }
 
         $this->hydrateFromRepository($repository, $presetRegistry);
+        $this->loadBrandStoryFields($globalContent);
     }
 
     public function setTab(string $tab): void
     {
-        $allowed = ['branding', 'colors', 'typography', 'buttons', 'cards', 'header', 'layout', 'presets', 'preview'];
+        $allowed = ['branding', 'brand_story', 'colors', 'typography', 'buttons', 'cards', 'header', 'layout', 'presets', 'preview'];
         if (in_array($tab, $allowed, true)) {
             $this->activeTab = $tab;
         }
@@ -118,6 +124,29 @@ class AppearanceSettings extends Component
         $this->logo_upload = null;
         $this->favicon_upload = null;
         $this->notice(__('Branding draft saved. Enable preview or publish to apply on the public site.'));
+    }
+
+    public function saveBrandStory(GlobalContentVariableRepository $globalContent): void
+    {
+        $this->resetMessages();
+
+        if (! Schema::hasTable('global_content_variables')) {
+            $this->errorMessage = __('Run database migrations to enable brand story content.');
+
+            return;
+        }
+
+        $allowedKeys = $globalContent->keysForGroups(['brand_story', 'home', 'contact']);
+        $payload = [];
+        foreach ($allowedKeys as $key) {
+            if (array_key_exists($key, $this->brandStory)) {
+                $payload[$key] = (string) $this->brandStory[$key];
+            }
+        }
+
+        $globalContent->sync($payload, auth()->user());
+        $this->loadBrandStoryFields($globalContent);
+        $this->notice(__('Brand story saved. Home, About, and Contact pages use these values on the next render.'));
     }
 
     public function saveColors(
@@ -307,10 +336,18 @@ class AppearanceSettings extends Component
         ThemePresetRegistry $presetRegistry,
         ThemeCssVariableBuilder $cssBuilder,
         ThemeContrastValidator $contrastValidator,
+        GlobalContentVariableRepository $globalContent,
     ): View {
         $config = Schema::hasTable('theme_configurations') ? ThemeConfiguration::current() : null;
+        $brandStoryGroups = Schema::hasTable('global_content_variables')
+            ? collect($globalContent->forEditorGrouped())
+                ->only(['brand_story', 'home', 'contact'])
+                ->all()
+            : [];
 
         return view('livewire.settings.appearance-settings', [
+            'brandStoryGroups' => $brandStoryGroups,
+            'brandStoryReady' => Schema::hasTable('global_content_variables'),
             'headerPresets' => config('theme_management.header_presets', []),
             'layoutPresets' => config('theme_management.layout_presets', []),
             'fontWhitelist' => config('theme_management.font_whitelist', []),
@@ -342,6 +379,23 @@ class AppearanceSettings extends Component
         $this->header_config = $repository->draftHeaderConfiguration();
         $this->preset_slug = $presetRegistry->builtinSlugs()[0] ?? '';
         $this->syncFontModesFromTypography();
+    }
+
+    private function loadBrandStoryFields(GlobalContentVariableRepository $globalContent): void
+    {
+        if (! Schema::hasTable('global_content_variables')) {
+            $this->brandStory = [];
+
+            return;
+        }
+
+        $keys = $globalContent->keysForGroups(['brand_story', 'home', 'contact']);
+        $editor = $globalContent->forEditor();
+        $this->brandStory = [];
+
+        foreach ($keys as $key) {
+            $this->brandStory[$key] = (string) ($editor[$key]['value'] ?? '');
+        }
     }
 
     /**

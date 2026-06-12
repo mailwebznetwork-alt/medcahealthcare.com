@@ -2,6 +2,7 @@
 
 use App\Livewire\SiteArchitect\Pages;
 use App\Models\Page;
+use App\Models\PinCode;
 use App\Models\User;
 use App\ModuleAccess;
 use App\Support\SiteArchitectNavigation;
@@ -98,6 +99,42 @@ it('reorders page content parts via drag sync method', function () {
 
 it('sidebar default expanded groups include content and building', function () {
     expect(SiteArchitectSidebarState::defaultExpanded())->toContain('content', 'building');
+});
+
+it('selects and clears all pin codes in the page geo checklist', function () {
+    PinCode::factory()->inactive()->create();
+    $activeCount = PinCode::query()->where('is_active', true)->count();
+
+    Livewire::test(Pages::class)
+        ->call('startCreate')
+        ->assertSet('selectedPinIds', [])
+        ->call('selectAllPinCodes')
+        ->assertCount('selectedPinIds', $activeCount)
+        ->call('clearAllPinCodes')
+        ->assertSet('selectedPinIds', [])
+        ->assertSet('pinPivot', []);
+});
+
+it('selects only filtered pin codes in the page geo checklist', function () {
+    $target = PinCode::factory()->create([
+        'pincode' => '569991',
+        'area_name' => 'Zephyr Test Area',
+        'city' => 'Bangalore',
+        'is_active' => true,
+    ]);
+    PinCode::factory()->create([
+        'pincode' => '569992',
+        'area_name' => 'Other Test Area',
+        'city' => 'Bangalore',
+        'is_active' => true,
+    ]);
+
+    Livewire::test(Pages::class)
+        ->call('startCreate')
+        ->set('pinCodeFilter', 'Zephyr Test Area')
+        ->call('selectFilteredPinCodes')
+        ->assertCount('selectedPinIds', 1)
+        ->assertSet('selectedPinIds.0', $target->id);
 });
 
 it('preserves route access for site architect features across roles', function (string $role, array $routes, array $forbiddenLabels) {

@@ -32,7 +32,9 @@ it('exposes source of truth route for settings module grant', function () {
         ->get(route('system.source-of-truth'))
         ->assertSuccessful()
         ->assertSee(__('Source of Truth'), false)
-        ->assertSee(__('Registry rows'), false)
+        ->assertSee(__('Registry entries'), false)
+        ->assertSee(__('CMS pages'), false)
+        ->assertSee(__('Location pages'), false)
         ->assertSee(__('Governance'), false)
         ->assertSee(__('Sync registry'), false);
 });

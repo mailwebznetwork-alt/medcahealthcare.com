@@ -68,7 +68,7 @@ class ImportPostSyncService
     private function commandsForEntity(string $entityKey): array
     {
         $map = [
-            'categories' => ['medca:sync-category-pages', 'medca:sync-page-registry'],
+            'categories' => ['medca:propagate-all-category-pincodes', 'medca:sync-category-pages', 'medca:sync-page-registry'],
             'services' => ['services:sync-master', 'medca:sync-page-registry'],
             'sub_services' => ['medca:sync-sub-service-pages', 'medca:sync-page-registry'],
             'mappings' => ['medca:reconcile-service-location-matrix', 'medca:sync-page-registry'],

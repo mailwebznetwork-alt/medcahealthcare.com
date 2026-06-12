@@ -2,9 +2,9 @@
     use App\Support\BlockContent;
     $settings = is_array($blockSettings ?? null) ? $blockSettings : [];
     $heroMediaStyle = \App\Support\BlockMediaUrl::heroBackgroundStyle(is_array($blockMedia ?? null) ? $blockMedia : []);
-    $eyebrow = BlockContent::get($settings, 'hero-contact', 'eyebrow');
-    $headline = BlockContent::get($settings, 'hero-contact', 'headline');
-    $subheadline = BlockContent::get($settings, 'hero-contact', 'subheadline');
+    $eyebrow = BlockContent::globalOrBlock($settings, 'hero-contact', 'eyebrow', 'contact_hero_eyebrow', 'Contact');
+    $headline = BlockContent::globalOrBlock($settings, 'hero-contact', 'headline', 'contact_hero_headline', 'Talk to a Medca care advisor.');
+    $subheadline = BlockContent::globalOrBlock($settings, 'hero-contact', 'subheadline', 'contact_hero_subheadline');
 @endphp
 <x-public.hero class="medca-hero-gradient text-white" style="{{ $heroMediaStyle }}">
     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-white/80">{{ $eyebrow }}</p>

@@ -53,6 +53,12 @@ class SubServicePageProvisioner
     {
         $sub->loadMissing(['seo', 'faqs', 'schema', 'service']);
 
+        if (! ServiceGeneratedPageEligibility::subServiceMayHavePages($sub)) {
+            $this->deleteOwnedPage($sub);
+
+            throw new \RuntimeException("Sub-service is not eligible for generated pages: {$sub->sub_service_code}");
+        }
+
         $this->syncStarterBlocks();
 
         $page = $this->findOwnedPage($sub);
@@ -62,7 +68,7 @@ class SubServicePageProvisioner
                 'title' => $sub->title,
                 'slug' => $this->uniqueSlug($this->suggestedSlug($sub)),
                 'content' => (string) config('phase2_discovery.sub_service_page_content'),
-                'is_active' => $sub->is_active && $sub->isListedPublicly(),
+                'is_active' => true,
                 'layout_mode' => PageLayoutMode::Canvas,
                 'page_category' => PageCategory::SubService,
                 'page_source' => 'generated',
@@ -72,7 +78,7 @@ class SubServicePageProvisioner
             $attributes = ServicePageOverrides::filterAutomatedAttributes($page, [
                 'title' => $sub->title,
                 'slug' => $this->uniqueSlug($this->suggestedSlug($sub), $page->id),
-                'is_active' => $sub->is_active && $sub->isListedPublicly(),
+                'is_active' => true,
                 'page_category' => PageCategory::SubService,
             ]);
 
@@ -113,12 +119,14 @@ class SubServicePageProvisioner
     {
         $page = $this->findOwnedPage($sub);
 
-        if ($page === null) {
-            return;
+        if ($page !== null) {
+            app(\App\Services\Governance\DownstreamArtifactPurger::class)->purgeForDeletedSubService($sub);
+            $page->delete();
         }
 
-        app(\App\Services\Governance\DownstreamArtifactPurger::class)->purgeForDeletedSubService($sub);
-        $page->delete();
+        if ($sub->page_id !== null) {
+            $sub->forceFill(['page_id' => null])->saveQuietly();
+        }
     }
 
     private function findOwnedPage(SubService $sub): ?Page

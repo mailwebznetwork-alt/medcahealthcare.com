@@ -48,21 +48,13 @@ final class StagedImportCommitService
 
         $mode = $staging['mode'] ?? 'entity';
         if ($mode === 'workbook' && ! empty($staging['workbook'])) {
-            $result = $this->workbooks->commit(
+            return $this->workbooks->commit(
                 (string) $staging['workbook'],
                 $absolute,
                 $userId,
                 $staging['original_filename'] ?? null,
-                false,
+                true,
             );
-
-            $touchedEntities = $result['touched_entities'] ?? [];
-            if ($touchedEntities !== []) {
-                $this->dispatchImportPostSync($touchedEntities);
-                $result['post_sync_pending'] = true;
-            }
-
-            return $result;
         }
 
         if (empty($staging['entity'])) {
@@ -75,41 +67,12 @@ final class StagedImportCommitService
             ];
         }
 
-        $result = $this->pipeline->commit(
+        return $this->pipeline->commit(
             (string) $staging['entity'],
             $absolute,
             $userId,
             $staging['original_filename'] ?? null,
-            false,
+            true,
         );
-
-        $entity = (string) $staging['entity'];
-        if (($result['created'] ?? 0) > 0 || ($result['updated'] ?? 0) > 0) {
-            $this->dispatchImportPostSync([$entity]);
-            $result['post_sync_pending'] = true;
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param  list<string>  $entities
-     */
-    private function dispatchImportPostSync(array $entities): void
-    {
-        $entities = array_values(array_filter($entities));
-        if ($entities === []) {
-            return;
-        }
-
-        $args = implode(' ', array_map('escapeshellarg', $entities));
-        $command = sprintf(
-            'cd %s && php artisan medca:import-post-sync %s >> %s 2>&1 &',
-            escapeshellarg(base_path()),
-            $args,
-            escapeshellarg(storage_path('logs/import-post-sync.log'))
-        );
-
-        exec($command);
     }
 }

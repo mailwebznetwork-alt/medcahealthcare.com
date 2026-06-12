@@ -32,6 +32,7 @@ class SourceOfTruthDashboardService
             'last_sync' => $this->lastSyncStatus(),
             'governance' => $this->governanceStatus(),
             'registry' => $this->registryStatus(),
+            'cascade' => $this->cascadeStatus(),
             'health' => $health,
             'orphan_rows' => array_slice($orphans, 0, 50),
         ];
@@ -54,9 +55,24 @@ class SourceOfTruthDashboardService
             AdminLifecycleState::DeletedByAdmin->value,
         ];
 
+        $registryRows = (int) PageRegistry::query()->count();
+        $cmsPages = (int) Page::query()->count();
+        $distinctRegistryPages = (int) PageRegistry::query()
+            ->whereNotNull('page_id')
+            ->distinct('page_id')
+            ->count('page_id');
+        $locationMappings = (int) ServiceLocationPage::query()->count();
+        $expectedLocationPages = (int) DB::table('service_pincodes')
+            ->join('pin_codes', 'pin_codes.id', '=', 'service_pincodes.pincode_id')
+            ->whereNull('pin_codes.deleted_at')
+            ->count();
+
         return [
-            'registry_rows' => (int) PageRegistry::query()->count(),
-            'pages' => (int) Page::query()->count(),
+            'registry_rows' => $registryRows,
+            'pages' => $cmsPages,
+            'distinct_registry_pages' => $distinctRegistryPages,
+            'location_mappings' => $locationMappings,
+            'expected_location_pages' => $expectedLocationPages,
             'synced_pages' => (int) PageRegistry::query()->whereNotNull('page_id')->count(),
             'generated' => (int) ($sourceCounts['generated'] ?? 0),
             'manual' => (int) ($sourceCounts['manual'] ?? 0),
@@ -140,6 +156,19 @@ class SourceOfTruthDashboardService
                 'enabled' => true,
                 'detail' => __('Purges registry rows when database entities are gone'),
             ],
+        ];
+    }
+
+    /**
+     * @return array{last_success_at: ?string, last_failure: ?array{scope: string, key: string, message: string, at: string}}
+     */
+    private function cascadeStatus(): array
+    {
+        $failure = Cache::get('catalog_cascade.last_failure');
+
+        return [
+            'last_success_at' => Cache::get('catalog_cascade.last_success_at'),
+            'last_failure' => is_array($failure) ? $failure : null,
         ];
     }
 

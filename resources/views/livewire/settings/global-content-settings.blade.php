@@ -9,7 +9,7 @@
                 {{ __('Use tokens like') }}
                 <code class="text-mom-gold">@{{ company_name }}</code>
                 {{ __('or') }}
-                <code class="text-mom-gold">@{{ whatsapp }}</code>
+                <code class="text-mom-gold">@{{ mission_statement }}</code>
                 {{ __('in pages, blocks, blueprints, and sections. Updates apply everywhere on the next render.') }}
             </p>
             @if ($statusMessage)
@@ -28,15 +28,32 @@
                 </dl>
             </div>
 
-            <form wire:submit="save" class="grid gap-4 md:grid-cols-2">
-                @foreach ($definitions as $key => $row)
-                    <label class="block">
-                        <span class="mom-label">{{ $row['label'] }}</span>
-                        <code class="mb-1 block text-xs text-mom-gold">{{ '{' . '{' . $key . '}' . '}' }}</code>
-                        <input type="text" wire:model="values.{{ $key }}" class="mom-input w-full" />
-                    </label>
+            <form wire:submit="save" class="space-y-8">
+                @foreach ($grouped as $groupKey => $group)
+                    <div>
+                        <h3 class="mb-1 text-base font-semibold text-[var(--text-primary)]">{{ $group['label'] }}</h3>
+                        @if ($group['description'] !== '')
+                            <p class="mom-body-text mb-4 text-sm text-[var(--text-secondary)]">{{ $group['description'] }}</p>
+                        @endif
+                        <div class="grid gap-4 md:grid-cols-2">
+                            @foreach ($group['fields'] as $key => $row)
+                                <label @class(['block', 'md:col-span-2' => ($row['type'] ?? 'text') === 'textarea'])>
+                                    <span class="mom-label">{{ $row['label'] }}</span>
+                                    <code class="mb-1 block text-xs text-mom-gold">{{ '{' . '{' . $key . '}' . '}' }}</code>
+                                    @if (! empty($row['hint']))
+                                        <span class="mb-1 block text-xs text-[var(--text-secondary)]">{{ $row['hint'] }}</span>
+                                    @endif
+                                    @if (($row['type'] ?? 'text') === 'textarea')
+                                        <textarea wire:model="values.{{ $key }}" rows="4" class="mom-input w-full"></textarea>
+                                    @else
+                                        <input type="text" wire:model="values.{{ $key }}" class="mom-input w-full" />
+                                    @endif
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
                 @endforeach
-                <div class="flex flex-wrap gap-2 md:col-span-2">
+                <div class="flex flex-wrap gap-2">
                     <button type="submit" class="mom-cta-compact mom-cta-primary">{{ __('Save variables') }}</button>
                     <button type="button" wire:click="saveVersion" class="mom-cta-compact mom-cta-ghost">{{ __('Save & version') }}</button>
                     <button type="button" wire:click="exportJson" class="mom-cta-compact mom-cta-ghost">{{ __('Export JSON') }}</button>

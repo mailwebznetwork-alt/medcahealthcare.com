@@ -5,6 +5,8 @@ namespace App\Services\Operations;
 use App\Models\Service;
 use App\Models\ServiceLocationPage;
 use App\Services\Governance\DownstreamArtifactPurger;
+use App\Services\Growth\SitemapRegenerationDispatcher;
+use App\Services\Import\ImportSideEffectsGate;
 use Illuminate\Support\Collection;
 
 /**
@@ -23,71 +25,75 @@ class ServiceLocationMatrixReconciler
      *   pages_provisioned: int,
      *   pages_updated: int,
      *   pages_removed: int,
-     *   pages_deactivated: int,
      *   indexable_count: int,
      *   sitemap_eligible: int,
      *   issues: list<string>
      * }
      */
-    public function reconcile(?Service $onlyService = null, bool $purgeCatalogOrphans = true): array
+    public function reconcile(?Service $onlyService = null, bool $purgeCatalogOrphans = true, bool $refreshExisting = false): array
     {
         $report = [
             'services_processed' => 0,
             'pages_provisioned' => 0,
             'pages_updated' => 0,
             'pages_removed' => 0,
-            'pages_deactivated' => 0,
             'indexable_count' => 0,
             'sitemap_eligible' => 0,
             'issues' => [],
         ];
 
         $services = $this->resolveServices($onlyService);
+        $bulkMode = $onlyService === null && $services->count() > 1;
 
-        foreach ($services as $service) {
-            $report['services_processed']++;
-            $service->loadMissing(['pincodes', 'categories', 'locationPages.pincode', 'locationPages.page']);
+        $run = function () use ($services, &$report, $refreshExisting): void {
+            foreach ($services as $service) {
+                $report['services_processed']++;
+                $service->loadMissing(['pincodes', 'categories', 'locationPages.pincode', 'locationPages.page']);
 
-            $syncResult = $this->locationProvisioner->syncAllForService($service);
-            $report['pages_provisioned'] += $syncResult['created'];
-            $report['pages_updated'] += $syncResult['updated'];
-            $report['pages_removed'] += $syncResult['removed'];
+                $syncResult = $this->locationProvisioner->syncAllForService($service, $refreshExisting);
+                $report['pages_provisioned'] += $syncResult['created'];
+                $report['pages_updated'] += $syncResult['updated'];
+                $report['pages_removed'] += $syncResult['removed'];
 
-            foreach ($service->pincodes as $pin) {
-                if (! ServiceLocationMatrixPivot::isActive($service, $pin)) {
-                    $deactivated = $this->deactivateMapping($service->id, $pin->id);
-                    if ($deactivated) {
-                        $report['pages_deactivated']++;
+                if (! app(ImportSideEffectsGate::class)->suppressed()) {
+                    $this->linkDispatcher->dispatchForService($service->id);
+                }
+
+                $mappings = ServiceLocationPage::query()
+                    ->where('service_id', $service->id)
+                    ->with(['page', 'service', 'pincode'])
+                    ->get();
+
+                foreach ($mappings as $mapping) {
+                    if ($mapping->isPubliclyIndexable()) {
+                        $report['indexable_count']++;
+                        $report['sitemap_eligible']++;
                     }
                 }
-            }
 
-            $this->linkDispatcher->dispatchForService($service->id);
+                $pivotPinIds = $service->pincodes->pluck('id')->all();
+                $orphanRows = ServiceLocationPage::query()
+                    ->where('service_id', $service->id)
+                    ->when($pivotPinIds !== [], fn ($q) => $q->whereNotIn('pincode_id', $pivotPinIds))
+                    ->with('page')
+                    ->get();
 
-            $mappings = ServiceLocationPage::query()
-                ->where('service_id', $service->id)
-                ->with(['page', 'service', 'pincode'])
-                ->get();
-
-            foreach ($mappings as $mapping) {
-                if ($mapping->isPubliclyIndexable()) {
-                    $report['indexable_count']++;
-                    $report['sitemap_eligible']++;
+                foreach ($orphanRows as $orphan) {
+                    $this->locationProvisioner->removeMappingAndPage($orphan);
+                    $report['pages_removed']++;
+                    $report['issues'][] = "service:{$service->service_code} purged orphan mapping pin:{$orphan->pincode_id}";
                 }
             }
+        };
 
-            $pivotPinIds = $service->pincodes->pluck('id')->all();
-            $orphanRows = ServiceLocationPage::query()
-                ->where('service_id', $service->id)
-                ->when($pivotPinIds !== [], fn ($q) => $q->whereNotIn('pincode_id', $pivotPinIds))
-                ->with('page')
-                ->get();
-
-            foreach ($orphanRows as $orphan) {
-                $this->locationProvisioner->removeMappingAndPage($orphan);
-                $report['pages_removed']++;
-                $report['issues'][] = "service:{$service->service_code} purged orphan mapping pin:{$orphan->pincode_id}";
+        if ($bulkMode) {
+            app(ImportSideEffectsGate::class)->run($run);
+            app(SitemapRegenerationDispatcher::class)->dispatch();
+            foreach ($services as $service) {
+                $this->linkDispatcher->dispatchForService($service->id, includePeers: false);
             }
+        } else {
+            $run();
         }
 
         if ($purgeCatalogOrphans) {
@@ -100,14 +106,13 @@ class ServiceLocationMatrixReconciler
     /**
      * @param  iterable<int, Service|int|null>  $services
      */
-    public function reconcileMany(iterable $services, bool $purgeCatalogOrphans = true): array
+    public function reconcileMany(iterable $services, bool $purgeCatalogOrphans = true, bool $refreshExisting = false): array
     {
         $merged = [
             'services_processed' => 0,
             'pages_provisioned' => 0,
             'pages_updated' => 0,
             'pages_removed' => 0,
-            'pages_deactivated' => 0,
             'indexable_count' => 0,
             'sitemap_eligible' => 0,
             'issues' => [],
@@ -128,17 +133,27 @@ class ServiceLocationMatrixReconciler
             return $merged;
         }
 
-        $lastId = array_key_last($batch);
-        foreach ($batch as $id => $service) {
-            $partial = $this->reconcile($service, purgeCatalogOrphans: false);
-            foreach (array_keys($merged) as $key) {
-                if ($key === 'issues') {
-                    $merged['issues'] = array_merge($merged['issues'], $partial['issues']);
+        $merged = app(ImportSideEffectsGate::class)->run(function () use ($batch, $merged, $refreshExisting): array {
+            foreach ($batch as $service) {
+                $partial = $this->reconcile($service, purgeCatalogOrphans: false, refreshExisting: $refreshExisting);
+                foreach (array_keys($merged) as $key) {
+                    if ($key === 'issues') {
+                        $merged['issues'] = array_merge($merged['issues'], $partial['issues']);
 
-                    continue;
+                        continue;
+                    }
+
+                    $merged[$key] += $partial[$key];
                 }
+            }
 
-                $merged[$key] += $partial[$key];
+            return $merged;
+        });
+
+        if (count($batch) > 0) {
+            app(SitemapRegenerationDispatcher::class)->dispatch();
+            foreach ($batch as $service) {
+                $this->linkDispatcher->dispatchForService($service->id, includePeers: false);
             }
         }
 
@@ -159,32 +174,7 @@ class ServiceLocationMatrixReconciler
         }
 
         return Service::query()
-            ->where('is_active', true)
             ->orderBy('id')
             ->get();
-    }
-
-    private function deactivateMapping(int $serviceId, int $pincodeId): bool
-    {
-        $mapping = ServiceLocationPage::query()
-            ->where('service_id', $serviceId)
-            ->where('pincode_id', $pincodeId)
-            ->with('page')
-            ->first();
-
-        if ($mapping === null) {
-            return false;
-        }
-
-        $mapping->forceFill(['is_indexable' => false])->saveQuietly();
-
-        if ($mapping->page !== null) {
-            $mapping->page->forceFill([
-                'robots_meta' => 'noindex,follow',
-                'is_active' => false,
-            ])->saveQuietly();
-        }
-
-        return true;
     }
 }

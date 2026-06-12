@@ -2,22 +2,31 @@
 
 namespace App\Services\Operations;
 
-use Illuminate\Support\Facades\Process;
+use App\Models\ServiceCategory;
 
+/**
+ * @deprecated Use CatalogOperationsCascade — kept for call-site compatibility.
+ */
 final class BackgroundCategoryOrchestratorDispatcher
 {
+    public function __construct(
+        private readonly CatalogOperationsCascade $cascade,
+    ) {}
+
     public function dispatch(int $categoryId): void
     {
         if ($categoryId <= 0) {
             return;
         }
 
-        $artisan = escapeshellarg(base_path('artisan'));
-        $php = PHP_BINARY;
-        $command = 'sleep 2 && '.$php.' '.$artisan.' medca:sync-category-master '.(int) $categoryId;
+        $category = ServiceCategory::query()->find($categoryId);
+        if ($category === null) {
+            return;
+        }
 
-        Process::path(base_path())
-            ->timeout(3600)
-            ->start(['bash', '-c', $command]);
+        $serviceIds = app(ServicePincodeCoverageService::class)
+            ->propagateCategoryToServices($category);
+
+        $this->cascade->afterCategorySaved($category, $serviceIds);
     }
 }

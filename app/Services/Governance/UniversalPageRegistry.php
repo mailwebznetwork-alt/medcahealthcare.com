@@ -9,6 +9,7 @@ use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\ServiceLocationPage;
 use App\Models\SubService;
+use App\Services\Operations\ServiceGeneratedPageEligibility;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -34,33 +35,56 @@ class UniversalPageRegistry
             $counts[$page->page_source === 'generated' ? 'generated' : 'manual']++;
         });
 
-        ServiceCategory::query()->active()->ordered()->each(function (ServiceCategory $category) use (&$counts): void {
+        ServiceCategory::query()->active()->ordered()->with('pincodes')->each(function (ServiceCategory $category) use (&$counts): void {
+            if (! ServiceGeneratedPageEligibility::categoryMayHavePages($category) && $category->page_id === null) {
+                $this->removeCatalogRegistryEntry('category', 'category:'.$category->publicSlug());
+
+                return;
+            }
+
             $this->upsertCategoryEntry($category);
             $counts['synced']++;
             if ($category->page_id === null) {
                 $counts['planned']++;
+            } else {
+                $counts['generated']++;
             }
         });
 
-        Service::query()->whereNotNull('detail_page_id')->each(function (Service $service) use (&$counts): void {
+        Service::query()->whereNotNull('detail_page_id')->with('detailPage')->each(function (Service $service) use (&$counts): void {
             if ($service->detailPage !== null) {
                 $this->upsertServiceEntry($service);
                 $counts['synced']++;
+                $counts['generated']++;
             }
         });
 
-        SubService::query()->each(function (SubService $sub) use (&$counts): void {
+        SubService::query()->with(['service.pincodes', 'linkedPage'])->each(function (SubService $sub) use (&$counts): void {
+            if (! ServiceGeneratedPageEligibility::subServiceMayHavePages($sub) && $sub->page_id === null) {
+                $key = 'sub_service:'.$sub->service?->service_code.':'.$sub->sub_service_code;
+                $this->removeCatalogRegistryEntry('sub_service', $key);
+
+                return;
+            }
+
             $this->upsertSubServiceEntry($sub);
             $counts['synced']++;
-            $counts['planned']++;
+            if ($sub->page_id === null) {
+                $counts['planned']++;
+            } else {
+                $counts['generated']++;
+            }
         });
 
         ServiceLocationPage::query()->with(['page', 'service', 'pincode'])->each(function (ServiceLocationPage $mapping) use (&$counts): void {
             if ($mapping->page !== null) {
                 $this->upsertLocationEntry($mapping);
                 $counts['synced']++;
+                $counts['generated']++;
             }
         });
+
+        $this->purgeGeoIneligibleRegistryEntries();
 
         Cache::put('governance.registry.last_sync_at', now()->toIso8601String(), now()->addDays(90));
         Cache::put('governance.registry.last_sync_counts', $counts, now()->addDays(90));
@@ -203,5 +227,69 @@ class UniversalPageRegistry
                 'ownership_snapshot' => $ownership,
             ]
         );
+    }
+
+    /**
+     * Removes catalog registry slots that cannot exist without GEO coverage or a live CMS page.
+     */
+    public function purgeGeoIneligibleRegistryEntries(): int
+    {
+        $removed = 0;
+
+        PageRegistry::query()
+            ->whereIn('entity_type', ['category', 'sub_service', 'service', 'location'])
+            ->orderBy('id')
+            ->each(function (PageRegistry $entry) use (&$removed): void {
+                if ($this->registryEntryShouldBeRemovedWithoutGeo($entry)) {
+                    $entry->delete();
+                    $removed++;
+                }
+            });
+
+        return $removed;
+    }
+
+    private function registryEntryShouldBeRemovedWithoutGeo(PageRegistry $entry): bool
+    {
+        if ($entry->page_id !== null && Page::query()->whereKey($entry->page_id)->exists()) {
+            return false;
+        }
+
+        return match ($entry->entity_type) {
+            'category' => $this->categoryRegistryEntryIsGeoIneligible($entry),
+            'sub_service' => $this->subServiceRegistryEntryIsGeoIneligible($entry),
+            'service', 'location' => true,
+            default => false,
+        };
+    }
+
+    private function categoryRegistryEntryIsGeoIneligible(PageRegistry $entry): bool
+    {
+        if ($entry->entity_id === null) {
+            return true;
+        }
+
+        $category = ServiceCategory::query()->with('pincodes')->find($entry->entity_id);
+
+        return $category === null || ! ServiceGeneratedPageEligibility::categoryMayHavePages($category);
+    }
+
+    private function subServiceRegistryEntryIsGeoIneligible(PageRegistry $entry): bool
+    {
+        if ($entry->entity_id === null) {
+            return true;
+        }
+
+        $sub = SubService::query()->with(['service.pincodes'])->find($entry->entity_id);
+
+        return $sub === null || ! ServiceGeneratedPageEligibility::subServiceMayHavePages($sub);
+    }
+
+    private function removeCatalogRegistryEntry(string $entityType, string $registryKey): void
+    {
+        PageRegistry::query()
+            ->where('entity_type', $entityType)
+            ->where('registry_key', $registryKey)
+            ->delete();
     }
 }

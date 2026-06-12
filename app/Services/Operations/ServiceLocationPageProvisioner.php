@@ -4,13 +4,13 @@ namespace App\Services\Operations;
 
 use App\Enums\PageCategory;
 use App\Enums\PageLayoutMode;
-use App\Enums\PublishStatus;
 use App\Models\Page;
 use App\Models\PageRegistry;
 use App\Models\PinCode;
 use App\Models\Service;
 use App\Models\ServiceLocationPage;
 use App\Services\Governance\DownstreamArtifactPurger;
+use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Seo\LocalityContextResolver;
 use App\Support\ServicePageOverrides;
 
@@ -50,23 +50,47 @@ class ServiceLocationPageProvisioner
     /**
      * @return array{created: int, updated: int, removed: int}
      */
-    public function syncAllForService(Service $service): array
+    public function syncAllForService(Service $service, bool $refreshExisting = false): array
     {
         $service->loadMissing(['pincodes', 'seo', 'faqs', 'schema', 'locationPages.pincode']);
+
+        if (! ServiceGeneratedPageEligibility::serviceMayHavePages($service)) {
+            $removed = $this->bulkDeleteLocationArtifactsForServiceIds([$service->id]);
+
+            return ['created' => 0, 'updated' => 0, 'removed' => $removed];
+        }
 
         app(ServiceDetailPageProvisioner::class)->syncStarterBlocks();
 
         $created = 0;
         $updated = 0;
+        $removed = 0;
         $activePinIds = $service->pincodes->pluck('id')->all();
 
+        $bulkCreateOnly = ! $refreshExisting && app(ImportSideEffectsGate::class)->suppressed();
+
         foreach ($service->pincodes as $pin) {
-            $existed = ServiceLocationPage::query()
+            $mapping = ServiceLocationPage::query()
                 ->where('service_id', $service->id)
                 ->where('pincode_id', $pin->id)
-                ->exists();
+                ->first();
 
-            $this->provisionOne($service, $pin);
+            if ($bulkCreateOnly && $mapping?->page_id !== null) {
+                continue;
+            }
+
+            $existed = $mapping !== null;
+
+            $page = $this->provisionOne($service, $pin);
+
+            if ($page === null) {
+                if ($existed) {
+                    $removed++;
+                }
+
+                continue;
+            }
+
             if ($existed) {
                 $updated++;
             } else {
@@ -74,7 +98,6 @@ class ServiceLocationPageProvisioner
             }
         }
 
-        $removed = 0;
         $orphans = ServiceLocationPage::query()
             ->where('service_id', $service->id)
             ->when($activePinIds !== [], fn ($q) => $q->whereNotIn('pincode_id', $activePinIds))
@@ -172,8 +195,22 @@ class ServiceLocationPageProvisioner
         }
     }
 
-    public function provisionOne(Service $service, PinCode $pin): Page
+    public function provisionOne(Service $service, PinCode $pin): ?Page
     {
+        if (! ServiceGeneratedPageEligibility::locationMappingMayExist($service, $pin)) {
+            $mapping = ServiceLocationPage::query()
+                ->where('service_id', $service->id)
+                ->where('pincode_id', $pin->id)
+                ->with('page')
+                ->first();
+
+            if ($mapping !== null) {
+                $this->removeMappingAndPage($mapping);
+            }
+
+            return null;
+        }
+
         $pin->loadMissing(['landmarks', 'hospitals', 'locationFaqs', 'nearbyAreas']);
 
         $mapping = ServiceLocationPage::query()
@@ -198,17 +235,12 @@ class ServiceLocationPageProvisioner
         $content = (string) config('services_master.location_page_content', ServiceDetailPageProvisioner::DEFAULT_PAGE_CONTENT);
         $intro = $this->localIntro($service, $pin);
         $description = $this->templates->localDescription($service, $pin);
-        $pivotActive = ServiceLocationMatrixPivot::isActive($service, $pin);
-        $pageActive = $pivotActive
-            && $service->is_active
-            && $service->publish_status === PublishStatus::Published;
-
         if ($page === null) {
             $page = Page::query()->create([
                 'title' => $title,
                 'slug' => $cmsSlug,
                 'content' => $content,
-                'is_active' => $pageActive,
+                'is_active' => true,
                 'layout_mode' => PageLayoutMode::Canvas,
                 'page_category' => PageCategory::Location,
                 'page_source' => 'generated',
@@ -224,7 +256,7 @@ class ServiceLocationPageProvisioner
             $attributes = ServicePageOverrides::filterAutomatedAttributes($page, [
                 'title' => $title,
                 'slug' => $cmsSlug,
-                'is_active' => $pageActive,
+                'is_active' => true,
                 'page_category' => PageCategory::Location,
                 'meta_title' => $this->locationMetaTitle($service, $pin),
                 'meta_description' => $this->localMetaDescription($service, $pin),
