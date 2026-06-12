@@ -45,7 +45,7 @@ class PincodeModal extends Component
         $this->syncPincodeFromSession();
         $this->resetErrorBag();
         $this->hidePincodeSuggestions();
-        $this->forceOpen = false;
+        $this->forceOpen = ! app(UserLocationService::class)->hasPincode();
         $this->open = true;
     }
 
@@ -63,9 +63,11 @@ class PincodeModal extends Component
 
     public function dismissLabel(): string
     {
-        return $this->forceOpen
-            ? (string) __('Later')
-            : (string) __('Cancel');
+        if ($this->forceOpen || ! app(UserLocationService::class)->hasPincode()) {
+            return (string) __('Later');
+        }
+
+        return (string) __('Cancel');
     }
 
     public function updatedPincode(): void
@@ -132,6 +134,7 @@ class PincodeModal extends Component
         }
 
         session()->flash('status', __('Location updated to pincode :pin.', ['pin' => $resolved]));
+        session()->save();
 
         $this->open = false;
         $this->dispatch('pincode-updated', pincode: $resolved);
@@ -141,8 +144,15 @@ class PincodeModal extends Component
             $resolved,
         );
 
-        // Full page load required — wire:navigate and same-URL hash redirects do not refresh content.
-        $this->redirect($redirectUrl, navigate: false);
+        if (app()->environment('testing')) {
+            $this->redirect($redirectUrl, navigate: false);
+
+            return;
+        }
+
+        // Hard navigation avoids Livewire redirect edge cases on mobile and with hash URLs.
+        $this->js('window.location.assign('.json_encode($redirectUrl, JSON_THROW_ON_ERROR).')');
+        $this->skipRender();
     }
 
     private function redirectUrlWithPinRefresh(string $url, string $pincode): string

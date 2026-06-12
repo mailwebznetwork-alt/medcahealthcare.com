@@ -44,11 +44,11 @@
 @endphp
 
 @if ($isAdmin)
-    <div class="px-5 py-5 md:px-6 md:py-6" data-section="near-you">
+    <div class="px-5 py-5 md:px-6 md:py-6" id="near-you" data-section="near-you">
         @include('public.partials.near-you-hero-inner', compact('eyebrow', 'headline', 'subline', 'pincode', 'pincodeButton', 'locationRequired', 'emptyCategoriesMessage', 'categories', 'pinCodeRecord', 'isAdmin'))
     </div>
 @else
-    <x-public.full-bleed class="border-t border-slate-200 bg-white py-10 md:py-12" data-section="near-you">
+    <x-public.full-bleed class="border-t border-slate-200 bg-white py-10 md:py-12" id="near-you" data-section="near-you">
         <x-public.content-shell>
             @include('public.partials.near-you-hero-inner', compact('eyebrow', 'headline', 'subline', 'pincode', 'pincodeButton', 'locationRequired', 'emptyCategoriesMessage', 'categories', 'pinCodeRecord', 'isAdmin'))
         </x-public.content-shell>

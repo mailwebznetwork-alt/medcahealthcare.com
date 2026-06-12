@@ -11,7 +11,7 @@
                 <h2 id="pincode-modal-title" class="text-lg font-semibold text-slate-900">{{ __('Your service pincode') }}</h2>
                 <p class="mt-2 text-sm text-slate-600">{{ __('We use your pincode to show healthcare services available in your Bangalore neighbourhood.') }}</p>
 
-                <form wire:submit="savePincode" class="mt-5 space-y-4">
+                <form class="mt-5 space-y-4" wire:submit.prevent="savePincode">
                     <label class="relative block">
                         <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('6-digit pincode') }}</span>
                         <input
@@ -69,7 +69,8 @@
                             {{ $this->dismissLabel() }}
                         </button>
                         <button
-                            type="submit"
+                            type="button"
+                            wire:click="savePincode"
                             wire:loading.attr="disabled"
                             wire:target="savePincode"
                             class="inline-flex min-w-[5.5rem] items-center justify-center rounded-lg bg-medca-primary px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
