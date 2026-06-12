@@ -3,7 +3,7 @@
     'service' => null,
     'category' => null,
     'initial' => 8,
-    'title' => __('Areas we cover'),
+    'title' => __('Areas We Serve'),
     'subtitle' => __('Bangalore neighbourhoods where this service is available.'),
 ])
 

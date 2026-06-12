@@ -34,6 +34,10 @@ class ServicesDetailPageResolver
                 ->first();
 
             if ($byPattern !== null) {
+                if ($service->detail_page_id !== $byPattern->id) {
+                    $service->forceFill(['detail_page_id' => $byPattern->id])->saveQuietly();
+                }
+
                 return $byPattern;
             }
         }

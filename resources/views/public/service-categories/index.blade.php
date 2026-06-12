@@ -26,10 +26,9 @@
                     href="{{ route('public.service-categories.show', $category->code) }}"
                     class="group rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-medca-primary/40 hover:shadow-md"
                 >
+                    <x-public.catalog-icon :model="$category" size="md" class="mb-4" />
                     <h2 class="text-lg font-semibold text-slate-900 group-hover:text-medca-primary">{{ $displayNames->categoryHeadline($category) }}</h2>
-                    @if ($category->description)
-                        <p class="mt-2 line-clamp-3 text-sm text-slate-600">{{ $category->description }}</p>
-                    @endif
+                    <x-public.catalog-card-summary :model="$category" />
                     <p class="mt-4 text-xs text-slate-500">
                         {{ trans_choice(':count service|:count services', $category->services_count, ['count' => $category->services_count]) }}
                     </p>

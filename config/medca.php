@@ -48,6 +48,16 @@ return [
     'hide_visual_breadcrumbs' => (bool) env('MEDCA_HIDE_VISUAL_BREADCRUMBS', true),
 
     /**
+     * Hide “About {area} healthcare coverage” (nearby areas, hospitals, landmarks, emergency).
+     */
+    'hide_location_coverage_panel' => (bool) env('MEDCA_HIDE_LOCATION_COVERAGE_PANEL', true),
+
+    /**
+     * Hide “Book care in your neighbourhood” lead CTA block on location pages.
+     */
+    'hide_location_neighbourhood_cta' => (bool) env('MEDCA_HIDE_LOCATION_NEIGHBOURHOOD_CTA', true),
+
+    /**
      * Dev/staging hosts rewritten by `medca:normalize-site-urls` toward APP_URL (or --to=).
      *
      * @var list<string>

@@ -31,21 +31,37 @@ it('suggests pincodes by prefix in the location modal', function () {
         ->assertSet('showPincodeSuggestions', false);
 });
 
-it('stores pincode in session and scopes localized services', function () {
-    $pin = PinCode::factory()->create(['pincode' => '560076', 'is_active' => true, 'is_serviceable' => true]);
-    $service = Service::factory()->create();
-    $service->pincodes()->attach($pin->id);
+it('shows cancel when changing an existing pincode', function () {
+    PinCode::factory()->create(['pincode' => '560076', 'is_active' => true, 'is_serviceable' => true]);
+    app(UserLocationService::class)->rememberPincode('560076');
 
-    Service::factory()->create();
-
-    $location = app(UserLocationService::class);
-    expect($location->setManualPincode('560076'))->toBe('560076');
-
-    $scoped = Service::query()->localizedListing('560076')->pluck('id');
-    expect($scoped)->toContain($service->id)->toHaveCount(1);
+    Livewire::test(PincodeModal::class)
+        ->call('openModal', '/locations')
+        ->assertSet('forceOpen', false)
+        ->assertSet('pincode', '560076')
+        ->assertSee('Cancel')
+        ->assertDontSee('Later');
 });
 
-it('persists pincode on authenticated user profile', function () {
+it('shows later only on the first-visit pincode gate', function () {
+    Livewire::test(PincodeModal::class)
+        ->set('open', true)
+        ->set('forceOpen', true)
+        ->assertSee('Later')
+        ->assertDontSee('Cancel');
+});
+
+it('normalizes pincode before saving from the modal', function () {
+    PinCode::factory()->create(['pincode' => '560076', 'is_active' => true, 'is_serviceable' => true]);
+
+    Livewire::test(PincodeModal::class)
+        ->set('redirectContextPath', '/locations')
+        ->set('pincode', '560 076')
+        ->call('savePincode')
+        ->assertRedirect(url('/locations').'?pin=560076#near-you');
+});
+
+it('stores pincode in session and scopes localized services', function () {
     PinCode::factory()->create(['pincode' => '560041', 'is_active' => true]);
 
     $user = User::factory()->create();

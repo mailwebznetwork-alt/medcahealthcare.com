@@ -61,7 +61,13 @@ final class ImportSupport
 
         if (is_array($value)) {
             return array_values(array_filter(array_map(
-                static fn (mixed $item): string => trim((string) $item),
+                static function (mixed $item): string {
+                    if (is_array($item)) {
+                        return trim((string) ($item['label'] ?? $item['text'] ?? ''));
+                    }
+
+                    return trim((string) $item);
+                },
                 $value
             ), static fn (string $item): bool => $item !== ''));
         }

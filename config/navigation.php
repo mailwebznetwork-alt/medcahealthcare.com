@@ -8,7 +8,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | When enabled, the public header "Services" dropdown is built automatically
-    | from active categories, their services, and sub-services. Manual header
+    | from active categories and their services. Manual header
     | items (Home, About, Locations, etc.) are unchanged.
     |
     */
@@ -22,7 +22,7 @@ return [
     /*
     | Include sub-services as third-level items under each service.
     */
-    'include_sub_services' => env('NAV_INCLUDE_SUB_SERVICES', true),
+    'include_sub_services' => env('NAV_INCLUDE_SUB_SERVICES', false),
 
     /*
     | Zones where catalog auto-sync applies (header only by default).

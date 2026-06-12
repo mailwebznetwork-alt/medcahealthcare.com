@@ -13,9 +13,17 @@ use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Seo\LocalityContextResolver;
 use App\Support\ServicePageOverrides;
+use Illuminate\Support\Str;
 
 class ServiceLocationPageProvisioner
 {
+    private static bool $starterBlocksSyncedForBulk = false;
+
+    public static function resetBulkOptimizations(): void
+    {
+        self::$starterBlocksSyncedForBulk = false;
+    }
+
     public function __construct(
         private readonly ServiceMasterPageSync $masterPageSync,
         private readonly PageCategoryResolver $categoryResolver,
@@ -60,7 +68,12 @@ class ServiceLocationPageProvisioner
             return ['created' => 0, 'updated' => 0, 'removed' => $removed];
         }
 
-        app(ServiceDetailPageProvisioner::class)->syncStarterBlocks();
+        if (! app(ImportSideEffectsGate::class)->suppressed() || ! self::$starterBlocksSyncedForBulk) {
+            app(ServiceDetailPageProvisioner::class)->syncStarterBlocks();
+            if (app(ImportSideEffectsGate::class)->suppressed()) {
+                self::$starterBlocksSyncedForBulk = true;
+            }
+        }
 
         $created = 0;
         $updated = 0;
@@ -68,12 +81,13 @@ class ServiceLocationPageProvisioner
         $activePinIds = $service->pincodes->pluck('id')->all();
 
         $bulkCreateOnly = ! $refreshExisting && app(ImportSideEffectsGate::class)->suppressed();
+        $existingByPin = ServiceLocationPage::query()
+            ->where('service_id', $service->id)
+            ->get()
+            ->keyBy('pincode_id');
 
         foreach ($service->pincodes as $pin) {
-            $mapping = ServiceLocationPage::query()
-                ->where('service_id', $service->id)
-                ->where('pincode_id', $pin->id)
-                ->first();
+            $mapping = $existingByPin->get($pin->id);
 
             if ($bulkCreateOnly && $mapping?->page_id !== null) {
                 continue;
@@ -81,7 +95,7 @@ class ServiceLocationPageProvisioner
 
             $existed = $mapping !== null;
 
-            $page = $this->provisionOne($service, $pin);
+            $page = $this->provisionOne($service, $pin, fast: $bulkCreateOnly && ! $existed);
 
             if ($page === null) {
                 if ($existed) {
@@ -195,7 +209,7 @@ class ServiceLocationPageProvisioner
         }
     }
 
-    public function provisionOne(Service $service, PinCode $pin): ?Page
+    public function provisionOne(Service $service, PinCode $pin, bool $fast = false): ?Page
     {
         if (! ServiceGeneratedPageEligibility::locationMappingMayExist($service, $pin)) {
             $mapping = ServiceLocationPage::query()
@@ -209,6 +223,10 @@ class ServiceLocationPageProvisioner
             }
 
             return null;
+        }
+
+        if ($fast) {
+            return $this->provisionOneBulkFast($service, $pin);
         }
 
         $pin->loadMissing(['landmarks', 'hospitals', 'locationFaqs', 'nearbyAreas']);
@@ -308,6 +326,51 @@ class ServiceLocationPageProvisioner
         $this->qualityScorer->persist($service, $pin, $mapping->fresh(['page']));
 
         return $page->fresh();
+    }
+
+    /**
+     * Minimal location page create for bulk matrix reconcile (schema/blocks enriched on --refresh).
+     */
+    private function provisionOneBulkFast(Service $service, PinCode $pin): Page
+    {
+        $cmsSlug = $this->cmsPageSlug($service, $pin);
+        $locationSlug = $this->locationSlug($service, $pin);
+        $citySlug = $this->urlBuilder->citySlugForPin($pin);
+        $title = $this->locationTitle($service, $pin);
+        $canonical = $this->urlBuilder->locationUrlForPin($service, $pin);
+        $content = (string) config('services_master.location_page_content', ServiceDetailPageProvisioner::DEFAULT_PAGE_CONTENT);
+
+        $page = Page::withoutEvents(function () use ($title, $cmsSlug, $content, $canonical): Page {
+            return Page::query()->create([
+                'uuid' => (string) Str::uuid(),
+                'title' => $title,
+                'slug' => $cmsSlug,
+                'content' => $content,
+                'is_active' => true,
+                'layout_mode' => PageLayoutMode::Canvas,
+                'page_category' => PageCategory::Location,
+                'page_source' => 'generated',
+                'registry_owner' => 'operations_location_matrix',
+                'meta_title' => mb_substr($title, 0, 255),
+                'h1' => $title,
+                'canonical_url' => $canonical,
+            ]);
+        });
+
+        ServiceLocationPage::query()->updateOrCreate(
+            [
+                'service_id' => $service->id,
+                'pincode_id' => $pin->id,
+            ],
+            [
+                'page_id' => $page->id,
+                'slug' => $cmsSlug,
+                'location_slug' => $locationSlug,
+                'city_slug' => $citySlug,
+            ]
+        );
+
+        return $page;
     }
 
     public function localIntro(Service $service, PinCode $pin): string

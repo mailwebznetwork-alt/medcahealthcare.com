@@ -38,7 +38,7 @@ it('renders locations coverage grid with search sort and expandable cards', func
     $response = $this->get('/locations');
 
     $response->assertOk()
-        ->assertSee('Areas we cover', false)
+        ->assertSee('Areas We Serve', false)
         ->assertSee('Search pincode or area', false)
         ->assertSee('Arekere', false)
         ->assertSee('JP Nagar', false)

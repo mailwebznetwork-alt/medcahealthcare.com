@@ -48,12 +48,12 @@
     <x-public.service-detail-body :service="$service" class="px-4 py-10 sm:px-6 lg:px-8" />
 
     @if ($service->pincodes->isNotEmpty())
-        <div class="mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6 lg:px-8">
+        <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
             <x-public.areas-served-grid :areas="$service->pincodes" :service="$service" class="rounded-xl border border-slate-200 bg-slate-50 p-5 md:p-6" />
         </div>
     @endif
 
-    <div class="mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6 lg:px-8">
+    <div class="mx-auto w-full max-w-6xl px-4 pb-10 pt-4 sm:px-6 lg:px-8">
         <x-public.service-internal-links :links="$internalLinks ?? []" />
     </div>
 @endsection

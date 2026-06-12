@@ -8,7 +8,9 @@ use App\Models\ServiceLocationPage;
 use App\Models\SubService;
 use App\Services\Content\ServiceBindingResolver;
 use App\Services\Import\ImportSupport;
+use App\Services\Public\CatalogLineIconResolver;
 use App\Services\Public\PublicDisplayNameResolver;
+use App\Services\Public\ServiceCardImageResolver;
 
 class ServiceInternalLinkingEngine
 {
@@ -16,6 +18,8 @@ class ServiceInternalLinkingEngine
         private readonly ServicePublicUrlBuilder $urlBuilder,
         private readonly ServiceBindingResolver $serviceBinding,
         private readonly PublicDisplayNameResolver $displayNames,
+        private readonly CatalogLineIconResolver $iconResolver,
+        private readonly ServiceCardImageResolver $serviceImages,
     ) {}
 
     /**
@@ -92,14 +96,15 @@ class ServiceInternalLinkingEngine
             )
             ->orderBy('sort_order')
             ->limit($serviceLimit)
-            ->get(['id', 'title', 'service_code'])
+            ->with('seo')
+            ->get()
             ->map(fn (Service $s): array => $this->serviceLink($s))
             ->values()
             ->all();
     }
 
     /**
-     * @return array{code: string, title: string, url: string}
+     * @return array{code: string, title: string, url: string, summary: ?string, line_icon: string}
      */
     private function serviceLink(Service $service): array
     {
@@ -107,6 +112,9 @@ class ServiceInternalLinkingEngine
             'code' => $service->service_code,
             'title' => $this->displayNames->serviceHeadline($service),
             'url' => $this->urlBuilder->serviceUrl($service),
+            'summary' => $this->displayNames->serviceCardSummary($service),
+            'line_icon' => $this->iconResolver->forService($service),
+            'image_url' => $this->serviceImages->urlFor($service),
         ];
     }
 

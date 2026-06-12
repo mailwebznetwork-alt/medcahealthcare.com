@@ -23,11 +23,12 @@
                         class="medca-svc-carousel-card"
                         role="listitem"
                     >
-                        <h3>{{ $displayNames->serviceHeadline($service) }}</h3>
-                        @if (filled($service->short_summary))
-                            <p>{{ \Illuminate\Support\Str::limit(strip_tags($service->short_summary), 120) }}</p>
-                        @endif
-                        <span class="cta">{{ __('View service →') }}</span>
+                        <x-public.catalog-list-card-image :model="$service" />
+                        <span class="medca-svc-carousel-card__body">
+                            <h3>{{ $displayNames->serviceHeadline($service) }}</h3>
+                            <x-public.catalog-card-summary :model="$service" :limit="120" />
+                            <span class="cta">{{ __('View service →') }}</span>
+                        </span>
                     </a>
                 @endforeach
             </div>

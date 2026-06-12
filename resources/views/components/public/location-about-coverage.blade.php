@@ -6,6 +6,10 @@
 @php
     use App\Models\PinCode;
 
+    if (config('medca.hide_location_coverage_panel', true)) {
+        return;
+    }
+
     if (! $pin instanceof PinCode) {
         return;
     }

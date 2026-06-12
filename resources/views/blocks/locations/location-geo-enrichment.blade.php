@@ -55,7 +55,7 @@
             :areas="$coverageAreas"
             :exclude-pincode-ids="[$pin->id]"
             :service="$svc"
-            :title="__('Areas we cover')"
+            :title="__('Areas We Serve')"
             :initial="8"
         />
 

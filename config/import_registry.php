@@ -137,7 +137,7 @@ return [
             'meta_title', 'meta_description', 'focus_keywords', 'secondary_keywords', 'canonical_url', 'robots_index',
             'og_title', 'og_description', 'og_image', 'aeo_question', 'aeo_answer', 'h1', 'h2_lines', 'h3_lines',
             'search_intent', 'ai_context', 'breadcrumb_title', 'faq_pairs', 'schema_type', 'schema_json_override',
-            'featured_image_url', 'icon_url', 'gallery_image_urls', 'image_alt',
+            'featured_image_url', 'icon_url', 'line_icon', 'gallery_image_urls', 'image_alt',
         ],
         'services' => [
             'primary_category_code', 'category_codes', 'service_code', 'title', 'short_summary', 'description',
@@ -154,7 +154,7 @@ return [
             'related_location_pincode', 'location_h1_template', 'location_h2_template', 'location_h3_template',
             'location_intro_template', 'location_description_template', 'location_faq_template', 'location_cta_heading',
             'location_cta_content', 'location_meta_title_template', 'location_meta_description_template',
-            'featured_image_url', 'banner_image_url', 'icon_url', 'gallery_image_urls', 'video_url', 'image_alt',
+            'featured_image_url', 'banner_image_url', 'icon_url', 'line_icon', 'gallery_image_urls', 'video_url', 'image_alt',
         ],
         'sub_services' => [
             'parent_service_code', 'sub_service_code', 'title', 'short_summary', 'description',
@@ -164,7 +164,7 @@ return [
             'show_on_about', 'show_on_contact', 'meta_title', 'meta_description', 'focus_keywords', 'secondary_keywords',
             'canonical_url', 'robots_index', 'og_title', 'og_description', 'og_image', 'h1', 'h2_lines', 'h3_lines',
             'search_intent', 'ai_context', 'faq_pairs', 'schema_type', 'schema_json_override',
-            'featured_image_url', 'icon_url', 'gallery_image_urls', 'image_alt',
+            'featured_image_url', 'icon_url', 'line_icon', 'gallery_image_urls', 'image_alt',
         ],
         'service_defaults' => [
             'service_code', 'location_h1_template', 'location_h2_template', 'location_h3_template',

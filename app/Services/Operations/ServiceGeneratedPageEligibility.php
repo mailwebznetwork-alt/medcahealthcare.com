@@ -33,6 +33,9 @@ final class ServiceGeneratedPageEligibility
         return $category->isListedPublicly() && self::categoryHasGeoCoverage($category);
     }
 
+    /**
+     * Sub-service pages are catalog-driven (publish/visibility), not GEO-matrix pages.
+     */
     public static function subServiceMayHavePages(SubService $sub): bool
     {
         $sub->loadMissing('service');
@@ -41,7 +44,7 @@ final class ServiceGeneratedPageEligibility
             return false;
         }
 
-        return $sub->service === null || self::serviceMayHavePages($sub->service);
+        return $sub->service === null || $sub->service->isListedPublicly();
     }
 
     public static function locationMappingMayExist(Service $service, PinCode $pin): bool

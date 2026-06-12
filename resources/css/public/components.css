@@ -304,10 +304,11 @@
         scroll-snap-align: start;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
         background: var(--medca-surface);
         border: 1px solid var(--medca-border);
         border-radius: 0.75rem;
-        padding: 1.25rem;
+        padding: 0;
         text-decoration: none;
         color: inherit;
         box-shadow: var(--medca-shadow-surface);
@@ -336,6 +337,13 @@
         font-size: 1.1rem;
         font-weight: 700;
         color: var(--medca-navy-accent);
+    }
+
+    .medca-svc-carousel-card__body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        padding: 1.25rem;
     }
 
     .medca-svc-carousel-card p {
@@ -397,9 +405,10 @@
         display: flex;
         flex-direction: column;
         height: 100%;
+        overflow: hidden;
         background: var(--medca-surface);
         border-radius: 1rem;
-        padding: 1.5rem;
+        padding: 0;
         border: 1px solid var(--medca-border);
         text-decoration: none;
         color: inherit;
@@ -417,6 +426,13 @@
         font-size: 1.1rem;
         font-weight: 600;
         color: var(--medca-text-primary);
+    }
+
+    .medca-svc-grid-card__body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        padding: 1.5rem;
     }
 
     .medca-svc-grid-card p {
@@ -908,4 +924,34 @@ body.medca-public-surface .medca-block--style-5 {
 body.medca-public-surface .medca-carousel--style-2 .swiper,
 body.medca-public-surface .medca-carousel--style-2 [data-carousel] {
     gap: var(--medca-carousel-gap, 1.5rem);
+}
+
+/** Catalog list cards — image area only (categories, services, sub-services). */
+.catalog-list-card__media,
+.near-you-category-card__media {
+    width: 100%;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.catalog-list-card__image,
+.near-you-category-card__image {
+    display: block;
+    width: 100%;
+    object-fit: cover;
+    height: 200px;
+}
+
+@media (min-width: 768px) {
+    .catalog-list-card__image,
+    .near-you-category-card__image {
+        height: 240px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .catalog-list-card__image,
+    .near-you-category-card__image {
+        height: 270px;
+    }
 }

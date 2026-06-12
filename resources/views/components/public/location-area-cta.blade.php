@@ -3,6 +3,7 @@
     'content' => null,
 ])
 
+@if (! config('medca.hide_location_neighbourhood_cta', true))
 <section {{ $attributes->merge(['class' => 'rounded-xl border border-medca-primary/20 bg-medca-primary/5 p-6']) }}>
     @if (filled($heading))
         <h2 class="text-lg font-semibold text-slate-900 md:text-xl">{{ $heading }}</h2>
@@ -18,3 +19,4 @@
 
     <x-public.lead-action-bar class="mt-4" />
 </section>
+@endif

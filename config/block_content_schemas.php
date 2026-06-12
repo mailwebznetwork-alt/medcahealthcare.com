@@ -163,7 +163,7 @@ return [
             'trust_bullets' => ['label' => 'Trust bullets (one per line)', 'type' => 'textarea', 'default' => "Doctor-led care plans — not just task-based visits.\nVerified, trained clinicians with regular audits.\nTransparent pricing and clear escalation paths.\nTight 25 km service belt for fast, reliable response."],
         ],
         'locations-coverage' => [
-            'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => 'Areas we cover'],
+            'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => 'Areas We Serve'],
             'footnote' => ['label' => 'Footnote', 'type' => 'text', 'default' => "Don't see your locality? Call us — we extend on request when clinical safety allows."],
         ],
         'hero-careers' => [

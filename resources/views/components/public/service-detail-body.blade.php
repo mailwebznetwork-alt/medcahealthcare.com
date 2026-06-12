@@ -6,6 +6,7 @@
 @php
     use App\Models\Service;
     use App\Services\Public\PublicDisplayNameResolver;
+    use App\Services\Public\CatalogLineIconResolver;
     use App\Support\FaqPairNormalizer;
     use App\Support\ProductCategoryContext;
 
@@ -16,6 +17,7 @@
     $service->loadMissing(['seo', 'faqs', 'pincodes', 'categories', 'subServices' => fn ($q) => $q->publicListing()]);
 
     $displayNames = app(PublicDisplayNameResolver::class);
+    $iconResolver = app(CatalogLineIconResolver::class);
     $isProductCategory = ProductCategoryContext::isService($service);
 
     $normalizeList = static function (mixed $value): array {
@@ -29,7 +31,7 @@
         ));
     };
 
-    $keyBenefits = $normalizeList($service->key_benefits);
+    $keyBenefits = $iconResolver->keyBenefitsFor($service);
     $eligibility = $normalizeList($service->eligibility);
     $processSteps = $normalizeList($service->process_steps);
     $procedures = $normalizeList($service->procedures);
@@ -120,7 +122,12 @@
             <h2 class="medca-svc-detail-heading">{{ __('Key benefits') }}</h2>
             <ul class="medca-svc-detail-benefits">
                 @foreach ($keyBenefits as $benefit)
-                    <li>{{ $benefit }}</li>
+                    <li>
+                        <span class="medca-svc-detail-benefit-icon" aria-hidden="true">
+                            <x-public.line-icon :name="$benefit['icon']" size="sm" />
+                        </span>
+                        <span>{{ $benefit['label'] }}</span>
+                    </li>
                 @endforeach
             </ul>
         </section>
@@ -195,11 +202,12 @@
             <ul class="medca-svc-detail-subs">
                 @foreach ($subServices as $sub)
                     <li>
-                        <a href="{{ route('public.services.sub', [$service->service_code, $sub->sub_service_code]) }}" class="medca-svc-detail-sub-card">
-                            <span class="medca-svc-detail-sub-title">{{ $displayNames->subServiceHeadline($sub) }}</span>
-                            @if (filled($sub->short_summary))
-                                <span class="medca-svc-detail-sub-summary">{{ \Illuminate\Support\Str::limit(strip_tags($sub->short_summary), 120) }}</span>
-                            @endif
+                        <a href="{{ route('public.services.sub', [$service->service_code, $sub->sub_service_code]) }}" class="medca-svc-detail-sub-card group">
+                            <span class="medca-svc-detail-sub-icon" aria-hidden="true">
+                                <x-public.line-icon :model="$sub" size="sm" />
+                            </span>
+                            <span class="medca-svc-detail-sub-title group-hover:text-medca-primary">{{ $displayNames->subServiceHeadline($sub) }}</span>
+                            <x-public.catalog-card-summary :model="$sub" class="medca-svc-detail-sub-summary" />
                         </a>
                     </li>
                 @endforeach

@@ -11,6 +11,7 @@ use App\Services\Discovery\FeaturedContentEngine;
 use App\Services\Discovery\HealthcareDiscoveryEngine;
 use App\Services\Discovery\RelatedContentEngine;
 use App\Services\Operations\CategoryPageProvisioner;
+use App\Services\Operations\ServiceGeneratedPageEligibility;
 use App\Services\Operations\SubServicePageProvisioner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -65,6 +66,94 @@ it('generates sub service page and registers in page registry', function () {
     expect($page->page_category?->value)->toBe('sub_service')
         ->and($sub->fresh()->page_id)->toBe($page->id)
         ->and(PageRegistry::query()->where('entity_type', 'sub_service')->exists())->toBeTrue();
+});
+
+it('generates sub-service pages without parent service pincode coverage', function () {
+    $service = Service::factory()->create([
+        'service_code' => 'no-geo-parent',
+        'publish_status' => 'published',
+        'visibility' => 'public',
+        'is_active' => true,
+    ]);
+
+    $sub = SubService::query()->create([
+        'service_id' => $service->id,
+        'sub_service_code' => 'standalone-sub',
+        'title' => 'Standalone Sub',
+        'description' => 'Available without GEO matrix.',
+        'publish_status' => 'published',
+        'visibility' => 'public',
+        'is_active' => true,
+    ]);
+
+    $page = app(SubServicePageProvisioner::class)->syncFromSubService($sub->fresh());
+
+    expect($page->page_category?->value)->toBe('sub_service')
+        ->and($sub->fresh()->page_id)->toBe($page->id)
+        ->and(ServiceGeneratedPageEligibility::subServiceMayHavePages($sub))->toBeTrue()
+        ->and(ServiceGeneratedPageEligibility::serviceMayHavePages($service))->toBeFalse();
+});
+
+it('relinks an orphan sub-service page without running full sync on every request', function () {
+    $service = Service::factory()->create([
+        'service_code' => 'parent-for-sub',
+        'publish_status' => 'published',
+        'visibility' => 'public',
+        'is_active' => true,
+    ]);
+
+    $sub = SubService::withoutEvents(function () use ($service) {
+        return SubService::query()->create([
+            'service_id' => $service->id,
+            'sub_service_code' => 'orphan-sub',
+            'title' => 'Orphan Sub',
+            'publish_status' => 'published',
+            'visibility' => 'public',
+            'is_active' => true,
+        ]);
+    });
+
+    $page = Page::query()->create([
+        'title' => $sub->title,
+        'slug' => 'service-parent-for-sub-sub-orphan-sub',
+        'content' => (string) config('phase2_discovery.sub_service_page_content'),
+        'is_active' => true,
+        'page_source' => 'generated',
+        'page_category' => 'sub_service',
+    ]);
+
+    expect($sub->fresh()->page_id)->toBeNull();
+
+    $relinked = app(SubServicePageProvisioner::class)->relinkOwnedPage($sub->fresh());
+
+    expect($relinked?->id)->toBe($page->id)
+        ->and($sub->fresh()->page_id)->toBe($page->id);
+});
+
+it('serves sub-service URLs with uppercase catalog codes', function () {
+    $service = Service::factory()->create([
+        'service_code' => 'SRV-elderly-care',
+        'publish_status' => 'published',
+        'visibility' => 'public',
+        'is_active' => true,
+    ]);
+
+    $sub = SubService::withoutEvents(function () use ($service) {
+        return SubService::query()->create([
+            'service_id' => $service->id,
+            'sub_service_code' => 'SUB-elderly-care-feeding-assistance',
+            'title' => 'Feeding Assistance',
+            'publish_status' => 'published',
+            'visibility' => 'public',
+            'is_active' => true,
+        ]);
+    });
+
+    app(SubServicePageProvisioner::class)->syncFromSubService($sub->fresh(['service']));
+
+    $this->get('/services/SRV-elderly-care/sub/SUB-elderly-care-feeding-assistance')
+        ->assertSuccessful()
+        ->assertSee('Feeding Assistance', false);
 });
 
 it('discovers category service hierarchy from database', function () {
@@ -129,4 +218,32 @@ it('surfaces featured services from database flags', function () {
     $featured = app(FeaturedContentEngine::class)->featuredServices('homepage');
 
     expect($featured)->toHaveCount(1);
+});
+
+it('relinks an orphan category page without running full sync on every request', function () {
+    $category = ServiceCategory::query()->create([
+        'name' => 'Home Nursing',
+        'code' => 'cat-home-nursing-services',
+        'is_active' => true,
+    ]);
+
+    $page = Page::query()->create([
+        'title' => $category->name,
+        'slug' => 'category-cat-home-nursing-services',
+        'content' => (string) config('phase2_discovery.category_page_content'),
+        'is_active' => true,
+        'page_source' => 'generated',
+        'page_category' => 'category',
+    ]);
+
+    expect($category->fresh()->page_id)->toBeNull();
+
+    $relinked = app(CategoryPageProvisioner::class)->relinkOwnedPage($category->fresh());
+
+    expect($relinked?->id)->toBe($page->id)
+        ->and($category->fresh()->page_id)->toBe($page->id);
+
+    $this->get(route('public.service-categories.show', $category->code))
+        ->assertSuccessful()
+        ->assertSee('Home Nursing', false);
 });

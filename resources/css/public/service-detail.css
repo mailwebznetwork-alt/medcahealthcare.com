@@ -14,7 +14,7 @@
         @apply max-w-none;
     }
 
-    .medca-service-detail .medca-service-prose :is(img, video, iframe, svg) {
+    .medca-service-detail .medca-service-prose :is(img, video, iframe, svg:not(.medca-line-icon)) {
         @apply h-auto max-w-full rounded-lg;
     }
 

@@ -8,20 +8,19 @@
 
     $isProductCategory = ProductCategoryContext::isCategory($category);
 
-    $category->loadMissing(['services.pincodes']);
-    $areas = $category->services
-        ->flatMap(fn (\App\Models\Service $service) => $service->pincodes)
-        ->unique('id')
-        ->sortBy('area_name')
-        ->values();
+    $areas = $category->pincodes()
+        ->where('pin_codes.is_active', true)
+        ->orderBy('pin_codes.area_name')
+        ->orderBy('pin_codes.pincode')
+        ->get();
 @endphp
 
 @if ($areas->isNotEmpty())
-    <x-public.section>
+    <x-public.section class="!pb-4 md:!pb-6">
         <x-public.areas-served-grid
             :areas="$areas"
             :category="$category"
-            :title="__('Areas we cover')"
+            :title="__('Areas We Serve')"
             :subtitle="$isProductCategory
                 ? __('Bangalore neighbourhoods where :category is available.', ['category' => $category->name])
                 : __('Bangalore neighbourhoods where :category services are available.', ['category' => $category->name])"

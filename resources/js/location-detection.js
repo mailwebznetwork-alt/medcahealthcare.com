@@ -14,8 +14,8 @@ function postJson(url, payload) {
 }
 
 export function bootLocationDetection() {
-    window.addEventListener('open-pincode-modal', () => {
-        const contextPath = window.location.pathname || '/';
+    window.addEventListener('open-pincode-modal', (event) => {
+        const contextPath = event.detail?.contextPath || window.location.pathname || '/';
         window.Livewire?.dispatch('open-pincode-modal', { contextPath });
     });
 

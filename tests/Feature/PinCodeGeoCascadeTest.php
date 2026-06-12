@@ -50,11 +50,11 @@ it('removes all generated catalog pages when every pincode is deleted', function
     app(CatalogGeoCoverageEnforcer::class)->enforceAfterGeoRemoval();
 
     expect(PinCode::query()->count())->toBe(0)
-        ->and(Page::query()->where('page_source', 'generated')->count())->toBe(0)
+        ->and(Page::query()->where('page_source', 'generated')->where('page_category', '!=', 'sub_service')->count())->toBe(0)
+        ->and(Page::query()->where('page_category', 'sub_service')->where('page_source', 'generated')->count())->toBe(1)
         ->and(Page::query()->where('page_source', 'manual')->count())->toBe(1)
         ->and(Page::query()->where('slug', 'manual-only-page')->exists())->toBeTrue()
-        ->and(\App\Models\PageRegistry::count())->toBe(1)
-        ->and(\App\Models\PageRegistry::where('source', 'planned')->count())->toBe(0);
+        ->and($sub->fresh()->page_id)->not->toBeNull();
 });
 
 it('blocks generated service pages when service has no active pincode coverage', function () {

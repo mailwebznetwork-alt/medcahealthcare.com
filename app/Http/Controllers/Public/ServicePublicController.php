@@ -127,7 +127,8 @@ class ServicePublicController extends Controller
 
         app(ServiceContextCollector::class)->register($service);
 
-        $detailPage = $this->detailPageResolver->resolveFor($service);
+        $detailPage = $this->detailPageResolver->resolveFor($service)
+            ?? $this->detailPageProvisioner->relinkOwnedPage($service);
 
         if ($detailPage === null) {
             try {
@@ -192,13 +193,8 @@ class ServicePublicController extends Controller
 
     private function renderSubServiceDetail(Request $request, Service $service, SubService $sub): View
     {
-        $pincode = $this->location->currentPincode();
-        if ($pincode !== null && ! $service->isAvailableInPincode($pincode)) {
-            abort(404);
-        }
-
         $sub->loadMissing(['seo', 'faqs', 'service']);
-        $page = $sub->linkedPage;
+        $page = $sub->linkedPage ?? $this->subServicePageProvisioner->relinkOwnedPage($sub);
 
         if ($page === null && config('phase2_discovery.auto_sync_sub_service_pages', true)) {
             try {

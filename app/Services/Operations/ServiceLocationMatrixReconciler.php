@@ -5,6 +5,7 @@ namespace App\Services\Operations;
 use App\Models\Service;
 use App\Models\ServiceLocationPage;
 use App\Services\Governance\DownstreamArtifactPurger;
+use App\Services\Governance\UniversalPageRegistry;
 use App\Services\Growth\SitemapRegenerationDispatcher;
 use App\Services\Import\ImportSideEffectsGate;
 use Illuminate\Support\Collection;
@@ -17,6 +18,7 @@ class ServiceLocationMatrixReconciler
     public function __construct(
         private readonly ServiceLocationPageProvisioner $locationProvisioner,
         private readonly InternalLinkRefreshDispatcher $linkDispatcher,
+        private readonly UniversalPageRegistry $pageRegistry,
     ) {}
 
     /**
@@ -30,7 +32,7 @@ class ServiceLocationMatrixReconciler
      *   issues: list<string>
      * }
      */
-    public function reconcile(?Service $onlyService = null, bool $purgeCatalogOrphans = true, bool $refreshExisting = false): array
+    public function reconcile(?Service $onlyService = null, bool $purgeCatalogOrphans = true, bool $refreshExisting = false, bool $syncRegistry = true): array
     {
         $report = [
             'services_processed' => 0,
@@ -59,16 +61,21 @@ class ServiceLocationMatrixReconciler
                     $this->linkDispatcher->dispatchForService($service->id);
                 }
 
-                $mappings = ServiceLocationPage::query()
-                    ->where('service_id', $service->id)
-                    ->with(['page', 'service', 'pincode'])
-                    ->get();
+                if (! app(ImportSideEffectsGate::class)->suppressed()) {
+                    $mappings = ServiceLocationPage::query()
+                        ->where('service_id', $service->id)
+                        ->with(['page', 'service', 'pincode'])
+                        ->get();
 
-                foreach ($mappings as $mapping) {
-                    if ($mapping->isPubliclyIndexable()) {
-                        $report['indexable_count']++;
-                        $report['sitemap_eligible']++;
+                    foreach ($mappings as $mapping) {
+                        if ($mapping->isPubliclyIndexable()) {
+                            $report['indexable_count']++;
+                            $report['sitemap_eligible']++;
+                        }
                     }
+                } else {
+                    $report['indexable_count'] += $syncResult['created'] + $syncResult['updated'];
+                    $report['sitemap_eligible'] += $syncResult['created'] + $syncResult['updated'];
                 }
 
                 $pivotPinIds = $service->pincodes->pluck('id')->all();
@@ -88,6 +95,7 @@ class ServiceLocationMatrixReconciler
 
         if ($bulkMode) {
             app(ImportSideEffectsGate::class)->run($run);
+            ServiceLocationPageProvisioner::resetBulkOptimizations();
             app(SitemapRegenerationDispatcher::class)->dispatch();
             foreach ($services as $service) {
                 $this->linkDispatcher->dispatchForService($service->id, includePeers: false);
@@ -98,6 +106,10 @@ class ServiceLocationMatrixReconciler
 
         if ($purgeCatalogOrphans) {
             app(DownstreamArtifactPurger::class)->purgeAllCatalogOrphans();
+        }
+
+        if ($syncRegistry && $bulkMode) {
+            $this->pageRegistry->syncAll();
         }
 
         return $report;
@@ -135,7 +147,7 @@ class ServiceLocationMatrixReconciler
 
         $merged = app(ImportSideEffectsGate::class)->run(function () use ($batch, $merged, $refreshExisting): array {
             foreach ($batch as $service) {
-                $partial = $this->reconcile($service, purgeCatalogOrphans: false, refreshExisting: $refreshExisting);
+                $partial = $this->reconcile($service, purgeCatalogOrphans: false, refreshExisting: $refreshExisting, syncRegistry: false);
                 foreach (array_keys($merged) as $key) {
                     if ($key === 'issues') {
                         $merged['issues'] = array_merge($merged['issues'], $partial['issues']);
@@ -149,6 +161,8 @@ class ServiceLocationMatrixReconciler
 
             return $merged;
         });
+
+        ServiceLocationPageProvisioner::resetBulkOptimizations();
 
         if (count($batch) > 0) {
             app(SitemapRegenerationDispatcher::class)->dispatch();

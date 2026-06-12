@@ -44,6 +44,7 @@ use Illuminate\Support\Str;
     'featured_media_id',
     'icon',
     'icon_media_id',
+    'line_icon',
     'gallery',
     'gallery_media_ids',
     'gallery_meta',

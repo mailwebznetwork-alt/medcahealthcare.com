@@ -14,6 +14,7 @@ use App\Services\Discovery\Expansion\SchemaExpansionEngine;
 use App\Services\Discovery\Expansion\SeoExpansionEngine;
 use App\Services\Discovery\RelatedContentEngine;
 use App\Services\Governance\UniversalPageRegistry;
+use App\Services\Import\ImportSideEffectsGate;
 use App\Support\ServicePageOverrides;
 
 class SubServicePageProvisioner
@@ -49,70 +50,101 @@ class SubServicePageProvisioner
         );
     }
 
-    public function syncFromSubService(SubService $sub): Page
+    public function resolveOwnedPage(SubService $sub): ?Page
     {
-        $sub->loadMissing(['seo', 'faqs', 'schema', 'service']);
+        return $this->findOwnedPage($sub);
+    }
 
-        if (! ServiceGeneratedPageEligibility::subServiceMayHavePages($sub)) {
-            $this->deleteOwnedPage($sub);
-
-            throw new \RuntimeException("Sub-service is not eligible for generated pages: {$sub->sub_service_code}");
-        }
-
-        $this->syncStarterBlocks();
-
+    /**
+     * Link an existing generated page without running the full sync pipeline.
+     */
+    public function relinkOwnedPage(SubService $sub): ?Page
+    {
         $page = $this->findOwnedPage($sub);
 
         if ($page === null) {
-            $page = Page::query()->create([
-                'title' => $sub->title,
-                'slug' => $this->uniqueSlug($this->suggestedSlug($sub)),
-                'content' => (string) config('phase2_discovery.sub_service_page_content'),
-                'is_active' => true,
-                'layout_mode' => PageLayoutMode::Canvas,
-                'page_category' => PageCategory::SubService,
-                'page_source' => 'generated',
-                'registry_owner' => 'operations_sub_service',
-            ]);
-        } else {
-            $attributes = ServicePageOverrides::filterAutomatedAttributes($page, [
-                'title' => $sub->title,
-                'slug' => $this->uniqueSlug($this->suggestedSlug($sub), $page->id),
-                'is_active' => true,
-                'page_category' => PageCategory::SubService,
-            ]);
-
-            if ($attributes !== []) {
-                $page->update($attributes);
-            }
+            return null;
         }
 
         if ($sub->page_id !== $page->id) {
             $sub->forceFill(['page_id' => $page->id])->saveQuietly();
         }
 
-        $seo = $this->seoExpansion->forSubServicePage($sub, $page);
-        $aeo = $this->aeoExpansion->forSubServicePage($sub, $page);
-        $schema = $this->schemaExpansion->forSubService($sub);
-        $ai = $this->aiDiscoverability->scoreSubService($sub);
+        return $page;
+    }
 
-        $expansion = ServicePageOverrides::filterAutomatedAttributes($page, array_merge($seo, $aeo, []));
+    public function syncFromSubService(SubService $sub): Page
+    {
+        return app(ImportSideEffectsGate::class)->run(function () use ($sub): Page {
+            $sub->loadMissing(['seo', 'faqs', 'schema', 'service']);
 
-        if ($page->schema_json === null) {
-            $expansion['schema_json'] = $schema;
-            $expansion['schema_type'] = 'SubServiceGraph';
-        }
+            if (! ServiceGeneratedPageEligibility::subServiceMayHavePages($sub)) {
+                $this->deleteOwnedPage($sub);
 
-        if ($expansion !== []) {
-            $page->forceFill($expansion)->saveQuietly();
-        }
+                throw new \RuntimeException("Sub-service is not eligible for generated pages: {$sub->sub_service_code}");
+            }
 
-        $this->syncPageFaqs($sub, $page);
-        $this->categoryResolver->applyToPage($page);
-        $this->relatedContent->persistSubService($sub);
-        $this->pageRegistry->upsertSubServiceEntry($sub->fresh());
+            $this->syncStarterBlocks();
 
-        return $page->fresh();
+            $page = $this->findOwnedPage($sub);
+
+            if ($page === null) {
+                $page = Page::query()->create([
+                    'title' => $sub->title,
+                    'slug' => $this->uniqueSlug($this->suggestedSlug($sub)),
+                    'content' => (string) config('phase2_discovery.sub_service_page_content'),
+                    'is_active' => true,
+                    'layout_mode' => PageLayoutMode::Canvas,
+                    'page_category' => PageCategory::SubService,
+                    'page_source' => 'generated',
+                    'registry_owner' => 'operations_sub_service',
+                ]);
+            } else {
+                $attributes = ServicePageOverrides::filterAutomatedAttributes($page, [
+                    'title' => $sub->title,
+                    'slug' => $this->uniqueSlug($this->suggestedSlug($sub), $page->id),
+                    'is_active' => true,
+                    'page_category' => PageCategory::SubService,
+                ]);
+
+                if ($attributes !== []) {
+                    $page->forceFill($attributes)->saveQuietly();
+                }
+            }
+
+            if ($sub->page_id !== $page->id) {
+                $sub->forceFill(['page_id' => $page->id])->saveQuietly();
+            }
+
+            $seo = $this->seoExpansion->forSubServicePage($sub, $page);
+            $aeo = $this->aeoExpansion->forSubServicePage($sub, $page);
+            $schema = $this->schemaExpansion->forSubService($sub);
+            $ai = $this->aiDiscoverability->scoreSubService($sub);
+
+            $expansion = ServicePageOverrides::filterAutomatedAttributes($page, array_merge($seo, $aeo, []));
+
+            if ($page->schema_json === null) {
+                $expansion['schema_json'] = $schema;
+                $expansion['schema_type'] = 'SubServiceGraph';
+            }
+
+            if ($expansion !== []) {
+                $page->forceFill($expansion)->saveQuietly();
+            }
+
+            $this->syncPageFaqs($sub, $page);
+            $this->categoryResolver->applyToPage($page);
+            $this->relatedContent->persistSubService($sub);
+            $this->pageRegistry->upsertSubServiceEntry($sub->fresh());
+
+            if ($sub->seo !== null) {
+                $sub->seo->forceFill([
+                    'ai_discovery_score' => $ai['score'],
+                ])->saveQuietly();
+            }
+
+            return $page->fresh();
+        });
     }
 
     public function deleteOwnedPage(SubService $sub): void

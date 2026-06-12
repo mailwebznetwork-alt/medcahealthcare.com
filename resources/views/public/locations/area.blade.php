@@ -47,7 +47,7 @@
                 :exclude-pincode-ids="[$pin->id]"
                 :category="$category ?? null"
                 :service="$contextService ?? null"
-                :title="__('Areas we cover')"
+                :title="__('Areas We Serve')"
                 :initial="8"
             />
 

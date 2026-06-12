@@ -15,6 +15,7 @@ use App\Services\Discovery\Expansion\SchemaExpansionEngine;
 use App\Services\Discovery\Expansion\SeoExpansionEngine;
 use App\Services\Discovery\RelatedContentEngine;
 use App\Services\Governance\UniversalPageRegistry;
+use App\Services\Import\ImportSideEffectsGate;
 use App\Support\ServicePageOverrides;
 
 class CategoryPageProvisioner
@@ -51,81 +52,106 @@ class CategoryPageProvisioner
         return str_replace('{code}', $category->publicSlug(), $pattern);
     }
 
-    public function syncFromCategory(ServiceCategory $category): Page
+    public function resolveOwnedPage(ServiceCategory $category): ?Page
     {
-        $category->loadMissing(['seo', 'faqs', 'schema']);
+        return $this->findOwnedPage($category);
+    }
 
-        if (! ServiceGeneratedPageEligibility::categoryMayHavePages($category)) {
-            $this->deleteOwnedPage($category);
-
-            throw new \RuntimeException("Category is not eligible for generated pages: {$category->code}");
-        }
-
-        $this->syncStarterBlocks();
-
+    /**
+     * Link an existing generated page without running the full sync pipeline.
+     */
+    public function relinkOwnedPage(ServiceCategory $category): ?Page
+    {
         $page = $this->findOwnedPage($category);
 
         if ($page === null) {
-            $page = Page::query()->create([
-                'title' => $category->name,
-                'slug' => $this->uniqueSlug($this->suggestedSlug($category)),
-                'content' => (string) config('phase2_discovery.category_page_content'),
-                'is_active' => true,
-                'layout_mode' => PageLayoutMode::Canvas,
-                'page_category' => PageCategory::Category,
-                'page_source' => 'generated',
-                'registry_owner' => 'operations_category',
-            ]);
-        } else {
-            $attributes = ServicePageOverrides::filterAutomatedAttributes($page, [
-                'title' => $category->name,
-                'slug' => $this->uniqueSlug($this->suggestedSlug($category), $page->id),
-                'is_active' => true,
-                'page_category' => PageCategory::Category,
-            ]);
-
-            if ($attributes !== []) {
-                $page->update($attributes);
-            }
+            return null;
         }
 
         if ($category->page_id !== $page->id) {
             $category->forceFill(['page_id' => $page->id])->saveQuietly();
         }
 
-        $seo = $this->seoExpansion->forCategoryPage($category, $page);
-        $aeo = $this->aeoExpansion->forCategoryPage($category, $page);
-        $schema = $this->schemaExpansion->forCategory($category);
-        $ai = $this->aiDiscoverability->scoreCategory($category);
+        return $page;
+    }
 
-        $expansion = ServicePageOverrides::filterAutomatedAttributes($page, array_merge($seo, $aeo, [
-            'entity_tags' => $category->seo?->entity_tags ?: $this->geoExpansion->signalsForCategory($category),
-            'keywords' => is_array($category->seo?->focus_keywords)
-                ? implode(', ', $category->seo->focus_keywords)
-                : null,
-        ]));
+    public function syncFromCategory(ServiceCategory $category): Page
+    {
+        return app(ImportSideEffectsGate::class)->run(function () use ($category): Page {
+            $category->loadMissing(['seo', 'faqs', 'schema']);
 
-        if ($page->schema_json === null) {
-            $expansion['schema_json'] = $schema;
-            $expansion['schema_type'] = 'CategoryDiscoveryGraph';
-        }
+            if (! ServiceGeneratedPageEligibility::categoryMayHavePages($category)) {
+                $this->deleteOwnedPage($category);
 
-        if ($expansion !== []) {
-            $page->forceFill($expansion)->saveQuietly();
-        }
+                throw new \RuntimeException("Category is not eligible for generated pages: {$category->code}");
+            }
 
-        $this->syncPageFaqs($category, $page);
-        $this->categoryResolver->applyToPage($page);
-        $this->relatedContent->persistCategory($category);
-        $this->pageRegistry->upsertCategoryEntry($category->fresh());
+            $this->syncStarterBlocks();
 
-        if ($category->seo !== null) {
-            $category->seo->forceFill([
-                'ai_discovery_score' => $ai['score'],
-            ])->saveQuietly();
-        }
+            $page = $this->findOwnedPage($category);
 
-        return $page->fresh();
+            if ($page === null) {
+                $page = Page::query()->create([
+                    'title' => $category->name,
+                    'slug' => $this->uniqueSlug($this->suggestedSlug($category)),
+                    'content' => (string) config('phase2_discovery.category_page_content'),
+                    'is_active' => true,
+                    'layout_mode' => PageLayoutMode::Canvas,
+                    'page_category' => PageCategory::Category,
+                    'page_source' => 'generated',
+                    'registry_owner' => 'operations_category',
+                ]);
+            } else {
+                $attributes = ServicePageOverrides::filterAutomatedAttributes($page, [
+                    'title' => $category->name,
+                    'slug' => $this->uniqueSlug($this->suggestedSlug($category), $page->id),
+                    'is_active' => true,
+                    'page_category' => PageCategory::Category,
+                ]);
+
+                if ($attributes !== []) {
+                    $page->forceFill($attributes)->saveQuietly();
+                }
+            }
+
+            if ($category->page_id !== $page->id) {
+                $category->forceFill(['page_id' => $page->id])->saveQuietly();
+            }
+
+            $seo = $this->seoExpansion->forCategoryPage($category, $page);
+            $aeo = $this->aeoExpansion->forCategoryPage($category, $page);
+            $schema = $this->schemaExpansion->forCategory($category);
+            $ai = $this->aiDiscoverability->scoreCategory($category);
+
+            $expansion = ServicePageOverrides::filterAutomatedAttributes($page, array_merge($seo, $aeo, [
+                'entity_tags' => $category->seo?->entity_tags ?: $this->geoExpansion->signalsForCategory($category),
+                'keywords' => is_array($category->seo?->focus_keywords)
+                    ? implode(', ', $category->seo->focus_keywords)
+                    : null,
+            ]));
+
+            if ($page->schema_json === null) {
+                $expansion['schema_json'] = $schema;
+                $expansion['schema_type'] = 'CategoryDiscoveryGraph';
+            }
+
+            if ($expansion !== []) {
+                $page->forceFill($expansion)->saveQuietly();
+            }
+
+            $this->syncPageFaqs($category, $page);
+            $this->categoryResolver->applyToPage($page);
+            $this->relatedContent->persistCategory($category);
+            $this->pageRegistry->upsertCategoryEntry($category->fresh());
+
+            if ($category->seo !== null) {
+                $category->seo->forceFill([
+                    'ai_discovery_score' => $ai['score'],
+                ])->saveQuietly();
+            }
+
+            return $page->fresh();
+        });
     }
 
     public function deleteOwnedPage(ServiceCategory $category): void

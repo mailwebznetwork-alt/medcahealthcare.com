@@ -4,6 +4,8 @@ namespace App\Observers;
 
 use App\Models\PinCode;
 use App\Services\Governance\AdminDeletionGuard;
+use App\Services\Governance\UniversalPageRegistry;
+use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Operations\CatalogGeoCoverageEnforcer;
 use App\Services\Operations\InternalLinkRefreshDispatcher;
 use App\Services\Operations\ServiceLocationPageProvisioner;
@@ -15,6 +17,7 @@ class PinCodeObserver
         private readonly ServiceLocationPageProvisioner $locationPageProvisioner,
         private readonly AdminDeletionGuard $deletionGuard,
         private readonly CatalogGeoCoverageEnforcer $geoCoverageEnforcer,
+        private readonly UniversalPageRegistry $pageRegistry,
     ) {}
 
     public function saved(PinCode $pinCode): void
@@ -27,8 +30,13 @@ class PinCodeObserver
             return;
         }
 
+        if (app(ImportSideEffectsGate::class)->suppressed()) {
+            return;
+        }
+
         $this->locationPageProvisioner->syncAllForPincode($pinCode);
         $this->refreshMappedServices($pinCode);
+        $this->pageRegistry->syncAll();
     }
 
     public function deleting(PinCode $pinCode): void

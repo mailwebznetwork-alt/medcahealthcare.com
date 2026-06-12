@@ -13,6 +13,7 @@ use App\Models\Service;
 use Illuminate\Support\Collection;
 use App\Services\Governance\AdminAuthorityGuard;
 use App\Services\Governance\AdminDeletionGuard;
+use App\Services\Import\ImportSideEffectsGate;
 use App\Support\ServicePageOverrides;
 
 class ServiceDetailPageProvisioner
@@ -52,66 +53,90 @@ class ServiceDetailPageProvisioner
     }
 
     /**
+     * Link an existing generated page without running the full provision pipeline.
+     */
+    public function relinkOwnedPage(Service $service): ?Page
+    {
+        $page = $this->findPageBySuggestedSlug($service);
+
+        if ($page === null && $service->detail_page_id !== null) {
+            $page = Page::query()->find($service->detail_page_id);
+        }
+
+        if ($page === null) {
+            return null;
+        }
+
+        if ($service->detail_page_id !== $page->id) {
+            $service->forceFill(['detail_page_id' => $page->id])->saveQuietly();
+        }
+
+        return $page;
+    }
+
+    /**
      * Create (or reuse) a canvas Site Architect page for /services/{code} and link the service.
      */
     public function provision(Service $service): Page
     {
-        if (! app(AdminDeletionGuard::class)->canProvisionService($service, $service->service_code, 'ServiceDetailPageProvisioner::provision')) {
-            throw new \RuntimeException("Cannot provision deleted service: {$service->service_code}");
-        }
-
-        if (! ServiceGeneratedPageEligibility::serviceMayHavePages($service)) {
-            $this->deleteOwnedPage($service);
-            if ($service->detail_page_id !== null) {
-                $service->forceFill(['detail_page_id' => null])->saveQuietly();
+        return app(ImportSideEffectsGate::class)->run(function () use ($service): Page {
+            if (! app(AdminDeletionGuard::class)->canProvisionService($service, $service->service_code, 'ServiceDetailPageProvisioner::provision')) {
+                throw new \RuntimeException("Cannot provision deleted service: {$service->service_code}");
             }
 
-            throw new \RuntimeException("Service is not eligible for generated pages: {$service->service_code}");
-        }
+            if (! ServiceGeneratedPageEligibility::serviceMayHavePages($service)) {
+                $this->deleteOwnedPage($service);
+                if ($service->detail_page_id !== null) {
+                    $service->forceFill(['detail_page_id' => null])->saveQuietly();
+                }
 
-        $slug = $this->suggestedSlug($service);
-
-        $page = Page::query()->where('slug', $slug)->first();
-
-        if ($page === null) {
-            $this->ensureStarterBlocks();
-
-            $page = Page::query()->create([
-                'title' => $service->title,
-                'slug' => $slug,
-                'content' => self::DEFAULT_PAGE_CONTENT,
-                'is_active' => true,
-                'layout_mode' => PageLayoutMode::Canvas,
-                'page_category' => PageCategory::Service,
-                'page_source' => 'generated',
-                'registry_owner' => 'operations_service',
-                'meta_title' => $service->seo?->meta_title ?: $service->title,
-            ]);
-        } elseif (! ServicePageOverrides::contentOverride($page)) {
-            $content = trim((string) $page->content);
-
-            if ($content === '' || ! str_contains($content, 'service-detail-hero')) {
-                $page->update(['content' => self::DEFAULT_PAGE_CONTENT]);
-            } elseif (! str_contains($content, 'service-detail-body')) {
-                $page->update(['content' => $this->injectDetailBodyBlock($content)]);
+                throw new \RuntimeException("Service is not eligible for generated pages: {$service->service_code}");
             }
-        }
 
-        if (
-            ! ServicePageOverrides::titleOverride($page)
-            && $page->title === $service->title.' — '.__('Service detail')
-        ) {
-            $page->update(['title' => $service->title]);
-        }
+            $slug = $this->suggestedSlug($service);
 
-        if ($service->detail_page_id !== $page->id) {
-            $service->forceFill(['detail_page_id' => $page->id])->save();
-        }
+            $page = Page::query()->where('slug', $slug)->first();
 
-        $service->loadMissing(['seo', 'faqs', 'schema']);
-        $this->seoSync->migrateFromServiceIfEmpty($service, $page);
+            if ($page === null) {
+                $this->ensureStarterBlocks();
 
-        return $page->fresh(['faqs']);
+                $page = Page::query()->create([
+                    'title' => $service->title,
+                    'slug' => $slug,
+                    'content' => self::DEFAULT_PAGE_CONTENT,
+                    'is_active' => true,
+                    'layout_mode' => PageLayoutMode::Canvas,
+                    'page_category' => PageCategory::Service,
+                    'page_source' => 'generated',
+                    'registry_owner' => 'operations_service',
+                    'meta_title' => $service->seo?->meta_title ?: $service->title,
+                ]);
+            } elseif (! ServicePageOverrides::contentOverride($page)) {
+                $content = trim((string) $page->content);
+
+                if ($content === '' || ! str_contains($content, 'service-detail-hero')) {
+                    $page->forceFill(['content' => self::DEFAULT_PAGE_CONTENT])->saveQuietly();
+                } elseif (! str_contains($content, 'service-detail-body')) {
+                    $page->forceFill(['content' => $this->injectDetailBodyBlock($content)])->saveQuietly();
+                }
+            }
+
+            if (
+                ! ServicePageOverrides::titleOverride($page)
+                && $page->title === $service->title.' — '.__('Service detail')
+            ) {
+                $page->forceFill(['title' => $service->title])->saveQuietly();
+            }
+
+            if ($service->detail_page_id !== $page->id) {
+                $service->forceFill(['detail_page_id' => $page->id])->saveQuietly();
+            }
+
+            $service->loadMissing(['seo', 'faqs', 'schema']);
+            $this->seoSync->migrateFromServiceIfEmpty($service, $page);
+
+            return $page->fresh(['faqs']);
+        });
     }
 
     /**
@@ -119,47 +144,49 @@ class ServiceDetailPageProvisioner
      */
     public function syncFromService(Service $service, ?string $previousServiceCode = null): Page
     {
-        $service->loadMissing(['seo', 'faqs', 'schema']);
+        return app(ImportSideEffectsGate::class)->run(function () use ($service, $previousServiceCode): Page {
+            $service->loadMissing(['seo', 'faqs', 'schema']);
 
-        if (! ServiceGeneratedPageEligibility::serviceMayHavePages($service)) {
-            $this->deleteOwnedPage($service);
-            if ($service->detail_page_id !== null) {
-                $service->forceFill(['detail_page_id' => null])->saveQuietly();
+            if (! ServiceGeneratedPageEligibility::serviceMayHavePages($service)) {
+                $this->deleteOwnedPage($service);
+                if ($service->detail_page_id !== null) {
+                    $service->forceFill(['detail_page_id' => null])->saveQuietly();
+                }
+
+                throw new \RuntimeException("Service is not eligible for generated pages: {$service->service_code}");
             }
 
-            throw new \RuntimeException("Service is not eligible for generated pages: {$service->service_code}");
-        }
+            $page = $this->findOwnedPage($service, $previousServiceCode);
 
-        $page = $this->findOwnedPage($service, $previousServiceCode);
+            if ($page === null) {
+                return $this->provision($service);
+            }
 
-        if ($page === null) {
-            return $this->provision($service);
-        }
+            $targetSlug = $this->uniquePageSlug($this->suggestedSlug($service), $page->id);
 
-        $targetSlug = $this->uniquePageSlug($this->suggestedSlug($service), $page->id);
+            $attributes = ServicePageOverrides::filterAutomatedAttributes($page, [
+                'title' => $service->title,
+                'slug' => $targetSlug,
+                'page_category' => PageCategory::Service,
+                'is_active' => true,
+                'meta_title' => $service->seo?->meta_title ?: $service->title,
+                'meta_description' => $service->seo?->meta_description,
+                'h1' => $service->seo?->h1 ?: $service->title,
+                'canonical_url' => $service->seo?->canonical_url ?: $service->publicUrl(),
+            ]);
 
-        $attributes = ServicePageOverrides::filterAutomatedAttributes($page, [
-            'title' => $service->title,
-            'slug' => $targetSlug,
-            'page_category' => PageCategory::Service,
-            'is_active' => true,
-            'meta_title' => $service->seo?->meta_title ?: $service->title,
-            'meta_description' => $service->seo?->meta_description,
-            'h1' => $service->seo?->h1 ?: $service->title,
-            'canonical_url' => $service->seo?->canonical_url ?: $service->publicUrl(),
-        ]);
+            if ($attributes !== []) {
+                $page->forceFill($attributes)->saveQuietly();
+            }
 
-        if ($attributes !== []) {
-            $page->update($attributes);
-        }
+            if ($service->detail_page_id !== $page->id) {
+                $service->forceFill(['detail_page_id' => $page->id])->saveQuietly();
+            }
 
-        if ($service->detail_page_id !== $page->id) {
-            $service->forceFill(['detail_page_id' => $page->id])->save();
-        }
+            $this->seoSync->migrateFromServiceIfEmpty($service, $page->fresh());
 
-        $this->seoSync->migrateFromServiceIfEmpty($service, $page->fresh());
-
-        return $page->fresh();
+            return $page->fresh();
+        });
     }
 
     /**

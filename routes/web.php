@@ -121,7 +121,7 @@ Route::get('/services/{code}/{city}/{pincode}', [ServicePublicController::class,
 
 Route::get('/services/{code}/sub/{subCode}', [ServicePublicController::class, 'showSubService'])
     ->where('code', '[A-Za-z][A-Za-z0-9_-]*')
-    ->where('subCode', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->where('subCode', '[A-Za-z][A-Za-z0-9_-]*')
     ->name('public.services.sub');
 
 Route::get('/services/{code}/{locationSlug}', [ServicePublicController::class, 'showLocation'])

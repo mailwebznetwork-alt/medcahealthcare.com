@@ -34,13 +34,14 @@
         <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($categories as $category)
                 <li>
-                    <a href="{{ route('public.service-categories.show', $category->code) }}" class="group flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-medca-primary/30 hover:shadow-md">
-                        <span class="text-[10px] font-semibold uppercase tracking-wide text-medca-primary">{{ __('Care category') }}</span>
-                        <h3 class="mt-1 text-base font-semibold text-slate-900 group-hover:text-medca-primary">{{ $displayNames->categoryHeadline($category) }}</h3>
-                        @if (filled($category->description))
-                            <p class="medca-card-body mt-2 flex-1">{{ \Illuminate\Support\Str::limit(strip_tags($category->description), 120) }}</p>
-                        @endif
-                        <span class="mt-4 text-sm font-semibold text-medca-primary">{{ __('View category') }} →</span>
+                    <a href="{{ route('public.service-categories.show', $category->code) }}" class="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:border-medca-primary/30 hover:shadow-md">
+                        <x-public.near-you-category-card-image :category="$category" />
+                        <div class="flex flex-1 flex-col p-5">
+                            <span class="text-[10px] font-semibold uppercase tracking-wide text-medca-primary">{{ __('Care category') }}</span>
+                            <h3 class="mt-1 text-base font-semibold text-slate-900 group-hover:text-medca-primary">{{ $displayNames->categoryHeadline($category) }}</h3>
+                            <x-public.catalog-card-summary :model="$category" />
+                            <span class="mt-4 text-sm font-semibold text-medca-primary">{{ __('View category') }} →</span>
+                        </div>
                     </a>
                 </li>
             @endforeach

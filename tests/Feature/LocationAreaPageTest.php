@@ -47,12 +47,12 @@ it('renders geo location area page with unified layout sections', function () {
         ->assertSee('Healthcare Services in JP Nagar', false)
         ->assertSee('Change Pincode', false)
         ->assertSee('Home Nursing Care', false)
-        ->assertSee('Areas we cover', false)
+        ->assertSee('Areas We Serve', false)
         ->assertSee('Arekere', false)
-        ->assertSee('About JP Nagar healthcare coverage', false)
+        ->assertDontSee('About JP Nagar healthcare coverage', false)
         ->assertSee('Local FAQ', false)
         ->assertSee('Do you cover JP Nagar?', false)
-        ->assertSee('Book care in your neighbourhood', false);
+        ->assertDontSee('Book care in your neighbourhood', false);
 });
 
 it('redirects non-canonical location slugs to the area route slug', function () {
@@ -115,8 +115,8 @@ it('renders service location detail page with shared areas we cover component', 
 
     expect($html)
         ->toContain('data-page-hero="location"')
-        ->toContain('Areas we cover')
-        ->toContain('About JP Nagar healthcare coverage')
-        ->toContain('Book care in your neighbourhood')
+        ->toContain('Areas We Serve')
+        ->not->toContain('About JP Nagar healthcare coverage')
+        ->not->toContain('Book care in your neighbourhood')
         ->not->toContain('Areas served');
 });

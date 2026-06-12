@@ -34,18 +34,22 @@
 @endphp
 
 @if ($relatedCategories !== [] || $relatedSubServices !== [] || $relatedServices !== [] || $relatedLocations !== [] || $relatedPages !== [])
-<section class="mt-12 space-y-8 rounded-xl border border-slate-200 bg-slate-50 p-6 md:p-8">
+<section class="mt-4 space-y-8 rounded-xl border border-slate-200 bg-slate-50 p-6 md:p-8">
     <h2 class="text-xl font-semibold text-slate-900">{{ __('Related') }}</h2>
 
     @if ($relatedCategories !== [])
         <div class="space-y-4">
-            <h3 class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('Related categories') }}</h3>
+            <h3 class="text-sm font-semibold text-slate-700">{{ __('Service Category') }}</h3>
             <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($relatedCategories as $item)
                     <li>
-                        <a href="{{ $item['url'] ?? '#' }}" class="group flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-medca-primary/30 hover:shadow-md">
-                            <span class="text-base font-semibold text-slate-900 group-hover:text-medca-primary">{{ $item['name'] ?? $item['title'] ?? '' }}</span>
-                            <span class="mt-3 text-sm font-semibold text-medca-primary">{{ __('View category') }} →</span>
+                        <a href="{{ $item['url'] ?? '#' }}" class="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:border-medca-primary/30 hover:shadow-md">
+                            <x-public.internal-link-card-image :item="$item" kind="category" />
+                            <div class="flex flex-1 flex-col p-5">
+                                <span class="text-base font-semibold text-slate-900 group-hover:text-medca-primary">{{ $item['name'] ?? $item['title'] ?? '' }}</span>
+                                <x-public.catalog-card-summary :summary="$item['summary'] ?? null" />
+                                <span class="mt-3 text-sm font-semibold text-medca-primary">{{ __('View category') }} →</span>
+                            </div>
                         </a>
                     </li>
                 @endforeach
@@ -55,13 +59,17 @@
 
     @if ($relatedSubServices !== [])
         <div class="space-y-4">
-            <h3 class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('Sub services') }}</h3>
+            <h3 class="text-sm font-semibold text-slate-700">{{ __('Services Included') }}</h3>
             <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($relatedSubServices as $item)
                     <li>
-                        <a href="{{ $item['url'] ?? '#' }}" class="group flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-medca-primary/30 hover:shadow-md">
-                            <span class="text-base font-semibold text-slate-900 group-hover:text-medca-primary">{{ $item['title'] ?? '' }}</span>
-                            <span class="mt-3 text-sm font-semibold text-medca-primary">{{ __('View details') }} →</span>
+                        <a href="{{ $item['url'] ?? '#' }}" class="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:border-medca-primary/30 hover:shadow-md">
+                            <x-public.internal-link-card-image :item="$item" kind="sub_service" />
+                            <div class="flex flex-1 flex-col p-5">
+                                <span class="text-base font-semibold text-slate-900 group-hover:text-medca-primary">{{ $item['title'] ?? '' }}</span>
+                                <x-public.catalog-card-summary :summary="$item['summary'] ?? null" />
+                                <span class="mt-3 text-sm font-semibold text-medca-primary">{{ __('View details') }} →</span>
+                            </div>
                         </a>
                     </li>
                 @endforeach
@@ -71,13 +79,17 @@
 
     @if ($relatedServices !== [])
         <div class="space-y-4">
-            <h3 class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ $isProductCategory ? __('Related products') : __('Related services') }}</h3>
+            <h3 class="text-sm font-semibold text-slate-700">{{ __('Related Care Services') }}</h3>
             <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($relatedServices as $item)
                     <li>
-                        <a href="{{ $item['url'] ?? '#' }}" class="group flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-medca-primary/30 hover:shadow-md">
-                            <span class="text-base font-semibold text-slate-900 group-hover:text-medca-primary">{{ $formatTitle($item['title'] ?? '') }}</span>
-                            <span class="mt-3 text-sm font-semibold text-medca-primary">{{ __('View details') }} →</span>
+                        <a href="{{ $item['url'] ?? '#' }}" class="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:border-medca-primary/30 hover:shadow-md">
+                            <x-public.internal-link-card-image :item="$item" kind="service" />
+                            <div class="flex flex-1 flex-col p-5">
+                                <span class="text-base font-semibold text-slate-900 group-hover:text-medca-primary">{{ $formatTitle($item['title'] ?? '') }}</span>
+                                <x-public.catalog-card-summary :summary="$item['summary'] ?? null" />
+                                <span class="mt-3 text-sm font-semibold text-medca-primary">{{ __('View details') }} →</span>
+                            </div>
                         </a>
                     </li>
                 @endforeach
@@ -87,7 +99,7 @@
 
     @if ($relatedLocations !== [])
         <div class="space-y-4">
-            <h3 class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('Related locations') }}</h3>
+            <h3 class="text-sm font-semibold text-slate-700">{{ __('Areas We Serve') }}</h3>
             <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($relatedLocations as $item)
                     <li>
@@ -103,7 +115,7 @@
 
     @if ($relatedPages !== [])
         <div class="space-y-4">
-            <h3 class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ __('Explore') }}</h3>
+            <h3 class="text-sm font-semibold text-slate-700">{{ __('Explore More') }}</h3>
             <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($relatedPages as $item)
                     <li>

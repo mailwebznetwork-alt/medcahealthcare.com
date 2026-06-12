@@ -37,7 +37,7 @@
         <x-public.breadcrumbs :items="$categoryBreadcrumbItems" />
 
         @if ($siblingCategories->isNotEmpty())
-            <div class="mt-6 flex flex-wrap gap-2" aria-label="{{ __('Related categories') }}">
+            <div class="mt-6 flex flex-wrap gap-2" aria-label="{{ __('Service Category') }}">
                 @foreach ($siblingCategories as $sibling)
                     <a href="{{ route('public.service-categories.show', $sibling->code) }}" class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-700 hover:border-medca-primary/40 hover:text-medca-primary">
                         {{ $displayNames->categoryHeadline($sibling) }}

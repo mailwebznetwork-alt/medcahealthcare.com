@@ -26,6 +26,7 @@ final class ImportCatalogContentMapper
             'price_range' => $row['price_range'] ?? null,
             'featured_image' => $row['featured_image_url'] ?? null,
             'icon' => $row['icon_url'] ?? null,
+            'line_icon' => $row['line_icon'] ?? null,
             'image_alt' => $row['image_alt'] ?? null,
             'target_keywords' => ImportSupport::parseKeywords($row['target_keywords'] ?? null),
             'ai_keywords' => ImportSupport::parseKeywords($row['ai_keywords'] ?? null),

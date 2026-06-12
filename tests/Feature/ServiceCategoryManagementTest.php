@@ -216,7 +216,10 @@ it('persists full catalog master fields when updating a category', function () {
     $category->refresh()->load(['seo', 'faqs', 'schema']);
 
     expect($category->short_summary)->toBe('GP and specialist visits at home.')
-        ->and($category->key_benefits)->toBe(['Convenient', 'Licensed doctors'])
+        ->and($category->key_benefits)->toBe([
+            ['label' => 'Convenient', 'icon' => 'check'],
+            ['label' => 'Licensed doctors', 'icon' => 'check'],
+        ])
         ->and($category->seo?->meta_title)->toBe('Doctor Visits Bangalore')
         ->and($category->seo?->h1)->toBe('Doctor Visits')
         ->and($category->faqs)->toHaveCount(1)

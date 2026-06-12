@@ -203,10 +203,19 @@ class SeoService
 
     public function locationSitemapChunkCount(): int
     {
-        $total = $this->collectLocationPaths()->count();
+        $total = $this->countIndexableLocationPaths();
         $chunk = max(1, (int) config('sitemap.location_chunk_size', 10000));
 
         return max(1, (int) ceil($total / $chunk));
+    }
+
+    public function generateLocationChunkSitemapXml(int $chunk): string
+    {
+        $chunkSize = max(1, (int) config('sitemap.location_chunk_size', 10000));
+        $offset = ($chunk - 1) * $chunkSize;
+        $paths = $this->collectLocationPathsSlice($offset, $chunkSize);
+
+        return $this->buildStandardUrlsetXml($paths);
     }
 
     public function generateStaticPagesSitemapXml(): string
@@ -232,15 +241,6 @@ class SeoService
     public function generateSubservicesSitemapXml(): string
     {
         return $this->buildStandardUrlsetXml($this->collectSubServicePaths());
-    }
-
-    public function generateLocationChunkSitemapXml(int $chunk): string
-    {
-        $chunkSize = max(1, (int) config('sitemap.location_chunk_size', 10000));
-        $offset = ($chunk - 1) * $chunkSize;
-        $paths = $this->collectLocationPaths()->slice($offset, $chunkSize)->values();
-
-        return $this->buildStandardUrlsetXml($paths);
     }
 
     /**
@@ -405,6 +405,62 @@ class SeoService
      */
     protected function collectLocationPaths(): Collection
     {
+        if (config('sitemap.paginated_enabled', true)) {
+            return collect();
+        }
+
+        if (! Schema::hasTable('service_location_pages')) {
+            return collect();
+        }
+
+        $paths = collect();
+        ServiceLocationPage::query()
+            ->whereNotNull('location_slug')
+            ->where('is_indexable', true)
+            ->with([
+                'service:id,service_code,is_active,publish_status,visibility',
+                'page:id,is_active,robots_meta',
+                'pincode:id,pincode',
+            ])
+            ->orderBy('id')
+            ->lazyById(250)
+            ->each(function (ServiceLocationPage $row) use (&$paths): void {
+                if (! $row->isPubliclyIndexable()) {
+                    return;
+                }
+
+                if (config('services_master.public_url_include_pincode', false) && $row->pincode !== null) {
+                    $city = $row->city_slug ?: app(\App\Services\Operations\ServicePublicUrlBuilder::class)->citySlugForPin($row->pincode);
+                    $paths->push('/services/'.$row->service->service_code.'/'.$city.'/'.$row->pincode->pincode);
+
+                    return;
+                }
+
+                $paths->push('/services/'.$row->service->service_code.'/'.$row->location_slug);
+            });
+
+        return $paths->unique()->values();
+    }
+
+    protected function countIndexableLocationPaths(): int
+    {
+        if (! Schema::hasTable('service_location_pages')) {
+            return 0;
+        }
+
+        return ServiceLocationPage::query()
+            ->whereNotNull('location_slug')
+            ->where('is_indexable', true)
+            ->whereHas('service', fn ($query) => $query->publicListing())
+            ->whereHas('page', fn ($query) => $query->where('is_active', true))
+            ->count();
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    protected function collectLocationPathsSlice(int $offset, int $limit): Collection
+    {
         if (! Schema::hasTable('service_location_pages')) {
             return collect();
         }
@@ -412,12 +468,17 @@ class SeoService
         return ServiceLocationPage::query()
             ->whereNotNull('location_slug')
             ->where('is_indexable', true)
-            ->with(['service', 'page', 'pincode'])
+            ->with([
+                'service:id,service_code,is_active,publish_status,visibility',
+                'page:id,is_active,robots_meta',
+                'pincode:id,pincode',
+            ])
+            ->orderBy('id')
+            ->offset($offset)
+            ->limit($limit)
             ->get()
             ->filter(fn (ServiceLocationPage $row): bool => $row->isPubliclyIndexable())
             ->map(function (ServiceLocationPage $row): string {
-                $row->loadMissing(['service', 'pincode']);
-
                 if (config('services_master.public_url_include_pincode', false) && $row->pincode !== null) {
                     $city = $row->city_slug ?: app(\App\Services\Operations\ServicePublicUrlBuilder::class)->citySlugForPin($row->pincode);
 

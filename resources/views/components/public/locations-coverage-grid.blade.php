@@ -1,6 +1,6 @@
 @props([
     'areas' => collect(),
-    'title' => __('Areas we cover'),
+    'title' => __('Areas We Serve'),
     'initial' => 8,
     'excludePincodeIds' => [],
     'category' => null,

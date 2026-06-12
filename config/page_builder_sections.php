@@ -81,7 +81,7 @@ return [
             'preview_key' => 'locations',
         ],
         'locations-coverage' => [
-            'display_name' => 'Areas We Cover',
+            'display_name' => 'Areas We Serve',
             'picker_category' => 'Locations',
             'description' => 'Pin code / locality grid for coverage areas.',
             'preview_key' => 'map',

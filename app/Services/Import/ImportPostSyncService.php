@@ -2,6 +2,7 @@
 
 namespace App\Services\Import;
 
+use App\Services\Operations\CatalogGeoCoverageEnforcer;
 use App\Services\Operations\ServicePincodeAutoMapper;
 use Illuminate\Support\Facades\Artisan;
 
@@ -14,6 +15,7 @@ class ImportPostSyncService
 
     public function __construct(
         private readonly ServicePincodeAutoMapper $autoMapper,
+        private readonly CatalogGeoCoverageEnforcer $geoCoverageEnforcer,
     ) {}
 
     /**
@@ -59,6 +61,11 @@ class ImportPostSyncService
             }
         }
 
+        if ($this->shouldRestoreGeoCatalog($entityKeys)) {
+            $this->geoCoverageEnforcer->enforceAfterGeoRestore();
+            $ran[] = 'catalog_geo_restore';
+        }
+
         return $ran;
     }
 
@@ -72,8 +79,8 @@ class ImportPostSyncService
             'services' => ['services:sync-master', 'medca:sync-page-registry'],
             'sub_services' => ['medca:sync-sub-service-pages', 'medca:sync-page-registry'],
             'mappings' => ['medca:reconcile-service-location-matrix', 'medca:sync-page-registry'],
-            'geo' => ['medca:reconcile-service-location-matrix'],
-            'pincodes' => ['medca:reconcile-service-location-matrix'],
+            'geo' => ['medca:reconcile-service-location-matrix', 'medca:sync-page-registry'],
+            'pincodes' => ['medca:reconcile-service-location-matrix', 'medca:sync-page-registry'],
         ];
 
         return $map[$entityKey] ?? [];
@@ -86,5 +93,13 @@ class ImportPostSyncService
         }
 
         return in_array($entityKey, ['pincodes', 'geo', 'services'], true);
+    }
+
+    /**
+     * @param  list<string>  $entityKeys
+     */
+    private function shouldRestoreGeoCatalog(array $entityKeys): bool
+    {
+        return array_intersect($entityKeys, ['pincodes', 'geo', 'categories']) !== [];
     }
 }

@@ -20,11 +20,12 @@
                 @foreach ($services as $service)
                     <li>
                         <a href="{{ route('public.services.show', $service->service_code) }}" class="medca-svc-grid-card">
-                            <h3>{{ $displayNames->serviceHeadline($service) }}</h3>
-                            @if (filled($service->short_summary))
-                                <p>{{ \Illuminate\Support\Str::limit(strip_tags($service->short_summary), 160) }}</p>
-                            @endif
-                            <span class="link">{{ __('Learn more →') }}</span>
+                            <x-public.catalog-list-card-image :model="$service" />
+                            <span class="medca-svc-grid-card__body">
+                                <h3>{{ $displayNames->serviceHeadline($service) }}</h3>
+                                <x-public.catalog-card-summary :model="$service" :limit="160" />
+                                <span class="link">{{ __('Learn more →') }}</span>
+                            </span>
                         </a>
                     </li>
                 @endforeach

@@ -11,6 +11,7 @@ use App\Services\Discovery\RelatedContentEngine;
 use App\Services\Operations\CategoryPageProvisioner;
 use App\Services\Public\PageRenderContextRegistrar;
 use App\Services\UserLocationService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -42,9 +43,16 @@ class ServiceCategoryPublicController extends Controller
         return view('public.service-categories.index', compact('categories'));
     }
 
-    public function show(Request $request, string $code): View
+    public function show(Request $request, string $code): View|RedirectResponse
     {
         $category = ServiceCategory::findActiveByCode($code);
+
+        if ($category === null && ! str_starts_with($code, 'cat-')) {
+            $prefixed = ServiceCategory::findActiveByCode('cat-'.$code);
+            if ($prefixed !== null) {
+                return redirect()->route('public.service-categories.show', $prefixed->code, 301);
+            }
+        }
 
         abort_if($category === null, 404);
 
@@ -53,7 +61,8 @@ class ServiceCategoryPublicController extends Controller
         $pincode = $this->location->currentPincode();
         $locationRequired = $pincode === null || $request->attributes->get('services_blocked_until_pincode') === true;
 
-        $page = $category->linkedPage;
+        $page = $category->linkedPage ?? $this->categoryPageProvisioner->relinkOwnedPage($category);
+
         if ($page === null && config('phase2_discovery.auto_sync_category_pages', true)) {
             try {
                 $page = $this->categoryPageProvisioner->syncFromCategory($category->fresh());

@@ -32,6 +32,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'featured_media_id',
     'icon',
     'icon_media_id',
+    'line_icon',
     'detail_page_id',
     'gallery',
     'gallery_media_ids',

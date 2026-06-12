@@ -6,11 +6,12 @@ use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Governance\UniversalPageRegistry;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Re-syncs catalog pages after GEO coverage changes (pincode delete/detach).
- * Without active pincodes, generated service/category/sub-service pages are torn down.
+ * Service/category location pages are torn down without GEO; sub-service pages are not GEO-gated.
  */
 final class CatalogGeoCoverageEnforcer
 {
@@ -19,6 +20,7 @@ final class CatalogGeoCoverageEnforcer
         private readonly CategoryMasterOrchestrator $categoryOrchestrator,
         private readonly UniversalPageRegistry $pageRegistry,
         private readonly DownstreamArtifactPurger $purger,
+        private readonly ServiceLocationMatrixReconciler $matrixReconciler,
     ) {}
 
     /**
@@ -49,6 +51,33 @@ final class CatalogGeoCoverageEnforcer
         });
 
         $this->purger->purgeAfterCatalogEntityChange();
+        $this->pageRegistry->syncAll();
+    }
+
+    /**
+     * Full catalog rebuild after GEO is restored (pin import, category GEO save, etc.).
+     */
+    public function enforceAfterGeoRestore(): void
+    {
+        @set_time_limit(0);
+
+        if (class_exists(\App\Console\Commands\PropagateAllCategoryPincodesCommand::class)) {
+            Artisan::call('medca:propagate-all-category-pincodes');
+        }
+
+        ServiceCategory::query()->orderBy('id')->each(function (ServiceCategory $category): void {
+            $this->categoryOrchestrator->sync(
+                $category->fresh(['seo', 'faqs', 'schema', 'pincodes'])
+            );
+        });
+
+        Service::query()->orderBy('id')->each(function (Service $service): void {
+            $this->serviceOrchestrator->sync(
+                $service->fresh(['pincodes', 'seo', 'faqs', 'schema', 'subServices'])
+            );
+        });
+
+        $this->matrixReconciler->reconcile(purgeCatalogOrphans: true, refreshExisting: false);
         $this->pageRegistry->syncAll();
     }
 }

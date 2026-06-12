@@ -52,7 +52,7 @@ it('auto-populates services dropdown from the live catalog', function () {
     expect(collect($categoryNode['children'])->pluck('label'))->toContain('Auto Nav Service');
 
     $serviceNode = collect($categoryNode['children'])->firstWhere('label', 'Auto Nav Service');
-    expect(collect($serviceNode['children'])->pluck('label'))->toContain('Auto Nav Sub Service');
+    expect(collect($serviceNode['children'])->pluck('label'))->not->toContain('Auto Nav Sub Service');
 });
 
 it('renders services header link to the services page when the dropdown has catalog children', function () {

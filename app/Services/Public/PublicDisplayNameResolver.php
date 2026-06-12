@@ -98,6 +98,62 @@ class PublicDisplayNameResolver
         return trim((string) ($sub->seo?->meta_title ?: $sub->title));
     }
 
+    public function serviceCardSummary(Service $service, int $limit = 140): ?string
+    {
+        $service->loadMissing('seo');
+
+        return $this->cardSummaryFromCandidates([
+            $service->short_summary,
+            $service->ai_summary,
+            filled($service->description) ? strip_tags((string) $service->description) : null,
+            $service->seo?->meta_description,
+        ], $limit);
+    }
+
+    public function categoryCardSummary(ServiceCategory $category, int $limit = 140): ?string
+    {
+        $category->loadMissing('seo');
+
+        return $this->cardSummaryFromCandidates([
+            $category->short_summary,
+            filled($category->description) ? strip_tags((string) $category->description) : null,
+            $category->ai_summary,
+            $category->seo?->meta_description,
+        ], $limit);
+    }
+
+    public function subServiceCardSummary(SubService $sub, int $limit = 140): ?string
+    {
+        $sub->loadMissing('seo');
+
+        return $this->cardSummaryFromCandidates([
+            $sub->short_summary,
+            $sub->ai_summary,
+            filled($sub->description) ? strip_tags((string) $sub->description) : null,
+            $sub->seo?->meta_description,
+        ], $limit);
+    }
+
+    /**
+     * @param  list<mixed>  $candidates
+     */
+    private function cardSummaryFromCandidates(array $candidates, int $limit): ?string
+    {
+        foreach ($candidates as $candidate) {
+            if (! filled($candidate)) {
+                continue;
+            }
+
+            $text = trim(preg_replace('/\s+/u', ' ', strip_tags((string) $candidate)) ?? '');
+
+            if ($text !== '') {
+                return \Illuminate\Support\Str::limit($text, $limit);
+            }
+        }
+
+        return null;
+    }
+
     /**
      * @return array{title: string, meta_title: string, meta_description: string|null, prefer_live_schema: bool}
      */

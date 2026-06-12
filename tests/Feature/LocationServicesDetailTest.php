@@ -58,6 +58,7 @@ it('renders the home-style category grid on the locations near-you partial', fun
         ->toContain('Doctor-supervised nursing at home.')
         ->toContain('View category')
         ->toContain('Care category')
+        ->toContain('catalog-list-card__image')
         ->not->toContain('Home Nursing Care')
         ->not->toContain('1 service');
 });

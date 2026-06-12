@@ -1,0 +1,65 @@
+/**
+ * Medca public line icons (Lucide, stroke-only).
+ */
+@layer components {
+    .medca-line-icon-wrap {
+        @apply text-medca-primary;
+    }
+
+    .medca-line-icon {
+        @apply block shrink-0;
+        flex-shrink: 0;
+    }
+
+    .medca-line-icon--xs {
+        @apply h-4 w-4;
+    }
+
+    .medca-line-icon--sm {
+        @apply h-[18px] w-[18px];
+    }
+
+    .medca-line-icon--md {
+        @apply h-5 w-5;
+    }
+
+    .medca-line-icon--lg {
+        @apply h-6 w-6;
+    }
+
+    .medca-line-icon--xl {
+        @apply h-8 w-8;
+    }
+
+    .medca-catalog-icon-badge {
+        @apply flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50 text-medca-primary shadow-sm;
+    }
+
+    .medca-catalog-icon-badge--sm {
+        @apply h-9 w-9 rounded-lg;
+    }
+
+    .medca-catalog-icon-badge--lg {
+        @apply h-12 w-12 rounded-2xl;
+    }
+
+    .medca-svc-detail-benefits li {
+        @apply flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm;
+    }
+
+    .medca-svc-detail-benefits li::before {
+        content: none;
+    }
+
+    .medca-svc-detail-benefit-icon {
+        @apply mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50;
+    }
+
+    .medca-svc-detail-sub-card {
+        @apply flex h-full flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition;
+    }
+
+    .medca-svc-detail-sub-icon {
+        @apply flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50;
+    }
+}

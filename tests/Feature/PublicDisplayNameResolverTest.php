@@ -86,6 +86,30 @@ it('uses live category name for category document meta', function () {
         ->and($meta['meta_title'])->toBe('Medical Lab Services');
 });
 
+it('falls back to ai summary for service card text', function () {
+    $service = Service::factory()->create([
+        'service_code' => 'SRV-CARE-1',
+        'title' => 'Alzheimer\'s Care',
+        'short_summary' => null,
+        'ai_summary' => 'Compassionate in-home Alzheimer\'s care with trained caregivers in Bangalore.',
+    ]);
+
+    expect(app(PublicDisplayNameResolver::class)->serviceCardSummary($service->fresh()))
+        ->toBe('Compassionate in-home Alzheimer\'s care with trained caregivers in Bangalore.');
+});
+
+it('falls back to description for category card text', function () {
+    $category = ServiceCategory::factory()->create([
+        'code' => 'cat-caregiver-services',
+        'name' => 'Caregiver Services',
+        'short_summary' => null,
+        'description' => '<p>Professional caregivers for seniors and patients at home.</p>',
+    ]);
+
+    expect(app(PublicDisplayNameResolver::class)->categoryCardSummary($category->fresh()))
+        ->toBe('Professional caregivers for seniors and patients at home.');
+});
+
 it('renders location breadcrumbs from live database labels', function () {
     $pin = PinCode::factory()->create([
         'pincode' => '560083',

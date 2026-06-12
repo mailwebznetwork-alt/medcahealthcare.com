@@ -61,7 +61,7 @@ trait HasCatalogMasterFields
             return '';
         }
 
-        return implode("\n", array_map(static fn (mixed $line): string => (string) $line, $items));
+        return implode("\n", \App\Services\Import\ImportSupport::normalizeLineArray($items));
     }
 
     public function publicListingTitle(): string

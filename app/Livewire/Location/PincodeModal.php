@@ -27,23 +27,26 @@ class PincodeModal extends Component
 
     public bool $showPincodeSuggestions = false;
 
+    public bool $forceOpen = false;
+
     public string $redirectContextPath = '';
 
     public function mount(): void
     {
-        $this->open = (bool) ViewFacade::shared('locationRequired', false);
+        $this->forceOpen = (bool) ViewFacade::shared('locationRequired', false);
+        $this->open = $this->forceOpen;
         $this->redirectContextPath = '/'.ltrim(request()->path(), '/');
-        $current = app(UserLocationService::class)->currentPincode();
-        if ($current !== null) {
-            $this->pincode = $current;
-        }
+        $this->syncPincodeFromSession();
     }
 
     public function openModal(?string $contextPath = null): void
     {
         $this->refreshRedirectContext($contextPath);
+        $this->syncPincodeFromSession();
+        $this->resetErrorBag();
+        $this->hidePincodeSuggestions();
+        $this->forceOpen = false;
         $this->open = true;
-        $this->refreshPincodeSuggestions();
     }
 
     #[On('open-pincode-modal')]
@@ -56,6 +59,13 @@ class PincodeModal extends Component
     {
         $this->open = false;
         $this->hidePincodeSuggestions();
+    }
+
+    public function dismissLabel(): string
+    {
+        return $this->forceOpen
+            ? (string) __('Later')
+            : (string) __('Cancel');
     }
 
     public function updatedPincode(): void
@@ -105,13 +115,18 @@ class PincodeModal extends Component
 
     public function savePincode(UserLocationService $location, PincodeRedirectResolver $redirects): void
     {
+        $this->pincode = $location->normalizePincode($this->pincode);
+
         $this->validate([
             'pincode' => ['required', 'string', 'regex:/^\d{6}$/'],
         ]);
 
         $resolved = $location->setManualPincode($this->pincode);
         if ($resolved === null) {
-            $this->addError('pincode', __('We do not service that pincode yet.'));
+            $this->addError(
+                'pincode',
+                app(\App\Services\Seo\LocalityContextResolver::class)->pincodeRejectionHint()
+            );
 
             return;
         }
@@ -191,6 +206,14 @@ class PincodeModal extends Component
         }
 
         return request();
+    }
+
+    private function syncPincodeFromSession(): void
+    {
+        $current = app(UserLocationService::class)->currentPincode();
+        if ($current !== null) {
+            $this->pincode = $current;
+        }
     }
 
     public function render(): View

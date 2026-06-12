@@ -29,6 +29,7 @@ use App\Services\Public\PagePublicPreviewService;
 use App\Services\Public\ServicesDetailPageResolver;
 use App\Services\ServiceContextCollector;
 use App\Services\SiteArchitect\ServiceInsertCatalog;
+use App\Support\KeyBenefitNormalizer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -518,7 +519,7 @@ class ServiceController extends Controller
         return [
             'short_summary' => $data['short_summary'] ?? null,
             'description' => $data['description'] ?? null,
-            'key_benefits' => $this->nullableLinesArray($data['key_benefits'] ?? null),
+            'key_benefits' => $this->nullableKeyBenefitsArray($data['key_benefits'] ?? null),
             'eligibility' => $this->nullableLinesArray($data['eligibility'] ?? null),
             'process_steps' => $this->nullableLinesArray($data['process_steps'] ?? null),
             'ai_summary' => $data['ai_summary'] ?? null,
@@ -532,6 +533,27 @@ class ServiceController extends Controller
             'target_keywords' => $this->nullableKeywordArray($data['target_keywords'] ?? null),
             'ai_keywords' => $this->nullableKeywordArray($data['ai_keywords'] ?? null),
         ];
+    }
+
+    /**
+     * @param  mixed  $value
+     * @return list<array{label: string, icon: string}>|null
+     */
+    private function nullableKeyBenefitsArray(mixed $value): ?array
+    {
+        if (! is_array($value)) {
+            return null;
+        }
+
+        if ($value !== [] && is_array($value[0] ?? null)) {
+            $structured = KeyBenefitNormalizer::serialize(KeyBenefitNormalizer::expand($value));
+
+            return $structured === [] ? null : $structured;
+        }
+
+        $structured = KeyBenefitNormalizer::fromLabels(KeyBenefitNormalizer::labelLines($value));
+
+        return $structured === [] ? null : $structured;
     }
 
     /**

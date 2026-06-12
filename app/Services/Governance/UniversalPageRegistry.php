@@ -280,9 +280,9 @@ class UniversalPageRegistry
             return true;
         }
 
-        $sub = SubService::query()->with(['service.pincodes'])->find($entry->entity_id);
+        $sub = SubService::query()->find($entry->entity_id);
 
-        return $sub === null || ! ServiceGeneratedPageEligibility::subServiceMayHavePages($sub);
+        return $sub === null || ! $sub->isListedPublicly();
     }
 
     private function removeCatalogRegistryEntry(string $entityType, string $registryKey): void

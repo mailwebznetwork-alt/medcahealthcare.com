@@ -2,7 +2,7 @@
     <div class="mom-card p-6">
         <h2 class="text-lg font-semibold text-[var(--text-primary)]">{{ __('Navigation menus') }}</h2>
         <p class="mom-subtext mt-2 max-w-3xl">
-            {{ __('Manual header and footer menus for pages, groups, and custom URLs. The Services dropdown is auto-built from your live catalog (categories → services → sub-services) and updates when you add, edit, or remove catalog items.') }}
+            {{ __('Manual header and footer menus for pages, groups, and custom URLs. The Services dropdown is auto-built from your live catalog (categories → services) and updates when you add, edit, or remove catalog items.') }}
         </p>
         @if ($lastSavedAt)
             <p class="mom-micro mt-3 text-[var(--text-muted)]">{{ __('Last saved: :time', ['time' => $lastSavedAt]) }}</p>

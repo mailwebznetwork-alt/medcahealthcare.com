@@ -12,6 +12,7 @@ use App\Models\SubServiceSchema;
 use App\Models\SubServiceSeo;
 use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Media\CatalogMediaAttacher;
+use App\Support\KeyBenefitNormalizer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -124,7 +125,7 @@ class CatalogMasterPersister
         return [
             'short_summary' => $data['short_summary'] ?? null,
             'description' => $data['description'] ?? null,
-            'key_benefits' => $this->nullableLinesArray($data['key_benefits'] ?? null),
+            'key_benefits' => $this->nullableKeyBenefitsArray($data['key_benefits'] ?? null),
             'eligibility' => $this->nullableLinesArray($data['eligibility'] ?? null),
             'process_steps' => $this->nullableLinesArray($data['process_steps'] ?? null),
             'ai_summary' => $data['ai_summary'] ?? null,
@@ -324,6 +325,27 @@ class CatalogMasterPersister
                 'schema_json' => $decoded,
             ]
         );
+    }
+
+    /**
+     * @param  mixed  $value
+     * @return list<array{label: string, icon: string}>|null
+     */
+    private function nullableKeyBenefitsArray(mixed $value): ?array
+    {
+        if (! is_array($value)) {
+            return null;
+        }
+
+        if ($value !== [] && is_array($value[0] ?? null)) {
+            $structured = KeyBenefitNormalizer::serialize(KeyBenefitNormalizer::expand($value));
+
+            return $structured === [] ? null : $structured;
+        }
+
+        $structured = KeyBenefitNormalizer::fromLabels(KeyBenefitNormalizer::labelLines($value));
+
+        return $structured === [] ? null : $structured;
     }
 
     /**

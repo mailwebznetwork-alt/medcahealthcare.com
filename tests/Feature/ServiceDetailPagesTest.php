@@ -60,12 +60,42 @@ it('resolves detail page by service-{code} slug pattern without detail_page_id',
     $resolved = app(ServicesDetailPageResolver::class)->resolveFor($service);
 
     expect($resolved)->not->toBeNull()
-        ->and($resolved->slug)->toBe('service-caregivers');
+        ->and($resolved->slug)->toBe('service-caregivers')
+        ->and($service->fresh()->detail_page_id)->toBe($resolved->id);
 
     $this->get('/services/caregivers')
         ->assertSuccessful()
         ->assertSee('data-pattern', false)
         ->assertSee('Caregivers', false);
+});
+
+it('relinks an orphan service detail page without running full provision on first request', function () {
+    $service = Service::factory()->create([
+        'service_code' => 'SRV-home-physiotherapy',
+        'title' => 'Home Physiotherapy',
+        'detail_page_id' => null,
+    ]);
+
+    $page = Page::factory()->create([
+        'slug' => 'service-SRV-home-physiotherapy',
+        'is_active' => true,
+        'content' => '{{block:service-detail-hero}}',
+        'layout_mode' => PageLayoutMode::Canvas,
+    ]);
+
+    Block::query()->create([
+        'block_name' => 'Service detail hero',
+        'block_slug' => 'service-detail-hero',
+        'code' => '<h1>{{ $service->title }}</h1>',
+        'is_active' => true,
+    ]);
+
+    expect(app(ServicesDetailPageResolver::class)->resolveFor($service->fresh())?->id)->toBe($page->id)
+        ->and($service->fresh()->detail_page_id)->toBe($page->id);
+
+    $this->get('/services/SRV-home-physiotherapy')
+        ->assertSuccessful()
+        ->assertSee('Home Physiotherapy', false);
 });
 
 it('creates and links a detail page via the provisioner', function () {
