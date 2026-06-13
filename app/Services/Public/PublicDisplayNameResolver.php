@@ -10,6 +10,7 @@ use App\Models\ServiceLocationPage;
 use App\Models\SubService;
 use App\Services\Operations\ServiceLocationPageProvisioner;
 use App\Services\Seo\DataDrivenSeoResolver;
+use App\Services\Seo\HreflangGenerator;
 use App\Services\Seo\SeoOwnershipGuard;
 use App\Support\DisplayLabelSanitizer;
 use App\Support\ServicePageOverrides;
@@ -23,6 +24,7 @@ class PublicDisplayNameResolver
     public function __construct(
         private readonly ServiceLocationPageProvisioner $locationProvisioner,
         private readonly DataDrivenSeoResolver $dataDrivenSeo,
+        private readonly HreflangGenerator $hreflangGenerator,
     ) {}
 
     public function serviceHeadline(Service $service): string
@@ -155,7 +157,7 @@ class PublicDisplayNameResolver
     }
 
     /**
-     * @return array{title: string, meta_title: string, meta_description: string|null, prefer_live_schema: bool}
+     * @return array{title: string, meta_title: string, meta_description: string|null, prefer_live_schema: bool, hreflang?: array<string, string>}
      */
     public function documentMeta(
         ?Page $page = null,
@@ -176,19 +178,19 @@ class PublicDisplayNameResolver
         if ($useDataDriven) {
             $resolved = $this->dataDrivenSeo->resolve($page, $service, $category, $mapping, $subService);
             if ($resolved !== null && ! $seoLocked) {
-                return [
+                return $this->enrichDocumentMeta([
                     'title' => $titleLocked && filled($page?->title) ? (string) $page->title : $resolved['title'],
                     'meta_title' => $resolved['meta_title'],
                     'meta_description' => $resolved['meta_description'],
                     'prefer_live_schema' => $preferLiveSchema,
-                ];
+                ], $page, $service, $category, $mapping, $subService);
             }
         }
 
         if ($mapping !== null && $service !== null && $mapping->pincode instanceof PinCode) {
             $pin = $mapping->pincode;
 
-            return [
+            return $this->enrichDocumentMeta([
                 'title' => $titleLocked && filled($page?->title) ? (string) $page->title : $this->locationHeadline($service, $pin),
                 'meta_title' => $seoLocked && filled($page?->meta_title)
                     ? (string) $page->meta_title
@@ -197,13 +199,13 @@ class PublicDisplayNameResolver
                     ? (string) $page->meta_description
                     : $this->locationMetaDescription($service, $pin),
                 'prefer_live_schema' => $preferLiveSchema,
-            ];
+            ], $page, $service, $category, $mapping, $subService);
         }
 
         if ($subService !== null) {
             $subService->loadMissing('seo');
 
-            return [
+            return $this->enrichDocumentMeta([
                 'title' => $titleLocked && filled($page?->title) ? (string) $page->title : $this->subServiceHeadline($subService),
                 'meta_title' => $seoLocked && filled($page?->meta_title)
                     ? (string) $page->meta_title
@@ -212,11 +214,11 @@ class PublicDisplayNameResolver
                     ? (string) $page->meta_description
                     : (filled($subService->seo?->meta_description) ? (string) $subService->seo->meta_description : null),
                 'prefer_live_schema' => $preferLiveSchema,
-            ];
+            ], $page, $service, $category, $mapping, $subService);
         }
 
         if ($service !== null) {
-            return [
+            return $this->enrichDocumentMeta([
                 'title' => $titleLocked && filled($page?->title) ? (string) $page->title : $this->serviceHeadline($service),
                 'meta_title' => $seoLocked && filled($page?->meta_title)
                     ? (string) $page->meta_title
@@ -225,11 +227,11 @@ class PublicDisplayNameResolver
                     ? (string) $page->meta_description
                     : $this->serviceMetaDescription($service),
                 'prefer_live_schema' => $preferLiveSchema,
-            ];
+            ], $page, $service, $category, $mapping, $subService);
         }
 
         if ($category !== null) {
-            return [
+            return $this->enrichDocumentMeta([
                 'title' => $titleLocked && filled($page?->title) ? (string) $page->title : $this->categoryHeadline($category),
                 'meta_title' => $seoLocked && filled($page?->meta_title)
                     ? (string) $page->meta_title
@@ -238,14 +240,46 @@ class PublicDisplayNameResolver
                     ? (string) $page->meta_description
                     : $this->categoryMetaDescription($category),
                 'prefer_live_schema' => $preferLiveSchema,
-            ];
+            ], $page, $service, $category, $mapping, $subService);
         }
 
-        return [
+        return $this->enrichDocumentMeta([
             'title' => (string) ($page?->title ?? config('medca.brand_name')),
             'meta_title' => (string) ($page?->meta_title ?? $page?->title ?? config('medca.brand_name')),
             'meta_description' => filled($page?->meta_description) ? (string) $page->meta_description : null,
             'prefer_live_schema' => false,
-        ];
+        ], $page, $service, $category, $mapping, $subService);
+    }
+
+    /**
+     * @param  array{title: string, meta_title: string, meta_description: string|null, prefer_live_schema: bool}  $meta
+     * @return array{title: string, meta_title: string, meta_description: string|null, prefer_live_schema: bool, hreflang?: array<string, string>}
+     */
+    private function enrichDocumentMeta(
+        array $meta,
+        ?Page $page = null,
+        ?Service $service = null,
+        ?ServiceCategory $category = null,
+        ?ServiceLocationPage $mapping = null,
+        ?SubService $subService = null,
+    ): array {
+        $hreflang = null;
+        if ($page !== null && is_array($page->hreflang_json) && $page->hreflang_json !== []) {
+            $hreflang = $this->hreflangGenerator->forCanonicalUrl(url()->current(), $page->hreflang_json);
+        } elseif ($mapping !== null) {
+            $hreflang = $this->hreflangGenerator->forLocationPage($mapping);
+        } elseif ($subService !== null) {
+            $hreflang = $this->hreflangGenerator->forSubService($subService);
+        } elseif ($service !== null) {
+            $hreflang = $this->hreflangGenerator->forService($service);
+        } elseif ($category !== null) {
+            $hreflang = $this->hreflangGenerator->forCategory($category);
+        }
+
+        if ($hreflang !== null) {
+            $meta['hreflang'] = $hreflang;
+        }
+
+        return $meta;
     }
 }

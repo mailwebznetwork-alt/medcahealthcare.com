@@ -81,6 +81,16 @@
         <div class="mom-backend-hairline-b px-5 py-4">
             <h3 class="mom-section-title text-base">{{ __('Workbook validation') }} — {{ $staging['workbook'] ?? $lockedWorkbook }}</h3>
             <p class="mom-subtext mt-1">{{ __('Total data rows: :n', ['n' => number_format((int) ($staging['total_data_rows'] ?? 0))]) }}</p>
+            @if (! empty($staging['compare']))
+                @php $cmp = $staging['compare']; @endphp
+                <p class="mom-micro mt-2 text-[var(--text-secondary)]">
+                    {{ __('DB compare — create: :c, update: :u, unchanged: :n', [
+                        'c' => (int) ($cmp['would_create'] ?? 0),
+                        'u' => (int) ($cmp['would_update'] ?? 0),
+                        'n' => (int) ($cmp['unchanged'] ?? 0),
+                    ]) }}
+                </p>
+            @endif
             @if (! empty($staging['preview']['warnings']))
                 <ul class="mom-subtext mt-2 space-y-1 text-[var(--warning)]">
                     @foreach ($staging['preview']['warnings'] as $warning)
@@ -146,6 +156,16 @@
         <div class="mom-backend-hairline-b px-5 py-4">
             <h3 class="mom-section-title text-base">{{ __('Import preview') }} — {{ $staging['entity'] ?? '' }}</h3>
             <p class="mom-subtext mt-1">{{ __('Total data rows: :n', ['n' => number_format((int) ($staging['total_data_rows'] ?? 0))]) }}</p>
+            @if (! empty($staging['compare']))
+                @php $cmp = $staging['compare']; @endphp
+                <p class="mom-micro mt-2 text-[var(--text-secondary)]">
+                    {{ __('DB compare — create: :c, update: :u, unchanged: :n', [
+                        'c' => (int) ($cmp['would_create'] ?? 0),
+                        'u' => (int) ($cmp['would_update'] ?? 0),
+                        'n' => (int) ($cmp['unchanged'] ?? 0),
+                    ]) }}
+                </p>
+            @endif
         </div>
         <div class="mom-table overflow-x-auto">
             <table class="w-full min-w-[480px] text-left text-[13px]">

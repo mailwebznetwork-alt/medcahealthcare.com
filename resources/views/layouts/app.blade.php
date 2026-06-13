@@ -41,7 +41,7 @@
             <meta name="robots" content="noindex, nofollow">
         @endif
         @php
-            $documentMeta = app(\App\Services\Public\PublicDisplayNameResolver::class)->documentMeta(
+            $documentMeta = app(\App\Services\Public\CatalogPublicCache::class)->documentMeta(
                 $page ?? null,
                 $service ?? null,
                 $category ?? null,

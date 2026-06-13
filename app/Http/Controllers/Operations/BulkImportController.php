@@ -8,6 +8,7 @@ use App\Models\PinCode;
 use App\Models\Service;
 use App\Services\Import\ImportPipeline;
 use App\Services\Import\ImportRegistry;
+use App\Services\Import\ImportCompareService;
 use App\Services\Import\ImportRollbackService;
 use App\Services\Import\StagedImportCommitService;
 use App\Services\Import\WorkbookImportOrchestrator;
@@ -71,6 +72,7 @@ class BulkImportController extends Controller
         ImportPipeline $pipeline,
         ImportRegistry $registry,
         WorkbookImportOrchestrator $workbooks,
+        ImportCompareService $compareService,
     ): RedirectResponse {
         $lockedWorkbook = $this->lockedWorkbookFromRoute();
 
@@ -103,6 +105,9 @@ class BulkImportController extends Controller
             }
 
             $path = $request->file('file')->store('temp/bulk-imports', 'local');
+            $absolute = Storage::disk('local')->path($path);
+            $compareEntity = $workbookKey === 'pincodes' ? 'pincodes' : 'services';
+            $compare = $compareService->compareEntityFile($compareEntity, $absolute);
             session()->put(self::STAGING_KEY, [
                 'mode' => 'workbook',
                 'workbook' => $workbookKey,
@@ -110,6 +115,7 @@ class BulkImportController extends Controller
                 'original_filename' => $originalName,
                 'preview' => $preview,
                 'total_data_rows' => $preview['total_data_rows'],
+                'compare' => $compare,
             ]);
 
             return redirect()->to($this->returnUrl());
@@ -126,6 +132,8 @@ class BulkImportController extends Controller
         }
 
         $path = $request->file('file')->store('temp/bulk-imports', 'local');
+        $absolute = Storage::disk('local')->path($path);
+        $compare = $compareService->compareEntityFile($entity, $absolute);
         session()->put(self::STAGING_KEY, [
             'mode' => 'entity',
             'entity' => $entity,
@@ -133,6 +141,7 @@ class BulkImportController extends Controller
             'original_filename' => $originalName,
             'preview_rows' => $preview['rows'],
             'total_data_rows' => $preview['total_data_rows'],
+            'compare' => $compare,
         ]);
 
         return redirect()->to($this->returnUrl());

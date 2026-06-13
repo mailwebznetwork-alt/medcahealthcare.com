@@ -6,6 +6,17 @@
         <button type="button" wire:click="refresh" class="mom-cta-ghost mom-cta-compact">{{ __('Refresh') }}</button>
     </div>
 
+    <div class="grid gap-4 sm:grid-cols-2">
+        <div class="mom-card px-5 py-4">
+            <p class="mom-micro">{{ __('Programmatic SEO average score') }}</p>
+            <p class="mom-metric mt-2 tabular-nums">{{ number_format((float) ($seoQuality['average'] ?? 0), 1) }}</p>
+        </div>
+        <div class="mom-card px-5 py-4">
+            <p class="mom-micro">{{ __('Low quality services (&lt;60)') }}</p>
+            <p class="mom-metric mt-2 tabular-nums">{{ number_format((int) ($seoQuality['low_quality_count'] ?? 0)) }}</p>
+        </div>
+    </div>
+
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         @foreach ([
             'thin_services' => __('Thin services'),

@@ -72,4 +72,17 @@ return [
         '127.0.0.1',
     ],
 
+    'default_city' => env('MEDCA_DEFAULT_CITY', 'Bangalore'),
+
+    /**
+     * Hreflang locale map — empty prefix = canonical English URL.
+     *
+     * @var array<string, string>
+     */
+    'hreflang_locales' => [
+        'en' => '',
+        'kn' => 'kn',
+        'hi' => 'hi',
+    ],
+
 ];

@@ -29,6 +29,16 @@ class SeoSitemapFileGenerator
             return null;
         }
 
+        $ttl = (int) config('sitemap.application_cache_ttl', 600);
+        $cacheKey = config('public_cache.prefix', 'medca_public').':sitemap:'.$filename;
+
+        if ($ttl > 0 && config('public_cache.enabled', true)) {
+            $cached = \Illuminate\Support\Facades\Cache::store(config('public_cache.store'))->get($cacheKey);
+            if (is_string($cached)) {
+                return $cached;
+            }
+        }
+
         $disk = Storage::disk(config('sitemap.cache_disk', 'local'));
         $path = trim(config('sitemap.cache_directory', 'sitemaps'), '/').'/'.$filename;
 
@@ -36,7 +46,13 @@ class SeoSitemapFileGenerator
             return null;
         }
 
-        return $disk->get($path);
+        $content = $disk->get($path);
+
+        if ($ttl > 0 && $content !== null && config('public_cache.enabled', true)) {
+            \Illuminate\Support\Facades\Cache::store(config('public_cache.store'))->put($cacheKey, $content, $ttl);
+        }
+
+        return $content;
     }
 
     /**

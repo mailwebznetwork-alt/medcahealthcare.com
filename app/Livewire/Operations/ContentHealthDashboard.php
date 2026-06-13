@@ -16,7 +16,7 @@ class ContentHealthDashboard extends Component
     /** @var array<string, mixed> */
     public array $graphSummary = [];
 
-    public function mount(ContentHealthService $health, EntityGraphAuditService $graph): void
+    public function mount(ContentHealthService $health, EntityGraphAuditService $graph, \App\Services\MasterSpec\ProgrammaticSeoQualityScorer $seoScorer): void
     {
         $this->health = $health->report();
         $audit = $graph->audit();
@@ -27,9 +27,13 @@ class ContentHealthDashboard extends Component
             'pincodes_without_zone' => $audit['pincodes_without_zone'],
             'location_pages_orphan' => $audit['location_pages_orphan'],
         ];
+        $this->seoQuality = $seoScorer->catalogSummary();
     }
 
-    public function refresh(ContentHealthService $health, EntityGraphAuditService $graph): void
+    /** @var array{average: float, low_quality_count: int, samples: list<array{code: string, score: int}>} */
+    public array $seoQuality = ['average' => 0, 'low_quality_count' => 0, 'samples' => []];
+
+    public function refresh(ContentHealthService $health, EntityGraphAuditService $graph, \App\Services\MasterSpec\ProgrammaticSeoQualityScorer $seoScorer): void
     {
         $this->health = $health->report();
         $audit = $graph->audit();
@@ -40,6 +44,7 @@ class ContentHealthDashboard extends Component
             'pincodes_without_zone' => $audit['pincodes_without_zone'],
             'location_pages_orphan' => $audit['location_pages_orphan'],
         ];
+        $this->seoQuality = $seoScorer->catalogSummary();
     }
 
     public function render(): View

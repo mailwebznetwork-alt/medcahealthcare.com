@@ -77,7 +77,13 @@
 
 <link rel="canonical" href="{{ $canonicalHref }}">
 
-@if (isset($page) && is_array($page->hreflang_json) && count($page->hreflang_json) > 0)
+@if (isset($documentMeta) && is_array($documentMeta['hreflang'] ?? null) && count($documentMeta['hreflang']) > 0)
+    @foreach ($documentMeta['hreflang'] as $locale => $hrefLangUrl)
+        @if (filled($hrefLangUrl))
+            <link rel="alternate" hreflang="{{ $locale }}" href="{{ $hrefLangUrl }}">
+        @endif
+    @endforeach
+@elseif (isset($page) && is_array($page->hreflang_json) && count($page->hreflang_json) > 0)
     @foreach ($page->hreflang_json as $locale => $hrefLangUrl)
         @if (filled($hrefLangUrl))
             <link rel="alternate" hreflang="{{ $locale }}" href="{{ $hrefLangUrl }}">

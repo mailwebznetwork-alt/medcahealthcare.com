@@ -14,4 +14,6 @@ return [
 
     'location_chunk_size' => (int) env('SITEMAP_LOCATION_CHUNK_SIZE', 10000),
 
+    /** Application cache TTL for sitemap index read (seconds) */
+    'application_cache_ttl' => (int) env('SITEMAP_APPLICATION_CACHE_TTL', 600),
 ];
