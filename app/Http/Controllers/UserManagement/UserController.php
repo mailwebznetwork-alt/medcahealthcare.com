@@ -14,6 +14,7 @@ use App\Support\RootAccount;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -80,18 +81,24 @@ class UserController extends Controller
         $user = new User;
         $role = $request->validated('role');
 
+        $roleLabel = trim((string) $request->validated('role_label', ''));
+        /** @var array<string, mixed> $modulePayload */
+        $modulePayload = $request->input('module_access', []);
+
         $user->fill([
             'name' => $request->validated('name'),
             'email' => $request->validated('email'),
+            'phone' => $request->validated('phone'),
         ]);
         $user->forceFill([
             'role' => $role,
-            'role_label' => $this->roleLabelFor($role),
+            'role_label' => $roleLabel !== '' ? $roleLabel : $this->roleLabelFor($role),
             'email_verified_at' => now(),
-            'is_active' => true,
-            'module_access' => ModuleAccess::defaultGrants(),
+            'is_active' => $request->boolean('is_active', true),
+            'module_access' => $this->normalizedModuleAccessFromInput($modulePayload),
         ]);
-        $user->password = $request->validated('password');
+        $plainPassword = (string) $request->validated('password');
+        $user->password = $plainPassword;
 
         if ($request->hasFile('profile_image')) {
             $file = $request->file('profile_image');
@@ -128,6 +135,20 @@ class UserController extends Controller
 
         $user->save();
 
+        if (! Hash::check($plainPassword, $user->fresh()->password)) {
+            $user->delete();
+
+            $this->activityLogService->log(
+                'password_change_failed',
+                'security',
+                sprintf('User create aborted: password hash mismatch for %s.', (string) $user->email)
+            );
+
+            throw ValidationException::withMessages([
+                'password' => [__('The password could not be saved correctly. Please try again.')],
+            ]);
+        }
+
         app(OutboundWebhookDispatcher::class)->dispatch('user.registered', [
             'user_id' => $user->id,
             'registration' => 'admin_created',
@@ -137,7 +158,7 @@ class UserController extends Controller
         $this->activityLogService->log(
             'user_create',
             'user_management',
-            sprintf('Created user ID %d.', $user->id)
+            sprintf('Created user ID %d (%s).', $user->id, $user->email)
         );
 
         return redirect()->route('user-management.index')->with('status', 'user-created');

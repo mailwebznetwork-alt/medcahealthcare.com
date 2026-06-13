@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\User;
 use App\ModuleAccess;
+use App\Support\TestingDatabaseGuard;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -13,6 +14,13 @@ use Illuminate\Support\Str;
 class UserFactory extends Factory
 {
     protected static ?string $password = null;
+
+    public function configure(): static
+    {
+        return $this->afterMaking(function (): void {
+            TestingDatabaseGuard::assertIsolated();
+        });
+    }
 
     /**
      * @return array<string, mixed>

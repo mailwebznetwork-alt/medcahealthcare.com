@@ -61,3 +61,33 @@ it('blocks media library delete when asset is in use', function (): void {
 
     expect(app(MediaUsageTracker::class)->isInUse($media))->toBeTrue();
 });
+
+it('releases block references when force deleting in-use media', function (): void {
+    Storage::fake('public');
+
+    $block = \App\Models\Block::query()->create([
+        'block_slug' => 'hero-home',
+        'block_name' => 'Hero Home',
+        'block_type' => 'Hero',
+        'code' => '@include("blocks.home.hero-home")',
+        'is_active' => true,
+        'settings_json' => [],
+    ]);
+
+    $file = UploadedFile::fake()->image('hero.jpg', 800, 600);
+    $media = app(\App\Services\Media\MediaUploadProcessor::class)->process($file, null, 'test');
+    app(MediaUsageTracker::class)->attach($media, $block, 'desktop_image', 'hero-home · desktop_image');
+
+    $block->update([
+        'settings_json' => [
+            'media' => ['desktop_image' => $media->referencePath()],
+            'media_refs' => ['desktop_image' => $media->id],
+        ],
+    ]);
+
+    $released = app(MediaUsageTracker::class)->releaseAllReferencesFor($media);
+
+    expect($released)->toBe(1)
+        ->and(app(MediaUsageTracker::class)->isInUse($media))->toBeFalse()
+        ->and($block->fresh()->settings_json['media']['desktop_image'] ?? 'missing')->toBe('missing');
+});

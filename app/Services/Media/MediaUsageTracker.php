@@ -2,6 +2,7 @@
 
 namespace App\Services\Media;
 
+use App\Models\Block;
 use App\Models\Media;
 use App\Models\MediaUsage;
 use Illuminate\Database\Eloquent\Model;
@@ -64,6 +65,42 @@ class MediaUsageTracker
     public function isInUse(Media $media): bool
     {
         return MediaUsage::query()->where('media_id', $media->id)->exists();
+    }
+
+    /**
+     * Clears block/page settings references and removes usage rows so media can be deleted.
+     */
+    public function releaseAllReferencesFor(Media $media): int
+    {
+        $released = 0;
+
+        MediaUsage::query()
+            ->where('media_id', $media->id)
+            ->orderBy('id')
+            ->each(function (MediaUsage $usage) use (&$released): void {
+                $usable = $usage->usable;
+
+                if ($usable instanceof Block) {
+                    $settings = is_array($usable->settings_json) ? $usable->settings_json : [];
+                    $field = (string) $usage->field;
+
+                    if (is_array($settings['media'] ?? null)) {
+                        unset($settings['media'][$field]);
+                    }
+
+                    if (is_array($settings['media_refs'] ?? null)) {
+                        unset($settings['media_refs'][$field]);
+                    }
+
+                    $usable->settings_json = $settings;
+                    $usable->save();
+                }
+
+                $usage->delete();
+                $released++;
+            });
+
+        return $released;
     }
 
     protected function defaultLabel(Model $usable, string $field): string

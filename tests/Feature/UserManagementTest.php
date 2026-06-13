@@ -186,6 +186,45 @@ it('prevents modifying user management read-only accounts by email', function ()
         ->assertForbidden();
 });
 
+it('creates a user from the admin form without a role field', function () {
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'module_access' => umAll(true),
+    ]);
+
+    $password = 'Xk9!mNp2vLq7';
+
+    $this->withoutMiddleware()
+        ->actingAs($admin)
+        ->from(route('user-management.create'))
+        ->post(route('user-management.store'), [
+            'name' => 'New Staff Member',
+            'email' => 'new-staff@medcahealthcare.com',
+            'phone' => '9876543210',
+            'role_label' => 'Operations Staff',
+            'password' => $password,
+            'password_confirmation' => $password,
+            'is_active' => '1',
+            'module_access' => [
+                ModuleAccess::USER_MANAGEMENT => '1',
+            ],
+        ])
+        ->assertRedirect(route('user-management.index'))
+        ->assertSessionHas('status', 'user-created');
+
+    $created = User::query()->where('email', 'new-staff@medcahealthcare.com')->first();
+
+    expect($created)->not->toBeNull()
+        ->and($created->name)->toBe('New Staff Member')
+        ->and($created->phone)->toBe('9876543210')
+        ->and($created->role_label)->toBe('Operations Staff')
+        ->and($created->role)->toBe('viewer')
+        ->and($created->is_active)->toBeTrue()
+        ->and($created->hasModuleAccess(ModuleAccess::USER_MANAGEMENT))->toBeTrue()
+        ->and($created->hasModuleAccess(ModuleAccess::MARKETING))->toBeFalse()
+        ->and(\Illuminate\Support\Facades\Hash::check($password, $created->password))->toBeTrue();
+});
+
 it('logs out inactive users on the next request', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),

@@ -217,6 +217,32 @@ function mountTrafficDonut() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    mountLiveClock();
     mountAnalyticsChart();
     mountTrafficDonut();
 });
+
+function mountLiveClock() {
+    const el = document.getElementById('mom-live-clock');
+
+    if (! el) {
+        return;
+    }
+
+    const timezone = el.dataset.timezone || 'Asia/Kolkata';
+
+    const render = () => {
+        el.textContent = new Intl.DateTimeFormat('en-IN', {
+            timeZone: timezone,
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+        }).format(new Date());
+    };
+
+    render();
+    window.setInterval(render, 1000);
+}

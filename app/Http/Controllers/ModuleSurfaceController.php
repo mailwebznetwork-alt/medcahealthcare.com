@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\ModuleAccess;
+use App\Support\ActivityLogVisibility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +28,7 @@ class ModuleSurfaceController extends Controller
         $failedLoginByIp = [];
         $auditLogPreview = collect();
         $firewallRulesList = [];
+        $canViewDetailedAudit = ActivityLogVisibility::canViewDetailedAudit($request->user());
 
         if ($key === ModuleAccess::SECURITY) {
             $securityMetrics = [
@@ -51,35 +53,38 @@ class ModuleSurfaceController extends Controller
                         ->where('action', 'upload_validation_failure')
                         ->count();
 
-                    $recentSecurityEvents = DB::table('activity_logs')
-                        ->select('action', 'module', 'description', 'ip_address', 'created_at')
-                        ->whereIn('action', [
-                            'login_success',
-                            'login_failure',
-                            'logout',
-                            'user_create',
-                            'user_update',
-                            'user_delete',
-                            'unauthorized_access_attempt',
-                            'role_violation',
-                            'session_timeout',
-                            'upload_validation_failure',
-                        ])
-                        ->orderByDesc('id')
-                        ->limit(15)
-                        ->get();
+                    if ($canViewDetailedAudit) {
+                        $recentSecurityEvents = DB::table('activity_logs')
+                            ->select('action', 'module', 'description', 'ip_address', 'created_at')
+                            ->whereIn('action', [
+                                'login_success',
+                                'login_failure',
+                                'logout',
+                                'user_create',
+                                'user_update',
+                                'user_delete',
+                                'unauthorized_access_attempt',
+                                'role_violation',
+                                'session_timeout',
+                                'upload_validation_failure',
+                            ])
+                            ->orderByDesc('id')
+                            ->limit(15)
+                            ->get();
 
-                    $failedLoginByIp = DB::table('activity_logs')
-                        ->select('ip_address', DB::raw('count(*) as total'))
-                        ->where('action', 'login_failure')
-                        ->whereNotNull('ip_address')
-                        ->groupBy('ip_address')
-                        ->orderByDesc('total')
-                        ->limit(10)
-                        ->get();
+                        $failedLoginByIp = DB::table('activity_logs')
+                            ->select('ip_address', DB::raw('count(*) as total'))
+                            ->where('action', 'login_failure')
+                            ->whereNotNull('ip_address')
+                            ->groupBy('ip_address')
+                            ->orderByDesc('total')
+                            ->limit(10)
+                            ->get();
+
+                        $auditLogPreview = $this->auditLogs();
+                    }
                 }
 
-                $auditLogPreview = $this->auditLogs();
                 $firewallRulesList = $this->firewallRules();
             } catch (Throwable) {
             }
@@ -93,6 +98,7 @@ class ModuleSurfaceController extends Controller
             'failedLoginByIp' => $failedLoginByIp,
             'auditLogPreview' => $auditLogPreview,
             'firewallRules' => $firewallRulesList,
+            'canViewDetailedAudit' => $canViewDetailedAudit,
         ]);
     }
 

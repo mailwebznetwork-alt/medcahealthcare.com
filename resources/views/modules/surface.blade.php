@@ -63,8 +63,9 @@
 
         <section id="security-audit" class="mom-card mt-8 scroll-mt-32 p-6">
             <h2 class="mom-section-title">{{ __('Audit trail preview') }}</h2>
-            <p class="mom-subtext mt-1 mb-4">{{ __('Latest rows from activity_logs (operations and authentication signals).') }}</p>
-            <div class="mt-4 overflow-x-auto">
+            @if ($canViewDetailedAudit ?? false)
+                <p class="mom-subtext mt-1 mb-4">{{ __('Latest rows from activity_logs (operations and authentication signals). Root administrator view only.') }}</p>
+                <div class="mt-4 overflow-x-auto">
                 <table class="w-full min-w-[42rem] text-left text-[13px]">
                     <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
                         <tr>
@@ -94,10 +95,14 @@
                     </tbody>
                 </table>
             </div>
+            @else
+                <p class="mom-subtext mt-1">{{ __('Detailed audit rows (logins, IPs, and descriptions) are visible to the root administrator only.') }}</p>
+            @endif
         </section>
 
         <section id="security-failed-logins" class="mom-card mt-8 scroll-mt-32 p-6">
             <h2 class="mom-section-title">{{ __('Failed Login Attempts by IP') }}</h2>
+            @if ($canViewDetailedAudit ?? false)
             <div class="mt-4 overflow-x-auto">
                 <table class="w-full min-w-[24rem] text-left text-[13px]">
                     <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
@@ -120,10 +125,14 @@
                     </tbody>
                 </table>
             </div>
+            @else
+                <p class="mom-subtext mt-1">{{ __('IP-level login failure details are visible to the root administrator only.') }}</p>
+            @endif
         </section>
 
         <section id="security-activity" class="mom-card mt-8 scroll-mt-32 p-6">
             <h2 class="mom-section-title">{{ __('Recent Security Events') }}</h2>
+            @if ($canViewDetailedAudit ?? false)
             <p id="security-access-events" class="sr-only">{{ __('Access events') }}</p>
             <div class="mt-4 overflow-x-auto">
                 <table class="w-full min-w-[42rem] text-left text-[13px]">
@@ -153,6 +162,9 @@
                     </tbody>
                 </table>
             </div>
+            @else
+                <p class="mom-subtext mt-1">{{ __('Authentication and access event details are visible to the root administrator only. Summary counts above remain available.') }}</p>
+            @endif
         </section>
     @else
         <div class="mom-card p-8">

@@ -177,15 +177,21 @@
                         @if ($selected->file_type === 'image')
                             <button type="button" wire:click="suggestWithGemini" class="rounded-mom-chrome border border-[var(--border-panel-soft)] px-4 py-2 text-sm">{{ __('AI suggest') }}</button>
                         @endif
-                        <button
-                            type="button"
-                            wire:click="deleteMedia({{ $selected->id }})"
-                            wire:confirm="{{ $usageReferences !== [] ? __('This asset is in use. Delete anyway?') : __('Delete this media and all generated files?') }}"
-                            @class([
-                                'rounded-mom-chrome border px-4 py-2 text-sm',
-                                'border-[rgba(239,68,68,0.5)] text-[var(--danger)]' => true,
-                            ])
-                        >{{ __('Delete') }}</button>
+                        @if ($usageReferences === [])
+                            <button
+                                type="button"
+                                wire:click="deleteMedia({{ $selected->id }})"
+                                wire:confirm="{{ __('Delete this media and all generated files?') }}"
+                                class="rounded-mom-chrome border border-[rgba(239,68,68,0.5)] px-4 py-2 text-sm text-[var(--danger)]"
+                            >{{ __('Delete') }}</button>
+                        @else
+                            <button
+                                type="button"
+                                wire:click="deleteMedia({{ $selected->id }}, true)"
+                                wire:confirm="{{ __('Remove this image from all sections listed above, then delete the file. Continue?') }}"
+                                class="rounded-mom-chrome border border-[rgba(239,68,68,0.5)] px-4 py-2 text-sm text-[var(--danger)]"
+                            >{{ __('Detach & delete') }}</button>
+                        @endif
                     </div>
 
                     <div class="border-t border-[color:var(--border-tabstrip-divider)] pt-4">

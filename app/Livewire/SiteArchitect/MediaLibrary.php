@@ -175,15 +175,29 @@ class MediaLibrary extends Component
         session()->flash('status', __('AI suggestions applied — review and save.'));
     }
 
-    public function deleteMedia(int $id): void
+    public function deleteMedia(int $id, bool $force = false): void
     {
         $media = Media::query()->findOrFail($id);
         $this->authorize('delete', $media);
 
-        if (app(MediaUsageTracker::class)->isInUse($media)) {
-            session()->flash('error', __('This asset is in use. Remove references before deleting.'));
+        $tracker = app(MediaUsageTracker::class);
 
-            return;
+        if ($tracker->isInUse($media)) {
+            if (! $force) {
+                session()->flash(
+                    'error',
+                    __('This asset is used in :count place(s). Remove it from sections first, or use “Detach & delete”.', [
+                        'count' => count($tracker->referencesFor($media)),
+                    ])
+                );
+
+                return;
+            }
+
+            $released = $tracker->releaseAllReferencesFor($media);
+            $detachNote = __('Detached from :count section(s).', ['count' => $released]);
+        } else {
+            $detachNote = null;
         }
 
         if ($this->selectedId === $id) {
@@ -191,7 +205,10 @@ class MediaLibrary extends Component
         }
 
         $media->delete();
-        session()->flash('status', __('Media deleted.'));
+        session()->flash(
+            'status',
+            isset($detachNote) ? $detachNote.' '.__('Media deleted.') : __('Media deleted.')
+        );
         $this->resetPage();
     }
 

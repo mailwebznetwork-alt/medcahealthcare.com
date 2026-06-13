@@ -51,8 +51,20 @@
                 @else
                     <a href="{{ route('profile.edit') }}" class="mom-card mom-card-interactive block px-5 py-4 no-underline sm:col-span-2">
                         <p class="mom-micro">{{ __('Your session') }}</p>
-                        <p class="mom-metric mt-2 leading-none">{{ auth()->user()->last_login_at?->timezone(config('app.timezone'))->format('M j, H:i') ?? __('First visit') }}</p>
-                        <p class="mom-subtext mt-2">{{ __('Last recorded sign-in for this account.') }}</p>
+                        <p
+                            id="mom-live-clock"
+                            class="mom-metric mt-2 leading-none tabular-nums"
+                            data-timezone="Asia/Kolkata"
+                            aria-live="polite"
+                        >{{ now()->timezone('Asia/Kolkata')->format('M j, H:i:s') }}</p>
+                        <p class="mom-subtext mt-2">
+                            {{ __('IST') }}
+                            @if (auth()->user()->last_login_at)
+                                · {{ __('Last sign-in') }}: {{ auth()->user()->last_login_at->timezone('Asia/Kolkata')->format('M j, H:i') }}
+                            @else
+                                · {{ __('First visit') }}
+                            @endif
+                        </p>
                     </a>
                     <div class="mom-card mom-card-interactive px-5 py-4 sm:col-span-2">
                         <p class="mom-micro">{{ __('Workspace') }}</p>

@@ -30,16 +30,19 @@ class Index extends Component
     #[Url(as: 'featured', history: true, keep: true)]
     public string $featured = '';
 
-    /** @var list<int> */
-    #[Url(as: 'category_ids', history: true, keep: true)]
-    public array $categoryIds = [];
+    #[Url(as: 'category_id', history: true, keep: true)]
+    public string $categoryId = '';
 
     protected string $paginationTheme = 'tailwind';
 
     public function mount(): void
     {
         $this->authorize('viewAny', Service::class);
-        $this->categoryIds = array_values(array_map('intval', $this->categoryIds));
+
+        if ($this->categoryId === '' && request()->has('category_ids')) {
+            $legacy = request()->query('category_ids');
+            $this->categoryId = (string) (is_array($legacy) ? ($legacy[0] ?? '') : $legacy);
+        }
     }
 
     public function bulkResourceKey(): string
@@ -67,7 +70,7 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function updatingCategoryIds(): void
+    public function updatingCategoryId(): void
     {
         $this->resetPage();
     }
@@ -103,8 +106,8 @@ class Index extends Component
             $query->where('is_featured', $this->featured === '1');
         }
 
-        if ($this->categoryIds !== []) {
-            $query->inCategories($this->categoryIds);
+        if ($this->categoryId !== '') {
+            $query->inCategories([(int) $this->categoryId]);
         }
 
         return $query;

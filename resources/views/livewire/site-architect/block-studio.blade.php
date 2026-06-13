@@ -54,6 +54,7 @@
                 <p class="mom-subtext text-sm">{{ __('This section has no editable text fields. Try Images & media or ask a developer to add a content schema.') }}</p>
             @endif
         @elseif ($activePanel === 'media')
+            <p class="mom-subtext mb-4 text-sm">{{ __('Desktop and mobile slots are separate. Set both in Block Studio, then Save section. Mobile falls back to desktop if empty.') }}</p>
             <div class="grid gap-4 md:grid-cols-2">
                 @foreach ($mediaSlots as $slot)
                     <div class="rounded-lg border border-[var(--border-panel-soft)] p-3">

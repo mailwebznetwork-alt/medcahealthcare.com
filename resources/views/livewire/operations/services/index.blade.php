@@ -31,9 +31,10 @@
                 <option value="0">{{ __('No') }}</option>
             </select>
         </div>
-        <div class="min-w-[14rem]">
-            <x-input-label for="services-categories" :value="__('Categories')" variant="mom" />
-            <select id="services-categories" wire:model.live="categoryIds" multiple class="rounded-mom-chrome mt-2 block min-h-[6rem] w-full border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
+        <div>
+            <x-input-label for="services-categories" :value="__('Category')" variant="mom" />
+            <select id="services-categories" wire:model.live="categoryId" class="rounded-mom-chrome mt-2 block min-w-[14rem] border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
+                <option value="">{{ __('Any') }}</option>
                 @foreach ($categoryOptions as $cat)
                     <option value="{{ $cat->id }}">{{ $cat->name }}</option>
                 @endforeach

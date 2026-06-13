@@ -126,7 +126,16 @@ class BlockStudio extends Component
             }
             $media = $processor->process($file, auth()->id(), 'blocks');
             $this->media[$slot] = $media->referencePath();
+            $tracker->detachAllFor($block, (string) $slot);
             $tracker->attach($media, $block, (string) $slot, $block->block_slug.' · '.$slot);
+        }
+
+        foreach ($editor->mediaSlotsForBlock($block) as $slot) {
+            $path = trim((string) ($this->media[$slot] ?? ''));
+            $ref = $this->media_refs[$slot] ?? '';
+            if ($path === '' && ($ref === '' || $ref === 0)) {
+                $tracker->detachAllFor($block, $slot);
+            }
         }
 
         $editor->save($block, [
@@ -190,9 +199,11 @@ class BlockStudio extends Component
         if ($media === null) {
             return;
         }
+        $tracker = app(MediaUsageTracker::class);
+        $tracker->detachAllFor($block, $slot);
         $this->media_refs[$slot] = $media->id;
         $this->media[$slot] = $media->referencePath();
-        app(MediaUsageTracker::class)->attach($media, $block, $slot, $block->block_slug.' · '.$slot);
+        $tracker->attach($media, $block, $slot, $block->block_slug.' · '.$slot);
     }
 
     public function render(BlockSettingsEditor $editor): View

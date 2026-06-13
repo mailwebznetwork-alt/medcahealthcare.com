@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\ActivityLogService;
+use App\Support\UserLandingRoute;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -83,10 +84,10 @@ class AuthenticatedSessionController extends Controller
         $this->activityLogService->log(
             'login_success',
             'auth',
-            sprintf('Successful login for %s.', (string) $request->input('email'))
+            'Successful login.'
         );
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended(UserLandingRoute::pathFor($user));
     }
 
     public function destroy(Request $request): RedirectResponse

@@ -3,6 +3,7 @@
 namespace App\Services\Notifications;
 
 use App\Models\User;
+use App\Support\RootAccount;
 use Illuminate\Support\Collection;
 
 class AdminNotificationRecipientResolver
@@ -12,6 +13,10 @@ class AdminNotificationRecipientResolver
      */
     public function resolve(?int $actorUserId = null, ?string $action = null, ?string $module = null): Collection
     {
+        if ($module === 'auth' && in_array($action, ['login_success', 'logout'], true)) {
+            return $this->rootAdministratorIds();
+        }
+
         $query = User::query()
             ->where('is_active', true)
             ->whereIn('role', ['admin', 'super_admin']);
@@ -29,6 +34,23 @@ class AdminNotificationRecipientResolver
         }
 
         return $recipientIds;
+    }
+
+    /**
+     * @return Collection<int, int>
+     */
+    private function rootAdministratorIds(): Collection
+    {
+        $email = RootAccount::email();
+        if ($email === '') {
+            return collect();
+        }
+
+        $id = User::query()
+            ->whereRaw('lower(email) = ?', [strtolower($email)])
+            ->value('id');
+
+        return $id !== null ? collect([(int) $id]) : collect();
     }
 
     private function shouldNotifyActor(?string $action, ?string $module): bool

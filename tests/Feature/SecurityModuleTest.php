@@ -44,13 +44,35 @@ it('shows security metrics for admin role users', function () {
         ->assertOk()
         ->assertSee('Failed Logins')
         ->assertSee('Role Denials')
-        ->assertSee('Failed Login Attempts by IP')
-        ->assertSee('Recent Security Events')
         ->assertSee('Firewall & edge posture')
-        ->assertSee('Audit trail preview');
+        ->assertSee('Detailed audit rows')
+        ->assertDontSee('Successful login for');
 });
 
-it('denies access to security page for viewer role users', function () {
+it('shows full audit trail to the root administrator only', function () {
+    DB::table('activity_logs')->insert([
+        'user_id' => null,
+        'action' => 'login_success',
+        'module' => 'auth',
+        'description' => 'Successful login for root@secret.test.',
+        'ip_address' => '127.0.0.1',
+        'user_agent' => 'Pest',
+        'created_at' => now(),
+    ]);
+
+    $root = User::factory()->rootSuperAdmin()->create([
+        'email_verified_at' => now(),
+        'module_access' => securityAllModulesOn(),
+    ]);
+
+    $this->actingAs($root)
+        ->get(route('modules.security'))
+        ->assertOk()
+        ->assertSee('Audit trail preview')
+        ->assertSee('Successful login for root@secret.test.');
+});
+
+it('hides detailed audit rows from non-root users with security access', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
         'module_access' => securityAllModulesOn(),
@@ -59,10 +81,12 @@ it('denies access to security page for viewer role users', function () {
 
     $this->actingAs($user)
         ->get(route('modules.security'))
-        ->assertForbidden();
+        ->assertOk()
+        ->assertSee('Detailed audit rows')
+        ->assertDontSee('Successful login for');
 });
 
-it('returns JSON forbidden for viewer role when Accept is JSON', function () {
+it('returns security workspace for viewer role when module access is granted', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
         'module_access' => securityAllModulesOn(),
@@ -71,6 +95,5 @@ it('returns JSON forbidden for viewer role when Accept is JSON', function () {
 
     $this->actingAs($user)
         ->getJson(route('modules.security'))
-        ->assertForbidden()
-        ->assertJson(['message' => 'Forbidden.']);
+        ->assertOk();
 });

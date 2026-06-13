@@ -1,0 +1,12 @@
+# Production server safety
+
+Never run `php artisan test` on the production server (`medcahealthcare.com`).
+
+Tests use `User::factory()` which creates faker names like "Dr. Jace Goyette MD" with `@example.org` emails. When config is cached, PHPUnit can accidentally target `database/database.sqlite` (live data) instead of an in-memory database.
+
+Use on **local/staging only**:
+
+- `composer test`
+- `./bin/safe-test.sh`
+
+If fake users appear in User Management, they are test artifacts — delete them and avoid running tests on production.

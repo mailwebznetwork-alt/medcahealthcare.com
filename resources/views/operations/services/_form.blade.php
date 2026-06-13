@@ -125,9 +125,24 @@
                     <x-input-label for="price_range" :value="__('Price range')" variant="mom" />
                     <x-text-input id="price_range" name="price_range" type="text" class="mt-2 block w-full" :value="old('price_range', $service->price_range)" variant="mom" />
                 </div>
-                <div class="md:col-span-2" x-data="{ catQ: '' }">
+                <div class="md:col-span-2" x-data="{
+                    catQ: '',
+                    primary: @js($selectedPrimaryCategoryId),
+                    pickPrimary(catId) {
+                        this.primary = catId;
+                        const box = document.getElementById('category-include-' + catId);
+                        if (box) box.checked = true;
+                    },
+                    onIncludeToggle(catId, included) {
+                        if (! included && this.primary === catId) {
+                            this.primary = 0;
+                            const radios = document.querySelectorAll('input[name=primary_category_id]');
+                            radios.forEach((r) => { if (Number(r.value) === catId) r.checked = false; });
+                        }
+                    },
+                }">
                     <x-input-label for="category_ids" :value="__('Categories')" variant="mom" />
-                    <p class="mom-subtext mt-1">{{ __('Assign categories for navigation. The primary category controls inherited pincodes (no union across categories).') }}</p>
+                    <p class="mom-subtext mt-1">{{ __('Check categories to include this service. Mark one as Primary — it controls inherited pincodes (not a union across categories).') }}</p>
                     @if ($categoryOptions->isEmpty())
                         <p class="mt-3 text-sm text-[var(--text-muted)]">
                             {{ __('No categories yet.') }}
@@ -135,18 +150,41 @@
                         </p>
                     @else
                         <input type="search" x-model="catQ" class="mom-input mt-3 block w-full text-sm" placeholder="{{ __('Filter categories…') }}" autocomplete="off" />
-                        <div class="mt-3 max-h-48 overflow-y-auto custom-scrollbar rounded-mom-chrome border border-[var(--border-panel-soft)] p-3 space-y-2">
+                        <div class="mt-3 max-h-48 overflow-y-auto custom-scrollbar rounded-mom-chrome border border-[var(--border-panel-soft)] p-3">
+                            <div class="mb-2 grid grid-cols-[auto_auto_1fr] items-center gap-x-3 gap-y-0 px-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                                <span class="w-5 text-center">{{ __('Include') }}</span>
+                                <span class="w-5 text-center">{{ __('Primary') }}</span>
+                                <span>{{ __('Category') }}</span>
+                            </div>
+                            <div class="space-y-2">
                             @foreach ($categoryOptions as $cat)
                                 @php $blob = strtolower($cat->name.' '.$cat->code); @endphp
-                                <label x-show="!catQ || @js($blob).includes(catQ.toLowerCase())" class="flex items-start gap-2 text-sm">
-                                    <input type="checkbox" name="category_ids[]" value="{{ $cat->id }}" class="mt-1 rounded" @checked(in_array((int) $cat->id, $selectedCategoryIds, true)) />
-                                    <input type="radio" name="primary_category_id" value="{{ $cat->id }}" class="mt-1 rounded-full border-[rgba(255,255,255,0.15)]" title="{{ __('Primary category (pincodes)') }}" @checked($selectedPrimaryCategoryId === (int) $cat->id) />
+                                <label x-show="!catQ || @js($blob).includes(catQ.toLowerCase())" class="grid grid-cols-[auto_auto_1fr] items-start gap-x-3 gap-y-0 text-sm">
+                                    <input
+                                        id="category-include-{{ $cat->id }}"
+                                        type="checkbox"
+                                        name="category_ids[]"
+                                        value="{{ $cat->id }}"
+                                        class="mt-0.5 h-4 w-4 rounded border-[rgba(255,255,255,0.15)]"
+                                        @checked(in_array((int) $cat->id, $selectedCategoryIds, true))
+                                        @change="onIncludeToggle({{ $cat->id }}, $event.target.checked)"
+                                    />
+                                    <input
+                                        type="radio"
+                                        name="primary_category_id"
+                                        value="{{ $cat->id }}"
+                                        class="mt-0.5 h-4 w-4 rounded-full border-[rgba(255,255,255,0.15)]"
+                                        title="{{ __('Primary category (pincodes)') }}"
+                                        @checked($selectedPrimaryCategoryId === (int) $cat->id)
+                                        @click="pickPrimary({{ $cat->id }})"
+                                    />
                                     <span>
                                         <span class="font-medium text-[var(--text-primary)]">{{ $cat->name }}</span>
                                         <span class="block font-mono text-[10px] text-[var(--text-muted)]">{{ $cat->code }}</span>
                                     </span>
                                 </label>
                             @endforeach
+                            </div>
                         </div>
                     @endif
                     <x-input-error class="mt-2" :messages="$errors->get('category_ids')" />

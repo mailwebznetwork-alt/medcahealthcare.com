@@ -109,12 +109,17 @@ it('renders block media urls in hero output', function () {
         'hero-home',
         [
             'blockMedia' => [
-                'desktop_image' => 'https://cdn.example.test/hero.jpg',
+                'desktop_image' => 'https://cdn.example.test/hero-desktop.jpg',
+                'mobile_image' => 'https://cdn.example.test/hero-mobile.jpg',
             ],
         ],
     );
 
-    expect($html)->toContain('https://cdn.example.test/hero.jpg');
+    expect($html)
+        ->toContain('--hero-bg-desktop')
+        ->toContain('https://cdn.example.test/hero-desktop.jpg')
+        ->toContain('--hero-bg-mobile')
+        ->toContain('https://cdn.example.test/hero-mobile.jpg');
 });
 
 it('caches block lookups within a single parse request', function () {

@@ -59,7 +59,7 @@ it('filters services by multiple categories', function () {
     $inB->categories()->attach($catB->id);
 
     $this->actingAs($user)
-        ->get(route('operations.services.index', ['category_ids' => [$catA->id]]))
+        ->get(route('operations.services.index', ['category_id' => $catA->id]))
         ->assertSuccessful()
         ->assertSee('Alpha Service', false)
         ->assertDontSee('Beta Service', false);
