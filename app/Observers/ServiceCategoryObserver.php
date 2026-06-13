@@ -8,6 +8,7 @@ use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Governance\UniversalPageRegistry;
 use App\Services\Operations\CategoryMasterOrchestrator;
+use App\Services\Public\CatalogPublicCache;
 
 class ServiceCategoryObserver
 {
@@ -16,6 +17,7 @@ class ServiceCategoryObserver
         private readonly UniversalPageRegistry $pageRegistry,
         private readonly AdminDeletionGuard $deletionGuard,
         private readonly DownstreamArtifactPurger $purger,
+        private readonly CatalogPublicCache $publicCache,
     ) {}
 
     public function saved(ServiceCategory $category): void
@@ -33,6 +35,8 @@ class ServiceCategoryObserver
         } else {
             $this->pageRegistry->upsertCategoryEntry($category->fresh());
         }
+
+        $this->publicCache->forgetForCategory($category);
     }
 
     public function deleting(ServiceCategory $category): void
@@ -42,6 +46,7 @@ class ServiceCategoryObserver
 
     public function deleted(ServiceCategory $category): void
     {
+        $this->publicCache->forgetForCategory($category);
         $this->purger->purgeAfterCatalogEntityChange();
     }
 }

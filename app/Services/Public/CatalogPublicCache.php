@@ -42,9 +42,31 @@ class CatalogPublicCache
 
     public function forgetForService(Service $service): void
     {
-        Cache::store(config('public_cache.store'))->forget(
-            config('public_cache.prefix').':meta:service:'.$service->service_code
-        );
+        $this->forgetKey($this->metaKey(null, $service, null, null, null));
+    }
+
+    public function forgetForCategory(ServiceCategory $category): void
+    {
+        $this->forgetKey($this->metaKey(null, null, $category, null, null));
+    }
+
+    public function forgetForSubService(SubService $subService): void
+    {
+        $this->forgetKey($this->metaKey(null, null, null, null, $subService));
+    }
+
+    public function forgetForLocationMapping(ServiceLocationPage $mapping): void
+    {
+        $this->forgetKey($this->metaKey(null, null, null, $mapping, null));
+    }
+
+    private function forgetKey(string $key): void
+    {
+        if (! config('public_cache.enabled', true)) {
+            return;
+        }
+
+        Cache::store(config('public_cache.store'))->forget($key);
     }
 
     private function metaKey(

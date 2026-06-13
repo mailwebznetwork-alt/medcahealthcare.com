@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\PaymentNotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->middleware(['auth:sanctum', 'active'])->group(function () {
+    Route::get('/openapi.json', [\App\Http\Controllers\Api\V1\OpenApiController::class, 'show'])->withoutMiddleware(['auth:sanctum', 'active']);
     Route::get('/services', [\App\Http\Controllers\Api\V1\ServiceApiController::class, 'index']);
     Route::get('/services/{code}', [\App\Http\Controllers\Api\V1\ServiceApiController::class, 'show']);
     Route::get('/pincodes', [\App\Http\Controllers\Api\V1\PinCodeApiController::class, 'index']);

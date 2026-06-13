@@ -1,0 +1,234 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Medca Healthcare Catalog API",
+    "version": "1.0.0",
+    "description": "Authenticated REST and GraphQL read API for Medca catalog entities (services, pincodes, categories)."
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "API v1"
+    }
+  ],
+  "security": [
+    {
+      "sanctum": []
+    }
+  ],
+  "paths": {
+    "/services": {
+      "get": {
+        "summary": "List active services",
+        "parameters": [
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": { "type": "integer", "maximum": 100, "default": 50 }
+          },
+          {
+            "name": "category_code",
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated service list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Service" } },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthenticated" }
+        }
+      }
+    },
+    "/services/{code}": {
+      "get": {
+        "summary": "Get service by code",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ServiceDetail" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Service not found" }
+        }
+      }
+    },
+    "/pincodes": {
+      "get": {
+        "summary": "List active pincodes",
+        "parameters": [
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": { "type": "integer", "maximum": 250, "default": 100 }
+          },
+          {
+            "name": "zone_code",
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "serviceable_only",
+            "in": "query",
+            "schema": { "type": "boolean" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated pincode list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/PinCode" } },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/graphql": {
+      "post": {
+        "summary": "GraphQL catalog queries",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["query"],
+                "properties": {
+                  "query": { "type": "string", "example": "{ services(limit: 5) { code title url } }" },
+                  "variables": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "GraphQL response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "object" },
+                    "errors": { "type": "array", "items": { "type": "object" } }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Missing query" }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "summary": "This OpenAPI document",
+        "security": [],
+        "responses": {
+          "200": { "description": "OpenAPI JSON" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "sanctum": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Laravel Sanctum personal access token"
+      }
+    },
+    "schemas": {
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "current_page": { "type": "integer" },
+          "last_page": { "type": "integer" },
+          "per_page": { "type": "integer" },
+          "total": { "type": "integer" }
+        }
+      },
+      "Service": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "title": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "short_summary": { "type": "string", "nullable": true },
+          "quick_answer": { "type": "string", "nullable": true },
+          "categories": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "ServiceDetail": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Service" },
+          {
+            "type": "object",
+            "properties": {
+              "description": { "type": "string", "nullable": true },
+              "ai_summary": { "type": "string", "nullable": true },
+              "why_medca": { "type": "string", "nullable": true },
+              "sub_services": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "string" },
+                    "title": { "type": "string" },
+                    "url": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "PinCode": {
+        "type": "object",
+        "properties": {
+          "pincode": { "type": "string" },
+          "area_name": { "type": "string" },
+          "slug": { "type": "string" },
+          "city": { "type": "string", "nullable": true },
+          "is_serviceable": { "type": "boolean" },
+          "coverage_text": { "type": "string", "nullable": true }
+        }
+      }
+    }
+  }
+}

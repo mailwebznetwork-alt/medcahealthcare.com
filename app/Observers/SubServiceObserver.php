@@ -9,6 +9,7 @@ use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Governance\SubServiceCreationGuard;
 use App\Services\Governance\UniversalPageRegistry;
 use App\Services\Operations\SubServiceMasterOrchestrator;
+use App\Services\Public\CatalogPublicCache;
 
 class SubServiceObserver
 {
@@ -17,6 +18,7 @@ class SubServiceObserver
         private readonly UniversalPageRegistry $pageRegistry,
         private readonly AdminDeletionGuard $deletionGuard,
         private readonly DownstreamArtifactPurger $purger,
+        private readonly CatalogPublicCache $publicCache,
     ) {}
 
     public function saved(SubService $sub): void
@@ -35,6 +37,8 @@ class SubServiceObserver
         } else {
             $this->pageRegistry->upsertSubServiceEntry($sub->fresh());
         }
+
+        $this->publicCache->forgetForSubService($sub);
     }
 
     public function deleting(SubService $sub): void
@@ -44,6 +48,7 @@ class SubServiceObserver
 
     public function deleted(SubService $sub): void
     {
+        $this->publicCache->forgetForSubService($sub);
         $this->purger->purgeAfterCatalogEntityChange();
     }
 }

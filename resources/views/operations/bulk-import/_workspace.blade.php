@@ -90,6 +90,19 @@
                         'n' => (int) ($cmp['unchanged'] ?? 0),
                     ]) }}
                 </p>
+                @if (! empty($cmp['field_diff_samples']))
+                    <div class="mt-3 rounded-lg border border-[color:var(--border-tabstrip-divider)] p-3">
+                        <p class="mom-micro font-semibold text-[var(--text-primary)]">{{ __('Field changes (sample)') }}</p>
+                        <ul class="mom-micro mt-2 space-y-2 text-[var(--text-secondary)]">
+                            @foreach ($cmp['field_diff_samples'] as $sample)
+                                <li>
+                                    <span class="font-mono text-[var(--text-primary)]">{{ $sample['key'] ?? '—' }}</span>
+                                    <span class="text-[var(--text-muted)]"> — {{ implode(', ', $sample['fields'] ?? []) }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
             @endif
             @if (! empty($staging['preview']['warnings']))
                 <ul class="mom-subtext mt-2 space-y-1 text-[var(--warning)]">
@@ -165,6 +178,19 @@
                         'n' => (int) ($cmp['unchanged'] ?? 0),
                     ]) }}
                 </p>
+                @if (! empty($cmp['field_diff_samples']))
+                    <div class="mt-3 rounded-lg border border-[color:var(--border-tabstrip-divider)] p-3">
+                        <p class="mom-micro font-semibold text-[var(--text-primary)]">{{ __('Field changes (sample)') }}</p>
+                        <ul class="mom-micro mt-2 space-y-2 text-[var(--text-secondary)]">
+                            @foreach ($cmp['field_diff_samples'] as $sample)
+                                <li>
+                                    <span class="font-mono text-[var(--text-primary)]">{{ $sample['key'] ?? '—' }}</span>
+                                    <span class="text-[var(--text-muted)]"> — {{ implode(', ', $sample['fields'] ?? []) }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
             @endif
         </div>
         <div class="mom-table overflow-x-auto">

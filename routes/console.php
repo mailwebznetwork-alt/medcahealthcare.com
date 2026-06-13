@@ -48,6 +48,11 @@ Schedule::command('medca:backup-health-report')
     ->name('medca-backup-health-weekly')
     ->withoutOverlapping();
 
+Schedule::command('medca:cache-health-report')
+    ->weeklyOn(1, '06:00')
+    ->name('medca-cache-health-weekly')
+    ->withoutOverlapping();
+
 Schedule::command('medca:post-launch-ops')
     ->monthlyOn(1, '06:00')
     ->name('medca-post-launch-ops-monthly')

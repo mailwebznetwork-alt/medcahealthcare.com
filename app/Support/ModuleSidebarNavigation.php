@@ -67,7 +67,7 @@ final class ModuleSidebarNavigation
     {
         return match ($navKey) {
             ModuleAccess::SITE_ARCHITECT => ['content', 'building'],
-            ModuleAccess::OPERATIONS => ['hiring', 'coverage', 'catalog'],
+            ModuleAccess::OPERATIONS => ['hiring', 'coverage', 'catalog', 'quality'],
             ModuleAccess::MARKETING => ['dashboard', 'intelligence'],
             ModuleAccess::GROWTH_CENTER => ['intelligence', 'organic'],
             ModuleAccess::USER_MANAGEMENT => ['directory'],
@@ -133,6 +133,13 @@ final class ModuleSidebarNavigation
                     self::item('operations.bookings.index', __('Bookings'), request()->routeIs('operations.bookings.*')),
                     self::item('operations.admissions.index', __('Admissions'), request()->routeIs('operations.admissions.*')),
                     self::item('operations.revenue-events.index', __('Revenue'), request()->routeIs('operations.revenue-events.*')),
+                ],
+            ],
+            [
+                'key' => 'quality',
+                'label' => __('Quality'),
+                'items' => [
+                    self::item('operations.content-health.index', __('Content Health'), request()->routeIs('operations.content-health.*')),
                 ],
             ],
         ];
@@ -249,6 +256,7 @@ final class ModuleSidebarNavigation
                     self::item('growth-center.readiness', __('Readiness'), request()->routeIs('growth-center.readiness')),
                     self::item('growth-center.ga4.index', __('GA4'), request()->routeIs('growth-center.ga4.*')),
                     self::item('growth-center.ai-pulse.index', __('AI Pulse'), request()->routeIs('growth-center.ai-pulse.*')),
+                    self::item('growth-center.gsc.index', __('Search Console'), request()->routeIs('growth-center.gsc.*')),
                 ],
             ],
         ];

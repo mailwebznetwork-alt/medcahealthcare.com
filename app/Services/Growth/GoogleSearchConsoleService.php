@@ -2,26 +2,26 @@
 
 namespace App\Services\Growth;
 
-use App\Models\BusinessProfile;
-use App\Models\PinCode;
-use App\Models\Service;
-use App\Models\SeoEntity;
-use App\Services\MasterSpec\QuickAnswerGenerator;
-use App\Services\Public\PublicDisplayNameResolver;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Log;
 
 class GoogleSearchConsoleService
 {
     /**
-     * @return array{configured: bool, sites: list<string>, error: ?string}
+     * @return array{configured: bool, sites: list<string>, error: ?string, auth_mode: ?string}
      */
     public function testConnection(): array
     {
-        $token = config('growth.google_search_console.access_token');
+        $token = $this->resolveAccessToken();
 
-        if (! filled($token)) {
-            return ['configured' => false, 'sites' => [], 'error' => 'GSC access token not configured'];
+        if ($token === null) {
+            return [
+                'configured' => false,
+                'sites' => [],
+                'error' => 'GSC credentials not configured (set MEDCA_GSC_ACCESS_TOKEN or OAuth refresh token)',
+                'auth_mode' => null,
+            ];
         }
 
         $response = Http::withToken($token)
@@ -32,6 +32,7 @@ class GoogleSearchConsoleService
                 'configured' => true,
                 'sites' => [],
                 'error' => $response->json('error.message') ?? $response->body(),
+                'auth_mode' => $this->authMode(),
             ];
         }
 
@@ -41,7 +42,12 @@ class GoogleSearchConsoleService
             ->values()
             ->all();
 
-        return ['configured' => true, 'sites' => $sites, 'error' => null];
+        return [
+            'configured' => true,
+            'sites' => $sites,
+            'error' => null,
+            'auth_mode' => $this->authMode(),
+        ];
     }
 
     /**
@@ -49,9 +55,9 @@ class GoogleSearchConsoleService
      */
     public function searchAnalytics(string $siteUrl, int $days = 28): array
     {
-        $token = config('growth.google_search_console.access_token');
+        $token = $this->resolveAccessToken();
 
-        if (! filled($token)) {
+        if ($token === null) {
             return ['rows' => [], 'error' => 'GSC not configured'];
         }
 
@@ -71,5 +77,80 @@ class GoogleSearchConsoleService
         }
 
         return ['rows' => $response->json('rows') ?? [], 'error' => null];
+    }
+
+    private function resolveAccessToken(): ?string
+    {
+        if ($this->oauthConfigured()) {
+            $cached = Cache::get('growth.gsc.oauth_access_token');
+            if (is_string($cached) && $cached !== '') {
+                return $cached;
+            }
+
+            $token = $this->fetchOAuthAccessToken();
+            if ($token !== null) {
+                Cache::put('growth.gsc.oauth_access_token', $token, now()->addSeconds(3500));
+            }
+
+            return $token;
+        }
+
+        $static = config('growth.google_search_console.access_token');
+
+        return filled($static) ? (string) $static : null;
+    }
+
+    private function oauthConfigured(): bool
+    {
+        foreach ([
+            'growth.google_search_console.client_id',
+            'growth.google_search_console.client_secret',
+            'growth.google_search_console.refresh_token',
+        ] as $key) {
+            $value = config($key);
+            if (! is_string($value) || trim($value) === '') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function authMode(): ?string
+    {
+        if ($this->oauthConfigured()) {
+            return 'oauth_refresh_token';
+        }
+
+        if (filled(config('growth.google_search_console.access_token'))) {
+            return 'static_access_token';
+        }
+
+        return null;
+    }
+
+    private function fetchOAuthAccessToken(): ?string
+    {
+        $response = Http::asForm()
+            ->timeout(15)
+            ->post('https://oauth2.googleapis.com/token', [
+                'grant_type' => 'refresh_token',
+                'client_id' => config('growth.google_search_console.client_id'),
+                'client_secret' => config('growth.google_search_console.client_secret'),
+                'refresh_token' => config('growth.google_search_console.refresh_token'),
+            ]);
+
+        if (! $response->successful()) {
+            Log::warning('GSC OAuth token exchange failed', [
+                'status' => $response->status(),
+                'body_preview' => mb_substr($response->body(), 0, 500),
+            ]);
+
+            return null;
+        }
+
+        $token = $response->json('access_token');
+
+        return is_string($token) && $token !== '' ? $token : null;
     }
 }

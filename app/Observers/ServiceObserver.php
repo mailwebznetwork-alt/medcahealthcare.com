@@ -11,6 +11,7 @@ use App\Services\Growth\ContentSeoAutoFillService;
 use App\Services\Growth\SitemapRegenerationDispatcher;
 use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Operations\InternalLinkRefreshDispatcher;
+use App\Services\Public\CatalogPublicCache;
 use App\Support\PostPublishGrowthSync;
 use Illuminate\Support\Facades\Schema;
 
@@ -22,6 +23,7 @@ class ServiceObserver
         private readonly AdminDeletionGuard $deletionGuard,
         private readonly DownstreamArtifactPurger $purger,
         private readonly SitemapRegenerationDispatcher $sitemapDispatcher,
+        private readonly CatalogPublicCache $publicCache,
     ) {}
 
     public function saved(Service $service): void
@@ -35,6 +37,7 @@ class ServiceObserver
         }
 
         $this->contentSeoAutoFill->applyAndSyncService($service);
+        $this->publicCache->forgetForService($service);
         PostPublishGrowthSync::defer();
         $this->linkRefreshDispatcher->dispatchForService($service->id);
         $this->sitemapDispatcher->dispatch();
@@ -53,6 +56,7 @@ class ServiceObserver
             PageElement::query()->where('page_slug', $slugPath)->delete();
         }
 
+        $this->publicCache->forgetForService($service);
         PostPublishGrowthSync::defer();
         $this->purger->purgeAfterCatalogEntityChange();
     }
