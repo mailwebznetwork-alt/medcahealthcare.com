@@ -55,6 +55,17 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'target_keywords',
     'ai_keywords',
     'quality_score',
+    'quick_answer',
+    'why_medca',
+    'key_takeaways',
+    'activities_included',
+    'medical_review_status',
+    'reviewed_by',
+    'reviewed_at',
+    'verification_status',
+    'featured_video_url',
+    'featured_video_title',
+    'featured_video_description',
 ])]
 class SubService extends Model
 {
@@ -75,7 +86,7 @@ class SubService extends Model
             'show_on_contact' => 'boolean',
             'page_id' => 'integer',
             'internal_links_snapshot' => 'array',
-        ], $this->catalogMasterFieldCasts());
+        ], $this->catalogMasterFieldCasts(), $this->masterSpecContentFieldCasts());
     }
 
     public static function findByCode(int $serviceId, string $code): ?self

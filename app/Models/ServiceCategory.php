@@ -57,6 +57,17 @@ use Illuminate\Support\Str;
     'quality_score',
     'publish_status',
     'custom_fields',
+    'quick_answer',
+    'why_medca',
+    'key_takeaways',
+    'activities_included',
+    'medical_review_status',
+    'reviewed_by',
+    'reviewed_at',
+    'verification_status',
+    'featured_video_url',
+    'featured_video_title',
+    'featured_video_description',
 ])]
 class ServiceCategory extends Model
 {
@@ -112,7 +123,7 @@ class ServiceCategory extends Model
             'page_id' => 'integer',
             'visibility' => ServiceVisibility::class,
             'internal_links_snapshot' => 'array',
-        ], $this->catalogMasterFieldCasts());
+        ], $this->catalogMasterFieldCasts(), $this->masterSpecContentFieldCasts());
     }
 
     /**

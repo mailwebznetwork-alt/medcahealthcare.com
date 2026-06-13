@@ -79,4 +79,9 @@ return [
             ],
         ],
     ],
+
+    'google_search_console' => [
+        'access_token' => env('MEDCA_GSC_ACCESS_TOKEN'),
+        'site_url' => env('MEDCA_GSC_SITE_URL', env('APP_URL')),
+    ],
 ];

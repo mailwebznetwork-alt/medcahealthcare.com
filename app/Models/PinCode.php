@@ -35,6 +35,7 @@ use Illuminate\Support\Str;
     'landing_page',
     'priority',
     'custom_fields',
+    'bangalore_zone_id',
 ])]
 class PinCode extends Model
 {
@@ -112,6 +113,14 @@ class PinCode extends Model
     public function geoLocation(): BelongsTo
     {
         return $this->belongsTo(GeoLocation::class);
+    }
+
+    /**
+     * @return BelongsTo<BangaloreZone, $this>
+     */
+    public function bangaloreZone(): BelongsTo
+    {
+        return $this->belongsTo(BangaloreZone::class);
     }
 
     /**

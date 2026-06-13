@@ -56,9 +56,21 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'visibility',
     'sort_order',
     'custom_fields',
+    'quick_answer',
+    'why_medca',
+    'key_takeaways',
+    'activities_included',
+    'medical_review_status',
+    'reviewed_by',
+    'reviewed_at',
+    'verification_status',
+    'featured_video_url',
+    'featured_video_title',
+    'featured_video_description',
 ])]
 class Service extends Model
 {
+    use \App\Models\Concerns\HasMasterSpecContentFields;
     /** @use HasFactory<ServiceFactory> */
     use HasFactory;
 
@@ -126,6 +138,11 @@ class Service extends Model
             && $this->visibility === ServiceVisibility::Public;
     }
 
+    public function publicListingTitle(): string
+    {
+        return (string) ($this->title ?? '');
+    }
+
     /**
      * @param  Builder<Service>  $query
      * @return Builder<Service>
@@ -142,7 +159,7 @@ class Service extends Model
 
     protected function casts(): array
     {
-        return [
+        return array_merge([
             'gallery' => 'array',
             'gallery_media_ids' => 'array',
             'gallery_meta' => 'array',
@@ -173,7 +190,7 @@ class Service extends Model
             'sort_order' => 'integer',
             'detail_page_id' => 'integer',
             'custom_fields' => 'array',
-        ];
+        ], $this->masterSpecContentFieldCasts());
     }
 
     /**

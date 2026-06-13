@@ -3,12 +3,14 @@
 namespace App\Services\Growth;
 
 use App\Models\BusinessProfile;
-use App\Models\PinCode;
 use App\Models\PageElement;
-use App\Models\PageSeo;
+use App\Models\PinCode;
+use App\Models\Service;
 use App\Models\SeoAiSignal;
 use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
+use App\Services\MasterSpec\QuickAnswerGenerator;
+use App\Services\Public\PublicDisplayNameResolver;
 use Illuminate\Support\Facades\Schema;
 
 class AeoService
@@ -73,26 +75,48 @@ class AeoService
      */
     public function generateDiscoveryData(): array
     {
-        $services = Schema::hasTable('page_seo')
-            ? PageSeo::query()
-                ->orderBy('page_slug')
+        $resolver = app(PublicDisplayNameResolver::class);
+        $quickAnswers = app(QuickAnswerGenerator::class);
+
+        $services = Schema::hasTable('services')
+            ? Service::query()
+                ->with('seo')
+                ->where('is_active', true)
+                ->orderBy('service_code')
                 ->get()
-                ->map(fn (PageSeo $pageSeo): array => [
-                    'slug' => $pageSeo->page_slug,
-                    'meta_title' => $pageSeo->meta_title,
-                    'meta_description' => $pageSeo->meta_description,
-                    'llm_score' => $this->calculateLlmScore($pageSeo->page_slug),
-                ])
+                ->map(function (Service $service) use ($resolver, $quickAnswers): array {
+                    $meta = $resolver->documentMeta($service);
+
+                    return [
+                        'code' => $service->service_code,
+                        'url' => $service->publicUrl(),
+                        'title' => $service->publicListingTitle(),
+                        'meta_title' => $meta['title'] ?? $service->seo?->meta_title,
+                        'meta_description' => $meta['description'] ?? $service->seo?->meta_description,
+                        'quick_answer' => filled($service->quick_answer)
+                            ? $service->quick_answer
+                            : $quickAnswers->generateForService($service),
+                        'ai_summary' => $service->ai_summary,
+                        'search_intent' => $service->seo?->search_intent,
+                        'medical_review_status' => $service->medical_review_status?->value ?? $service->medical_review_status,
+                        'verification_status' => $service->verification_status?->value ?? $service->verification_status,
+                        'llm_score' => (int) ($service->seo?->ai_discovery_score ?? 0),
+                    ];
+                })
                 ->values()
                 ->all()
             : [];
 
         $locations = Schema::hasTable('pin_codes')
             ? PinCode::query()
+                ->with('bangaloreZone')
                 ->orderBy('pincode')
                 ->get()
                 ->map(fn (PinCode $pincode): array => [
                     'pincode' => $pincode->pincode,
+                    'area_name' => $pincode->area_name,
+                    'slug' => $pincode->slug,
+                    'bangalore_zone' => $pincode->bangaloreZone?->name,
                     'landing_page' => $pincode->landing_page,
                     'serviceable' => (bool) $pincode->is_serviceable,
                     'priority' => $pincode->priority,

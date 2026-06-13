@@ -140,6 +140,15 @@ class CatalogMasterPersister
             'target_keywords' => $this->nullableKeywordArray($data['target_keywords'] ?? null),
             'ai_keywords' => $this->nullableKeywordArray($data['ai_keywords'] ?? null),
             'custom_fields' => is_array($data['custom_fields'] ?? null) ? $data['custom_fields'] : null,
+            'quick_answer' => $data['quick_answer'] ?? null,
+            'why_medca' => $data['why_medca'] ?? null,
+            'key_takeaways' => $this->nullableLinesArray($data['key_takeaways'] ?? null),
+            'activities_included' => $this->nullableLinesArray($data['activities_included'] ?? null),
+            'medical_review_status' => $data['medical_review_status'] ?? null,
+            'verification_status' => $data['verification_status'] ?? null,
+            'featured_video_url' => $data['featured_video_url'] ?? null,
+            'featured_video_title' => $data['featured_video_title'] ?? null,
+            'featured_video_description' => $data['featured_video_description'] ?? null,
         ];
     }
 

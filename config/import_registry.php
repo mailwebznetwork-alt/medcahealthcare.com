@@ -124,6 +124,7 @@ return [
         'async_commit' => filter_var(env('IMPORT_ASYNC_COMMIT', true), FILTER_VALIDATE_BOOLEAN),
         'async_commit_row_threshold' => (int) env('IMPORT_ASYNC_COMMIT_ROW_THRESHOLD', 50),
         'requires_approval' => true,
+        'maker_checker_enabled' => filter_var(env('IMPORT_MAKER_CHECKER', true), FILTER_VALIDATE_BOOLEAN),
         'rollback_enabled' => true,
         'auto_map_service_pincodes' => env('IMPORT_AUTO_MAP_SERVICE_PINCODES', true),
     ],
@@ -132,7 +133,8 @@ return [
         'categories' => [
             'code', 'name', 'slug', 'description', 'short_summary', 'parent_code', 'sort_order', 'is_active', 'is_featured',
             'publish_status', 'visibility', 'show_on_homepage', 'show_on_about', 'show_on_contact',
-            'key_benefits', 'eligibility', 'process_steps', 'ai_summary', 'procedures', 'specialized_care', 'shifts',
+            'key_benefits', 'eligibility', 'process_steps', 'ai_summary', 'quick_answer', 'why_medca', 'key_takeaways',
+            'activities_included', 'medical_review_status', 'verification_status', 'procedures', 'specialized_care', 'shifts',
             'price_range', 'trust_signals', 'target_keywords', 'ai_keywords',
             'meta_title', 'meta_description', 'focus_keywords', 'secondary_keywords', 'canonical_url', 'robots_index',
             'og_title', 'og_description', 'og_image', 'aeo_question', 'aeo_answer', 'h1', 'h2_lines', 'h3_lines',
@@ -158,7 +160,8 @@ return [
         ],
         'sub_services' => [
             'parent_service_code', 'sub_service_code', 'title', 'short_summary', 'description',
-            'key_benefits', 'eligibility', 'process_steps', 'ai_summary', 'procedures', 'specialized_care', 'shifts',
+            'key_benefits', 'eligibility', 'process_steps', 'ai_summary', 'quick_answer', 'why_medca', 'key_takeaways',
+            'activities_included', 'medical_review_status', 'verification_status', 'procedures', 'specialized_care', 'shifts',
             'price_range', 'trust_signals', 'target_keywords', 'ai_keywords', 'sort_order',
             'is_active', 'publish_status', 'visibility', 'is_featured', 'is_top_rated', 'show_on_homepage',
             'show_on_about', 'show_on_contact', 'meta_title', 'meta_description', 'focus_keywords', 'secondary_keywords',
@@ -172,7 +175,7 @@ return [
             'location_cta_content', 'location_meta_title_template', 'location_meta_description_template',
         ],
         'pincodes' => [
-            'pincode', 'area_name', 'city', 'state', 'locality', 'is_serviceable', 'is_active', 'priority',
+            'pincode', 'area_name', 'city', 'state', 'locality', 'bangalore_zone_code', 'is_serviceable', 'is_active', 'priority',
             'service_radius_km', 'coverage_type', 'meta_title', 'meta_description', 'seo_keywords',
         ],
         'geo_enrichment' => [

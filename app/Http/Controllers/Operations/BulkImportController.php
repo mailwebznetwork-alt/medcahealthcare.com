@@ -141,6 +141,7 @@ class BulkImportController extends Controller
     public function confirm(
         Request $request,
         StagedImportCommitService $committer,
+        \App\Services\Import\ImportApprovalService $approvals,
     ): RedirectResponse {
         $staging = session(self::STAGING_KEY);
         if (! is_array($staging) || empty($staging['path'])) {
@@ -158,6 +159,15 @@ class BulkImportController extends Controller
             return redirect()->to($this->returnUrl())->withErrors(['file' => __('Staged file no longer available.')]);
         }
 
+        if (config('import_registry.workflow.maker_checker_enabled', true)) {
+            $approvals->submitForApproval($staging, $request->user());
+            $request->session()->forget(self::STAGING_KEY);
+
+            return redirect()
+                ->to($this->returnUrl())
+                ->with('import_submitted_for_approval', true);
+        }
+
         if ($this->shouldCommitAsync($staging)) {
             return $this->dispatchAsyncCommit($request, $staging);
         }
@@ -170,6 +180,36 @@ class BulkImportController extends Controller
         return redirect()
             ->to($this->returnUrl())
             ->with('import_result', $result);
+    }
+
+    public function approveImport(
+        Request $request,
+        \App\Services\Import\ImportApprovalService $approvals,
+        int $approval,
+    ): RedirectResponse {
+        $record = \App\Models\ImportApprovalRequest::query()->findOrFail($approval);
+        $result = $approvals->approve($record, $request->user());
+
+        if (! ($result['success'] ?? false)) {
+            return back()->withErrors(['approval' => $result['errors'][0] ?? __('Approval failed.')]);
+        }
+
+        return back()->with('import_result', $result);
+    }
+
+    public function rejectImport(
+        Request $request,
+        \App\Services\Import\ImportApprovalService $approvals,
+        int $approval,
+    ): RedirectResponse {
+        $record = \App\Models\ImportApprovalRequest::query()->findOrFail($approval);
+        $ok = $approvals->reject($record, $request->user(), $request->string('reason')->toString());
+
+        if (! $ok) {
+            return back()->withErrors(['approval' => __('Could not reject import.')]);
+        }
+
+        return back()->with('import_rejected', true);
     }
 
     public function cancel(Request $request): RedirectResponse

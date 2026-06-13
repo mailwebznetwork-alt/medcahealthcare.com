@@ -7,6 +7,12 @@ use App\Http\Controllers\Api\ExotelWebhookController;
 use App\Http\Controllers\Api\PaymentNotificationController;
 use Illuminate\Support\Facades\Route;
 
+Route::prefix('v1')->middleware(['auth:sanctum', 'active'])->group(function () {
+    Route::get('/services', [\App\Http\Controllers\Api\V1\ServiceApiController::class, 'index']);
+    Route::get('/services/{code}', [\App\Http\Controllers\Api\V1\ServiceApiController::class, 'show']);
+    Route::get('/pincodes', [\App\Http\Controllers\Api\V1\PinCodeApiController::class, 'index']);
+});
+
 Route::post('/leads', [LeadController::class, 'store'])->middleware('throttle:api_leads');
 
 Route::prefix('admin/operations/service-categories')

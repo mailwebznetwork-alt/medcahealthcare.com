@@ -40,7 +40,7 @@ class UpdateUserRequest extends FormRequest
             'role_label' => ['nullable', 'string', 'max:255'],
             'profile_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,msword', 'max:2048'],
             'remove_profile_image' => ['sometimes', 'boolean'],
-            'role' => ['required', 'string', 'in:super_admin,admin,manager,editor,viewer'],
+            'role' => ['required', 'string', 'in:super_admin,admin,manager,editor,viewer,content_writer,medical_reviewer'],
             'password' => ['nullable', Password::defaults(), 'confirmed'],
             'admin_password' => ['required_with:password', 'string'],
             'module_access' => ['nullable', 'array'],

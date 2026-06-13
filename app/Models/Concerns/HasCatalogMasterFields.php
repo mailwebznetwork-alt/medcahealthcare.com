@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 trait HasCatalogMasterFields
 {
+    use HasMasterSpecContentFields;
     public function getTitleAttribute(): ?string
     {
         if (array_key_exists('title', $this->attributes) && $this->attributes['title'] !== null) {
@@ -74,7 +75,7 @@ trait HasCatalogMasterFields
      */
     protected function catalogMasterFieldCasts(): array
     {
-        return [
+        return array_merge([
             'key_benefits' => 'array',
             'eligibility' => 'array',
             'process_steps' => 'array',
@@ -94,7 +95,7 @@ trait HasCatalogMasterFields
             'featured_media_id' => 'integer',
             'icon_media_id' => 'integer',
             'publish_status' => PublishStatus::class,
-        ];
+        ], $this->masterSpecContentFieldCasts());
     }
 
     /**

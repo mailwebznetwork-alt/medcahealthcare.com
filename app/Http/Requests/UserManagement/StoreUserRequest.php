@@ -33,7 +33,7 @@ class StoreUserRequest extends FormRequest
             'role_label' => ['nullable', 'string', 'max:255'],
             'password' => ['required', 'confirmed', Password::defaults()],
             'profile_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,msword', 'max:2048'],
-            'role' => ['required', 'string', 'in:super_admin,admin,manager,editor,viewer'],
+            'role' => ['required', 'string', 'in:super_admin,admin,manager,editor,viewer,content_writer,medical_reviewer'],
             'module_access' => ['nullable', 'array'],
             'is_active' => ['sometimes', 'boolean'],
         ];

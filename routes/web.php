@@ -302,6 +302,8 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
         Route::post('bulk-import/preview', [BulkImportController::class, 'preview'])->name('bulk-import.preview');
         Route::post('bulk-import/confirm', [BulkImportController::class, 'confirm'])->name('bulk-import.confirm');
         Route::post('bulk-import/cancel', [BulkImportController::class, 'cancel'])->name('bulk-import.cancel');
+        Route::post('bulk-import/approvals/{approval}/approve', [BulkImportController::class, 'approveImport'])->name('bulk-import.approve');
+        Route::post('bulk-import/approvals/{approval}/reject', [BulkImportController::class, 'rejectImport'])->name('bulk-import.reject');
         Route::get('/', [ServiceController::class, 'index'])->name('index');
         Route::get('create', [ServiceController::class, 'create'])->name('create');
         Route::post('/', [ServiceController::class, 'store'])->name('store');
@@ -319,6 +321,9 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
         Route::get('{service}/detail-page/edit', [ServiceController::class, 'editDetailPage'])->name('detail-page.edit');
         Route::put('{service}', [ServiceController::class, 'update'])->name('update');
         Route::post('{service}/gemini-suggest', [ServiceController::class, 'geminiSuggest'])->name('gemini-suggest');
+        Route::post('medical-review/submit', [\App\Http\Controllers\Operations\MedicalReviewController::class, 'submit'])->name('medical-review.submit');
+        Route::post('medical-review/approve', [\App\Http\Controllers\Operations\MedicalReviewController::class, 'approve'])->name('medical-review.approve');
+        Route::post('medical-review/reject', [\App\Http\Controllers\Operations\MedicalReviewController::class, 'reject'])->name('medical-review.reject');
         Route::delete('{service}', [ServiceController::class, 'destroy'])->name('destroy');
     });
 
@@ -328,6 +333,8 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
         Route::post('preview', [BulkImportController::class, 'preview'])->name('preview');
         Route::post('confirm', [BulkImportController::class, 'confirm'])->name('confirm');
         Route::post('cancel', [BulkImportController::class, 'cancel'])->name('cancel');
+        Route::post('approvals/{approval}/approve', [BulkImportController::class, 'approveImport'])->name('approve');
+        Route::post('approvals/{approval}/reject', [BulkImportController::class, 'rejectImport'])->name('reject');
         Route::post('rollback/{batch}', [BulkImportController::class, 'rollback'])->name('rollback');
     });
 
@@ -341,6 +348,8 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
         Route::post('bulk-import/preview', [BulkImportController::class, 'preview'])->name('bulk-import.preview');
         Route::post('bulk-import/confirm', [BulkImportController::class, 'confirm'])->name('bulk-import.confirm');
         Route::post('bulk-import/cancel', [BulkImportController::class, 'cancel'])->name('bulk-import.cancel');
+        Route::post('bulk-import/approvals/{approval}/approve', [BulkImportController::class, 'approveImport'])->name('bulk-import.approve');
+        Route::post('bulk-import/approvals/{approval}/reject', [BulkImportController::class, 'rejectImport'])->name('bulk-import.reject');
         Route::get('create', [PinCodeController::class, 'create'])->name('create');
         Route::post('/', [PinCodeController::class, 'store'])->name('store');
         Route::get('{pin_code}/edit', [PinCodeController::class, 'edit'])->name('edit');
