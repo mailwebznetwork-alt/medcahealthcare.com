@@ -43,6 +43,11 @@ if (config('marketing_automation.enabled', true)) {
         ->withoutOverlapping();
 }
 
+Schedule::command('medca:backup-health-report')
+    ->weeklyOn(1, '05:45')
+    ->name('medca-backup-health-weekly')
+    ->withoutOverlapping();
+
 Schedule::command('medca:post-launch-ops')
     ->monthlyOn(1, '06:00')
     ->name('medca-post-launch-ops-monthly')

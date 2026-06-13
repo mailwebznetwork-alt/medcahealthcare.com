@@ -368,6 +368,7 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
 
     Route::view('/operations/admissions', 'operations.admissions.index-shell')->name('operations.admissions.index');
     Route::view('/operations/revenue-events', 'operations.revenue-events.index-shell')->name('operations.revenue-events.index');
+    Route::view('/operations/content-health', 'operations.content-health.index-shell')->name('operations.content-health.index');
 });
 
 Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:marketing'])->group(function () {
@@ -400,6 +401,7 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:growth_c
     Route::get('/growth-center/competitors', CompetitorPageController::class)->name('growth-center.competitors.index');
     Route::get('/growth-center/readiness', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'readiness')->name('growth-center.readiness');
     Route::get('/growth-center/ga4', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'ga4')->name('growth-center.ga4.index');
+    Route::get('/growth-center/gsc', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'gsc')->name('growth-center.gsc.index');
     Route::get('/growth-center/ai-pulse', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'ai-pulse')->name('growth-center.ai-pulse.index');
     Route::get('/growth-center/aeo', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'seo')->name('growth-center.aeo.index');
 

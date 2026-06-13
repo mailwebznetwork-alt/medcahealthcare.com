@@ -19,6 +19,8 @@
         @include('growth-center.competitors.partials.seo')
     @elseif (($activeTab ?? 'competitors') === 'ga4')
         @include('growth-center.competitors.partials.ga4')
+    @elseif (($activeTab ?? 'competitors') === 'gsc')
+        @include('growth-center.competitors.partials.gsc')
     @elseif (($activeTab ?? 'competitors') === 'ai-pulse')
         @include('growth-center.competitors.partials.ai-pulse')
     @else

@@ -23,12 +23,10 @@ class MediaUploadProcessor
 
         $originalName = $file->getClientOriginalName();
         $ext = strtolower($file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'bin');
-        $safeBase = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) ?: 'file';
-        if ($safeBase === '') {
-            $safeBase = 'file';
-        }
+        $seoBase = MediaSeoFilenameGenerator::generate($originalName, $sourceModule);
+        $storedName = $seoBase.'.'.$ext;
 
-        $path = $file->storeAs($baseDir, 'original.'.$ext, 'public');
+        $path = $file->storeAs($baseDir, $storedName, 'public');
         if ($path === false) {
             throw new \RuntimeException('Failed to store upload.');
         }

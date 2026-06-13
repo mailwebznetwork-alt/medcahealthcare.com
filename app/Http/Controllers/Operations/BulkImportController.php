@@ -244,6 +244,15 @@ class BulkImportController extends Controller
             'batches' => $this->batchesForWorkbook($lockedWorkbook),
             'staging' => session(self::STAGING_KEY),
             'lockedWorkbook' => $lockedWorkbook,
+            'pendingApprovals' => \App\Models\ImportApprovalRequest::query()
+                ->with(['requester:id,name', 'approver:id,name'])
+                ->where('status', \App\Enums\ImportApprovalStatus::Pending)
+                ->orderByDesc('id')
+                ->limit(20)
+                ->get(),
+            'approveRoutePrefix' => $lockedWorkbook === 'services'
+                ? 'operations.services.bulk-import'
+                : ($lockedWorkbook === 'pincodes' ? 'operations.pin-codes.bulk-import' : 'operations.bulk-import'),
         ]);
     }
 

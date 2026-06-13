@@ -2,11 +2,27 @@
     $lockedWorkbook = $lockedWorkbook ?? null;
     $workbookMeta = $lockedWorkbook ? ($workbooks[$lockedWorkbook] ?? []) : [];
     $workbookLabel = $workbookMeta['label'] ?? $lockedWorkbook;
+    $approveRoutePrefix = $approveRoutePrefix ?? 'operations.bulk-import';
     $previewRoute = $previewRoute ?? route('operations.bulk-import.preview');
     $confirmRoute = $confirmRoute ?? route('operations.bulk-import.confirm');
     $cancelRoute = $cancelRoute ?? route('operations.bulk-import.cancel');
     $templateRoute = fn (string $key): string => route('operations.bulk-import.templates.download', $key);
 @endphp
+
+@if (session('import_submitted_for_approval'))
+    <div class="mom-card mb-8 border border-[rgba(197,160,89,0.35)] p-5" role="status">
+        <p class="mom-section-title text-mom-gold">{{ __('Submitted for checker approval') }}</p>
+        <p class="mom-body-text mt-2 text-[var(--text-secondary)]">
+            {{ __('A manager, admin, or medical reviewer must approve this import before rows are committed.') }}
+        </p>
+    </div>
+@endif
+
+@if (session('import_rejected'))
+    <div class="mom-card mb-8 border border-[rgba(220,38,38,0.25)] p-5" role="status">
+        <p class="mom-section-title text-[var(--danger)]">{{ __('Import rejected') }}</p>
+    </div>
+@endif
 
 @if (session('import_async_started'))
     @php $async = session('import_async_started'); @endphp
@@ -122,7 +138,7 @@
         </div>
         <div class="mom-backend-hairline-t flex flex-wrap items-center justify-between gap-4 px-5 py-4">
             <form method="post" action="{{ $cancelRoute }}" class="inline">@csrf<button type="submit" class="mom-cta-ghost">{{ __('Cancel staging') }}</button></form>
-            <form method="post" action="{{ $confirmRoute }}" class="inline">@csrf<button type="submit" class="mom-cta-primary">{{ __('Approve & commit import') }}</button></form>
+            <form method="post" action="{{ $confirmRoute }}" class="inline">@csrf<button type="submit" class="mom-cta-primary">{{ config('import_registry.workflow.maker_checker_enabled') ? __('Submit for approval') : __('Approve & commit import') }}</button></form>
         </div>
     </div>
 @elseif (is_array($staging) && ! empty($staging['preview_rows']))
@@ -153,7 +169,7 @@
         </div>
         <div class="mom-backend-hairline-t flex flex-wrap items-center justify-between gap-4 px-5 py-4">
             <form method="post" action="{{ $cancelRoute }}" class="inline">@csrf<button type="submit" class="mom-cta-ghost">{{ __('Cancel staging') }}</button></form>
-            <form method="post" action="{{ $confirmRoute }}" class="inline">@csrf<button type="submit" class="mom-cta-primary">{{ __('Approve & commit import') }}</button></form>
+            <form method="post" action="{{ $confirmRoute }}" class="inline">@csrf<button type="submit" class="mom-cta-primary">{{ config('import_registry.workflow.maker_checker_enabled') ? __('Submit for approval') : __('Approve & commit import') }}</button></form>
         </div>
     </div>
 @endif
@@ -239,6 +255,44 @@
         </div>
         <x-secondary-button variant="mom" type="submit">{{ __('Generate preview') }}</x-secondary-button>
     </form>
+</div>
+
+<div class="mom-card overflow-hidden p-0 mb-8">
+    <div class="mom-backend-hairline-b px-5 py-4">
+        <h3 class="mom-section-title text-base">{{ __('Pending import approvals') }}</h3>
+        <p class="mom-subtext mt-1">{{ __('Maker-checker queue — approver must differ from submitter.') }}</p>
+    </div>
+    @if (($pendingApprovals ?? collect())->isEmpty())
+        <p class="mom-body-text p-6 text-[var(--text-muted)]">{{ __('No pending approvals.') }}</p>
+    @else
+        <div class="mom-table overflow-x-auto">
+            <table class="w-full min-w-[720px] text-left text-[13px]">
+                <thead class="bg-[var(--bg-card-table-head)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                    <tr>
+                        <th class="px-4 py-3">#</th>
+                        <th class="px-4 py-3">{{ __('File') }}</th>
+                        <th class="px-4 py-3">{{ __('Rows') }}</th>
+                        <th class="px-4 py-3">{{ __('Requested by') }}</th>
+                        <th class="px-4 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[color:var(--border-tabstrip-divider)] text-[var(--text-secondary)]">
+                    @foreach ($pendingApprovals as $approval)
+                        <tr>
+                            <td class="px-4 py-3">{{ $approval->id }}</td>
+                            <td class="px-4 py-3">{{ $approval->original_filename ?? $approval->workbook ?? $approval->entity_key }}</td>
+                            <td class="px-4 py-3 tabular-nums">{{ number_format($approval->total_data_rows) }}</td>
+                            <td class="px-4 py-3">{{ $approval->requester?->name ?? '—' }}</td>
+                            <td class="px-4 py-3 space-x-3">
+                                <form action="{{ route($approveRoutePrefix.'.approve', $approval) }}" method="POST" class="inline">@csrf<button type="submit" class="text-sm font-semibold text-mom-gold hover:underline">{{ __('Approve') }}</button></form>
+                                <form action="{{ route($approveRoutePrefix.'.reject', $approval) }}" method="POST" class="inline">@csrf<button type="submit" class="text-sm font-semibold text-[var(--danger)] hover:underline">{{ __('Reject') }}</button></form>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
 </div>
 
 <div class="mom-card overflow-hidden p-0">

@@ -49,6 +49,7 @@ class CompetitorPageController extends Controller
             $canonicalTabRoutes = [
                 'readiness' => 'growth-center.readiness',
                 'ga4' => 'growth-center.ga4.index',
+                'gsc' => 'growth-center.gsc.index',
                 'ai-pulse' => 'growth-center.ai-pulse.index',
                 'war-room' => 'growth-center.war-room',
             ];
