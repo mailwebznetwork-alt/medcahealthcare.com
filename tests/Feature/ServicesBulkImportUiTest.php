@@ -21,5 +21,10 @@ it('shows services bulk import in operations toolbar', function () {
         ->get(route('operations.services.bulk-import'))
         ->assertOk()
         ->assertSee('services.xlsx', false)
-        ->assertSee(__('Download :file template', ['file' => 'services.xlsx']), false);
+        ->assertSee(__('Export live data'), false);
+
+    $this->actingAs($user)
+        ->get(route('operations.services.bulk-import.export.download', 'services'))
+        ->assertOk()
+        ->assertDownload('services.xlsx');
 });

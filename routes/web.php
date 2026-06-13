@@ -304,6 +304,7 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
         Route::post('bulk-import/cancel', [BulkImportController::class, 'cancel'])->name('bulk-import.cancel');
         Route::post('bulk-import/approvals/{approval}/approve', [BulkImportController::class, 'approveImport'])->name('bulk-import.approve');
         Route::post('bulk-import/approvals/{approval}/reject', [BulkImportController::class, 'rejectImport'])->name('bulk-import.reject');
+        Route::get('bulk-import/export/{workbook}', [BulkImportController::class, 'downloadCatalogExport'])->name('bulk-import.export.download');
         Route::get('/', [ServiceController::class, 'index'])->name('index');
         Route::get('create', [ServiceController::class, 'create'])->name('create');
         Route::post('/', [ServiceController::class, 'store'])->name('store');
@@ -330,6 +331,7 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
     Route::prefix('operations/bulk-import')->name('operations.bulk-import.')->group(function () {
         Route::get('/', [BulkImportController::class, 'index'])->name('index');
         Route::get('templates/{workbook}', [BulkImportController::class, 'downloadTemplate'])->name('templates.download');
+        Route::get('export/{workbook}', [BulkImportController::class, 'downloadCatalogExport'])->name('export.download');
         Route::post('preview', [BulkImportController::class, 'preview'])->name('preview');
         Route::post('confirm', [BulkImportController::class, 'confirm'])->name('confirm');
         Route::post('cancel', [BulkImportController::class, 'cancel'])->name('cancel');
@@ -350,6 +352,7 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
         Route::post('bulk-import/cancel', [BulkImportController::class, 'cancel'])->name('bulk-import.cancel');
         Route::post('bulk-import/approvals/{approval}/approve', [BulkImportController::class, 'approveImport'])->name('bulk-import.approve');
         Route::post('bulk-import/approvals/{approval}/reject', [BulkImportController::class, 'rejectImport'])->name('bulk-import.reject');
+        Route::get('bulk-import/export/{workbook}', [BulkImportController::class, 'downloadCatalogExport'])->name('bulk-import.export.download');
         Route::get('create', [PinCodeController::class, 'create'])->name('create');
         Route::post('/', [PinCodeController::class, 'store'])->name('store');
         Route::get('{pin_code}/edit', [PinCodeController::class, 'edit'])->name('edit');

@@ -15,8 +15,11 @@ use App\Services\Import\WorkbookImportOrchestrator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -46,6 +49,40 @@ class BulkImportController extends Controller
         }
 
         return response()->download($path, $file);
+    }
+
+    public function downloadCatalogExport(string $workbook): BinaryFileResponse|RedirectResponse
+    {
+        if (! in_array($workbook, ['services', 'pincodes'], true)) {
+            abort(404);
+        }
+
+        if ($workbook === 'services') {
+            $this->authorize('viewAny', Service::class);
+        } else {
+            $this->authorize('import', PinCode::class);
+        }
+
+        $dir = storage_path('app/exports/ui');
+        File::ensureDirectoryExists($dir);
+
+        Artisan::call('medca:export-catalog', [
+            '--workbook' => $workbook,
+            '--path' => 'storage/app/exports/ui',
+        ]);
+
+        $pattern = $workbook === 'services' ? 'catalog-services-*.xlsx' : 'catalog-pincodes-*.xlsx';
+        $latest = collect(File::glob($dir.'/'.$pattern))
+            ->sortByDesc(fn (string $path): int => filemtime($path))
+            ->first();
+
+        if ($latest === null || ! is_readable($latest)) {
+            return back()->withErrors(['export' => __('Live catalog export failed. Try again or run medca:export-catalog on the server.')]);
+        }
+
+        $downloadName = $workbook === 'services' ? 'services.xlsx' : 'pincodes.xlsx';
+
+        return response()->download($latest, $downloadName);
     }
 
     public function index(ImportRegistry $registry): View
@@ -260,6 +297,9 @@ class BulkImportController extends Controller
                 ->limit(20)
                 ->get(),
             'approveRoutePrefix' => $lockedWorkbook === 'services'
+                ? 'operations.services.bulk-import'
+                : ($lockedWorkbook === 'pincodes' ? 'operations.pin-codes.bulk-import' : 'operations.bulk-import'),
+            'exportRoutePrefix' => $lockedWorkbook === 'services'
                 ? 'operations.services.bulk-import'
                 : ($lockedWorkbook === 'pincodes' ? 'operations.pin-codes.bulk-import' : 'operations.bulk-import'),
         ]);

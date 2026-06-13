@@ -3,10 +3,12 @@
     $workbookMeta = $lockedWorkbook ? ($workbooks[$lockedWorkbook] ?? []) : [];
     $workbookLabel = $workbookMeta['label'] ?? $lockedWorkbook;
     $approveRoutePrefix = $approveRoutePrefix ?? 'operations.bulk-import';
+    $exportRoutePrefix = $exportRoutePrefix ?? 'operations.bulk-import';
     $previewRoute = $previewRoute ?? route('operations.bulk-import.preview');
     $confirmRoute = $confirmRoute ?? route('operations.bulk-import.confirm');
     $cancelRoute = $cancelRoute ?? route('operations.bulk-import.cancel');
     $templateRoute = fn (string $key): string => route('operations.bulk-import.templates.download', $key);
+    $exportRoute = fn (string $key): string => route($exportRoutePrefix.'.export.download', $key);
 @endphp
 
 @if (session('import_submitted_for_approval'))
@@ -226,11 +228,17 @@
         <p class="mom-subtext mt-2 max-w-3xl text-[var(--text-secondary)]">
             {{ __('Workbook: :file', ['file' => $workbookLabel]) }}
         </p>
-        <div class="mt-3">
-            <a href="{{ $templateRoute($lockedWorkbook) }}" class="text-sm font-semibold text-mom-gold hover:underline">
-                {{ __('Download :file template', ['file' => $workbookLabel]) }}
+        <div class="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            <a href="{{ $templateRoute($lockedWorkbook) }}" class="font-semibold text-mom-gold hover:underline">
+                {{ __('Download empty template') }}
+            </a>
+            <a href="{{ $exportRoute($lockedWorkbook) }}" class="font-semibold text-emerald-300 hover:underline">
+                {{ __('Export live data') }}
             </a>
         </div>
+        <p class="mom-micro mt-2 text-[var(--text-muted)]">
+            {{ __('Export downloads categories, services, and sub-services (or pincodes and mappings) from the database. Edit the file and upload it below to bulk update.') }}
+        </p>
     @endif
     <form method="post" action="{{ $previewRoute }}" enctype="multipart/form-data" class="mt-6 space-y-4" id="bulk-import-form">
         @csrf
@@ -258,9 +266,11 @@
                         <option value="{{ $key }}">{{ $meta['label'] ?? $key }}</option>
                     @endforeach
                 </select>
-                <div class="mt-3 flex flex-wrap gap-4 text-sm">
-                    <a href="{{ $templateRoute('services') }}" class="font-semibold text-mom-gold hover:underline">{{ __('Download services.xlsx') }}</a>
-                    <a href="{{ $templateRoute('pincodes') }}" class="font-semibold text-mom-gold hover:underline">{{ __('Download pincodes.xlsx') }}</a>
+                <div class="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                    <a href="{{ $templateRoute('services') }}" class="font-semibold text-mom-gold hover:underline">{{ __('Empty services template') }}</a>
+                    <a href="{{ $exportRoute('services') }}" class="font-semibold text-emerald-300 hover:underline">{{ __('Export live services data') }}</a>
+                    <a href="{{ $templateRoute('pincodes') }}" class="font-semibold text-mom-gold hover:underline">{{ __('Empty pincodes template') }}</a>
+                    <a href="{{ $exportRoute('pincodes') }}" class="font-semibold text-emerald-300 hover:underline">{{ __('Export live pincodes data') }}</a>
                 </div>
             </div>
             <div id="bulk-import-entity-panel" class="hidden">
