@@ -7,6 +7,8 @@ use App\Models\Application;
 use App\Models\User;
 use App\Models\Vacancy;
 use App\ModuleAccess;
+use App\Services\MasterSpec\ContentHealthService;
+use App\Services\MasterSpec\ProgrammaticSeoQualityScorer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
@@ -52,6 +54,9 @@ class DashboardController extends Controller
             'vacancies_total' => null,
             'vacancies_published' => null,
             'applications_recent' => null,
+            'content_health_avg_score' => null,
+            'content_health_thin_services' => null,
+            'content_health_pending_medical' => null,
         ];
 
         if ($dashboardWidgets['user_management'] ?? false) {
@@ -79,6 +84,14 @@ class DashboardController extends Controller
             $metrics['applications_recent'] = Application::query()
                 ->where('created_at', '>=', now()->subDays(7))
                 ->count();
+        }
+
+        if ($dashboardWidgets['operations'] ?? false) {
+            $health = app(ContentHealthService::class)->report();
+            $seo = app(ProgrammaticSeoQualityScorer::class)->catalogSummary();
+            $metrics['content_health_avg_score'] = $seo['average'];
+            $metrics['content_health_thin_services'] = $health['thin_services'];
+            $metrics['content_health_pending_medical'] = $health['pending_medical_review'];
         }
 
         return $metrics;

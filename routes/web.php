@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Growth\AeoController;
 use App\Http\Controllers\Growth\CompetitorPageController;
+use App\Http\Controllers\Growth\GscOAuthController;
 use App\Http\Controllers\Growth\GeoController;
 use App\Http\Controllers\Growth\SeoController;
 use App\Http\Controllers\Growth\WarRoomController;
@@ -405,6 +406,9 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:growth_c
     Route::get('/growth-center/readiness', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'readiness')->name('growth-center.readiness');
     Route::get('/growth-center/ga4', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'ga4')->name('growth-center.ga4.index');
     Route::get('/growth-center/gsc', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'gsc')->name('growth-center.gsc.index');
+    Route::get('/growth-center/gsc/oauth/connect', [GscOAuthController::class, 'connect'])->name('growth-center.gsc.oauth.connect');
+    Route::get('/growth-center/gsc/oauth/callback', [GscOAuthController::class, 'callback'])->name('growth-center.gsc.oauth.callback');
+    Route::post('/growth-center/gsc/oauth/disconnect', [GscOAuthController::class, 'disconnect'])->name('growth-center.gsc.oauth.disconnect');
     Route::get('/growth-center/ai-pulse', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'ai-pulse')->name('growth-center.ai-pulse.index');
     Route::get('/growth-center/aeo', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'seo')->name('growth-center.aeo.index');
 

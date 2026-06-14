@@ -11,6 +11,7 @@ class ContentHealthService
 {
     public function __construct(
         private readonly QuickAnswerGenerator $quickAnswers,
+        private readonly ThinContentRules $thinContentRules,
     ) {}
 
     /**
@@ -21,11 +22,7 @@ class ContentHealthService
         $thinServices = Service::query()
             ->where('is_active', true)
             ->get()
-            ->filter(function (Service $service): bool {
-                $words = str_word_count((string) ($service->description ?? '').' '.(string) ($service->short_summary ?? ''));
-
-                return $words < 40;
-            })
+            ->filter(fn (Service $service): bool => $this->thinContentRules->isThinService($service))
             ->count();
 
         $missingQuickAnswer = Service::query()
@@ -47,11 +44,7 @@ class ContentHealthService
             ->where('is_indexable', true)
             ->with('page')
             ->get()
-            ->filter(function (ServiceLocationPage $row): bool {
-                $content = (string) ($row->page?->content ?? '');
-
-                return str_word_count(strip_tags($content)) < 80;
-            })
+            ->filter(fn (ServiceLocationPage $row): bool => $this->thinContentRules->isThinLocation($row))
             ->count();
 
         $pendingMedical = Service::query()

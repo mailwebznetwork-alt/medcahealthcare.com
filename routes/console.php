@@ -57,3 +57,13 @@ Schedule::command('medca:post-launch-ops')
     ->monthlyOn(1, '06:00')
     ->name('medca-post-launch-ops-monthly')
     ->withoutOverlapping();
+
+Schedule::command('medca:content-health-report')
+    ->weeklyOn(1, '06:15')
+    ->name('medca-content-health-weekly')
+    ->withoutOverlapping();
+
+Schedule::job(new \App\Jobs\NotifyContentQualityAlertsJob('scheduled'))
+    ->weeklyOn(1, '06:30')
+    ->name('medca-content-quality-alerts-weekly')
+    ->withoutOverlapping();

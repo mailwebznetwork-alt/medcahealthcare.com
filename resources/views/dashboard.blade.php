@@ -127,6 +127,22 @@
                                     </a>
                                 @endif
                             </div>
+                            @if ($m['content_health_avg_score'] !== null)
+                                <div class="mt-6 space-y-4 border-t border-[rgba(255,255,255,0.06)] pt-4">
+                                    <a href="{{ route('operations.content-health.index') }}" class="flex items-center justify-between gap-3 no-underline transition hover:opacity-90">
+                                        <span class="mom-body-text text-[var(--text-secondary)]">{{ __('SEO avg score') }}</span>
+                                        <span class="mom-metric text-xl">{{ number_format((float) $m['content_health_avg_score'], 1) }}</span>
+                                    </a>
+                                    <a href="{{ route('operations.content-health.index') }}" class="flex items-center justify-between gap-3 no-underline transition hover:opacity-90">
+                                        <span class="mom-body-text text-[var(--text-secondary)]">{{ __('Thin services') }}</span>
+                                        <span class="mom-metric text-xl">{{ number_format((int) $m['content_health_thin_services']) }}</span>
+                                    </a>
+                                    <a href="{{ route('operations.content-health.index') }}" class="flex items-center justify-between gap-3 no-underline transition hover:opacity-90">
+                                        <span class="mom-body-text text-[var(--text-secondary)]">{{ __('Pending medical review') }}</span>
+                                        <span class="mom-metric text-xl">{{ number_format((int) $m['content_health_pending_medical']) }}</span>
+                                    </a>
+                                </div>
+                            @endif
                             <a
                                 href="{{ route('modules.operations') }}"
                                 class="mom-subtext mt-6 inline-flex items-center gap-1 text-mom-gold hover:underline"

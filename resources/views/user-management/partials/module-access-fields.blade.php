@@ -1,7 +1,9 @@
 @foreach (\App\ModuleAccess::labelsForForm() as $key => $meta)
     @php
         $disabled = $user?->isRootSuperAdmin() ?? false;
-        $checked = $user ? $user->hasModuleAccess($key) : false;
+        $role = old('role', $user?->role instanceof \BackedEnum ? $user->role->value : (string) ($user?->role ?? 'viewer'));
+        $defaults = \App\ModuleAccess::grantsForRole((string) $role);
+        $checked = $user ? $user->hasModuleAccess($key) : (bool) ($defaults[$key] ?? false);
     @endphp
     <label @class([
         'flex items-start gap-3 rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[var(--bg-card-nested)] p-4 transition-all duration-320 ease-premium',

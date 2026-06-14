@@ -48,7 +48,7 @@ class CheckRole
         if ($currentRole === '') {
             $roleLabel = trim((string) ($authenticatedUser->role_label ?? ''));
             $normalizedRole = mb_strtolower(str_replace(' ', '_', $roleLabel));
-            $validRoles = ['super_admin', 'admin', 'manager', 'editor', 'viewer'];
+            $validRoles = ['super_admin', 'admin', 'manager', 'editor', 'viewer', 'content_writer', 'medical_reviewer'];
 
             if (in_array($normalizedRole, $validRoles, true)) {
                 $currentRole = $normalizedRole;

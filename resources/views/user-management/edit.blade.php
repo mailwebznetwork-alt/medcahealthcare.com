@@ -42,6 +42,11 @@
                         <x-input-error class="mt-2" :messages="$errors->get('phone')" />
                     </div>
                     <div class="sm:col-span-2">
+                        @unless ($user->isRootSuperAdmin())
+                            @include('user-management.partials.role-select', ['user' => $user])
+                        @endunless
+                    </div>
+                    <div class="sm:col-span-2">
                         <x-input-label for="role_label" :value="__('Role label')" />
                         <x-text-input
                             id="role_label"

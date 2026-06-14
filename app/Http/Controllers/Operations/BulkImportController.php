@@ -64,12 +64,18 @@ class BulkImportController extends Controller
         }
 
         $dir = storage_path('app/exports/ui');
-        File::ensureDirectoryExists($dir);
+        File::ensureDirectoryExists($dir, 0775);
 
-        Artisan::call('medca:export-catalog', [
-            '--workbook' => $workbook,
-            '--path' => 'storage/app/exports/ui',
-        ]);
+        try {
+            Artisan::call('medca:export-catalog', [
+                '--workbook' => $workbook,
+                '--path' => $dir,
+            ]);
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return back()->withErrors(['export' => __('Live catalog export failed. Try again or run medca:export-catalog on the server.')]);
+        }
 
         $pattern = $workbook === 'services' ? 'catalog-services-*.xlsx' : 'catalog-pincodes-*.xlsx';
         $latest = collect(File::glob($dir.'/'.$pattern))
@@ -206,6 +212,7 @@ class BulkImportController extends Controller
         }
 
         if (config('import_registry.workflow.maker_checker_enabled', true)) {
+            $this->authorize('submit', \App\Models\ImportApprovalRequest::class);
             $approvals->submitForApproval($staging, $request->user());
             $request->session()->forget(self::STAGING_KEY);
 
@@ -234,6 +241,7 @@ class BulkImportController extends Controller
         int $approval,
     ): RedirectResponse {
         $record = \App\Models\ImportApprovalRequest::query()->findOrFail($approval);
+        $this->authorize('approve', $record);
         $result = $approvals->approve($record, $request->user());
 
         if (! ($result['success'] ?? false)) {
@@ -249,6 +257,7 @@ class BulkImportController extends Controller
         int $approval,
     ): RedirectResponse {
         $record = \App\Models\ImportApprovalRequest::query()->findOrFail($approval);
+        $this->authorize('reject', $record);
         $ok = $approvals->reject($record, $request->user(), $request->string('reason')->toString());
 
         if (! $ok) {

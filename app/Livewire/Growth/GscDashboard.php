@@ -49,6 +49,12 @@ class GscDashboard extends Component
 
     public function render(): View
     {
-        return view('livewire.growth.gsc-dashboard');
+        $store = app(\App\Services\Growth\GoogleSearchConsoleCredentialStore::class);
+
+        return view('livewire.growth.gsc-dashboard', [
+            'canManageOAuth' => auth()->user()?->canAccessIntegrationsAdmin() ?? false,
+            'oauthConnectable' => $store->isOAuthConnectable(),
+            'oauthConnected' => $store->connectedViaIntegration(),
+        ]);
     }
 }

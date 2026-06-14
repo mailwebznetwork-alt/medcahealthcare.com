@@ -194,6 +194,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(RevenueEvent::class, RevenueEventPolicy::class);
         Gate::policy(Competitor::class, CompetitorPolicy::class);
         Gate::policy(Review::class, ReviewPolicy::class);
+        Gate::policy(\App\Models\ImportApprovalRequest::class, \App\Policies\ImportApprovalPolicy::class);
 
         Page::observe(PageObserver::class);
         Blog::observe(BlogObserver::class);

@@ -95,7 +95,7 @@ class UserController extends Controller
             'role_label' => $roleLabel !== '' ? $roleLabel : $this->roleLabelFor($role),
             'email_verified_at' => now(),
             'is_active' => $request->boolean('is_active', true),
-            'module_access' => $this->normalizedModuleAccessFromInput($modulePayload),
+            'module_access' => $this->normalizedModuleAccessFromInput($modulePayload, $role),
         ]);
         $plainPassword = (string) $request->validated('password');
         $user->password = $plainPassword;
@@ -195,7 +195,7 @@ class UserController extends Controller
         if (! $user->isRootSuperAdmin()) {
             /** @var array<string, mixed> $modulePayload */
             $modulePayload = $request->input('module_access', []);
-            $user->module_access = $this->normalizedModuleAccessFromInput($modulePayload);
+            $user->module_access = $this->normalizedModuleAccessFromInput($modulePayload, (string) $request->validated('role'));
         }
 
         if ($request->boolean('remove_profile_image') && $user->profile_image_path) {
@@ -269,12 +269,17 @@ class UserController extends Controller
      * @param  array<string, mixed>  $incoming
      * @return array<string, bool>
      */
-    private function normalizedModuleAccessFromInput(array $incoming): array
+    private function normalizedModuleAccessFromInput(array $incoming, ?string $role = null): array
     {
+        $defaults = ModuleAccess::grantsForRole($role ?? 'viewer');
         $merged = [];
 
         foreach (ModuleAccess::keys() as $key) {
-            $merged[$key] = isset($incoming[$key]) && filter_var($incoming[$key], FILTER_VALIDATE_BOOLEAN);
+            if (array_key_exists($key, $incoming)) {
+                $merged[$key] = filter_var($incoming[$key], FILTER_VALIDATE_BOOLEAN);
+            } else {
+                $merged[$key] = $defaults[$key] ?? false;
+            }
         }
 
         return $merged;
@@ -319,12 +324,6 @@ class UserController extends Controller
 
     private function roleLabelFor(string $role): string
     {
-        return match ($role) {
-            'super_admin' => 'Super Admin',
-            'admin' => 'Admin',
-            'manager' => 'Manager',
-            'editor' => 'Editor',
-            default => 'Viewer',
-        };
+        return ModuleAccess::roleLabels()[$role] ?? 'Viewer';
     }
 }

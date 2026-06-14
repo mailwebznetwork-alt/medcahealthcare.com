@@ -340,8 +340,12 @@
                             <td class="px-4 py-3 tabular-nums">{{ number_format($approval->total_data_rows) }}</td>
                             <td class="px-4 py-3">{{ $approval->requester?->name ?? '—' }}</td>
                             <td class="px-4 py-3 space-x-3">
+                                @can('approve', $approval)
                                 <form action="{{ route($approveRoutePrefix.'.approve', $approval) }}" method="POST" class="inline">@csrf<button type="submit" class="text-sm font-semibold text-mom-gold hover:underline">{{ __('Approve') }}</button></form>
                                 <form action="{{ route($approveRoutePrefix.'.reject', $approval) }}" method="POST" class="inline">@csrf<button type="submit" class="text-sm font-semibold text-[var(--danger)] hover:underline">{{ __('Reject') }}</button></form>
+                                @else
+                                <span class="text-xs text-[var(--text-muted)]">{{ __('Awaiting approver') }}</span>
+                                @endcan
                             </td>
                         </tr>
                     @endforeach

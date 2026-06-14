@@ -86,5 +86,6 @@ return [
         'client_id' => env('MEDCA_GSC_CLIENT_ID', env('GOOGLE_ADS_CLIENT_ID')),
         'client_secret' => env('MEDCA_GSC_CLIENT_SECRET', env('GOOGLE_ADS_CLIENT_SECRET')),
         'refresh_token' => env('MEDCA_GSC_REFRESH_TOKEN'),
+        'redirect_uri' => env('MEDCA_GSC_REDIRECT_URI'),
     ],
 ];

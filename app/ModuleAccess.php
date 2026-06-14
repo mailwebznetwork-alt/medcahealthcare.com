@@ -53,6 +53,74 @@ final class ModuleAccess
         return array_fill_keys(self::keys(), true);
     }
 
+    /**
+     * @return list<string>
+     */
+    public static function roleKeys(): array
+    {
+        return [
+            'super_admin',
+            'admin',
+            'manager',
+            'editor',
+            'viewer',
+            'content_writer',
+            'medical_reviewer',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function roleLabels(): array
+    {
+        return [
+            'super_admin' => 'Super Admin',
+            'admin' => 'Admin',
+            'manager' => 'Manager',
+            'editor' => 'Editor',
+            'viewer' => 'Viewer',
+            'content_writer' => 'Content Writer',
+            'medical_reviewer' => 'Medical Reviewer',
+        ];
+    }
+
+    /**
+     * Default module grants when provisioning specialist roles.
+     *
+     * @return array<string, bool>
+     */
+    public static function grantsForRole(string $role): array
+    {
+        $none = array_fill_keys(self::keys(), false);
+        $none[self::DASHBOARD] = true;
+
+        return match ($role) {
+            'super_admin', 'admin' => self::defaultGrants(),
+            'manager' => array_merge($none, [
+                self::SITE_ARCHITECT => true,
+                self::OPERATIONS => true,
+                self::MARKETING => true,
+                self::GROWTH_CENTER => true,
+                self::USER_MANAGEMENT => true,
+                self::SECURITY => true,
+            ]),
+            'editor' => array_merge($none, [
+                self::SITE_ARCHITECT => true,
+                self::OPERATIONS => true,
+                self::MARKETING => true,
+            ]),
+            'content_writer' => array_merge($none, [
+                self::SITE_ARCHITECT => true,
+                self::OPERATIONS => true,
+            ]),
+            'medical_reviewer' => array_merge($none, [
+                self::OPERATIONS => true,
+            ]),
+            default => $none,
+        };
+    }
+
     public static function isValidKey(string $key): bool
     {
         return in_array($key, self::keys(), true);

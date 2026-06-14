@@ -131,6 +131,11 @@ class ImportPostSyncService
         $this->sitemapDispatcher->dispatch();
         $ran[] = 'sitemap_regeneration_dispatched';
 
+        if (array_intersect($entityKeys, ['services', 'sub_services', 'categories']) !== []) {
+            \App\Jobs\NotifyContentQualityAlertsJob::dispatch('post_import');
+            $ran[] = 'content_quality_alert_dispatched';
+        }
+
         return $ran;
     }
 }

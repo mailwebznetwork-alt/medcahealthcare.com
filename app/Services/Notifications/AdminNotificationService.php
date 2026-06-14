@@ -70,4 +70,47 @@ class AdminNotificationService
             ->unread()
             ->update(['read_at' => now()]);
     }
+
+    /**
+     * @param  list<int>  $recipientIds
+     */
+    public function notifyMany(
+        array $recipientIds,
+        string $action,
+        string $title,
+        string $body,
+        ?string $url = null,
+        string $module = 'operations',
+    ): void {
+        if ($recipientIds === []) {
+            return;
+        }
+
+        $timestamp = now();
+        $rows = [];
+
+        foreach ($recipientIds as $recipientId) {
+            $rows[] = [
+                'recipient_user_id' => $recipientId,
+                'module' => $module,
+                'action' => $action,
+                'entity_type' => null,
+                'title' => $title,
+                'body' => $body,
+                'url' => $url,
+                'actor_user_id' => null,
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ];
+        }
+
+        try {
+            AdminNotification::query()->insert($rows);
+        } catch (Throwable $e) {
+            Log::warning('Admin notification notifyMany failed.', [
+                'action' => $action,
+                'exception' => $e->getMessage(),
+            ]);
+        }
+    }
 }

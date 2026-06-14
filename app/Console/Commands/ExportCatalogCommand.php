@@ -22,8 +22,8 @@ class ExportCatalogCommand extends Command
 
     public function handle(): int
     {
-        $dir = base_path($this->option('path'));
-        if (! is_dir($dir) && ! mkdir($dir, 0755, true) && ! is_dir($dir)) {
+        $dir = $this->resolveOutputDir((string) $this->option('path'));
+        if (! is_dir($dir) && ! mkdir($dir, 0775, true) && ! is_dir($dir)) {
             $this->error("Could not create {$dir}");
 
             return self::FAILURE;
@@ -251,5 +251,23 @@ class ExportCatalogCommand extends Command
 
         $spreadsheet->setActiveSheetIndex(0);
         (new Xlsx($spreadsheet))->save($path);
+    }
+
+    private function resolveOutputDir(string $path): string
+    {
+        $path = trim($path);
+        if ($path === '') {
+            return storage_path('exports');
+        }
+
+        if ($path[0] === DIRECTORY_SEPARATOR) {
+            return $path;
+        }
+
+        if (str_starts_with($path, 'storage/')) {
+            return storage_path(substr($path, strlen('storage/')));
+        }
+
+        return base_path($path);
     }
 }

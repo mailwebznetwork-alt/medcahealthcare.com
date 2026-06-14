@@ -102,12 +102,9 @@ class GoogleSearchConsoleService
 
     private function oauthConfigured(): bool
     {
-        foreach ([
-            'growth.google_search_console.client_id',
-            'growth.google_search_console.client_secret',
-            'growth.google_search_console.refresh_token',
-        ] as $key) {
-            $value = config($key);
+        $store = app(GoogleSearchConsoleCredentialStore::class);
+
+        foreach ([$store->clientId(), $store->clientSecret(), $store->refreshToken()] as $value) {
             if (! is_string($value) || trim($value) === '') {
                 return false;
             }
@@ -131,13 +128,15 @@ class GoogleSearchConsoleService
 
     private function fetchOAuthAccessToken(): ?string
     {
+        $store = app(GoogleSearchConsoleCredentialStore::class);
+
         $response = Http::asForm()
             ->timeout(15)
             ->post('https://oauth2.googleapis.com/token', [
                 'grant_type' => 'refresh_token',
-                'client_id' => config('growth.google_search_console.client_id'),
-                'client_secret' => config('growth.google_search_console.client_secret'),
-                'refresh_token' => config('growth.google_search_console.refresh_token'),
+                'client_id' => $store->clientId(),
+                'client_secret' => $store->clientSecret(),
+                'refresh_token' => $store->refreshToken(),
             ]);
 
         if (! $response->successful()) {

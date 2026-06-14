@@ -72,7 +72,7 @@ class User extends Authenticatable implements MustVerifyEmail
             $role = 'super_admin';
         }
 
-        return in_array($role, ['viewer', 'editor', 'manager', 'admin', 'super_admin'], true);
+        return in_array($role, ['viewer', 'editor', 'manager', 'admin', 'super_admin', 'content_writer', 'medical_reviewer'], true);
     }
 
     /**
