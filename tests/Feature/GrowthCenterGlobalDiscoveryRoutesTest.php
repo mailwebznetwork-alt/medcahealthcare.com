@@ -36,6 +36,11 @@ it('serves global robots and llm endpoints', function () {
         ->assertSuccessful()
         ->assertSeeText('GPTBot')
         ->assertSeeText('ClaudeBot');
+
+    $this->get('/llms.txt')
+        ->assertSuccessful()
+        ->assertSeeText('Medca')
+        ->assertSeeText('/ai-discovery');
 });
 
 it('serves sitemap and discovery payload using page and geo data', function () {

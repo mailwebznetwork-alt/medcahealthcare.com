@@ -65,6 +65,98 @@ class AeoService
     }
 
     /**
+     * llms.txt — machine-readable site guide for AI crawlers (llmstxt.org-style).
+     */
+    public function generateLlmsTxt(): string
+    {
+        if (Schema::hasTable('seo_technical') && Schema::hasTable('business_profiles')) {
+            $profile = BusinessProfile::query()->where('website', config('app.url'))->first()
+                ?? BusinessProfile::query()->latest('id')->first();
+
+            if ($profile instanceof BusinessProfile) {
+                $technical = SeoTechnical::query()->where('business_profile_id', $profile->id)->first();
+                $custom = trim((string) ($technical?->llm_txt ?? ''));
+                if ($custom !== '') {
+                    return $custom;
+                }
+            }
+        }
+
+        $baseUrl = rtrim((string) config('app.url'), '/');
+        $brand = (string) config('medca.brand_name', 'Medca Health Care');
+        $profile = Schema::hasTable('business_profiles')
+            ? (BusinessProfile::query()->latest('id')->first())
+            : null;
+        $entity = Schema::hasTable('seo_entities') ? SeoEntity::query()->latest('id')->first() : null;
+
+        $summary = trim((string) ($entity?->meta_description ?? ''));
+        if ($summary === '') {
+            $summary = __('Premium home healthcare and nursing services in Bangalore.');
+        }
+
+        $lines = [
+            '# '.$brand,
+            '',
+            '> '.$summary,
+            '',
+            '## Contact',
+            '- Website: '.$baseUrl,
+        ];
+
+        if ($profile !== null) {
+            if (filled($profile->phone_e164 ?? $profile->phone)) {
+                $lines[] = '- Phone: '.($profile->phone_e164 ?? $profile->phone);
+            }
+            if (filled($profile->email)) {
+                $lines[] = '- Email: '.$profile->email;
+            }
+            if (filled($profile->city)) {
+                $lines[] = '- Service area: '.$profile->city.(filled($profile->region) ? ', '.$profile->region : '');
+            }
+        }
+
+        $lines[] = '';
+        $lines[] = '## Discovery';
+        $lines[] = '- [Sitemap]('.$baseUrl.'/sitemap.xml)';
+        $lines[] = '- [HTML sitemap]('.$baseUrl.'/sitemap)';
+        $lines[] = '- [AI discovery JSON]('.$baseUrl.'/ai-discovery)';
+        $lines[] = '- [Bot policy]('.$baseUrl.'/llm.txt)';
+
+        if (Schema::hasTable('services')) {
+            $resolver = app(PublicDisplayNameResolver::class);
+            $quickAnswers = app(QuickAnswerGenerator::class);
+
+            $services = Service::query()
+                ->with('seo')
+                ->where('is_active', true)
+                ->orderByDesc('is_featured')
+                ->orderBy('service_code')
+                ->limit(25)
+                ->get();
+
+            if ($services->isNotEmpty()) {
+                $lines[] = '';
+                $lines[] = '## Services';
+
+                foreach ($services as $service) {
+                    $title = $service->publicListingTitle();
+                    $url = $service->publicUrl();
+                    $snippet = filled($service->quick_answer)
+                        ? $service->quick_answer
+                        : $quickAnswers->generateForService($service);
+                    $lines[] = '- ['.$title.']('.$url.')'.($snippet ? ': '.$snippet : '');
+                }
+            }
+        }
+
+        $lines[] = '';
+        $lines[] = '## Crawler policy';
+        $lines[] = '- GPTBot, Google-Extended, ClaudeBot: Allow /';
+
+        return implode("\n", $lines);
+    }
+
+    /**
      * @return array{
      *     services: array<int, array<string, mixed>>,
      *     pages: array<int, array<string, mixed>>,

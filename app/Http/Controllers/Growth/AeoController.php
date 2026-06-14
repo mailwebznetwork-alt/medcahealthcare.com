@@ -43,6 +43,13 @@ class AeoController extends Controller
         ]);
     }
 
+    public function llmsTxt(): SymfonyResponse
+    {
+        return response($this->aeoService->generateLlmsTxt(), 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+        ]);
+    }
+
     public function discovery(): JsonResponse|Response
     {
         if (! Schema::hasTable('seo_technical') || ! Schema::hasTable('business_profiles')) {

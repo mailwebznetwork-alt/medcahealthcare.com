@@ -52,6 +52,7 @@ class EnsurePincodeDetected
             'robots.txt',
             'sitemap*',
             'llm.txt',
+            'llms.txt',
             'ai-discovery',
             'livewire/*',
             'dashboard*',

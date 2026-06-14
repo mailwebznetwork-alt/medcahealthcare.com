@@ -58,6 +58,7 @@ Route::get('/sitemap-{segment}.xml', [SeoController::class, 'sitemapSegmentXml']
     ->where('segment', '[a-z0-9]+(?:-[a-z0-9]+)*')
     ->name('public.sitemap.segment');
 Route::get('/llm.txt', [AeoController::class, 'llmTxt'])->name('public.llm');
+Route::get('/llms.txt', [AeoController::class, 'llmsTxt'])->name('public.llms');
 Route::get('/ai-discovery', [AeoController::class, 'discovery'])->name('public.ai-discovery');
 
 Route::post('/leads', [LeadCaptureController::class, 'store'])
