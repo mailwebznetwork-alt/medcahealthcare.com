@@ -37,12 +37,9 @@
     $procedures = $normalizeList($service->procedures);
     $specialized = $normalizeList($service->specialized_care);
     $shifts = $normalizeList($service->shifts);
-    $trustSignals = $normalizeList($service->trust_signals);
     $faqs = FaqPairNormalizer::expandMany($service->faqs);
     $subServices = $service->subServices ?? collect();
 
-    $averageRating = $service->averageApprovedRating();
-    $reviewsCount = $service->approvedReviewsCount();
     $approvedReviews = $service->approvedReviews()->latest()->limit(6)->get();
 
     $featuredSrc = null;
@@ -67,22 +64,7 @@
 @endphp
 
 <article {{ $attributes->class(['medca-service-detail']) }} data-service-detail-body="{{ $service->service_code }}">
-    @if ($averageRating !== null && $reviewsCount > 0)
-        <div class="medca-svc-detail-rating">
-            <span class="medca-svc-detail-rating-stars" aria-hidden="true">{{ str_repeat('★', min(5, (int) round($averageRating))) }}</span>
-            <span class="medca-svc-detail-rating-text">
-                {{ __(':rating / 5 · :count reviews', ['rating' => number_format((float) $averageRating, 1), 'count' => $reviewsCount]) }}
-            </span>
-        </div>
-    @endif
-
-    @if ($trustSignals !== [])
-        <ul class="medca-svc-detail-trust" aria-label="{{ __('Trust highlights') }}">
-            @foreach ($trustSignals as $signal)
-                <li>{{ $signal }}</li>
-            @endforeach
-        </ul>
-    @endif
+    <x-public.catalog-trust-panel :entity="$service" class="mb-6" />
 
     @if ($featuredSrc !== null)
         <figure class="medca-svc-detail-featured">
@@ -116,6 +98,8 @@
             </div>
         </section>
     @endif
+
+    <x-public.catalog-why-medca :text="$service->why_medca" />
 
     @if ($keyBenefits !== [])
         <section class="medca-svc-detail-section">

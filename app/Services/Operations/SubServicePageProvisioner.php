@@ -19,6 +19,8 @@ use App\Support\ServicePageOverrides;
 
 class SubServicePageProvisioner
 {
+    public const string DEFAULT_PAGE_CONTENT = "{{block:sub-service-detail-hero}}\n{{block:sub-service-detail-body}}";
+
     public function __construct(
         private readonly PageCategoryResolver $categoryResolver,
         private readonly SeoExpansionEngine $seoExpansion,
@@ -110,6 +112,15 @@ class SubServicePageProvisioner
                 if ($attributes !== []) {
                     $page->forceFill($attributes)->saveQuietly();
                 }
+
+                if (! ServicePageOverrides::contentOverride($page)) {
+                    $content = trim((string) $page->content);
+                    if ($content === '' || ! str_contains($content, 'sub-service-detail-hero')) {
+                        $page->forceFill(['content' => self::DEFAULT_PAGE_CONTENT])->saveQuietly();
+                    } elseif (! str_contains($content, 'sub-service-detail-body')) {
+                        $page->forceFill(['content' => $this->injectDetailBodyBlock($content)])->saveQuietly();
+                    }
+                }
             }
 
             if ($sub->page_id !== $page->id) {
@@ -200,6 +211,7 @@ class SubServicePageProvisioner
     {
         $blocks = [
             ['slug' => 'sub-service-detail-hero', 'view' => 'blocks.sub-services.sub-service-detail-hero'],
+            ['slug' => 'sub-service-detail-body', 'view' => 'blocks.sub-services.sub-service-detail-body'],
             ['slug' => 'sub-service-related', 'view' => 'blocks.sub-services.sub-service-related'],
         ];
 
@@ -232,5 +244,22 @@ class SubServicePageProvisioner
         }
 
         return $slug;
+    }
+
+    private function injectDetailBodyBlock(string $content): string
+    {
+        if (str_contains($content, '{{block:sub-service-detail-body}}')) {
+            return $content;
+        }
+
+        if (str_contains($content, '{{block:sub-service-detail-hero}}')) {
+            return str_replace(
+                '{{block:sub-service-detail-hero}}',
+                "{{block:sub-service-detail-hero}}\n{{block:sub-service-detail-body}}",
+                $content
+            );
+        }
+
+        return "{{block:sub-service-detail-body}}\n".$content;
     }
 }

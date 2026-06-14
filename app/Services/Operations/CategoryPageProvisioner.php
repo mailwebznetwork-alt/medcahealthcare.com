@@ -20,6 +20,8 @@ use App\Support\ServicePageOverrides;
 
 class CategoryPageProvisioner
 {
+    public const string DEFAULT_PAGE_CONTENT = "{{block:category-discovery-hero}}\n{{block:category-detail-body}}\n{{block:category-services-list}}\n{{block:category-areas-served}}";
+
     public function __construct(
         private readonly PageCategoryResolver $categoryResolver,
         private readonly SeoExpansionEngine $seoExpansion,
@@ -94,7 +96,7 @@ class CategoryPageProvisioner
                 $page = Page::query()->create([
                     'title' => $category->name,
                     'slug' => $this->uniqueSlug($this->suggestedSlug($category)),
-                    'content' => (string) config('phase2_discovery.category_page_content'),
+                    'content' => (string) config('phase2_discovery.category_page_content', self::DEFAULT_PAGE_CONTENT),
                     'is_active' => true,
                     'layout_mode' => PageLayoutMode::Canvas,
                     'page_category' => PageCategory::Category,
@@ -111,6 +113,16 @@ class CategoryPageProvisioner
 
                 if ($attributes !== []) {
                     $page->forceFill($attributes)->saveQuietly();
+                }
+
+                if (! ServicePageOverrides::contentOverride($page)) {
+                    $content = trim((string) $page->content);
+                    $default = (string) config('phase2_discovery.category_page_content', self::DEFAULT_PAGE_CONTENT);
+                    if ($content === '' || ! str_contains($content, 'category-discovery-hero')) {
+                        $page->forceFill(['content' => $default])->saveQuietly();
+                    } elseif (! str_contains($content, 'category-detail-body')) {
+                        $page->forceFill(['content' => $this->injectCategoryDetailBody($content)])->saveQuietly();
+                    }
                 }
             }
 
@@ -207,6 +219,7 @@ class CategoryPageProvisioner
     {
         $blocks = [
             ['slug' => 'category-discovery-hero', 'view' => 'blocks.categories.category-discovery-hero'],
+            ['slug' => 'category-detail-body', 'view' => 'blocks.categories.category-detail-body'],
             ['slug' => 'category-services-list', 'view' => 'blocks.categories.category-services-list'],
             ['slug' => 'category-related', 'view' => 'blocks.categories.category-related'],
             ['slug' => 'category-areas-served', 'view' => 'blocks.categories.category-areas-served'],
@@ -241,5 +254,22 @@ class CategoryPageProvisioner
         }
 
         return $slug;
+    }
+
+    private function injectCategoryDetailBody(string $content): string
+    {
+        if (str_contains($content, '{{block:category-detail-body}}')) {
+            return $content;
+        }
+
+        if (str_contains($content, '{{block:category-discovery-hero}}')) {
+            return str_replace(
+                '{{block:category-discovery-hero}}',
+                "{{block:category-discovery-hero}}\n{{block:category-detail-body}}",
+                $content
+            );
+        }
+
+        return "{{block:category-detail-body}}\n".$content;
     }
 }

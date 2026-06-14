@@ -19,10 +19,14 @@ it('runs services sync master after services import post sync', function () {
         ->once()
         ->with('medca:sync-page-registry')
         ->andReturn(0);
+    Artisan::shouldReceive('call')
+        ->once()
+        ->with('medca:fill-quick-answers')
+        ->andReturn(0);
 
     $ran = app(ImportPostSyncService::class)->syncForEntity('services');
 
-    expect($ran)->toContain('services:sync-master', 'medca:sync-page-registry');
+    expect($ran)->toContain('services:sync-master', 'medca:sync-page-registry', 'medca:fill-quick-answers', 'content_seo_aggregate_refresh', 'sitemap_regeneration_dispatched');
 });
 
 it('applies workbook location h1 template when provisioning', function () {

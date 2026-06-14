@@ -27,7 +27,6 @@
             : asset('storage/'.$service->featured_image);
     }
 
-    $trustSignals = is_array($service->trust_signals) ? array_slice($service->trust_signals, 0, 4) : [];
     $procedures = is_array($service->procedures) ? array_values(array_filter($service->procedures)) : [];
     $specialized = is_array($service->specialized_care) ? array_values(array_filter($service->specialized_care)) : [];
     $shifts = is_array($service->shifts) ? array_values(array_filter($service->shifts)) : [];
@@ -69,14 +68,10 @@
             <p class="medca-text-body-lg max-w-3xl text-slate-600">{{ $service->short_summary }}</p>
         @endif
 
-        @if ($trustSignals !== [])
-            <ul class="flex flex-wrap gap-2">
-                @foreach ($trustSignals as $signal)
-                    <li class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">{{ $signal }}</li>
-                @endforeach
-            </ul>
-        @endif
+        <x-public.catalog-trust-panel :entity="$service" />
     </div>
+
+    <x-public.catalog-why-medca :text="$service->why_medca" class="mt-6" />
 
     @if ($featuredSrc)
         <figure class="mt-6 overflow-hidden rounded-xl border border-slate-200">

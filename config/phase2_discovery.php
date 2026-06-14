@@ -7,11 +7,11 @@ return [
 
     'category_page_slug_pattern' => env('PHASE2_CATEGORY_PAGE_SLUG', 'category-{code}'),
 
-    'category_page_content' => "{{block:category-discovery-hero}}\n{{block:category-services-list}}\n{{block:category-areas-served}}",
+    'category_page_content' => "{{block:category-discovery-hero}}\n{{block:category-detail-body}}\n{{block:category-services-list}}\n{{block:category-areas-served}}",
 
     'sub_service_page_slug_pattern' => env('PHASE2_SUB_SERVICE_PAGE_SLUG', 'service-{code}-sub-{sub}'),
 
-    'sub_service_page_content' => '{{block:sub-service-detail-hero}}',
+    'sub_service_page_content' => "{{block:sub-service-detail-hero}}\n{{block:sub-service-detail-body}}",
 
     'sub_service_public_path_pattern' => '/services/{code}/sub/{sub}',
 

@@ -2,6 +2,8 @@
 
 namespace App\Services\Import;
 
+use App\Services\Growth\ContentSeoAutoFillService;
+use App\Services\Growth\SitemapRegenerationDispatcher;
 use App\Services\Operations\CatalogGeoCoverageEnforcer;
 use App\Services\Operations\ServicePincodeAutoMapper;
 use Illuminate\Support\Facades\Artisan;
@@ -16,6 +18,8 @@ class ImportPostSyncService
     public function __construct(
         private readonly ServicePincodeAutoMapper $autoMapper,
         private readonly CatalogGeoCoverageEnforcer $geoCoverageEnforcer,
+        private readonly ContentSeoAutoFillService $contentSeoAutoFill,
+        private readonly SitemapRegenerationDispatcher $sitemapDispatcher,
     ) {}
 
     /**
@@ -66,7 +70,7 @@ class ImportPostSyncService
             $ran[] = 'catalog_geo_restore';
         }
 
-        return $ran;
+        return array_merge($ran, $this->runGrowthSeoRefresh($entityKeys));
     }
 
     /**
@@ -101,5 +105,32 @@ class ImportPostSyncService
     private function shouldRestoreGeoCatalog(array $entityKeys): bool
     {
         return array_intersect($entityKeys, ['pincodes', 'geo', 'categories']) !== [];
+    }
+
+    /**
+     * @param  list<string>  $entityKeys
+     * @return list<string>
+     */
+    private function runGrowthSeoRefresh(array $entityKeys): array
+    {
+        $catalogKeys = ['categories', 'services', 'sub_services', 'pincodes', 'mappings', 'geo'];
+        if (array_intersect($entityKeys, $catalogKeys) === []) {
+            return [];
+        }
+
+        $ran = [];
+
+        if (array_intersect($entityKeys, ['services', 'sub_services', 'categories']) !== []) {
+            Artisan::call('medca:fill-quick-answers');
+            $ran[] = 'medca:fill-quick-answers';
+        }
+
+        $this->contentSeoAutoFill->refreshAggregateSignals();
+        $ran[] = 'content_seo_aggregate_refresh';
+
+        $this->sitemapDispatcher->dispatch();
+        $ran[] = 'sitemap_regeneration_dispatched';
+
+        return $ran;
     }
 }
