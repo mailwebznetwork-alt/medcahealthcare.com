@@ -108,7 +108,7 @@ class AnalyzeHijackOpportunityJob implements ShouldQueue
         $market = app(\App\Services\Seo\LocalityContextResolver::class)->aiMarketContext() ?: 'service area';
 
         return <<<TXT
-You are an SEO growth strategist for Medca Health Care (premium healthcare, {$market}).
+You are an SEO growth strategist for Karnataka Diagnostic Centre (premium healthcare, {$market}).
 
 A competitor outranks us on a high-intent keyword. Return ONLY valid JSON with these keys:
 "meta_title","meta_description","h1_suggestion","content_changes","schema_hint"

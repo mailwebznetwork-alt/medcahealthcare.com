@@ -205,7 +205,7 @@ return [
                 'category_codes' => 'physiotherapy',
                 'service_code' => 'SRV-PHYSIO-01',
                 'title' => 'Physiotherapy at Home',
-                'short_summary' => 'Expert physiotherapy in Bangalore (Arekere belt).',
+                'short_summary' => 'Expert physiotherapy in Bangalore (Karnataka belt).',
                 'is_active' => 'TRUE',
                 'publish_status' => 'published',
                 'visibility' => 'public',

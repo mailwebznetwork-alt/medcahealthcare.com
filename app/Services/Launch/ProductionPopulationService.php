@@ -135,7 +135,7 @@ class ProductionPopulationService
                         'priority' => 10,
                         'is_visible' => true,
                         'is_featured' => (bool) $service->is_featured,
-                        'coverage_notes' => 'Medca home healthcare coverage',
+                        'coverage_notes' => 'Medca Medical Laboratory services coverage',
                     ];
                 }
                 $sync = $mappingProtection->filterSyncPayload($service, $sync, 'populate');
@@ -156,7 +156,7 @@ class ProductionPopulationService
             ->each(function (PinCode $pin) use (&$count, $city): void {
                 $area = $pin->area_name ?: $city;
                 $pin->update([
-                    'coverage_text' => $pin->coverage_text ?: "Medca provides home nursing, elder care, physiotherapy, doctor visits, and lab collection across {$area} ({$pin->pincode}) within our {$city} service belt.",
+                    'coverage_text' => $pin->coverage_text ?: "Medca provides lab tests, health packages, sample collection support, and diagnostic reporting across {$area} ({$pin->pincode}) within our {$city} service belt.",
                     'emergency_coverage_text' => $pin->emergency_coverage_text ?: '24×7 on-call physician escalation for active Medca care plans.',
                     'geo_page_ready' => true,
                 ]);
@@ -175,7 +175,7 @@ class ProductionPopulationService
                 );
                 $pin->locationFaqs()->firstOrCreate(
                     ['question' => "Do you cover {$area} ({$pin->pincode})?"],
-                    ['answer' => 'Yes — Medca serves this pincode with home healthcare services after availability confirmation.', 'sort_order' => 0]
+                    ['answer' => 'Yes — Medca serves this pincode with Medical Laboratory services services after availability confirmation.', 'sort_order' => 0]
                 );
 
                 $count++;

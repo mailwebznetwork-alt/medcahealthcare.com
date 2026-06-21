@@ -30,7 +30,7 @@ class QuickAnswerGenerator
             return rtrim($sentence, '.').'.';
         }
 
-        return "{$title} is available across {$area} through Medca Health Care with trained caregivers and home visits.";
+        return "{$title} is available across {$area} through Karnataka Diagnostic Centre with reliable Medical Laboratory support and clear reporting.";
     }
 
     public function generateForCategory(ServiceCategory $category): string
@@ -42,7 +42,7 @@ class QuickAnswerGenerator
         $name = (string) ($category->name ?? $category->title ?? 'Service category');
         $city = config('medca.default_city', 'Bangalore');
 
-        return "Medca provides {$name} across {$city} with verified home healthcare professionals.";
+        return "Karnataka Diagnostic Centre provides {$name} across {$city} with reliable Medical Laboratory workflows and patient-friendly diagnostic support.";
     }
 
     public function generateForSubService(SubService $subService): string
@@ -53,10 +53,11 @@ class QuickAnswerGenerator
 
         $title = $subService->publicListingTitle();
         $parent = $subService->relationLoaded('service')
-            ? (string) ($subService->service?->title ?? 'home healthcare')
-            : (string) ($subService->service()->value('title') ?? 'home healthcare');
+            ? (string) ($subService->service?->title ?? 'medical laboratory services')
+            : (string) ($subService->service()->value('title') ?? 'medical laboratory services');
+        $city = config('medca.default_city', 'Karnataka');
 
-        return "{$title} is a specialized {$parent} offering from Medca Health Care in Bangalore.";
+        return "{$title} is a specialized {$parent} offering from Karnataka Diagnostic Centre in {$city}.";
     }
 
     public function fillIfEmpty(Model $entity): void

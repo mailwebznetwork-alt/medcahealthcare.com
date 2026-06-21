@@ -1069,7 +1069,7 @@ return array (
       array (
         'label' => 'Subheadline',
         'type' => 'textarea',
-        'default' => '25 km around Arekere, Bangalore — pin-code aware routing.',
+        'default' => '25 km around Karnataka, Bangalore — pin-code aware routing.',
       ),
       'primary_cta_label' => 
       array (

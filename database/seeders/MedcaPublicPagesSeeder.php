@@ -105,9 +105,9 @@ class MedcaPublicPagesSeeder extends Seeder
             [
                 'slug' => 'home',
                 'title' => 'Home',
-                'meta_title' => 'Medca Health Care — Premium Home Healthcare in Bangalore',
-                'meta_description' => 'Trusted, doctor-led home healthcare across Bangalore: nursing, physiotherapy, lab collection, and 24×7 medical support within 25 km of Arekere.',
-                'h1' => 'Premium home healthcare, delivered to your doorstep in Bangalore.',
+                'meta_title' => 'Karnataka Diagnostic Centre — Medical Laboratory in Bangalore',
+                'meta_description' => 'Trusted, doctor-led Medical Laboratory services across Bangalore: lab tests, health packages, sample collection support, and diagnostic reporting across Karnataka.',
+                'h1' => 'Premium Medical Laboratory services, delivered to your doorstep in Bangalore.',
                 'blocks' => [
                     'hero-home',
                     'services-overview-home',
@@ -119,9 +119,9 @@ class MedcaPublicPagesSeeder extends Seeder
             [
                 'slug' => 'about-us',
                 'title' => 'About Us',
-                'meta_title' => 'About Medca Health Care — Our Mission, Doctors, and Care Philosophy',
-                'meta_description' => 'Medca Health Care is a Bangalore-based premium home healthcare provider, built around a doctor-led care model and a 25 km service belt around Arekere.',
-                'h1' => 'About Medca Health Care.',
+                'meta_title' => 'About Karnataka Diagnostic Centre — Our Mission, Doctors, and Care Philosophy',
+                'meta_description' => 'Karnataka Diagnostic Centre is a Bangalore-based medical laboratory services provider, built around a doctor-led care model and a diagnostics network across Karnataka.',
+                'h1' => 'About Karnataka Diagnostic Centre.',
                 'blocks' => [
                     'hero-about',
                     'body-about',
@@ -131,7 +131,7 @@ class MedcaPublicPagesSeeder extends Seeder
                 'slug' => 'services',
                 'title' => 'Services',
                 'meta_title' => 'Medca Services — Nursing, Physiotherapy, Diagnostics & 24×7 Medical Support',
-                'meta_description' => 'Explore Medca Health Care services: in-home nursing, physiotherapy, lab sample collection, post-surgical recovery, geriatric care, and 24×7 medical support.',
+                'meta_description' => 'Explore Karnataka Diagnostic Centre services: blood tests, health packages, sample collection support, and diagnostic reporting.',
                 'h1' => 'Services that bring the hospital home.',
                 'blocks' => [
                     'hero-services',
@@ -142,8 +142,8 @@ class MedcaPublicPagesSeeder extends Seeder
             [
                 'slug' => 'locations',
                 'title' => 'Locations',
-                'meta_title' => 'Service Areas — Medca Home Healthcare Across Bangalore',
-                'meta_description' => 'We serve a 25 km belt around Arekere — including Bannerghatta Road, BTM, Jayanagar, JP Nagar, Electronic City, HSR, Koramangala and more.',
+                'meta_title' => 'Service Areas — Medca Medical Laboratory Services Across Bangalore',
+                'meta_description' => 'We serve a diagnostics network across Karnataka — including Bannerghatta Road, BTM, Jayanagar, JP Nagar, Electronic City, HSR, Koramangala and more.',
                 'h1' => 'Where Medca cares — across Bangalore.',
                 'blocks' => [
                     'hero-locations',
@@ -154,8 +154,8 @@ class MedcaPublicPagesSeeder extends Seeder
             [
                 'slug' => 'contact',
                 'title' => 'Contact Us',
-                'meta_title' => 'Contact Medca Health Care — Bangalore Home Healthcare',
-                'meta_description' => 'Reach Medca Health Care for home nursing, physiotherapy, diagnostics, and medical support across Bangalore. Call, WhatsApp, or request a callback.',
+                'meta_title' => 'Contact Karnataka Diagnostic Centre — Bangalore Medical Laboratory Services',
+                'meta_description' => 'Reach Karnataka Diagnostic Centre for home nursing, physiotherapy, diagnostics, and medical support across Bangalore. Call, WhatsApp, or request a callback.',
                 'h1' => 'Talk to a Medca care advisor.',
                 'blocks' => [
                     'hero-contact',

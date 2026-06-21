@@ -15,7 +15,7 @@ class BangaloreZonesSeeder extends Seeder
             ['code' => 'east', 'name' => 'East Bangalore', 'slug' => 'east-bangalore', 'sort_order' => 3],
             ['code' => 'west', 'name' => 'West Bangalore', 'slug' => 'west-bangalore', 'sort_order' => 4],
             ['code' => 'central', 'name' => 'Central Bangalore', 'slug' => 'central-bangalore', 'sort_order' => 5],
-            ['code' => 'arekere-belt', 'name' => 'Arekere Belt (25km radius)', 'slug' => 'arekere-belt', 'sort_order' => 6],
+            ['code' => 'arekere-belt', 'name' => 'Karnataka Belt (25km radius)', 'slug' => 'arekere-belt', 'sort_order' => 6],
         ];
 
         foreach ($zones as $zone) {

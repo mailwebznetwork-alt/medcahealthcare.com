@@ -169,7 +169,7 @@ return [
             'label' => 'Service area summary',
             'group' => 'brand_story',
             'type' => 'textarea',
-            'hint' => 'e.g. 25 km belt around Arekere, Bangalore.',
+            'hint' => 'e.g. diagnostics network across Karnataka, Bangalore.',
         ],
         'founded_year' => [
             'label' => 'Founded year',

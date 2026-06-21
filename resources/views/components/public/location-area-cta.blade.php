@@ -8,13 +8,13 @@
     @if (filled($heading))
         <h2 class="text-lg font-semibold text-slate-900 md:text-xl">{{ $heading }}</h2>
     @else
-        <h2 class="text-lg font-semibold text-slate-900 md:text-xl">{{ __('Book care in your neighbourhood') }}</h2>
+        <h2 class="text-lg font-semibold text-slate-900 md:text-xl">{{ __('Book diagnostics in your neighbourhood') }}</h2>
     @endif
 
     @if (filled($content))
         <p class="mt-2 text-sm text-slate-700 md:text-base">{{ $content }}</p>
     @else
-        <p class="mt-2 text-sm text-slate-700 md:text-base">{{ __('Speak with Medca coordinators for same-day home healthcare in your area.') }}</p>
+        <p class="mt-2 text-sm text-slate-700 md:text-base">{{ __('Speak with Karnataka Diagnostic Centre coordinators for same-day medical laboratory services in your area.') }}</p>
     @endif
 
     <x-public.lead-action-bar class="mt-4" />

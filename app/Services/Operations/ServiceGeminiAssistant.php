@@ -65,7 +65,7 @@ class ServiceGeminiAssistant
 
     private function buildPrompt(Service $service): string
     {
-        $brand = config('medca.brand_name', 'Medca Health Care');
+        $brand = config('medca.brand_name', 'Karnataka Diagnostic Centre');
         $location = app(\App\Services\Seo\LocalityContextResolver::class)->aiMarketContext()
             ?: config('medca.location_display', '');
 

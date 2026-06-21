@@ -3,8 +3,8 @@
     $settings = is_array($blockSettings ?? null) ? $blockSettings : [];
     $heroMediaStyle = \App\Support\BlockMediaUrl::heroBackgroundStyle(is_array($blockMedia ?? null) ? $blockMedia : []);
     $heroAboutImage = \App\Support\BlockMediaUrl::first(is_array($blockMedia ?? null) ? $blockMedia : [], 'desktop_image', 'image', 'fallback_image');
-    $eyebrow = BlockContent::globalOrBlock($settings, 'hero-about', 'eyebrow', 'about_hero_eyebrow', 'About Medca');
-    $headline = BlockContent::globalOrBlock($settings, 'hero-about', 'headline', 'about_hero_headline', 'Doctor-led, family-centred home healthcare.');
+    $eyebrow = BlockContent::globalOrBlock($settings, 'hero-about', 'eyebrow', 'about_hero_eyebrow', 'About Karnataka Diagnostic Centre');
+    $headline = BlockContent::globalOrBlock($settings, 'hero-about', 'headline', 'about_hero_headline', 'Trusted medical laboratory and diagnostic services.');
     $subheadline = BlockContent::globalOrBlock($settings, 'hero-about', 'subheadline', 'about_hero_subheadline');
     if ($subheadline === '') {
         $subheadline = BlockContent::global('company_description_long', BlockContent::get($settings, 'hero-about', 'subheadline'));

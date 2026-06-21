@@ -11,7 +11,7 @@ return [
     |
     */
 
-    'organization_name' => env('CAREERS_ORG_NAME', env('MEDCA_BRAND_NAME', 'Medca Health Care')),
+    'organization_name' => env('CAREERS_ORG_NAME', env('MEDCA_BRAND_NAME', 'Karnataka Diagnostic Centre')),
 
     'organization_url' => env('CAREERS_ORG_URL', env('APP_URL', 'http://localhost')),
 

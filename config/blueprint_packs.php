@@ -30,7 +30,7 @@ return [
     'home_healthcare' => [
         'label' => 'Healthcare Pack (Medca)',
         'industry' => 'healthcare',
-        'description' => 'Complete home healthcare site: six clinical service lines, trust, FAQ, testimonials, and conversion CTAs.',
+        'description' => 'Complete Medical Laboratory services site: six clinical service lines, trust, FAQ, testimonials, and conversion CTAs.',
         'default_style_pack' => 'healthcare_professional',
         'default_theme_preset' => 'clinical_blue',
         'pack_meta' => [

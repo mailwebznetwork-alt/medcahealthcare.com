@@ -99,7 +99,7 @@ class AutonomousContentJob implements ShouldQueue
         $market = app(\App\Services\Seo\LocalityContextResolver::class)->aiMarketContext() ?: 'service area';
 
         return <<<TXT
-You are an SEO content architect for Medca Health Care (premium home healthcare, {$market}).
+You are an SEO content architect for Karnataka Diagnostic Centre (medical laboratory services, {$market}).
 
 Using the hijack opportunity JSON below, produce ONLY valid JSON with keys:
 "meta_title","meta_description","h1"

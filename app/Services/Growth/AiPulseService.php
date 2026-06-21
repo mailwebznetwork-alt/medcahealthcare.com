@@ -547,7 +547,7 @@ class AiPulseService
         $market = app(\App\Services\Seo\LocalityContextResolver::class)->primaryCity() ?: 'healthcare service area';
 
         $prompt = <<<TXT
-You are MarkOnMinds — AI Pulse narrative brief for the Medca Health Care public site.
+You are MarkOnMinds — AI Pulse narrative brief for the Karnataka Diagnostic Centre public site.
 
 Return ONLY valid JSON with keys:
 "business_health","predictive_insights","conversion_insights","visibility_geo_aeo"

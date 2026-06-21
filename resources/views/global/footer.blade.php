@@ -1,4 +1,4 @@
-{{-- Medca minimal footer (reference: centered Call · © · Powered by line). --}}
+{{-- Minimal footer (reference: centered Call · © · Powered by line). --}}
 @php
     $footerNav = app(\App\Services\SiteNavigationResolver::class)->footerLinks();
 @endphp
@@ -15,6 +15,6 @@
         </nav>
     @endif
     <p class="mx-auto max-w-4xl text-xs font-normal leading-snug tracking-[0.02em] text-slate-800 md:text-[0.6875rem] md:leading-tight">
-        © Medca Healthcare Pvt Ltd. Powered by MarkOnMinds
+        © {{ config('medca.company_legal_name', 'Karnataka Diagnostic Centre') }}. Powered by MarkOnMinds
     </p>
 </footer>

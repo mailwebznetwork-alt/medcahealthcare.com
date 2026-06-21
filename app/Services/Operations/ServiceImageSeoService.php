@@ -22,7 +22,7 @@ class ServiceImageSeoService
         return [
             'alt' => __('Professional :service in :area', ['service' => $title, 'area' => $area]),
             'title' => $title,
-            'caption' => __('Qualified care with :brand', ['brand' => config('medca.brand_name', 'Medca Health Care')]),
+            'caption' => __('Qualified diagnostic support with :brand', ['brand' => config('medca.brand_name', 'Karnataka Diagnostic Centre')]),
             'description' => mb_substr(
                 trim((string) ($service->short_summary ?: $service->seo?->meta_description ?: $title)),
                 0,

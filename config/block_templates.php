@@ -57,7 +57,7 @@ return [
         'locations-overview-home' => [
             'category' => 'home',
             'block_name' => 'Home — Locations Overview',
-            'description' => 'Coverage strip for the home page with pin-code belt around Arekere.',
+            'description' => 'Coverage strip for the home page with pin-code belt around Karnataka.',
             'block_type' => 'Sections',
             'view' => 'blocks.home.locations-overview-home',
         ],

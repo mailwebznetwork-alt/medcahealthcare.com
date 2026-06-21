@@ -21,7 +21,7 @@ class AeoService
 
         if (! $profile instanceof BusinessProfile) {
             $profile = BusinessProfile::query()->create([
-                'name' => config('medca.brand_name', 'Medca Health Care'),
+                'name' => config('medca.brand_name', 'Karnataka Diagnostic Centre'),
                 'email' => config('mail.from.address'),
                 'website' => config('app.url'),
             ]);
@@ -83,7 +83,7 @@ class AeoService
         }
 
         $baseUrl = rtrim((string) config('app.url'), '/');
-        $brand = (string) config('medca.brand_name', 'Medca Health Care');
+        $brand = (string) config('medca.brand_name', 'Karnataka Diagnostic Centre');
         $profile = Schema::hasTable('business_profiles')
             ? (BusinessProfile::query()->latest('id')->first())
             : null;
@@ -91,7 +91,7 @@ class AeoService
 
         $summary = trim((string) ($entity?->meta_description ?? ''));
         if ($summary === '') {
-            $summary = __('Premium home healthcare and nursing services in Bangalore.');
+            $summary = __('Reliable medical laboratory and diagnostic services in Karnataka.');
         }
 
         $lines = [

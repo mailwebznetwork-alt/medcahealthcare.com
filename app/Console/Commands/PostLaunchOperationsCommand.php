@@ -241,7 +241,7 @@ class PostLaunchOperationsCommand extends Command
             'Mark phone_click, whatsapp_click, form_submit as GA4 conversions (Admin → Events).',
             'Verify GTM container publishes tags for GA4 + conversion events.',
             'Review GSC Index Coverage weekly: Indexed, Excluded, Crawled-not-indexed, redirects, canonicals.',
-            'Monitor AI visibility manually: ChatGPT/Gemini/Copilot/Perplexity brand queries for "Medca Health Care Bangalore".',
+            'Monitor AI visibility manually: ChatGPT/Gemini/Copilot/Perplexity brand queries for "Karnataka Diagnostic Centre Bangalore".',
             'Content expansion: drop updated XLS/CSV in storage/imports/production → medca:import → post-sync runs automatically.',
             'Monthly: php artisan medca:post-launch-ops --activate-tracking',
             'Dashboards: /marketing/intelligence, /growth-center/ga4, Growth Center → SEO/GEO/AEO tabs.',

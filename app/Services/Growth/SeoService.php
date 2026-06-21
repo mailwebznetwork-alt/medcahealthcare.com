@@ -27,7 +27,7 @@ class SeoService
         return BusinessProfile::query()->firstOrCreate(
             ['website' => config('app.url')],
             [
-                'name' => config('medca.brand_name', 'Medca Health Care'),
+                'name' => config('medca.brand_name', 'Karnataka Diagnostic Centre'),
                 'email' => config('mail.from.address'),
                 'phone' => null,
                 'address' => null,

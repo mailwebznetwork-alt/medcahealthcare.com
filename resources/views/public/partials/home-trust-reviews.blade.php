@@ -1,5 +1,6 @@
 @php
     use App\Models\Review;
+    use App\Support\BlockContent;
 
     $approvedReviews = Review::query()
         ->where('status', Review::STATUS_APPROVED)
@@ -8,8 +9,13 @@
         ->limit(3)
         ->get();
 
-    $avgRating = Review::query()->where('status', Review::STATUS_APPROVED)->avg('rating');
-    $reviewCount = Review::query()->where('status', Review::STATUS_APPROVED)->count();
+    $localAvgRating = Review::query()->where('status', Review::STATUS_APPROVED)->avg('rating');
+    $localReviewCount = Review::query()->where('status', Review::STATUS_APPROVED)->count();
+    $googleRating = BlockContent::global('google_rating');
+    $googleReviewCount = BlockContent::global('google_review_count');
+    $avgRating = $localAvgRating ?? ($googleRating !== '' ? (float) $googleRating : null);
+    $reviewCount = $localReviewCount > 0 ? $localReviewCount : (int) $googleReviewCount;
+    $reviewLabel = $localReviewCount > 0 ? __('Patient reviews') : __('Google reviews');
     $showTrustSection = ($avgRating !== null && $reviewCount > 0) || $approvedReviews->isNotEmpty();
 @endphp
 
@@ -24,18 +30,18 @@
                 </div>
                 <div>
                     <p class="text-3xl font-bold text-medca-primary">{{ number_format($reviewCount) }}+</p>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('Patient reviews') }}</p>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $reviewLabel }}</p>
                 </div>
                 <div>
-                    <p class="text-sm font-semibold text-slate-800">{{ __('Doctor-led home healthcare') }}</p>
-                    <p class="text-xs text-slate-600">{{ __('25 km belt around Arekere, Bangalore') }}</p>
+                    <p class="text-sm font-semibold text-slate-800">{{ __('Reliable Medical Laboratory services') }}</p>
+                    <p class="text-xs text-slate-600">{{ __('Diagnostic support across Karnataka') }}</p>
                 </div>
             </div>
         @endif
 
         @if ($approvedReviews->isNotEmpty())
             <div class="mt-8">
-                <h2 class="text-xl font-semibold text-slate-900 md:text-2xl">{{ __('What families say about Medca') }}</h2>
+                <h2 class="text-xl font-semibold text-slate-900 md:text-2xl">{{ __('What patients say about Karnataka Diagnostic Centre') }}</h2>
                 <div class="mt-4 grid gap-4 md:grid-cols-3">
                     @foreach ($approvedReviews as $review)
                         <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

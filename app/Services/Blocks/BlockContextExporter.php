@@ -36,7 +36,7 @@ class BlockContextExporter
         $lines = [
             '# Medca Block Context Export',
             '',
-            'Use this document to understand or edit a Medca Health Care CMS block. Preserve the block slug on pages unless intentionally renaming.',
+            'Use this document to understand or edit a Karnataka Diagnostic Centre CMS block. Preserve the block slug on pages unless intentionally renaming.',
             '',
             '## Identity',
             '- **Name:** '.($payload['name'] ?? ''),

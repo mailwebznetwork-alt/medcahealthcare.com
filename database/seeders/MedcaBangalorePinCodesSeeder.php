@@ -49,7 +49,7 @@ class MedcaBangalorePinCodesSeeder extends Seeder
     private function definitions(): array
     {
         return [
-            ['pincode' => '560076', 'area_name' => 'Arekere', 'priority' => 'high'],
+            ['pincode' => '560076', 'area_name' => 'Karnataka', 'priority' => 'high'],
             ['pincode' => '560083', 'area_name' => 'Bannerghatta Road', 'priority' => 'high'],
             ['pincode' => '560029', 'area_name' => 'BTM Layout', 'priority' => 'high'],
             ['pincode' => '560030', 'area_name' => 'BTM 2nd Stage', 'priority' => 'medium'],
