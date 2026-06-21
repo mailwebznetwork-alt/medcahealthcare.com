@@ -24,11 +24,7 @@
         <x-public.lead-action-bar />
     @endif
 
-    @if ($locationRequired)
-        <p class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            {{ __('Set your Bangalore pincode to see healthcare categories available in your area.') }}
-        </p>
-    @elseif ($categories->isEmpty())
+    @if ($categories->isEmpty())
         <p class="text-sm text-slate-600">{{ $emptyCategoriesMessage }}</p>
     @else
         <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

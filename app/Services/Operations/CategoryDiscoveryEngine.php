@@ -32,7 +32,7 @@ class CategoryDiscoveryEngine
         }
         if (! $fillEmptyOnly || blank($seo?->meta_description)) {
             $seoPayload['meta_description'] = mb_substr(
-                $plain !== '' ? $plain : $category->name.' — '.__('Healthcare services'),
+                $plain !== '' ? $plain : $category->name.' — '.__('Digital Growth Platform services'),
                 0,
                 500
             );

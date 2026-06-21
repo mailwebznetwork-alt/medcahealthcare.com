@@ -20,25 +20,25 @@
         return __($fallback);
     };
 
-    $eyebrow = $copy('eyebrow', 'Near You');
+    $eyebrow = $copy('eyebrow', 'Service Areas');
     $area = $pinCodeRecord?->area_name ?: ($pincode ?: __('your area'));
-    $city = $pinCodeRecord?->city ?: 'Bangalore';
+    $city = $pinCodeRecord?->city ?: 'India';
 
     if ($pincode) {
-        $headline = __('Healthcare Categories in :area', ['area' => $area]);
-        $subline = __('Professional healthcare categories available in :area (:pin).', ['area' => $area, 'pin' => $pincode]);
+        $headline = __('Digital Growth Platform Services in :area', ['area' => $area]);
+        $subline = __('Professional digital growth platform categories available for :area.', ['area' => $area, 'pin' => $pincode]);
     } else {
-        $headline = $copy('headline_no_pincode', 'Healthcare categories near your pincode');
-        $subline = $copy('location_required_message', 'Set your Bangalore pincode to see hyper-local care categories available in your area.');
+        $headline = $copy('headline_no_pincode', 'digital growth services by country');
+        $subline = $copy('location_required_message', 'National and international services available across India, Ireland, and UAE.');
     }
 
     $pincodeButton = $pincode
-        ? $copy('change_pincode_label', 'Change Pincode')
-        : $copy('set_pincode_label', 'Set Pincode');
+        ? $copy('change_pincode_label', '')
+        : $copy('set_pincode_label', '');
 
     $emptyCategoriesMessage = $copy(
         'empty_categories_message',
-        $copy('empty_services_message', 'No published categories are mapped to this pincode yet.')
+        $copy('empty_services_message', 'No published categories are mapped to this country yet.')
     );
 
 @endphp

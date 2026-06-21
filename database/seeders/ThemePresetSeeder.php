@@ -22,7 +22,7 @@ class ThemePresetSeeder extends Seeder
                     'is_builtin' => true,
                     'tokens' => $definition['tokens'] ?? [],
                     'branding' => $definition['branding'] ?? null,
-                    'header_preset' => $definition['header_preset'] ?? 'classic_healthcare',
+                    'header_preset' => $definition['header_preset'] ?? 'classic_digital growth platform',
                     'layout_preset' => $definition['layout_preset'] ?? 'contained',
                     'typography' => $definition['typography'] ?? null,
                 ]

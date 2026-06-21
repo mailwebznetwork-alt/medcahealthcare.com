@@ -62,7 +62,7 @@ class CreateRestorePointCommand extends Command
         }
 
         $readme = <<<TXT
-Medca restore point: {$label}
+MarkOnMinds restore point: {$label}
 Created (IST): {$manifest['created_at_ist']}
 Git HEAD: {$gitHead}
 

@@ -13,7 +13,7 @@ class ServiceEntityGraphBuilder
     {
         $service->loadMissing(['seo', 'pincodes', 'locationPages.pincode', 'categories']);
 
-        $brand = config('medca.brand_name', 'Medca Health Care');
+        $brand = config('medca.brand_name', 'MarkOnMinds');
         $nodes = [
             ['id' => 'org:medca', 'type' => 'Organization', 'name' => $brand],
             ['id' => 'service:'.$service->service_code, 'type' => 'Service', 'name' => $service->title],

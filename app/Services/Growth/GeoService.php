@@ -17,7 +17,7 @@ class GeoService
         return BusinessProfile::query()->firstOrCreate(
             ['website' => config('app.url')],
             [
-                'name' => config('medca.brand_name', 'Medca Health Care'),
+                'name' => config('medca.brand_name', 'MarkOnMinds'),
                 'email' => config('mail.from.address'),
             ]
         )->id;

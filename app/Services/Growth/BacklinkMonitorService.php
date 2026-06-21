@@ -70,7 +70,7 @@ class BacklinkMonitorService
     }
 
     /**
-     * Domains where competitors have links but Medca does not.
+     * Domains where competitors have links but MarkOnMinds does not.
      *
      * @return Collection<int, array{domain: string, competitor_count: int, competitors: list<string>}>
      */
@@ -159,8 +159,8 @@ class BacklinkMonitorService
             default => 'fail',
         };
         $coverageDetail = $siteCount >= 1
-            ? sprintf('Medca has %d tracked referring domain(s).', $siteCount)
-            : 'No Medca backlink sources recorded — add citations or run a scan.';
+            ? sprintf('MarkOnMinds has %d tracked referring domain(s).', $siteCount)
+            : 'No MarkOnMinds backlink sources recorded — add citations or run a scan.';
 
         $gapStatus = match (true) {
             $gapCount === 0 && $competitorDomainCount > 0 => 'pass',
@@ -169,7 +169,7 @@ class BacklinkMonitorService
         };
         $gapDetail = $gapCount === 0
             ? 'No competitor-only citation gaps detected.'
-            : sprintf('%d domain(s) link to competitors but not Medca.', $gapCount);
+            : sprintf('%d domain(s) link to competitors but not MarkOnMinds.', $gapCount);
 
         $freshnessHours = (int) config('growth.backlink_monitor.stale_hours', 168);
         $stale = CompetitorBacklink::query()
@@ -184,7 +184,7 @@ class BacklinkMonitorService
             : 'Competitor backlink data is recently checked.';
 
         $items = [
-            ['label' => 'Medca citation coverage', 'status' => $coverageStatus, 'detail' => $coverageDetail, 'weight' => 2.0],
+            ['label' => 'MarkOnMinds citation coverage', 'status' => $coverageStatus, 'detail' => $coverageDetail, 'weight' => 2.0],
             ['label' => 'Backlink gap vs competitors', 'status' => $gapStatus, 'detail' => $gapDetail, 'weight' => 2.5],
             ['label' => 'Backlink scan freshness', 'status' => $freshStatus, 'detail' => $freshDetail, 'weight' => 1.0],
         ];

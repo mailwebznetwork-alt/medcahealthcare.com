@@ -59,7 +59,7 @@ class ServiceCategoryPublicController extends Controller
         $category->loadMissing(['parent', 'children' => fn ($q) => $q->active()->ordered(), 'seo', 'faqs', 'schema']);
 
         $pincode = $this->location->currentPincode();
-        $locationRequired = $pincode === null || $request->attributes->get('services_blocked_until_pincode') === true;
+        $locationRequired = false;
 
         $page = $category->linkedPage ?? $this->categoryPageProvisioner->relinkOwnedPage($category);
 
@@ -94,10 +94,8 @@ class ServiceCategoryPublicController extends Controller
             ->orderBy('sort_order')
             ->orderBy('title');
 
-        if (! $locationRequired && $pincode !== null) {
+        if ($pincode !== null) {
             $servicesQuery->forPincode($pincode);
-        } elseif ($locationRequired) {
-            $servicesQuery->whereRaw('0 = 1');
         }
 
         $services = $servicesQuery->paginate(12)->withQueryString();

@@ -119,21 +119,6 @@
                 <div @class(['w-full', 'pb-6 md:pb-8' => ! $page->usesCanvasLayout()])>
                     {!! \App\Services\ContentParser::parse($page->content ?? '') !!}
                 </div>
-                @php
-                    $nearYouFallback = match ($page->slug) {
-                        'home' => ['block' => 'near-you-home', 'partial' => true],
-                        'locations' => ['block' => 'near-you-locations', 'partial' => true],
-                        default => null,
-                    };
-                    $nearYouTokenMissing = $nearYouFallback !== null
-                        && ! preg_match('/\{\{\s*block\s*:\s*near-you[\w-]*\s*\}\}/', (string) ($page->content ?? ''));
-                @endphp
-                @if ($nearYouTokenMissing)
-                    @include('public.partials.near-you-services', array_merge(
-                        app(\App\Services\Public\PublicPagePresenter::class)->nearYouPayload(),
-                        ['contentSlug' => $nearYouFallback['block']]
-                    ))
-                @endif
                 @if ($page->slug === 'home')
                     @php
                         $pageContent = (string) ($page->content ?? '');
@@ -166,7 +151,6 @@
         </main>
 
         @include('global.footer')
-        @livewire('location.pincode-modal')
         @include('global.floating')
         <x-marketing.tracking-body :settings="$marketingSettings ?? null" />
         <x-marketing.tracking-events />

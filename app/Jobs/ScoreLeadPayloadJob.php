@@ -105,7 +105,7 @@ class ScoreLeadPayloadJob implements ShouldQueue
         $city = app(\App\Services\Seo\LocalityContextResolver::class)->primaryCity() ?: 'service area';
 
         return <<<TXT
-You are a healthcare lead triage analyst for Medca Health Care in {$city}.
+You are a digital growth platform lead triage analyst for MarkOnMinds in {$city}.
 
 Analyze the lead payload and return ONLY valid JSON with exactly these keys:
 "ai_priority_score","ai_intent_category"

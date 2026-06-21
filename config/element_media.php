@@ -28,7 +28,7 @@ return [
     ],
 
     /**
-     * Healthcare layout presets — merge into block section settings via Block Presets UI.
+     * Digital Growth Platform layout presets — merge into block section settings via Block Presets UI.
      */
     'layout_presets' => [
         'hero-banner' => [
@@ -70,8 +70,8 @@ return [
             'style' => 'rounded',
             'size_mode' => 'cover',
         ],
-        'full-width-healthcare-banner' => [
-            'label' => 'Full Width Healthcare Banner',
+        'full-width-digital growth platform-banner' => [
+            'label' => 'Full Width Digital Growth Platform Banner',
             'position' => 'background',
             'style' => 'glass',
             'size_mode' => 'cover',
@@ -80,7 +80,7 @@ return [
         ],
     ],
 
-    'healthcare_presets' => [
+    'digital growth platform_presets' => [
         'hero-nurse' => [
             'label' => 'Hero with nurse image',
             'position' => 'right',
@@ -99,8 +99,8 @@ return [
             'style' => 'circle',
             'size_mode' => 'auto',
         ],
-        'caregiver-profile' => [
-            'label' => 'Caregiver profile',
+        'support-profile' => [
+            'label' => 'Support profile',
             'position' => 'left',
             'style' => 'rounded',
             'size_mode' => 'auto',

@@ -46,7 +46,7 @@ class SeoEntityResolver
 
         return SeoEntity::query()->firstOrCreate(
             ['business_profile_id' => $profile->id],
-            ['organization_name' => config('medca.brand_name', 'Medca Health Care')]
+            ['organization_name' => config('medca.brand_name', 'MarkOnMinds')]
         );
     }
 }

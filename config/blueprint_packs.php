@@ -27,15 +27,15 @@ $servicePage = static fn (
 
 return [
 
-    'home_healthcare' => [
-        'label' => 'Healthcare Pack (Medca)',
-        'industry' => 'healthcare',
-        'description' => 'Complete home healthcare site: six clinical service lines, trust, FAQ, testimonials, and conversion CTAs.',
-        'default_style_pack' => 'healthcare_professional',
+    'home_digital growth platform' => [
+        'label' => 'Digital Growth Platform Pack (MarkOnMinds)',
+        'industry' => 'digital growth platform',
+        'description' => 'Complete digital growth platform site: six clinical service lines, trust, FAQ, testimonials, and conversion CTAs.',
+        'default_style_pack' => 'digital growth platform_professional',
         'default_theme_preset' => 'clinical_blue',
         'pack_meta' => [
             'version' => '2.0',
-            'services' => ['Home Care', 'Elder Care', 'Nursing Services', 'Doctor Visits', 'Physiotherapy', 'Palliative Care'],
+            'services' => ['Home Care', 'Advisory', 'Consulting Services', 'Consultations', 'Consulting', 'Palliative Care'],
             'cta_strategy' => 'Primary: cta-banner on service pages; home: cta-home; landings: cta-sticky + form-callback',
         ],
         'pages' => [
@@ -44,7 +44,7 @@ return [
                 'slug' => 'home',
                 'layout_mode' => 'canvas',
                 'blocks' => [
-                    ['slug' => 'hero-healthcare', ...$style('style_1')],
+                    ['slug' => 'hero-digital growth platform', ...$style('style_1')],
                     ['slug' => 'trust-bar-icons', ...$style('style_1')],
                     ['slug' => 'services-overview-home', ...$style('style_1')],
                     ['slug' => 'statistics-row', ...$style('style_1')],
@@ -109,11 +109,11 @@ return [
                 ],
             ],
             'service-home-care' => $servicePage('Home Care', 'service-home-care'),
-            'service-elder-care' => $servicePage('Elder Care', 'service-elder-care'),
-            'service-nursing' => $servicePage('Nursing Services', 'service-nursing'),
-            'service-doctor-visits' => $servicePage('Doctor Visits at Home', 'service-doctor-visits'),
-            'service-physiotherapy' => $servicePage('Physiotherapy at Home', 'service-physiotherapy'),
-            'service-palliative-care' => $servicePage('Palliative Care', 'service-palliative-care', 'style_2', 'hero-healthcare'),
+            'service-elder-care' => $servicePage('Advisory', 'service-elder-care'),
+            'service-consulting' => $servicePage('Consulting Services', 'service-consulting'),
+            'service-doctor-visits' => $servicePage('Consultations at Home', 'service-doctor-visits'),
+            'service-consulting' => $servicePage('Consulting at Home', 'service-consulting'),
+            'service-palliative-care' => $servicePage('Palliative Care', 'service-palliative-care', 'style_2', 'hero-digital growth platform'),
         ],
         'landing_pages' => [
             'consultation' => [
@@ -121,14 +121,14 @@ return [
                 'slug' => 'consultation',
                 'layout_mode' => 'canvas',
                 'blocks' => [
-                    ['slug' => 'hero-healthcare', ...$style('style_2')],
+                    ['slug' => 'hero-digital growth platform', ...$style('style_2')],
                     ['slug' => 'form-callback', ...$style('style_2')],
                     ['slug' => 'cta-sticky', ...$style('style_2')],
                 ],
             ],
-            'lp-nursing' => [
-                'title' => 'Nursing Care — Landing',
-                'slug' => 'lp-nursing',
+            'lp-consulting' => [
+                'title' => 'Consulting Care — Landing',
+                'slug' => 'lp-consulting',
                 'layout_mode' => 'canvas',
                 'blocks' => [
                     ['slug' => 'hero-split', ...$style('style_2')],
@@ -137,9 +137,9 @@ return [
                     ['slug' => 'cta-banner', ...$style('style_2')],
                 ],
             ],
-            'lp-physiotherapy' => [
-                'title' => 'Physiotherapy — Landing',
-                'slug' => 'lp-physiotherapy',
+            'lp-consulting' => [
+                'title' => 'Consulting — Landing',
+                'slug' => 'lp-consulting',
                 'layout_mode' => 'canvas',
                 'blocks' => [
                     ['slug' => 'hero-split', ...$style('style_2')],
@@ -155,7 +155,7 @@ return [
         'label' => 'Care Home Pack',
         'industry' => 'care_home',
         'description' => 'Residential care: admissions funnel, facilities, services, reviews, and FAQ.',
-        'default_style_pack' => 'healthcare_premium',
+        'default_style_pack' => 'digital growth platform_premium',
         'default_theme_preset' => 'premium_gold',
         'pack_meta' => [
             'version' => '2.0',
@@ -167,7 +167,7 @@ return [
                 'slug' => 'home',
                 'layout_mode' => 'canvas',
                 'blocks' => [
-                    ['slug' => 'hero-healthcare', ...$style('style_2')],
+                    ['slug' => 'hero-digital growth platform', ...$style('style_2')],
                     ['slug' => 'trust-bar-badges', ...$style('style_2')],
                     ['slug' => 'features-icons', ...$style('style_2')],
                     ['slug' => 'gallery-showcase', ...$style('style_2')],

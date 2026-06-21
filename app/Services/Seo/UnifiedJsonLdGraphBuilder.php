@@ -166,7 +166,7 @@ class UnifiedJsonLdGraphBuilder
     private function medicalOrganizationNode(array $ctx, string $siteUrl): array
     {
         return array_filter([
-            '@type' => 'MedicalOrganization',
+            '@type' => 'Organization',
             '@id' => $siteUrl.'/#organization',
             'name' => $ctx['brand'],
             'url' => $siteUrl,
@@ -187,7 +187,7 @@ class UnifiedJsonLdGraphBuilder
         $name = $areaSuffix ? $ctx['brand'].' — '.$areaSuffix : $ctx['brand'];
 
         return array_filter([
-            '@type' => ['MedicalBusiness', 'LocalBusiness'],
+            '@type' => ['ProfessionalService', 'LocalBusiness'],
             '@id' => $id,
             'name' => $name,
             'url' => $pageUrl,

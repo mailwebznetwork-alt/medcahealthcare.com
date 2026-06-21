@@ -19,7 +19,7 @@
                         <th class="px-3 py-2">{{ __('Reviewer') }}</th>
                         <th class="px-3 py-2">{{ __('Rating') }}</th>
                         <th class="px-3 py-2">{{ __('Comment') }}</th>
-                        <th class="px-3 py-2">{{ __('Pincode') }}</th>
+                        <th class="px-3 py-2">{{ __('Country') }}</th>
                         <th class="px-3 py-2">{{ __('Status') }}</th>
                     </tr>
                 </thead>
@@ -32,7 +32,7 @@
                             </td>
                             <td class="px-3 py-3 font-mono text-[var(--text-primary)]">{{ $review->rating }}/5</td>
                             <td class="max-w-md px-3 py-3 text-[var(--text-secondary)]">{{ \Illuminate\Support\Str::limit($review->comment ?? '', 200) }}</td>
-                            <td class="px-3 py-3 font-mono text-xs text-[var(--text-muted)]">{{ $review->pincode ?: '—' }}</td>
+                            <td class="px-3 py-3 font-mono text-xs text-[var(--text-muted)]">{{ $review->country ?: '—' }}</td>
                             <td class="px-3 py-3">
                                 <select
                                     name="review_moderation[{{ $index }}][status]"

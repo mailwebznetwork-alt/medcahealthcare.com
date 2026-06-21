@@ -163,7 +163,7 @@ class WhatsAppClickToChatService
         }
 
         $number = WhatsAppClickNumber::fromArray([
-            'display_name' => (string) config('medca.name', 'Medca'),
+            'display_name' => (string) config('medca.name', 'MarkOnMinds'),
             'phone' => $m[1],
             'default_message' => $message,
             'enabled' => true,

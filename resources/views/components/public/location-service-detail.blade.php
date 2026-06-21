@@ -36,7 +36,7 @@
     if ($pinCode instanceof PinCode) {
         $mapping = ServiceLocationPage::query()
             ->where('service_id', $service->id)
-            ->where('pincode_id', $pinCode->id)
+            ->where('country_id', $pinCode->id)
             ->first();
 
         $locationUrl = app(ServicePublicUrlBuilder::class)->locationUrlForPin($service, $pinCode, $mapping);
@@ -143,7 +143,7 @@
     <div class="mt-6 flex flex-wrap items-center gap-4">
         @if ($locationUrl)
             <a href="{{ $locationUrl }}" class="text-sm font-semibold text-medca-primary underline underline-offset-2">
-                {{ __('View in your area') }} →
+                {{ __('View in your country') }} →
             </a>
         @endif
         <a href="{{ $serviceUrl }}" class="text-sm font-semibold text-slate-700 underline underline-offset-2 hover:text-medca-primary">

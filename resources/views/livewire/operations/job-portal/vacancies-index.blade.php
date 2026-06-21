@@ -18,7 +18,7 @@
                 wire:model.live.debounce.300ms="q"
                 type="search"
                 class="min-w-[12rem] flex-1"
-                placeholder="{{ __('Search title, department, city, PIN…') }}"
+                placeholder="{{ __('Search title, department, city, country…') }}"
                 variant="mom"
             />
             <select wire:model.live="workflowStatus" class="rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">

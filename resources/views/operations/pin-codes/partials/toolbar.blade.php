@@ -18,7 +18,7 @@
         <a
             href="{{ route('operations.pin-codes.create') }}"
             class="mom-cta-primary"
-        >{{ __('Add pin code') }}</a>
+        >{{ __('Add country') }}</a>
     @endcan
     <a
         href="{{ route('operations.pin-codes.overview') }}"

@@ -219,7 +219,7 @@ class ThemeConfigRepository
 
     public function publishedHeaderPreset(): string
     {
-        return $this->configuration()->header_preset ?: 'classic_healthcare';
+        return $this->configuration()->header_preset ?: 'classic_digital growth platform';
     }
 
     public function draftHeaderPreset(): string
@@ -335,7 +335,7 @@ class ThemeConfigRepository
         $config = $this->configuration();
         $config->fill([
             'draft_public' => is_array($preset->tokens) ? $preset->tokens : [],
-            'draft_header_preset' => $preset->header_preset ?? 'classic_healthcare',
+            'draft_header_preset' => $preset->header_preset ?? 'classic_digital growth platform',
             'draft_layout_preset' => $preset->layout_preset ?? 'contained',
             'draft_typography' => is_array($preset->typography) ? $preset->typography : $this->defaultTypography(),
             'active_preset_slug' => $preset->slug,
@@ -475,7 +475,7 @@ class ThemeConfigRepository
             'is_builtin' => false,
             'tokens' => $payload['tokens'],
             'branding' => is_array($payload['branding'] ?? null) ? $payload['branding'] : null,
-            'header_preset' => $payload['header_preset'] ?? 'classic_healthcare',
+            'header_preset' => $payload['header_preset'] ?? 'classic_digital growth platform',
             'layout_preset' => $payload['layout_preset'] ?? 'contained',
             'typography' => is_array($payload['typography'] ?? null) ? $payload['typography'] : $this->defaultTypography(),
         ]);

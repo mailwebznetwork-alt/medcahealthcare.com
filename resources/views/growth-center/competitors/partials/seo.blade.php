@@ -196,9 +196,9 @@
                 </ul>
             </div>
             <div>
-                <p class="mom-micro text-mom-gold">{{ __('2) GEO — location, PIN, landing') }}</p>
+                <p class="mom-micro text-mom-gold">{{ __('2) GEO — country, state, landing') }}</p>
                 <ul class="mom-body-text mt-2 list-inside list-disc space-y-1 pl-1">
-                    <li>{{ __('Latitude/longitude, radius km, PIN list, landing paths — «Location & coverage» block below on this tab.') }}</li>
+                    <li>{{ __('Country/state list and landing paths — «Location & coverage» block below on this tab.') }}</li>
                 </ul>
             </div>
             <div>
@@ -232,7 +232,7 @@
                     <li>POST {{ url('/growth-center/seo/entity') }}</li>
                     <li>POST {{ url('/growth-center/seo/technical') }}</li>
                     <li>POST {{ url('/growth-center/aeo') }}</li>
-                    <li>POST {{ url('/growth-center/geo/location') }} · POST {{ url('/growth-center/geo/pincode') }}</li>
+                    <li>POST {{ url('/growth-center/geo/location') }} · POST {{ url('/growth-center/geo/country') }}</li>
                 </ul>
             </div>
         </div>

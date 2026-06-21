@@ -5,7 +5,7 @@ namespace App\Support;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Medca public type scale — stored in theme typography JSON (type_scale key).
+ * MarkOnMinds public type scale — stored in theme typography JSON (type_scale key).
  */
 final class TypographyTypeScale
 {

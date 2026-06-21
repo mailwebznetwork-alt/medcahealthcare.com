@@ -29,9 +29,9 @@ return [
     ],
 
     'header_presets' => [
-        'classic_healthcare' => [
-            'label' => 'Classic Healthcare',
-            'description' => 'Navy top strip + white brand row (current Medca default).',
+        'classic_digital growth platform' => [
+            'label' => 'Classic Digital Growth Platform',
+            'description' => 'Navy top strip + white brand row (current MarkOnMinds default).',
             'class' => 'medca-header-classic',
         ],
         'corporate' => [

@@ -22,7 +22,7 @@ class ServiceImageSeoService
         return [
             'alt' => __('Professional :service in :area', ['service' => $title, 'area' => $area]),
             'title' => $title,
-            'caption' => __('Qualified care with :brand', ['brand' => config('medca.brand_name', 'Medca Health Care')]),
+            'caption' => __('Qualified care with :brand', ['brand' => config('medca.brand_name', 'MarkOnMinds')]),
             'description' => mb_substr(
                 trim((string) ($service->short_summary ?: $service->seo?->meta_description ?: $title)),
                 0,
@@ -128,7 +128,7 @@ class ServiceImageSeoService
             $response = Http::timeout(30)->post(
                 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='.urlencode(trim($apiKey)),
                 [
-                    'contents' => [['parts' => [['text' => 'Return JSON only: {"featured":{"alt":"","title":"","caption":"","description":""}} for healthcare service: '.$service->title]]]],
+                    'contents' => [['parts' => [['text' => 'Return JSON only: {"featured":{"alt":"","title":"","caption":"","description":""}} for digital growth platform service: '.$service->title]]]],
                 ]
             );
             if (! $response->successful()) {

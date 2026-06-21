@@ -29,14 +29,14 @@
         ->where('is_active', true)
         ->whereKeyNot($pin->id)
         ->orderBy('city')
-        ->orderBy('pincode')
+        ->orderBy('country')
         ->get();
 @endphp
 
 <x-public.location-page-hero
-    :eyebrow="__('Near You')"
+    :eyebrow="__('Service Areas')"
     :headline="$title"
-    :subline="__('Professional healthcare services available in :area (:pin).', ['area' => $area, 'pin' => $pin->pincode])"
+    :subline="__('Professional digital growth platform services available for :area.', ['area' => $area, 'pin' => $pin->pincode])"
     :intro="$intro"
     :show-body="false"
     tone="brand"
@@ -53,9 +53,9 @@
 
         <x-public.locations-coverage-grid
             :areas="$coverageAreas"
-            :exclude-pincode-ids="[$pin->id]"
+            :exclude-country-ids="[$pin->id]"
             :service="$svc"
-            :title="__('Areas We Serve')"
+            :title="__('Countries & States We Serve')"
             :initial="8"
         />
 

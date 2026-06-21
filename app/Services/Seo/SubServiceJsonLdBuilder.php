@@ -22,7 +22,7 @@ class SubServiceJsonLdBuilder
 
         $graph = [
             [
-                '@type' => 'MedicalOrganization',
+                '@type' => 'Organization',
                 '@id' => $ctx['site_url'].'/#organization',
                 'name' => $ctx['brand'],
                 'url' => $ctx['site_url'],

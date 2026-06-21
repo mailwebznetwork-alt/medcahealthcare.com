@@ -6,11 +6,11 @@
  */
 return [
 
-    'healthcare_professional' => [
-        'label' => 'Healthcare Professional',
+    'digital growth platform_professional' => [
+        'label' => 'Digital Growth Platform Professional',
         'visual_language' => 'modern',
         'theme_preset_slug' => 'clinical_blue',
-        'header_preset' => 'classic_healthcare',
+        'header_preset' => 'classic_digital growth platform',
         'layout_preset' => 'contained',
         'assignments' => [
             'hero' => 'style_1',
@@ -29,8 +29,8 @@ return [
         ],
     ],
 
-    'healthcare_premium' => [
-        'label' => 'Healthcare Premium',
+    'digital growth platform_premium' => [
+        'label' => 'Digital Growth Platform Premium',
         'visual_language' => 'premium',
         'theme_preset_slug' => 'premium_gold',
         'header_preset' => 'premium',
@@ -52,8 +52,8 @@ return [
         ],
     ],
 
-    'healthcare_modern' => [
-        'label' => 'Healthcare Modern',
+    'digital growth platform_modern' => [
+        'label' => 'Digital Growth Platform Modern',
         'visual_language' => 'modern',
         'theme_preset_slug' => 'modern_purple',
         'header_preset' => 'modern',

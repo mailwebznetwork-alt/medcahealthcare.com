@@ -27,15 +27,15 @@
                     <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('Patient reviews') }}</p>
                 </div>
                 <div>
-                    <p class="text-sm font-semibold text-slate-800">{{ __('Doctor-led home healthcare') }}</p>
-                    <p class="text-xs text-slate-600">{{ __('25 km belt around Arekere, Bangalore') }}</p>
+                    <p class="text-sm font-semibold text-slate-800">{{ __('Expert-led digital growth platform') }}</p>
+                    <p class="text-xs text-slate-600">{{ __('focused service network, India') }}</p>
                 </div>
             </div>
         @endif
 
         @if ($approvedReviews->isNotEmpty())
             <div class="mt-8">
-                <h2 class="text-xl font-semibold text-slate-900 md:text-2xl">{{ __('What families say about Medca') }}</h2>
+                <h2 class="text-xl font-semibold text-slate-900 md:text-2xl">{{ __('What families say about MarkOnMinds') }}</h2>
                 <div class="mt-4 grid gap-4 md:grid-cols-3">
                     @foreach ($approvedReviews as $review)
                         <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

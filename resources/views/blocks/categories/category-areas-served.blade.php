@@ -11,7 +11,7 @@
     $areas = $category->pincodes()
         ->where('pin_codes.is_active', true)
         ->orderBy('pin_codes.area_name')
-        ->orderBy('pin_codes.pincode')
+        ->orderBy('pin_codes.country')
         ->get();
 @endphp
 
@@ -20,10 +20,10 @@
         <x-public.areas-served-grid
             :areas="$areas"
             :category="$category"
-            :title="__('Areas We Serve')"
+            :title="__('Countries & States We Serve')"
             :subtitle="$isProductCategory
-                ? __('Bangalore neighbourhoods where :category is available.', ['category' => $category->name])
-                : __('Bangalore neighbourhoods where :category services are available.', ['category' => $category->name])"
+                ? __('India neighbourhoods where :category is available.', ['category' => $category->name])
+                : __('India neighbourhoods where :category services are available.', ['category' => $category->name])"
         />
     </x-public.section>
 @endif

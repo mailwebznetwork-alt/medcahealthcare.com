@@ -41,14 +41,14 @@ return [
             'validation' => ['parent_exists', 'unique_sub_code_per_parent'],
         ],
         'mappings' => [
-            'required_columns' => ['service_code', 'pincode'],
+            'required_columns' => ['service_code', 'country'],
             'optional_columns' => ['priority', 'is_visible', 'is_featured', 'coverage_notes', 'category_filter_codes', 'effective_from', 'effective_until'],
-            'validation' => ['service_exists', 'pincode_exists'],
+            'validation' => ['service_exists', 'country_exists'],
         ],
         'geo' => [
-            'required_columns' => ['pincode'],
+            'required_columns' => ['country'],
             'optional_columns' => ['coverage_text', 'emergency_coverage_text', 'landmark_names', 'hospital_names', 'nearby_areas', 'faq_pairs'],
-            'validation' => ['pincode_valid'],
+            'validation' => ['country_valid'],
         ],
         'visibility' => [
             'required_columns' => ['entity_type', 'entity_key'],
@@ -153,7 +153,7 @@ return [
             'search_intent', 'ai_context', 'schema_type', 'schema_json_override', 'is_featured', 'is_top_rated',
             'show_on_homepage', 'show_on_about', 'show_on_contact', 'show_on_category_pages', 'show_on_location_pages',
             'display_priority', 'related_service_codes', 'related_category_codes', 'related_sub_service_codes',
-            'related_location_pincode', 'location_h1_template', 'location_h2_template', 'location_h3_template',
+            'related_location_country', 'location_h1_template', 'location_h2_template', 'location_h3_template',
             'location_intro_template', 'location_description_template', 'location_faq_template', 'location_cta_heading',
             'location_cta_content', 'location_meta_title_template', 'location_meta_description_template',
             'featured_image_url', 'banner_image_url', 'icon_url', 'line_icon', 'gallery_image_urls', 'video_url', 'image_alt',
@@ -175,15 +175,15 @@ return [
             'location_cta_content', 'location_meta_title_template', 'location_meta_description_template',
         ],
         'pincodes' => [
-            'pincode', 'area_name', 'city', 'state', 'locality', 'bangalore_zone_code', 'is_serviceable', 'is_active', 'priority',
+            'country', 'area_name', 'city', 'state', 'locality', 'bangalore_zone_code', 'is_serviceable', 'is_active', 'priority',
             'service_radius_km', 'coverage_type', 'meta_title', 'meta_description', 'seo_keywords',
         ],
         'geo_enrichment' => [
-            'pincode', 'coverage_text', 'emergency_coverage_text', 'landmark_names', 'hospital_names',
+            'country', 'coverage_text', 'emergency_coverage_text', 'landmark_names', 'hospital_names',
             'nearby_areas', 'faq_pairs', 'geo_entity_signals', 'local_intent_keywords',
         ],
         'mappings' => [
-            'service_code', 'pincode', 'priority', 'is_visible', 'is_featured', 'coverage_notes',
+            'service_code', 'country', 'priority', 'is_visible', 'is_featured', 'coverage_notes',
             'category_filter_codes', 'effective_from', 'effective_until',
         ],
     ],
@@ -191,9 +191,9 @@ return [
     'template_sample_rows' => [
         'categories' => [
             [
-                'code' => 'physiotherapy',
-                'name' => 'Physiotherapy at Home',
-                'short_summary' => 'Licensed physiotherapy delivered at home across Bangalore.',
+                'code' => 'consulting',
+                'name' => 'Consulting at Home',
+                'short_summary' => 'Licensed consulting delivered for your business across India.',
                 'is_active' => 'TRUE',
                 'publish_status' => 'published',
                 'visibility' => 'public',
@@ -201,11 +201,11 @@ return [
         ],
         'services' => [
             [
-                'primary_category_code' => 'physiotherapy',
-                'category_codes' => 'physiotherapy',
+                'primary_category_code' => 'consulting',
+                'category_codes' => 'consulting',
                 'service_code' => 'SRV-PHYSIO-01',
-                'title' => 'Physiotherapy at Home',
-                'short_summary' => 'Expert physiotherapy in Bangalore (Arekere belt).',
+                'title' => 'Consulting at Home',
+                'short_summary' => 'Expert consulting in India (India belt).',
                 'is_active' => 'TRUE',
                 'publish_status' => 'published',
                 'visibility' => 'public',
@@ -215,7 +215,7 @@ return [
             [
                 'parent_service_code' => 'SRV-PHYSIO-01',
                 'sub_service_code' => 'SUB-PHYSIO-NECK',
-                'title' => 'Neck Pain Physiotherapy',
+                'title' => 'Neck Pain Consulting',
                 'is_active' => 'TRUE',
                 'publish_status' => 'published',
                 'visibility' => 'public',
@@ -223,7 +223,7 @@ return [
             [
                 'parent_service_code' => 'SRV-PHYSIO-01',
                 'sub_service_code' => 'SUB-PHYSIO-BACK',
-                'title' => 'Back Pain Physiotherapy',
+                'title' => 'Back Pain Consulting',
                 'is_active' => 'TRUE',
                 'publish_status' => 'published',
                 'visibility' => 'public',

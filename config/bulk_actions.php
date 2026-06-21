@@ -95,7 +95,7 @@ return [
 
         'operations.pin_codes' => [
             'model' => PinCode::class,
-            'label' => 'Pin Codes',
+            'label' => 'Countrys',
             'module' => 'operations',
             'actions' => ['delete', 'modify', 'publish', 'unpublish'],
             'destructive' => ['delete'],

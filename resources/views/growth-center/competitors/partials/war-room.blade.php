@@ -36,7 +36,7 @@
         <p class="mom-body-text mt-2 text-[var(--text-primary)]">{{ $localityLabel }}</p>
         <p class="mom-metric mt-2 leading-none tabular-nums">
             {{ number_format((int) ($rollup['geoRefRules'] ?? 0)) }}
-            <span class="mom-subtext font-normal">{{ __('GEO PIN rows') }}</span>
+            <span class="mom-subtext font-normal">{{ __('GEO country rows') }}</span>
         </p>
         <p class="mom-body-text mt-2 flex-1 text-[var(--text-secondary)]">{{ __('Growth Center pin coverage aligned with local discovery.') }}</p>
         <span class="mom-cta-primary mt-4 !inline-flex !w-fit mom-cta-compact">{{ __('SEO & entity') }}</span>
@@ -65,7 +65,7 @@
             <div>
                 <h2 class="mom-section-title">{{ __('Backlink gap intelligence') }}</h2>
                 <p class="mom-body-text mt-2 max-w-2xl text-[var(--text-secondary)]">
-                    {{ __('Domains where competitors earn citations but Medca does not — sourced from backlink monitor scans and local directory probes.') }}
+                    {{ __('Domains where competitors earn citations but MarkOnMinds does not — sourced from backlink monitor scans and local directory probes.') }}
                 </p>
             </div>
             <div class="flex gap-6 text-center">
@@ -78,7 +78,7 @@
                     <p class="mom-metric mt-1">{{ number_format((int) ($backlinkSummary['competitor_backlink_domains'] ?? 0)) }}</p>
                 </div>
                 <div>
-                    <p class="mom-micro">{{ __('Medca refs') }}</p>
+                    <p class="mom-micro">{{ __('MarkOnMinds refs') }}</p>
                     <p class="mom-metric mt-1">{{ number_format((int) ($backlinkSummary['site_backlink_domains'] ?? 0)) }}</p>
                 </div>
             </div>

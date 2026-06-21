@@ -18,13 +18,13 @@ return [
     /**
      * Default style pack slug when none is set on the page or site configuration.
      */
-    'default_style_pack' => 'healthcare_professional',
+    'default_style_pack' => 'digital growth platform_professional',
 
     /**
      * Industries shown in Blueprint Builder (maps to blueprint groups).
      */
     'industries' => [
-        'healthcare' => 'Healthcare',
+        'digital growth platform' => 'Digital Growth Platform',
         'care_home' => 'Care Home',
         'construction' => 'Construction',
         'painting' => 'Painting',

@@ -93,7 +93,7 @@ return [
         'service_category' => 'Service category',
         'service' => 'Service',
         'sub_service' => 'Sub-service',
-        'pincode' => 'PIN code',
+        'country' => 'Country Name',
         'mapping' => 'Service mapping',
         'user' => 'User',
         'integration' => 'Integration',

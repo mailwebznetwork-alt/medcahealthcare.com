@@ -26,7 +26,7 @@ class MediaGeminiSuggestions
                 [
                     'contents' => [[
                         'parts' => [[
-                            'text' => 'Return JSON only: {"alt":"","title":"","caption":"","description":""} for healthcare image: '.$context,
+                            'text' => 'Return JSON only: {"alt":"","title":"","caption":"","description":""} for digital growth platform image: '.$context,
                         ]],
                     ]],
                 ]

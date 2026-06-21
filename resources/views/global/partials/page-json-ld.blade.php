@@ -12,7 +12,7 @@
         $generator = app(ServiceSchemaGenerator::class);
 
         if (isset($serviceLocation) && $serviceLocation instanceof ServiceLocationPage) {
-            $serviceLocation->loadMissing(['pincode', 'service']);
+            $serviceLocation->loadMissing(['country', 'service']);
             $pin = $serviceLocation->pincode;
 
             if ($pin instanceof PinCode) {

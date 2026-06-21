@@ -11,7 +11,7 @@
         : [
             'alt' => __('Professional :service in :area', ['service' => $title, 'area' => $area]),
             'title' => $title,
-            'caption' => __('Qualified care with :brand', ['brand' => config('medca.brand_name', 'Medca Health Care')]),
+            'caption' => __('Qualified care with :brand', ['brand' => config('medca.brand_name', 'MarkOnMinds')]),
             'description' => mb_substr(trim((string) ($service->short_summary ?: $service->seo?->meta_description ?: $title)), 0, 320),
         ];
     $imageScore = (int) ($service->seo?->image_seo_score ?? (

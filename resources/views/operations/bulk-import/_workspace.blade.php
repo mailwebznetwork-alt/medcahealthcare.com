@@ -65,7 +65,7 @@
     @if ($lockedWorkbook === 'services')
         {{ __('Upload services.xlsx to import categories, services, sub-services, and location defaults in one run. Preview validates every sheet before commit.') }}
     @elseif ($lockedWorkbook === 'pincodes')
-        {{ __('Upload pincodes.xlsx to import pincodes and geo enrichment. Service–pincode mappings are created automatically after import when services exist.') }}
+        {{ __('Upload pincodes.xlsx to import pincodes and geo enrichment. Service–country mappings are created automatically after import when services exist.') }}
     @else
         {{ __('Upload a master workbook or single entity file. Preview validates rows before commit.') }}
     @endif

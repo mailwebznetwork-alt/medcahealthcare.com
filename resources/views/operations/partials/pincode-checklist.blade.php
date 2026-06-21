@@ -4,7 +4,7 @@
     $selectedPinIds = array_map(static fn ($v) => (int) $v, old('pincodes', $selectedPinIds ?? []));
     $fieldName = $fieldName ?? 'pincodes[]';
     $title = $title ?? __('GEO — serviceable pincodes');
-    $description = $description ?? __('Select existing coverage areas from your pin code directory. No manual pin strings.');
+    $description = $description ?? __('Select existing coverage areas from your country directory. No manual pin strings.');
 @endphp
 
 <section class="mom-card p-6">
@@ -31,7 +31,7 @@
         class="space-y-3"
     >
         <div class="flex flex-wrap items-center gap-2">
-            <input type="search" x-model="q" class="min-w-[12rem] flex-1 rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner" placeholder="{{ __('Filter by pincode, area, city…') }}" autocomplete="off" />
+            <input type="search" x-model="q" class="min-w-[12rem] flex-1 rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner" placeholder="{{ __('Filter by country, area, city…') }}" autocomplete="off" />
             <button type="button" class="mom-cta-compact mom-cta-ghost text-xs" @click="setAll(true)">{{ __('Select all') }}</button>
             <button type="button" class="mom-cta-compact mom-cta-ghost text-xs" x-show="q.trim() !== ''" x-cloak @click="setVisible(true)">{{ __('Select filtered') }}</button>
             <button type="button" class="mom-cta-compact mom-cta-ghost text-xs" @click="setAll(false)">{{ __('Clear all') }}</button>
@@ -51,8 +51,8 @@
                 </label>
             @empty
                 <p class="mom-subtext text-sm">
-                    {{ __('No pin codes in the directory yet.') }}
-                    <a href="{{ route('operations.pin-codes.directory') }}" class="text-[var(--accent)] underline underline-offset-2">{{ __('Open pin code directory') }}</a>
+                    {{ __('No pincodes in the directory yet.') }}
+                    <a href="{{ route('operations.pin-codes.directory') }}" class="text-[var(--accent)] underline underline-offset-2">{{ __('Open country directory') }}</a>
                 </p>
             @endforelse
         </div>

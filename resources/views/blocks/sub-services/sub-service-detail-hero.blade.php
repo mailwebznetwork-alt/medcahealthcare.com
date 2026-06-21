@@ -12,7 +12,7 @@
         :eyebrow="$eyebrow"
         :headline="$headline"
         :intro="$summary"
-        :show-pincode="false"
+        :show-country="false"
         :show-actions="true"
         :show-body="false"
         tone="brand"

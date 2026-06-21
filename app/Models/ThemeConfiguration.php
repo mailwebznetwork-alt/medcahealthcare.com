@@ -57,7 +57,7 @@ class ThemeConfiguration extends Model
         /** @var int $id */
         $id = Cache::rememberForever(self::CACHE_KEY, function (): int {
             return (int) self::query()->firstOrCreate([], [
-                'header_preset' => 'classic_healthcare',
+                'header_preset' => 'classic_digital growth platform',
                 'layout_preset' => 'contained',
             ])->getKey();
         });

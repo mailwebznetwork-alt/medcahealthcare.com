@@ -6,8 +6,8 @@
 <x-public.section>
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
     <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 class="text-base font-semibold text-slate-900">{{ BlockContent::get($settings, $slug, 'card_nursing_title') }}</h3>
-        <p class="medca-card-body mt-2">{{ BlockContent::get($settings, $slug, 'card_nursing_body') }}</p>
+        <h3 class="text-base font-semibold text-slate-900">{{ BlockContent::get($settings, $slug, 'card_consulting_title') }}</h3>
+        <p class="medca-card-body mt-2">{{ BlockContent::get($settings, $slug, 'card_consulting_body') }}</p>
     </article>
     <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h3 class="text-base font-semibold text-slate-900">{{ BlockContent::get($settings, $slug, 'card_physio_title') }}</h3>

@@ -1,8 +1,8 @@
 @props([
     'areas' => collect(),
-    'title' => __('Areas We Serve'),
+    'title' => __('Countries & States We Serve'),
     'initial' => 8,
-    'excludePincodeIds' => [],
+    'excludeCountryIds' => [],
     'category' => null,
     'service' => null,
 ])
@@ -13,7 +13,7 @@
     use App\Services\Public\PinCodeCoverageUrlResolver;
 
     $areas = $areas instanceof \Illuminate\Support\Collection ? $areas : collect($areas);
-    $excludeIds = collect($excludePincodeIds)->map(fn ($id) => (int) $id)->filter()->all();
+    $excludeIds = collect($excludeCountryIds)->map(fn ($id) => (int) $id)->filter()->all();
     if ($excludeIds !== []) {
         $areas = $areas->whereNotIn('id', $excludeIds)->values();
     }
@@ -25,12 +25,12 @@
     $items = $areas->map(function ($pc) use ($urls): array {
         return [
             'id' => (int) $pc->id,
-            'pincode' => (string) $pc->pincode,
+            'country' => (string) $pc->pincode,
             'area' => (string) ($pc->area_name ?: $pc->locality ?: $pc->city ?: $pc->pincode),
             'city' => (string) ($pc->city ?? ''),
             'state' => (string) ($pc->state ?? ''),
             'serviceable' => (bool) $pc->is_serviceable,
-            'url' => $urls[$pc->id] ?? route('location.pincode.select', ['pincode' => $pc->pincode]),
+            'url' => $urls[$pc->id] ?? url('/locations'),
         ];
     })->values();
     $cities = $items->pluck('city')->filter()->unique()->sort()->values();
@@ -47,7 +47,7 @@
 
         <div class="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 md:flex-row md:flex-wrap md:items-end">
             <div class="min-w-[12rem] flex-1">
-                <label for="mc-coverage-search" class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('Search pincode or area') }}</label>
+                <label for="mc-coverage-search" class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('Search country or area') }}</label>
                 <input
                     id="mc-coverage-search"
                     type="search"
@@ -90,8 +90,8 @@
                 >
                     <option value="area_asc">{{ __('Area A–Z') }}</option>
                     <option value="area_desc">{{ __('Area Z–A') }}</option>
-                    <option value="pin_asc">{{ __('Pincode low–high') }}</option>
-                    <option value="pin_desc">{{ __('Pincode high–low') }}</option>
+                    <option value="pin_asc">{{ __('Country low–high') }}</option>
+                    <option value="pin_desc">{{ __('Country high–low') }}</option>
                     <option value="city_asc">{{ __('City A–Z') }}</option>
                 </select>
             </div>
@@ -101,7 +101,7 @@
             <span x-text="filtered.length"></span> {{ __('areas') }}
         </p>
         <p class="text-sm text-slate-600" x-show="filtered.length === 0" x-cloak>
-            {{ __('No areas match your search. Try another pincode or area name.') }}
+            {{ __('No areas match your search. Try another country or area name.') }}
         </p>
 
         <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -111,7 +111,7 @@
                         :href="item.url"
                         class="flex h-full min-w-0 flex-col gap-1 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-medca-primary/40 hover:shadow-md"
                     >
-                        <span class="font-mono text-xs font-semibold uppercase tracking-wide text-slate-500" x-text="item.pincode"></span>
+                        <span class="font-mono text-xs font-semibold uppercase tracking-wide text-slate-500" x-text="item.country"></span>
                         <span class="text-sm font-semibold text-slate-900 group-hover:text-medca-primary" x-text="item.area"></span>
                         <span class="text-xs text-slate-500" x-show="item.city" x-text="item.city"></span>
                     </a>
@@ -125,7 +125,7 @@
             x-cloak
             @click="expanded = !expanded"
             class="text-sm font-semibold text-medca-primary underline underline-offset-2"
-            x-text="expanded ? '{{ __('Show less') }}' : '{{ __('View more areas') }} (' + Math.max(0, filtered.length - initial) + ')'"
+            x-text="expanded ? '{{ __('Show less') }}' : '{{ __('View more service areas') }} (' + Math.max(0, filtered.length - initial) + ')'"
         ></button>
     </section>
 @endif
@@ -154,7 +154,7 @@
                         const q = this.query.trim().toLowerCase();
                         let list = this.items.filter((item) => {
                             const matchQuery = !q
-                                || item.pincode.includes(q)
+                                || item.country.includes(q)
                                 || item.area.toLowerCase().includes(q)
                                 || item.city.toLowerCase().includes(q);
                             const matchCity = !this.cityFilter || item.city === this.cityFilter;
@@ -167,9 +167,9 @@
                                 case 'area_desc':
                                     return b.area.localeCompare(a.area);
                                 case 'pin_asc':
-                                    return a.pincode.localeCompare(b.pincode);
+                                    return a.country.localeCompare(b.country);
                                 case 'pin_desc':
-                                    return b.pincode.localeCompare(a.pincode);
+                                    return b.country.localeCompare(a.country);
                                 case 'city_asc':
                                     return (a.city || '').localeCompare(b.city || '') || a.area.localeCompare(b.area);
                                 default:

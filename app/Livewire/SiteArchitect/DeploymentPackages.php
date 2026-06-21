@@ -20,7 +20,7 @@ class DeploymentPackages extends Component
 
     public string $style_pack_slug = '';
 
-    public string $blueprint_slugs = 'home_healthcare';
+    public string $blueprint_slugs = 'home_digital growth platform';
 
     /** @var list<string> */
     public array $selected_section_slugs = [];

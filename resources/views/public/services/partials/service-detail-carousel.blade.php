@@ -21,7 +21,7 @@
 
         <div class="medca-detail-track">
             <article class="medca-detail-card">
-                <span class="medca-detail-badge">{{ __('Nursing services') }}</span>
+                <span class="medca-detail-badge">{{ __('Consulting services') }}</span>
                 <h3>{{ __('Procedures included') }}</h3>
                 <ul class="medca-detail-list">
                     @forelse ($procedures as $item)
@@ -61,7 +61,7 @@
                     @empty
                         <li>{{ __('12 hours day duty') }}</li>
                         <li>{{ __('12 hours night duty') }}</li>
-                        <li>{{ __('24 hours live-in nursing') }}</li>
+                        <li>{{ __('24 hours live-in consulting') }}</li>
                     @endforelse
                     <li>{{ __('Doctor coordination support') }}</li>
                 </ul>

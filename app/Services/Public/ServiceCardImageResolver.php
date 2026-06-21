@@ -99,7 +99,7 @@ final class ServiceCardImageResolver
     private function defaultUrl(): string
     {
         return $this->categoryImages->urlFor(
-            new ServiceCategory(['code' => 'default', 'name' => 'Healthcare'])
+            new ServiceCategory(['code' => 'default', 'name' => 'Digital Growth Platform'])
         );
     }
 }

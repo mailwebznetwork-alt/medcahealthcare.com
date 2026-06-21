@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Rule-based SEO & marketing tag readiness for Growth Center (Medca MarketingSeoHealthReport equivalent).
+ * Rule-based SEO & marketing tag readiness for Growth Center (MarkOnMinds MarketingSeoHealthReport equivalent).
  * Does not call Google/Meta APIs; scores reflect DB + config + enabled integrations.
  *
  * Strings are English for stable caching; translate in Blade with __().
@@ -479,7 +479,7 @@ final class GrowthReadinessReport
         }
 
         $strategyStatus = match (true) {
-            $total === 0 => ['fail', 'No hijack strategies stored yet — run Hijack Ops when competitors outrank Medca.'],
+            $total === 0 => ['fail', 'No hijack strategies stored yet — run Hijack Ops when competitors outrank MarkOnMinds.'],
             $ready >= 1 => ['pass', sprintf('%d of %d strategies have Gemini autonomous SEO ready.', $ready, $total)],
             default => ['warn', sprintf('%d hijack strategies exist but none have autonomous content yet.', $total)],
         };
@@ -563,7 +563,7 @@ final class GrowthReadinessReport
             'Hub coordinates (GEO)' => self::hrefGeo(),
             'HTTPS (APP_URL)' => null,
             'Hijack strategy library', 'Autonomous SEO published', 'Gemini content engine' => self::hrefHijackOps(),
-            'Medca citation coverage', 'Backlink gap vs competitors', 'Backlink scan freshness' => self::hrefWarRoom(),
+            'MarkOnMinds citation coverage', 'Backlink gap vs competitors', 'Backlink scan freshness' => self::hrefWarRoom(),
             'Public measurement', 'GTM / GA4 / Meta Pixel', 'Tag duplication', 'Meta Conversions API', 'Microsoft Clarity', 'Gemini API' => self::hrefIntegrations(),
             default => self::hrefMarketing(),
         };

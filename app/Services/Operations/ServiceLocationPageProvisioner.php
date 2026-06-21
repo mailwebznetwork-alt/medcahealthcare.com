@@ -381,7 +381,7 @@ class ServiceLocationPageProvisioner
 
         $fallback = filled($pin->coverage_text)
             ? trim((string) $pin->coverage_text)
-            : trim($service->title.' '.__('in :area, :city delivers doctor-led home healthcare with nursing, physiotherapy, and 24×7 medical support.', [
+            : trim($service->title.' '.__('in :area, :city delivers expert-led digital growth platform with consulting, consulting, and 24×7 business support.', [
                 'area' => $area,
                 'city' => $city,
             ]));

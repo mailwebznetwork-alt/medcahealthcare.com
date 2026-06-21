@@ -169,7 +169,7 @@
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="mom-micro">{{ __('PIN code') }}</label>
+                            <label class="mom-micro">{{ __('Country Name') }}</label>
                             <select wire:model="pin_code_id" class="mt-1 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm">
                                 <option value="">{{ __('—') }}</option>
                                 @foreach ($pinCodes as $pc)

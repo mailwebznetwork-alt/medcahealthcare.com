@@ -64,7 +64,7 @@ class HijackContentBridgeService
         }
 
         $schemaType = is_string($strategy['schema_hint'] ?? null) && trim($strategy['schema_hint']) !== ''
-            ? 'MedicalOrganization'
+            ? 'ProfessionalService'
             : null;
 
         return [

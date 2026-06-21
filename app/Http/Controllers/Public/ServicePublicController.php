@@ -53,11 +53,9 @@ class ServicePublicController extends Controller
     public function index(Request $request): View
     {
         $pincode = $this->location->currentPincode();
-        $locationRequired = $pincode === null || $request->attributes->get('services_blocked_until_pincode') === true;
+        $locationRequired = false;
 
-        $categories = $locationRequired
-            ? collect()
-            : app(\App\Services\Public\PublicPagePresenter::class)->localizedCategories($pincode, limit: 0);
+        $categories = app(\App\Services\Public\PublicPagePresenter::class)->localizedCategories($pincode, limit: 0);
 
         return view('public.services.index', [
             'categories' => $categories,

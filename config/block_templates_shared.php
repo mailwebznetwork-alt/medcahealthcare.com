@@ -22,12 +22,12 @@ return [
         'block_type' => 'Hero',
         'view' => 'blocks.shared.hero-video',
     ],
-    'hero-healthcare' => [
+    'hero-digital growth platform' => [
         'category' => 'shared',
-        'block_name' => 'Element — Hero Healthcare',
+        'block_name' => 'Element — Hero Digital Growth Platform',
         'description' => 'Reusable Hero element for blueprints, sections, and landing pages.',
         'block_type' => 'Hero',
-        'view' => 'blocks.shared.hero-healthcare',
+        'view' => 'blocks.shared.hero-digital growth platform',
     ],
     'cta-simple' => [
         'category' => 'shared',

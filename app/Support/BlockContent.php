@@ -206,7 +206,7 @@ final class BlockContent
         return $fallback !== '' ? $fallback : app(\App\Services\Integrations\WhatsAppClickToChatService::class)->primaryUrl();
     }
 
-    public static function phoneDisplay(?string $fallback = '+91 88849 99002'): string
+    public static function phoneDisplay(?string $fallback = '+91 8593 000 360'): string
     {
         $display = self::global('phone_number');
 

@@ -337,7 +337,7 @@
             @if ($hideGeneratedSeo)
                 <section class="mom-card p-6">
                     <h3 class="mom-section-title mb-2">{{ __('SEO') }}</h3>
-                    <p class="mom-subtext">{{ __('This page is auto-generated. SEO is resolved at runtime from service, pincode, and SEO rules — edit the Operations service master or pincode data instead.') }}</p>
+                    <p class="mom-subtext">{{ __('This page is auto-generated. SEO is resolved at runtime from service, country, and SEO rules — edit the Operations service master or country data instead.') }}</p>
                 </section>
             @else
             <section class="mom-card p-6">
@@ -588,7 +588,7 @@
                     <div>
                         <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Entity tags') }}</label>
                         <p class="mom-subtext mb-2">{{ __('Comma-separated entities this page should reinforce for AI systems.') }}</p>
-                        <textarea wire:model="entity_tags_input" rows="2" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" placeholder="{{ __('e.g. Home nursing, Bangalore, Post-operative care') }}"></textarea>
+                        <textarea wire:model="entity_tags_input" rows="2" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" placeholder="{{ __('e.g. Home consulting, India, Post-operative care') }}"></textarea>
                     </div>
                     <label class="flex cursor-pointer items-center gap-3 text-sm text-[var(--text-secondary)]">
                         <input type="checkbox" wire:model.live="fact_check_verified" class="rounded border-[rgba(255,255,255,0.15)]" />
@@ -615,8 +615,8 @@
             <section class="mom-card p-6">
                 <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                     <div>
-                        <h3 class="mom-section-title">{{ __('GEO (PIN codes)') }}</h3>
-                        <p class="mom-subtext mt-1">{{ __('Select coverage PINs; area and city are read-only from the directory.') }}</p>
+                        <h3 class="mom-section-title">{{ __('GEO (Countries & States)') }}</h3>
+                        <p class="mom-subtext mt-1">{{ __('Select coverage countries and states; country and region details are read-only from the directory.') }}</p>
                     </div>
                     <p class="mom-micro text-[var(--text-muted)]">
                         {{ count($selectedPinIds) }} {{ __('selected') }}
@@ -628,7 +628,7 @@
                         type="search"
                         wire:model.live.debounce.300ms="pinCodeFilter"
                         class="min-w-[12rem] flex-1 rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm text-[var(--text-primary)]"
-                        placeholder="{{ __('Filter by pincode, area, city…') }}"
+                        placeholder="{{ __('Filter by country, area, city…') }}"
                         autocomplete="off"
                     />
                     <button type="button" wire:click="selectAllPinCodes" class="mom-cta-compact mom-cta-ghost text-xs">{{ __('Select all') }}</button>
@@ -647,7 +647,7 @@
                             </span>
                         </label>
                     @empty
-                        <p class="mom-subtext text-sm">{{ __('No pin codes match your filter.') }}</p>
+                        <p class="mom-subtext text-sm">{{ __('No pincodes match your filter.') }}</p>
                     @endforelse
                 </div>
 
@@ -710,7 +710,7 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Schema type') }}</label>
-                        <input type="text" wire:model="schema_type" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" placeholder="MedicalBusiness, Service, FAQPage, …" />
+                        <input type="text" wire:model="schema_type" class="mt-2 w-full rounded-mom-chrome border border-[var(--border-panel-soft)] bg-[var(--bg-card-matte)] px-3 py-2 text-sm" placeholder="ProfessionalService, Service, FAQPage, ..." />
                     </div>
                     <div>
                         <label class="block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{{ __('Schema JSON') }}</label>

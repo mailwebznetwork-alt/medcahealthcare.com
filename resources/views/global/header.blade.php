@@ -88,7 +88,7 @@
                 @endif
 
                 <div class="flex min-w-0 flex-col justify-center border-l border-slate-200 pl-2 sm:pl-2.5">
-                    <span class="min-w-0 truncate text-[170%] font-semibold leading-tight tracking-tight text-medca-primary">{{ config('medca.brand_name', 'Medca Health Care') }}</span>
+                    <span class="min-w-0 truncate text-[170%] font-semibold leading-tight tracking-tight text-medca-primary">{{ config('medca.brand_name', 'MarkOnMinds') }}</span>
                     <span class="mt-0.5 min-w-0 truncate text-[0.625rem] font-bold uppercase leading-none tracking-[0.18em] text-medca-primary md:text-[0.6875rem]">{{ config('medca.tagline') }}</span>
                 </div>
             </a>
@@ -174,7 +174,7 @@
                                         </svg>
                                     </span>
                                     <div class="min-w-0">
-                                        <p class="text-sm font-semibold tracking-wide text-clinical-900">{{ __('Medca Navigation') }}</p>
+                                        <p class="text-sm font-semibold tracking-wide text-clinical-900">{{ __('MarkOnMinds Navigation') }}</p>
                                         @if($isSuperAdmin)
                                             <p class="text-[11px] uppercase tracking-[0.2em] text-slate-500">{{ __('Strategic Commander') }}</p>
                                         @endif

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Medca — Appearance & Typography System (authoritative spec).
+ * MarkOnMinds — Appearance & Typography System (authoritative spec).
  *
  * Fonts: Settings → Appearance → Typography (heading_font / body_font).
  * Sizes: per element × breakpoint; scaled by font scale (compact | default | large).

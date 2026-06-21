@@ -79,7 +79,7 @@ class PinCodeCoverageUrlResolver
             );
         }
 
-        return route('location.pincode.select', ['pincode' => $pin->pincode]);
+        return url('/locations');
     }
 
     private function quickUrl(PinCode $pin, ?Service $service = null, ?ServiceCategory $category = null): ?string

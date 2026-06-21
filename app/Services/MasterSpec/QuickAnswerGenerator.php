@@ -21,7 +21,7 @@ class QuickAnswerGenerator
         $title = method_exists($service, 'publicListingTitle')
             ? $service->publicListingTitle()
             : (string) ($service->title ?? '');
-        $area = config('medca.default_city', 'Bangalore');
+        $area = config('medca.default_city', 'India');
         $summary = trim((string) ($service->short_summary ?? $service->description ?? ''));
 
         if ($summary !== '') {
@@ -30,7 +30,7 @@ class QuickAnswerGenerator
             return rtrim($sentence, '.').'.';
         }
 
-        return "{$title} is available across {$area} through Medca Health Care with trained caregivers and home visits.";
+        return "{$title} is available across {$area} through MarkOnMinds with trained support team and consultations.";
     }
 
     public function generateForCategory(ServiceCategory $category): string
@@ -40,9 +40,9 @@ class QuickAnswerGenerator
         }
 
         $name = (string) ($category->name ?? $category->title ?? 'Service category');
-        $city = config('medca.default_city', 'Bangalore');
+        $city = config('medca.default_city', 'India');
 
-        return "Medca provides {$name} across {$city} with verified home healthcare professionals.";
+        return "MarkOnMinds provides {$name} across {$city} with verified digital growth platform professionals.";
     }
 
     public function generateForSubService(SubService $subService): string
@@ -53,10 +53,10 @@ class QuickAnswerGenerator
 
         $title = $subService->publicListingTitle();
         $parent = $subService->relationLoaded('service')
-            ? (string) ($subService->service?->title ?? 'home healthcare')
-            : (string) ($subService->service()->value('title') ?? 'home healthcare');
+            ? (string) ($subService->service?->title ?? 'digital growth platform')
+            : (string) ($subService->service()->value('title') ?? 'digital growth platform');
 
-        return "{$title} is a specialized {$parent} offering from Medca Health Care in Bangalore.";
+        return "{$title} is a specialized {$parent} offering from MarkOnMinds in India.";
     }
 
     public function fillIfEmpty(Model $entity): void

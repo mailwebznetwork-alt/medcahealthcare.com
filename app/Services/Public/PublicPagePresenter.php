@@ -61,13 +61,13 @@ class PublicPagePresenter
     public function localizedServices(?string $pincode = null, int $limit = 0): \Illuminate\Support\Collection
     {
         $pincode ??= $this->location->currentPincode();
-        if ($pincode === null) {
-            return collect();
-        }
-
         $query = Service::query()
-            ->localizedListing($pincode)
+            ->publicListing()
             ->with(['seo', 'categories', 'faqs']);
+
+        if ($pincode !== null) {
+            $query->forPincode($pincode);
+        }
 
         if ($limit > 0) {
             $query->limit($limit);
@@ -82,10 +82,6 @@ class PublicPagePresenter
     public function localizedCategories(?string $pincode = null, int $limit = 6): \Illuminate\Support\Collection
     {
         $pincode ??= $this->location->currentPincode();
-        if ($pincode === null) {
-            return collect();
-        }
-
         $categories = $this->discovery->discoverCategories($pincode);
 
         return $limit > 0 ? $categories->take($limit) : $categories;
@@ -103,7 +99,7 @@ class PublicPagePresenter
             'pincode' => $pincode,
             'pinCodeRecord' => $record,
             'categories' => $this->localizedCategories($pincode, $limit),
-            'locationRequired' => $pincode === null,
+            'locationRequired' => false,
         ];
     }
 

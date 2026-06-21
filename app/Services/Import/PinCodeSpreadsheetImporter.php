@@ -244,7 +244,7 @@ class PinCodeSpreadsheetImporter extends AbstractSpreadsheetImporter
             'city' => $city,
             'state' => $row['state'] ?? null,
             'locality' => $row['locality'] ?? null,
-            'bangalore_zone_id' => $this->resolveBangaloreZoneId($row['bangalore_zone_code'] ?? null),
+            'bangalore_zone_id' => $this->resolveIndiaZoneId($row['bangalore_zone_code'] ?? null),
             'is_serviceable' => ImportSupport::parseBool($row['is_serviceable'] ?? null, true),
             'is_active' => ImportSupport::parseBool($row['is_active'] ?? null, true),
             'delivery_charge' => filled($row['delivery_charge'] ?? null) && is_numeric($row['delivery_charge']) ? $row['delivery_charge'] : null,
@@ -289,14 +289,14 @@ class PinCodeSpreadsheetImporter extends AbstractSpreadsheetImporter
         return $pin;
     }
 
-    private function resolveBangaloreZoneId(?string $code): ?int
+    private function resolveIndiaZoneId(?string $code): ?int
     {
         $code = trim((string) $code);
         if ($code === '') {
             return null;
         }
 
-        $zone = \App\Models\BangaloreZone::query()->where('code', $code)->first();
+        $zone = \App\Models\IndiaZone::query()->where('code', $code)->first();
 
         return $zone?->id;
     }

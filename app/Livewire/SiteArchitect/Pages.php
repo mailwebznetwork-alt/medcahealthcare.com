@@ -1507,7 +1507,7 @@ class Pages extends Component
     {
         return [
             __('Home Care in :pin', ['pin' => $pc->pincode]),
-            __('Nursing service in :area', ['area' => $pc->area_name]),
+            __('Consulting service in :area', ['area' => $pc->area_name]),
         ];
     }
 

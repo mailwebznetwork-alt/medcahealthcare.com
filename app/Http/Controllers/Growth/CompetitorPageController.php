@@ -411,7 +411,7 @@ class CompetitorPageController extends Controller
 
         return redirect()
             ->route('growth-center.competitors.index', ['tab' => 'hijack-opportunities'])
-            ->with('status', __('Medca ranking recorded. Hijack scan updated.'));
+            ->with('status', __('MarkOnMinds ranking recorded. Hijack scan updated.'));
     }
 
     public function storeLead(Request $request): RedirectResponse

@@ -162,7 +162,7 @@
 
         $org = array_filter([
             '@context' => 'https://schema.org',
-            '@type' => 'MedicalOrganization',
+            '@type' => 'ProfessionalService',
             'name' => $gEntity?->organization_name ?? $gBusiness?->name,
             'url' => config('app.url'),
             'logo' => $gEntity?->logo,

@@ -16,7 +16,7 @@ class ContentHealthReportCommand extends Command
     {
         $data = $health->report();
 
-        $markdown = "# Medca Content Health Report\n\n";
+        $markdown = "# MarkOnMinds Content Health Report\n\n";
         $markdown .= 'Generated: '.now()->timezone('Asia/Kolkata')->toDateTimeString().' IST'."\n\n";
 
         foreach ($data as $key => $value) {

@@ -28,7 +28,7 @@
             <dl class="mom-body-text mt-4 space-y-2 text-[var(--text-secondary)]">
                 <div class="flex justify-between gap-4"><dt class="text-[var(--text-muted)]">{{ __('Source') }}</dt><dd class="text-right text-[var(--text-primary)]">{{ $lead->source->label() }}</dd></div>
                 <div class="flex justify-between gap-4"><dt class="text-[var(--text-muted)]">{{ __('Campaign') }}</dt><dd class="text-right text-[var(--text-primary)]">{{ $lead->campaign ?: '—' }}</dd></div>
-                <div class="flex justify-between gap-4"><dt class="text-[var(--text-muted)]">{{ __('PIN') }}</dt><dd class="text-right text-[var(--text-primary)]">{{ $lead->pinCode?->pincode ?? '—' }}</dd></div>
+                <div class="flex justify-between gap-4"><dt class="text-[var(--text-muted)]">{{ __('Country Key') }}</dt><dd class="text-right text-[var(--text-primary)]">{{ $lead->pinCode?->pincode ?? '—' }}</dd></div>
                 <div class="flex justify-between gap-4"><dt class="text-[var(--text-muted)]">{{ __('Status') }}</dt><dd class="text-right text-[var(--text-primary)]">{{ $lead->status->label() }}</dd></div>
                 <div class="flex justify-between gap-4"><dt class="text-[var(--text-muted)]">{{ __('Assigned') }}</dt><dd class="text-right text-[var(--text-primary)]">{{ $lead->assignedUser?->name ?? '—' }}</dd></div>
                 <div class="flex justify-between gap-4"><dt class="text-[var(--text-muted)]">{{ __('Follow-up') }}</dt><dd class="text-right text-[var(--text-primary)]">{{ $lead->follow_up_date?->format('Y-m-d') ?? '—' }}</dd></div>

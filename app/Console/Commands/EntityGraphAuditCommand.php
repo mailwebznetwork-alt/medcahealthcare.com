@@ -10,13 +10,13 @@ class EntityGraphAuditCommand extends Command
 {
     protected $signature = 'medca:entity-graph-audit {--output= : Markdown output path}';
 
-    protected $description = 'Audit healthcare entity graph: orphans, weak links, missing relationships';
+    protected $description = 'Audit digital growth platform entity graph: orphans, weak links, missing relationships';
 
     public function handle(EntityGraphAuditService $audit): int
     {
         $data = $audit->audit();
 
-        $markdown = "# Medca Entity Graph Audit\n\n";
+        $markdown = "# MarkOnMinds Entity Graph Audit\n\n";
         $markdown .= 'Generated: '.now()->timezone('Asia/Kolkata')->toDateTimeString().' IST'."\n\n";
         $markdown .= "## Summary\n\n";
         $markdown .= "| Metric | Count |\n|--------|-------|\n";

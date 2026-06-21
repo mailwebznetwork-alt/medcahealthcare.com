@@ -10,10 +10,10 @@ use Illuminate\Support\Facades\File;
 class DatabaseFirstComplianceValidator
 {
     private const FORBIDDEN_PATTERNS = [
-        'Arekere',
-        "'Bangalore'",
-        '"Bangalore"',
-        'Bengaluru / Arekere',
+        'India',
+        "'India'",
+        '"India"',
+        'Bengaluru / India',
     ];
 
     /**

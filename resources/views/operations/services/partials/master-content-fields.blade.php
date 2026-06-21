@@ -29,7 +29,7 @@
         <textarea id="quick_answer" name="quick_answer" rows="2" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)]">{{ old('quick_answer', $service->quick_answer) }}</textarea>
     </div>
     <div class="md:col-span-2">
-        <x-input-label for="why_medca" :value="__('Why Medca')" variant="mom" />
+        <x-input-label for="why_medca" :value="__('Why MarkOnMinds')" variant="mom" />
         <textarea id="why_medca" name="why_medca" rows="3" class="mt-2 block w-full rounded-mom-chrome border border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)]">{{ old('why_medca', $service->why_medca) }}</textarea>
     </div>
     <div class="md:col-span-2">

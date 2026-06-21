@@ -27,7 +27,7 @@ class SeoService
         return BusinessProfile::query()->firstOrCreate(
             ['website' => config('app.url')],
             [
-                'name' => config('medca.brand_name', 'Medca Health Care'),
+                'name' => config('medca.brand_name', 'MarkOnMinds'),
                 'email' => config('mail.from.address'),
                 'phone' => null,
                 'address' => null,
@@ -151,7 +151,7 @@ class SeoService
         return implode("\n", [
             'User-agent: *',
             'Allow: /',
-            'Sitemap: /sitemap.xml',
+            'Sitemap: '.url('/sitemap.xml'),
         ]);
     }
 
@@ -545,14 +545,7 @@ class SeoService
      */
     protected function legacyGrowthServicePaths(): Collection
     {
-        if (! Schema::hasTable('page_seo')) {
-            return collect();
-        }
-
-        return PageSeo::query()
-            ->whereNotNull('page_slug')
-            ->where('page_slug', 'like', 'services/%')
-            ->pluck('page_slug');
+        return collect();
     }
 
     /**

@@ -52,7 +52,7 @@ class AppearanceSettings extends Component
 
     public string $custom_body_font = '';
 
-    public string $header_preset = 'classic_healthcare';
+    public string $header_preset = 'classic_digital growth platform';
 
     public string $layout_preset = 'contained';
 

@@ -37,7 +37,7 @@ class ConversationalAeoFaqBuilder
 
         if (filled($service->ai_summary)) {
             $generated[] = $this->question(
-                __('What does :service include from Medca?', ['service' => $title]),
+                __('What does :service include from MarkOnMinds?', ['service' => $title]),
                 (string) $service->ai_summary
             );
         }
@@ -142,7 +142,7 @@ class ConversationalAeoFaqBuilder
     {
         $area = $this->areaLabel($pin);
         $parts = [
-            __('Medca coordinates :service visits for families near :hospital in :area.', [
+            __('MarkOnMinds coordinates :service visits for families near :hospital in :area.', [
                 'service' => $service->title,
                 'hospital' => $hospital->name,
                 'area' => $area,

@@ -28,7 +28,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\CmsPageController;
 use App\Http\Controllers\Public\LocationAreaController;
 use App\Http\Controllers\Public\LeadCaptureController;
-use App\Http\Controllers\Public\LocationController;
 use App\Http\Controllers\Public\ServicePublicController;
 use App\Http\Controllers\Settings\IntegrationController;
 use App\Http\Controllers\Settings\SystemOperationsController;
@@ -65,17 +64,6 @@ Route::post('/leads', [LeadCaptureController::class, 'store'])
     ->middleware('throttle:public_leads')
     ->name('public.leads.store');
 
-Route::get('/location/pincode/{pincode}', [LocationController::class, 'selectPincode'])
-    ->where('pincode', '\d{6}')
-    ->middleware('throttle:60,1')
-    ->name('location.pincode.select');
-Route::post('/location/pincode', [LocationController::class, 'storePincode'])
-    ->middleware('throttle:20,1')
-    ->name('location.pincode.store');
-Route::post('/location/geolocation', [LocationController::class, 'storeGeolocation'])
-    ->middleware('throttle:20,1')
-    ->name('location.geolocation.store');
-
 Route::get('/', function () {
     $page = Page::query()->where('slug', 'home')->where('is_active', true)->first();
 
@@ -87,6 +75,18 @@ Route::get('/', function () {
 
     return view('home', app(PublicPagePresenter::class)->nearYouPayload());
 })->name('public.home');
+
+Route::get('/home', function () {
+    $page = Page::query()->where('slug', 'home')->where('is_active', true)->first();
+
+    if ($page !== null) {
+        app(PageRenderContextRegistrar::class)->register($page);
+
+        return view('layouts.app', ['page' => $page]);
+    }
+
+    return view('home', app(PublicPagePresenter::class)->nearYouPayload());
+})->name('public.home.alias');
 
 Route::get('/services-catalog', [ServicePublicController::class, 'index'])->name('public.services.index');
 
@@ -114,12 +114,6 @@ foreach (config('public_pages.root_slugs', []) as $cmsSlug) {
         ->defaults('slug', $cmsSlug)
         ->name($routeName);
 }
-
-Route::get('/services/{code}/{city}/{pincode}', [ServicePublicController::class, 'showLocationPincode'])
-    ->where('code', '[A-Za-z][A-Za-z0-9_-]*')
-    ->where('city', '[a-z0-9]+(?:-[a-z0-9]+)*')
-    ->where('pincode', '\d{6}')
-    ->name('public.services.location.pincode');
 
 Route::get('/services/{code}/sub/{subCode}', [ServicePublicController::class, 'showSubService'])
     ->where('code', '[A-Za-z][A-Za-z0-9_-]*')
