@@ -105,9 +105,9 @@ class MedcaPublicPagesSeeder extends Seeder
             [
                 'slug' => 'home',
                 'title' => 'Home',
-                'meta_title' => 'Medca Health Care — Premium Home Healthcare in Bangalore',
-                'meta_description' => 'Trusted, doctor-led home healthcare across Bangalore: nursing, physiotherapy, lab collection, and 24×7 medical support within 25 km of Arekere.',
-                'h1' => 'Premium home healthcare, delivered to your doorstep in Bangalore.',
+                'meta_title' => 'MEDCA Consultancy — Business Consultancy in India',
+                'meta_description' => 'Trusted, expert-led business consultancy across India: consulting, consulting, lab collection, and 24×7 business support within 25 km of India.',
+                'h1' => 'Business Consultancy, delivered to your doorstep in India.',
                 'blocks' => [
                     'hero-home',
                     'services-overview-home',
@@ -119,9 +119,9 @@ class MedcaPublicPagesSeeder extends Seeder
             [
                 'slug' => 'about-us',
                 'title' => 'About Us',
-                'meta_title' => 'About Medca Health Care — Our Mission, Doctors, and Care Philosophy',
-                'meta_description' => 'Medca Health Care is a Bangalore-based premium home healthcare provider, built around a doctor-led care model and a 25 km service belt around Arekere.',
-                'h1' => 'About Medca Health Care.',
+                'meta_title' => 'About MEDCA Consultancy — Our Mission, Doctors, and Care Philosophy',
+                'meta_description' => 'MEDCA Consultancy is a India-based business consultancy provider, built around a expert-led care model and a 25 km service belt around India.',
+                'h1' => 'About MEDCA Consultancy.',
                 'blocks' => [
                     'hero-about',
                     'body-about',
@@ -130,8 +130,8 @@ class MedcaPublicPagesSeeder extends Seeder
             [
                 'slug' => 'services',
                 'title' => 'Services',
-                'meta_title' => 'Medca Services — Nursing, Physiotherapy, Diagnostics & 24×7 Medical Support',
-                'meta_description' => 'Explore Medca Health Care services: in-home nursing, physiotherapy, lab sample collection, post-surgical recovery, geriatric care, and 24×7 medical support.',
+                'meta_title' => 'MEDCA Consultancy Services — Consulting, Consulting, Diagnostics & 24×7 Medical Support',
+                'meta_description' => 'Explore MEDCA Consultancy services: in-core services, consulting, lab sample collection, post-surgical recovery, geriatric care, and 24×7 business support.',
                 'h1' => 'Services that bring the hospital home.',
                 'blocks' => [
                     'hero-services',
@@ -142,9 +142,9 @@ class MedcaPublicPagesSeeder extends Seeder
             [
                 'slug' => 'locations',
                 'title' => 'Locations',
-                'meta_title' => 'Service Areas — Medca Home Healthcare Across Bangalore',
-                'meta_description' => 'We serve a 25 km belt around Arekere — including Bannerghatta Road, BTM, Jayanagar, JP Nagar, Electronic City, HSR, Koramangala and more.',
-                'h1' => 'Where Medca cares — across Bangalore.',
+                'meta_title' => 'Service Areas — Medca Consultancy Business Consultancy Across India',
+                'meta_description' => 'We serve a focused service network — including Bannerghatta Road, BTM, Jayanagar, JP Nagar, Electronic City, HSR, Koramangala and more.',
+                'h1' => 'Where Medca Consultancy cares — across India.',
                 'blocks' => [
                     'hero-locations',
                     'near-you-locations',
@@ -154,9 +154,9 @@ class MedcaPublicPagesSeeder extends Seeder
             [
                 'slug' => 'contact',
                 'title' => 'Contact Us',
-                'meta_title' => 'Contact Medca Health Care — Bangalore Home Healthcare',
-                'meta_description' => 'Reach Medca Health Care for home nursing, physiotherapy, diagnostics, and medical support across Bangalore. Call, WhatsApp, or request a callback.',
-                'h1' => 'Talk to a Medca care advisor.',
+                'meta_title' => 'Contact MEDCA Consultancy — India Business Consultancy',
+                'meta_description' => 'Reach MEDCA Consultancy for core services, consulting, diagnostics, and business support across India. Call, WhatsApp, or request a callback.',
+                'h1' => 'Talk to a Medca Consultancy care advisor.',
                 'blocks' => [
                     'hero-contact',
                     'contact-info',

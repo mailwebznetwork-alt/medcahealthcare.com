@@ -153,7 +153,7 @@ class MarketingInsightsService
             return null;
         }
 
-        $prompt = "Summarize these marketing signals in 3 short bullet points for a healthcare operator in India (Medca-style trust, clarity, no hype):\n- "
+        $prompt = "Summarize these marketing signals in 3 short bullet points for a healthcare career consultancy operator in India (Medca Consultancy-style trust, clarity, no hype):\n- "
             .implode("\n- ", $lines);
 
         $cacheKey = 'marketing.gemini.'.sha1($prompt);

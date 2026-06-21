@@ -5,7 +5,7 @@
  *
  * CSS source of truth:
  * - Admin (MarkOnMinds): resources/css/markonminds.css `:root` — `--mom-*` namespace
- * - Public (Medca marketing): resources/css/public/tokens.css — `--medca-*` on `.medca-public-surface`
+ * - Public (Medca Consultancy marketing): resources/css/public/tokens.css — `--medca-*` on `.medca-public-surface`
  *
  * Tailwind mappings: tailwind.config.js (`mom-gold`, `medca-primary`, etc.)
  *

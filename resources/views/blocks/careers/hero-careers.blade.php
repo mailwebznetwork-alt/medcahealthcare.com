@@ -3,7 +3,7 @@
     $settings = is_array($blockSettings ?? null) ? $blockSettings : [];
     $eyebrow = BlockContent::get($settings, 'hero-careers', 'eyebrow');
     if ($eyebrow === '') {
-        $eyebrow = (string) config('careers.organization_name', 'Medca Health Care');
+        $eyebrow = (string) config('careers.organization_name', 'MEDCA Consultancy');
     }
     $headline = BlockContent::get($settings, 'hero-careers', 'headline');
     $subheadline = BlockContent::get($settings, 'hero-careers', 'subheadline');

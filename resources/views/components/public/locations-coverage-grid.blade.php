@@ -1,8 +1,8 @@
 @props([
     'areas' => collect(),
-    'title' => __('Areas We Serve'),
+    'title' => __('Areas & Pincodes We Serve'),
     'initial' => 8,
-    'excludePincodeIds' => [],
+    'excludeCountryIds' => [],
     'category' => null,
     'service' => null,
 ])
@@ -13,7 +13,7 @@
     use App\Services\Public\PinCodeCoverageUrlResolver;
 
     $areas = $areas instanceof \Illuminate\Support\Collection ? $areas : collect($areas);
-    $excludeIds = collect($excludePincodeIds)->map(fn ($id) => (int) $id)->filter()->all();
+    $excludeIds = collect($excludeCountryIds)->map(fn ($id) => (int) $id)->filter()->all();
     if ($excludeIds !== []) {
         $areas = $areas->whereNotIn('id', $excludeIds)->values();
     }
@@ -90,8 +90,8 @@
                 >
                     <option value="area_asc">{{ __('Area A–Z') }}</option>
                     <option value="area_desc">{{ __('Area Z–A') }}</option>
-                    <option value="pin_asc">{{ __('Pincode low–high') }}</option>
-                    <option value="pin_desc">{{ __('Pincode high–low') }}</option>
+                    <option value="pin_asc">{{ __('Pincode low-high') }}</option>
+                    <option value="pin_desc">{{ __('Pincode high-low') }}</option>
                     <option value="city_asc">{{ __('City A–Z') }}</option>
                 </select>
             </div>
@@ -125,7 +125,7 @@
             x-cloak
             @click="expanded = !expanded"
             class="text-sm font-semibold text-medca-primary underline underline-offset-2"
-            x-text="expanded ? '{{ __('Show less') }}' : '{{ __('View more areas') }} (' + Math.max(0, filtered.length - initial) + ')'"
+            x-text="expanded ? '{{ __('Show less') }}' : '{{ __('View more service areas') }} (' + Math.max(0, filtered.length - initial) + ')'"
         ></button>
     </section>
 @endif

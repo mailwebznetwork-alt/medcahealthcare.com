@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'sort_order',
     'is_active',
 ])]
-class BangaloreZone extends Model
+class IndiaZone extends Model
 {
     protected $table = 'bangalore_zones';
 

@@ -32,7 +32,7 @@ class MedcaBangalorePinCodesSeeder extends Seeder
                 ['pincode' => $row['pincode']],
                 [
                     'area_name' => $row['area_name'],
-                    'city' => 'Bangalore',
+                    'city' => 'India',
                     'locality' => $row['locality'] ?? null,
                     'is_serviceable' => true,
                     'is_active' => true,
@@ -49,7 +49,7 @@ class MedcaBangalorePinCodesSeeder extends Seeder
     private function definitions(): array
     {
         return [
-            ['pincode' => '560076', 'area_name' => 'Arekere', 'priority' => 'high'],
+            ['pincode' => '560076', 'area_name' => 'India', 'priority' => 'high'],
             ['pincode' => '560083', 'area_name' => 'Bannerghatta Road', 'priority' => 'high'],
             ['pincode' => '560029', 'area_name' => 'BTM Layout', 'priority' => 'high'],
             ['pincode' => '560030', 'area_name' => 'BTM 2nd Stage', 'priority' => 'medium'],

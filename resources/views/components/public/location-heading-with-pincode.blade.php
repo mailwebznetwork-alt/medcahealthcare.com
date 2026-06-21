@@ -9,7 +9,7 @@
 ])
 
 @php
-    $pincodeButton = $pincodeButton ?? __('Change Pincode');
+    $pincodeButton = $pincodeButton ?? __('Change Country');
     $onBrand = $tone === 'brand';
     $headingClass = $headingClass ?? ($onBrand
         ? 'text-2xl font-semibold text-white md:text-3xl'

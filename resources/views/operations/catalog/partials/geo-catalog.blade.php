@@ -9,18 +9,18 @@
 @endphp
 
 @if ($catalogKind === 'category')
-    @include('operations.partials.pincode-checklist', [
+    @include('operations.partials.country-checklist', [
         'pinCodes' => $pinCodes ?? collect(),
         'selectedPinIds' => $selectedPinIds ?? [],
         'title' => __('GEO — category pincodes (master)'),
         'description' => __('Master coverage for this category. Applies to all services whose primary category is this one. You can still override on individual services.'),
     ])
 @elseif ($catalogKind === 'sub_service' && isset($parentService))
-    @include('operations.partials.pincode-checklist', [
+    @include('operations.partials.country-checklist', [
         'pinCodes' => $pinCodes ?? collect(),
         'selectedPinIds' => $selectedPinIds ?? [],
         'title' => __('GEO — sub-service coverage'),
-        'description' => __('Inherited from parent service :title. Uncheck a pincode to exclude it from this sub-service only.', ['title' => $parentService->title]),
+        'description' => __('Inherited from parent service :title. Uncheck a country to exclude it from this sub-service only.', ['title' => $parentService->title]),
     ])
 @endif
 

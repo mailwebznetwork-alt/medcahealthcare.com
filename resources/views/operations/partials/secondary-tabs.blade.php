@@ -29,7 +29,7 @@
         ];
     @endphp
     <div class="mom-backend-tabstrip">
-        <nav class="flex flex-wrap gap-0" aria-label="{{ __('Pin Codes') }}">
+        <nav class="flex flex-wrap gap-0" aria-label="{{ __('Countries') }}">
             @foreach ($tabs as $tab)
                 <a
                     href="{{ route($tab['route']) }}"

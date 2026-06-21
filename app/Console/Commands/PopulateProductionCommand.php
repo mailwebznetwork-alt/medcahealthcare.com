@@ -13,7 +13,7 @@ class PopulateProductionCommand extends Command
 
     public function handle(ProductionPopulationService $population): int
     {
-        $this->info('=== Medca production data population ===');
+        $this->info('=== Medca Consultancy production data population ===');
 
         $log = $population->populate(! $this->option('skip-media-seeder'));
 

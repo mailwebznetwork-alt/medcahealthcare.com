@@ -169,7 +169,7 @@ return [
             'label' => 'Service area summary',
             'group' => 'brand_story',
             'type' => 'textarea',
-            'hint' => 'e.g. 25 km belt around Arekere, Bangalore.',
+            'hint' => 'e.g. focused service network, India.',
         ],
         'founded_year' => [
             'label' => 'Founded year',
@@ -226,8 +226,8 @@ return [
             'group' => 'contact',
             'type' => 'text',
         ],
-        'pincode' => [
-            'label' => 'PIN code',
+        'country' => [
+            'label' => 'Country Name',
             'group' => 'contact',
             'type' => 'text',
         ],

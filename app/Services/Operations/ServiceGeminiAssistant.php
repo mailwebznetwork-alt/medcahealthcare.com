@@ -65,12 +65,12 @@ class ServiceGeminiAssistant
 
     private function buildPrompt(Service $service): string
     {
-        $brand = config('medca.brand_name', 'Medca Health Care');
+        $brand = config('medca.brand_name', 'MEDCA Consultancy');
         $location = app(\App\Services\Seo\LocalityContextResolver::class)->aiMarketContext()
             ?: config('medca.location_display', '');
 
         return <<<PROMPT
-You are an SEO/AEO/GEO specialist for {$brand} ({$location}, India healthcare).
+You are an SEO/AEO/GEO specialist for {$brand} ({$location}, India healthcare career consultancy).
 
 Service: {$service->title} (code: {$service->service_code})
 Summary: {$service->short_summary}

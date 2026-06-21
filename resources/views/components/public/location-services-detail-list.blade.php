@@ -12,7 +12,7 @@
         ? $pinCode
         : ($pinCodeRecord instanceof PinCode ? $pinCodeRecord : null);
 
-    $emptyMessage = $emptyMessage ?? __('No published services are mapped to this pincode yet.');
+    $emptyMessage = $emptyMessage ?? __('No published services are mapped to this country yet.');
 @endphp
 
 <section {{ $attributes->merge(['class' => 'space-y-6']) }} data-location-services-detail>

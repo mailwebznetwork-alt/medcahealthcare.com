@@ -232,7 +232,7 @@ return array (
       array (
         'label' => 'Subheadline',
         'type' => 'textarea',
-        'default' => 'Healthcare at home',
+        'default' => 'Healthcare career guidance',
       ),
       'primary_cta_label' => 
       array (
@@ -280,7 +280,7 @@ return array (
       array (
         'label' => 'Headline',
         'type' => 'text',
-        'default' => 'See how Medca delivers at home',
+        'default' => 'See how Medca Consultancy delivers for your business',
       ),
       'subheadline' => 
       array (
@@ -448,7 +448,7 @@ return array (
       array (
         'label' => 'Subheadline',
         'type' => 'textarea',
-        'default' => 'We assess needs at home.',
+        'default' => 'We assess needs for your business.',
       ),
       'primary_cta_label' => 
       array (
@@ -955,7 +955,7 @@ return array (
       array (
         'label' => 'Headline',
         'type' => 'text',
-        'default' => 'Medca vs traditional clinic visits',
+        'default' => 'Medca Consultancy vs traditional clinic visits',
       ),
       'subheadline' => 
       array (
@@ -1069,7 +1069,7 @@ return array (
       array (
         'label' => 'Subheadline',
         'type' => 'textarea',
-        'default' => '25 km around Arekere, Bangalore — pin-code aware routing.',
+        'default' => '25 km around India, India — pin-code aware routing.',
       ),
       'primary_cta_label' => 
       array (
@@ -1306,7 +1306,7 @@ return array (
       array (
         'label' => 'Headline',
         'type' => 'text',
-        'default' => 'Join our caregiver webinar',
+        'default' => 'Join our support webinar',
       ),
       'subheadline' => 
       array (

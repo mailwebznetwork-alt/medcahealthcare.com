@@ -15,7 +15,7 @@
     @endif
 
     <x-public.location-page-hero
-        :eyebrow="$category ? __('Category') : ($contextService ? __('Service') : __('Near You'))"
+        :eyebrow="$category ? __('Category') : ($contextService ? __('Service') : __('Service Areas'))"
         :headline="$title"
         :subline="$intro"
         :intro="null"
@@ -29,10 +29,10 @@
                 :services="$services"
                 :pin-code-record="$pin"
                 :empty-message="$category
-                    ? __('No published :category services are mapped to this pincode yet.', ['category' => $category->name])
+                    ? __('No published :category services are mapped to this country yet.', ['category' => $category->name])
                     : ($contextService
-                        ? __('This service is not mapped to this pincode yet.')
-                        : __('No published services are mapped to this pincode yet.'))"
+                        ? __('This service is not mapped to this country yet.')
+                        : __('No published services are mapped to this country yet.'))"
             />
 
             @if ($showNearYouBlock ?? false)
@@ -44,10 +44,10 @@
 
             <x-public.locations-coverage-grid
                 :areas="$coverageAreas"
-                :exclude-pincode-ids="[$pin->id]"
+                :exclude-country-ids="[$pin->id]"
                 :category="$category ?? null"
                 :service="$contextService ?? null"
-                :title="__('Areas We Serve')"
+                :title="__('Countries & States We Serve')"
                 :initial="8"
             />
 

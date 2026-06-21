@@ -52,7 +52,7 @@ class LeadIntentMapper
         }
 
         $path = '/'.ltrim($pagePath, '/');
-        if (preg_match('#^/(services|service|packages|care-at-home|nursing)[/\w\-]*#i', $path)) {
+        if (preg_match('#^/(services|service|packages|care-at-home|consulting)[/\w\-]*#i', $path)) {
             return $path;
         }
 

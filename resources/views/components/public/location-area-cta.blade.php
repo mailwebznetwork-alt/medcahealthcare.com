@@ -14,7 +14,7 @@
     @if (filled($content))
         <p class="mt-2 text-sm text-slate-700 md:text-base">{{ $content }}</p>
     @else
-        <p class="mt-2 text-sm text-slate-700 md:text-base">{{ __('Speak with Medca coordinators for same-day home healthcare in your area.') }}</p>
+        <p class="mt-2 text-sm text-slate-700 md:text-base">{{ __('Speak with Medca Consultancy coordinators for same-day healthcare career consultancy in your country.') }}</p>
     @endif
 
     <x-public.lead-action-bar class="mt-4" />

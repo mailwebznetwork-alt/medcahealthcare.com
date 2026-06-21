@@ -16,19 +16,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Pincode workbook import upsert
+    | Country workbook import upsert
     |--------------------------------------------------------------------------
     |
     | pincodes.xlsx workbook imports ALWAYS update existing rows (see
-    | MasterDataProtection::pincodeWorkbookUpsertEnabled). This env var only
-    | affects single-entity pincode file uploads (legacy CSV path).
+    | MasterDataProtection::countryWorkbookUpsertEnabled). This env var only
+    | affects single-entity country file uploads (legacy CSV path).
     |
     | Production defaults to false (skip duplicates). Local unchanged when null.
-    | Staging follows pincode_upsert_in_staging when APP_ENV=staging.
+    | Staging follows country_upsert_in_staging when APP_ENV=staging.
     |
     */
-    'pincode_upsert_default' => env('MASTER_DATA_PINCODE_UPSERT_DEFAULT'),
+    'country_upsert_default' => env('MASTER_DATA_PINCODE_UPSERT_DEFAULT'),
 
-    'pincode_upsert_in_staging' => (bool) env('MASTER_DATA_PINCODE_UPSERT_STAGING', false),
+    'country_upsert_in_staging' => (bool) env('MASTER_DATA_PINCODE_UPSERT_STAGING', false),
 
 ];

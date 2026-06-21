@@ -8,9 +8,9 @@
         <p class="mom-subtext mt-2 max-w-2xl">{{ __('Core coverage fields used for serviceability, routing, and future delivery logic.') }}</p>
         <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-                <x-input-label for="pincode" :value="__('Pincode')" variant="mom" />
+                <x-input-label for="country" :value="__('Country')" variant="mom" />
                 <x-text-input id="pincode" name="pincode" type="text" inputmode="numeric" class="mt-2 block w-full" :value="old('pincode', $pinCode->pincode)" required variant="mom" autocomplete="off" />
-                <x-input-error class="mt-2" :messages="$errors->get('pincode')" variant="mom" />
+                <x-input-error class="mt-2" :messages="$errors->get('country')" variant="mom" />
             </div>
             <div>
                 <x-input-label for="area_name" :value="__('Area name')" variant="mom" />
@@ -79,7 +79,7 @@
             <div class="md:col-span-2">
                 <x-input-label for="slug" :value="__('URL slug (optional)')" variant="mom" />
                 <x-text-input id="slug" name="slug" type="text" class="mt-2 block w-full" :value="old('slug', $pinCode->slug)" variant="mom" />
-                <p class="mom-micro mt-1">{{ __('Leave blank to auto-generate from area and pincode. Clear to regenerate on save.') }}</p>
+                <p class="mom-micro mt-1">{{ __('Leave blank to auto-generate from area and country. Clear to regenerate on save.') }}</p>
                 <x-input-error class="mt-2" :messages="$errors->get('slug')" variant="mom" />
             </div>
             <div class="flex items-center gap-3 md:col-span-2">

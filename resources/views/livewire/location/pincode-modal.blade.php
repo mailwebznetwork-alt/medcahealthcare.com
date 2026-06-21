@@ -9,11 +9,11 @@
         >
             <div class="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-2xl">
                 <h2 id="pincode-modal-title" class="text-lg font-semibold text-slate-900">{{ __('Your service pincode') }}</h2>
-                <p class="mt-2 text-sm text-slate-600">{{ __('We use your pincode to show healthcare services available in your Bangalore neighbourhood.') }}</p>
+                <p class="mt-2 text-sm text-slate-600">{{ __('We use your pincode to show services available in your area.') }}</p>
 
                 <form class="mt-5 space-y-4" wire:submit.prevent="savePincode">
                     <label class="relative block">
-                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('6-digit pincode') }}</span>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('Pincode') }}</span>
                         <input
                             type="text"
                             inputmode="numeric"
@@ -28,7 +28,7 @@
                             aria-controls="pincode-suggestions-list"
                             aria-autocomplete="list"
                             class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                            placeholder="{{ __('Type to search — e.g. 56007') }}"
+                            placeholder="{{ __('Type to search — e.g. 560076') }}"
                         />
                         @error('pincode') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
 
@@ -55,14 +55,14 @@
                                     </ul>
                                 @else
                                     <p class="px-3 py-2 text-xs text-slate-500">
-                                        {{ __('No serviceable pincodes match that prefix.') }}
+                                        {{ __('No supported pincodes match that search.') }}
                                     </p>
                                 @endif
                             </div>
                         @endif
                     </label>
 
-                    <p class="text-xs text-slate-500">{{ __('Start typing your pincode — matching Bangalore service areas appear in the list.') }}</p>
+                    <p class="text-xs text-slate-500">{{ __('Start typing your pincode or area name to see matching service areas.') }}</p>
 
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" wire:click="closeModal" class="rounded-lg px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">

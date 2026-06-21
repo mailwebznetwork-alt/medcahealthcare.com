@@ -9,7 +9,7 @@ return [
     'clinical_blue' => [
         'name' => 'Clinical Blue',
         'shell' => 'public',
-        'header_preset' => 'classic_healthcare',
+        'header_preset' => 'classic_healthcare career consultancy',
         'layout_preset' => 'contained',
         'tokens' => [
             'primary' => '#0055ff',

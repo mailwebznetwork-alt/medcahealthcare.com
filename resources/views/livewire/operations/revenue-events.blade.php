@@ -14,7 +14,7 @@
                     <th class="px-4 py-3">{{ __('Recorded') }}</th>
                     <th class="px-4 py-3">{{ __('Amount') }}</th>
                     <th class="px-4 py-3">{{ __('Service') }}</th>
-                    <th class="px-4 py-3">{{ __('Pincode') }}</th>
+                    <th class="px-4 py-3">{{ __('Country') }}</th>
                     <th class="px-4 py-3">{{ __('Label') }}</th>
                     <th class="px-4 py-3 text-right">{{ __('Actions') }}</th>
                 </tr>

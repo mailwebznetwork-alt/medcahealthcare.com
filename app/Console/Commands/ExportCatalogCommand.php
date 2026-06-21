@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\BangaloreZone;
+use App\Models\IndiaZone;
 use App\Models\PinCode;
 use App\Models\Service;
 use App\Models\ServiceCategory;

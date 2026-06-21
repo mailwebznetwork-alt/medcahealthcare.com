@@ -8,16 +8,16 @@
     $catalogKind = $catalogKind ?? 'service';
     $activeTab = $activeTab ?? 'basic';
     $detailPages = isset($detailPages) ? $detailPages : collect();
-    $pincodeDefaults = is_array($selectedPinIds ?? null) ? $selectedPinIds : [];
-    if ($pincodeDefaults === [] && $service->exists) {
+    $pinDefaults = is_array($selectedPinIds ?? null) ? $selectedPinIds : [];
+    if ($pinDefaults === [] && $service->exists) {
         if (in_array($catalogKind, ['service', 'category'], true) && method_exists($service, 'pincodes')) {
             $service->loadMissing('pincodes');
-            $pincodeDefaults = $service->pincodes?->pluck('id')->all() ?? [];
-        } elseif ($catalogKind === 'sub_service' && isset($subService) && method_exists($subService, 'includedPincodeIds')) {
-            $pincodeDefaults = $subService->includedPincodeIds();
+            $pinDefaults = $service->pincodes?->pluck('id')->all() ?? [];
+        } elseif ($catalogKind === 'sub_service' && isset($subService) && method_exists($subService, 'includedCountryIds')) {
+            $pinDefaults = $subService->includedCountryIds();
         }
     }
-    $selectedPinIds = array_map(static fn ($v) => (int) $v, old('pincodes', $pincodeDefaults));
+    $selectedPinIds = array_map(static fn ($v) => (int) $v, old('pincodes', $pinDefaults));
     $categoryOptions = $categoryOptions ?? collect();
     $categoryIdDefaults = [];
     if ($catalogKind === 'service' && $service->exists && method_exists($service, 'categories')) {
@@ -458,7 +458,7 @@
                 'selectedPinIds' => $selectedPinIds ?? [],
             ])
         @else
-            @include('operations.partials.pincode-checklist', [
+            @include('operations.partials.country-checklist', [
                 'pinCodes' => $pinCodes,
                 'selectedPinIds' => $selectedPinIds,
                 'title' => __('GEO — serviceable pincodes'),

@@ -3,8 +3,8 @@
     'service' => null,
     'category' => null,
     'initial' => 8,
-    'title' => __('Areas We Serve'),
-    'subtitle' => __('Bangalore neighbourhoods where this service is available.'),
+    'title' => __('Areas & Pincodes We Serve'),
+    'subtitle' => __('Local pincode coverage where this service is available.'),
 ])
 
 @php
@@ -40,7 +40,7 @@
                     class="group"
                 >
                     <a href="{{ $url }}" class="flex h-full min-w-0 flex-col gap-1 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-medca-primary/40 hover:shadow-md">
-                        <span class="font-mono text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $pc->pincode }}</span>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('Pincode Area') }}</span>
                         <span class="text-sm font-semibold text-slate-900 group-hover:text-medca-primary">{{ $areaLabel }}</span>
                         @if (filled($pc->city))
                             <span class="text-xs text-slate-500">{{ $pc->city }}</span>
@@ -54,7 +54,7 @@
                 type="button"
                 @click="expanded = !expanded"
                 class="text-sm font-semibold text-medca-primary underline underline-offset-2"
-                x-text="expanded ? '{{ __('Show less') }}' : '{{ __('View more areas (:count)', ['count' => $areas->count() - $initial]) }}'"
+                x-text="expanded ? '{{ __('Show less') }}' : '{{ __('View more service areas (:count)', ['count' => $areas->count() - $initial]) }}'"
             ></button>
         @endif
     </section>

@@ -68,7 +68,7 @@
         <a href="{{ route('growth-center.competitors.index', ['tab' => 'hijack-opportunities']) }}" class="mom-card block px-5 py-4 no-underline">
             <p class="mom-micro">{{ __('Backlink gaps') }}</p>
             <p class="mom-metric mt-2">{{ (int) data_get($snapshot, 'ecosystem.gap_count', 0) }}</p>
-            <p class="mom-subtext mt-1">{{ __('Domains linking competitors but not Medca.') }}</p>
+            <p class="mom-subtext mt-1">{{ __('Domains linking competitors but not Medca Consultancy.') }}</p>
         </a>
     </section>
 

@@ -33,22 +33,22 @@ return [
         'services-overview-home' => [
             'category' => 'home',
             'block_name' => 'Home — Services Overview',
-            'description' => 'Three-card teaser for the four flagship Medca services on the home page.',
+            'description' => 'Three-card teaser for the four flagship Medca Consultancy services on the home page.',
             'block_type' => 'Service Grid',
             'view' => 'blocks.home.services-overview-home',
         ],
         'near-you-home' => [
             'category' => 'home',
-            'block_name' => 'Home — Near You (pincode categories)',
-            'description' => 'Hyper-local category grid based on the visitor pincode. Categories come from Operations → Service Categories.',
+            'block_name' => 'Home — Service Areas (country categories)',
+            'description' => 'Hyper-local category grid based on the visitor country. Categories come from Operations → Service Categories.',
             'block_type' => 'Category Grid',
             'view' => 'blocks.shared.near-you-services',
             'is_required_on_pages' => ['home'],
         ],
         'near-you-locations' => [
             'category' => 'locations',
-            'block_name' => 'Locations — Near You (pincode categories)',
-            'description' => 'Same pincode-based category grid for the Locations page. Uses the home Near You block code.',
+            'block_name' => 'Locations — Service Areas (country categories)',
+            'description' => 'Same country-based category grid for the Locations page. Uses the home Service Areas block code.',
             'block_type' => 'Category Grid',
             'view' => 'blocks.home.near-you-home',
             'code' => "@include('blocks.home.near-you-home')",
@@ -57,7 +57,7 @@ return [
         'locations-overview-home' => [
             'category' => 'home',
             'block_name' => 'Home — Locations Overview',
-            'description' => 'Coverage strip for the home page with pin-code belt around Arekere.',
+            'description' => 'Coverage strip for the home page with pin-code belt around India.',
             'block_type' => 'Sections',
             'view' => 'blocks.home.locations-overview-home',
         ],
@@ -129,7 +129,7 @@ return [
         'services-grid-full' => [
             'category' => 'services',
             'block_name' => 'Services — Full Grid',
-            'description' => 'Full-width service grid covering Medca\'s flagship offerings.',
+            'description' => 'Full-width service grid covering Medca Consultancy\'s flagship offerings.',
             'block_type' => 'Service Grid',
             'view' => 'blocks.services.services-grid-full',
         ],
@@ -147,11 +147,11 @@ return [
             'block_type' => 'Service Grid',
             'view' => 'blocks.services.block-carousel',
             'code' => <<<'BLADE'
-{{service:homenursing-services}}
+{{service:homeconsulting-services}}
 {{service:elder-care}}
-{{service:caregivers}}
+{{service:support team}}
 {{service:doctor-home-visit}}
-{{service:physiotherapy-at-home}}
+{{service:consulting-at-home}}
 {{service:icu-care-at-home}}
 @include('blocks.services.block-carousel')
 BLADE,
@@ -180,7 +180,7 @@ BLADE,
         'service-detail-areas' => [
             'category' => 'services',
             'block_name' => 'Service detail — areas we cover',
-            'description' => 'GEO pincode grid for the current service.',
+            'description' => 'GEO country grid for the current service.',
             'block_type' => 'Text',
             'view' => 'blocks.services.service-detail-areas',
         ],

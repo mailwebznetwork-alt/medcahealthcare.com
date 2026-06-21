@@ -19,7 +19,7 @@
         <p class="mt-3 text-sm leading-relaxed text-slate-600">{{ BlockContent::globalOrBlock($settings, $slug, 'model_body', 'care_model') }}</p>
     </article>
     <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:col-span-3">
-        <h2 class="text-xl font-semibold text-slate-900">{{ BlockContent::globalOrBlock($settings, $slug, 'trust_title', 'trust_title', 'Why Bangalore families trust us') }}</h2>
+        <h2 class="text-xl font-semibold text-slate-900">{{ BlockContent::globalOrBlock($settings, $slug, 'trust_title', 'trust_title', 'Why India families trust us') }}</h2>
         <ul class="mt-3 space-y-2 text-sm leading-relaxed text-slate-600">
             @foreach ($bullets as $line)
                 <li>• {{ $line }}</li>

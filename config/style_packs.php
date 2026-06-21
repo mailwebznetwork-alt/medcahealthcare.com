@@ -6,11 +6,11 @@
  */
 return [
 
-    'healthcare_professional' => [
-        'label' => 'Healthcare Professional',
+    'healthcare career consultancy_professional' => [
+        'label' => 'Healthcare Career Professional',
         'visual_language' => 'modern',
         'theme_preset_slug' => 'clinical_blue',
-        'header_preset' => 'classic_healthcare',
+        'header_preset' => 'classic_healthcare career consultancy',
         'layout_preset' => 'contained',
         'assignments' => [
             'hero' => 'style_1',
@@ -29,8 +29,8 @@ return [
         ],
     ],
 
-    'healthcare_premium' => [
-        'label' => 'Healthcare Premium',
+    'healthcare career consultancy_premium' => [
+        'label' => 'Healthcare Career Premium',
         'visual_language' => 'premium',
         'theme_preset_slug' => 'premium_gold',
         'header_preset' => 'premium',
@@ -52,8 +52,8 @@ return [
         ],
     ],
 
-    'healthcare_modern' => [
-        'label' => 'Healthcare Modern',
+    'healthcare career consultancy_modern' => [
+        'label' => 'Healthcare Career Modern',
         'visual_language' => 'modern',
         'theme_preset_slug' => 'modern_purple',
         'header_preset' => 'modern',

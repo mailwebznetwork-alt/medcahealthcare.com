@@ -30,7 +30,7 @@ class LeadCaptureController extends Controller
 
         $message = ($result['body']['duplicate'] ?? false)
             ? __('We already received your request recently. Our team will call you back.')
-            : __('Thank you. A Medca care advisor will contact you shortly.');
+            : __('Thank you. A Medca Consultancy care advisor will contact you shortly.');
 
         return back()->with('lead_status', $message);
     }

@@ -37,7 +37,7 @@ class StylePackResolver
             return $published;
         }
 
-        return (string) config('deployment_engine.default_style_pack', 'healthcare_professional');
+        return (string) config('deployment_engine.default_style_pack', 'healthcare career consultancy_professional');
     }
 
     /**

@@ -2,7 +2,7 @@
     use App\Support\BlockContent;
     $settings = is_array($blockSettings ?? null) ? $blockSettings : [];
     $heroMediaStyle = \App\Support\BlockMediaUrl::heroBackgroundStyle(is_array($blockMedia ?? null) ? $blockMedia : []);
-    $eyebrow = BlockContent::globalOrBlock($settings, 'hero-home', 'eyebrow', 'home_hero_eyebrow', 'Premium Home Healthcare · Bangalore');
+    $eyebrow = BlockContent::globalOrBlock($settings, 'hero-home', 'eyebrow', 'home_hero_eyebrow', 'Healthcare Careers · Global Registration');
     $headline = BlockContent::globalOrBlock($settings, 'hero-home', 'headline', 'home_hero_headline');
     $subheadline = BlockContent::globalOrBlock($settings, 'hero-home', 'subheadline', 'home_hero_subheadline');
     if ($subheadline === '') {

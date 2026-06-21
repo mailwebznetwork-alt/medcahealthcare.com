@@ -22,12 +22,12 @@ return [
         'block_type' => 'Hero',
         'view' => 'blocks.shared.hero-video',
     ],
-    'hero-healthcare' => [
+    'hero-healthcare career consultancy' => [
         'category' => 'shared',
-        'block_name' => 'Element — Hero Healthcare',
+        'block_name' => 'Element — Hero Healthcare Career Consultancy',
         'description' => 'Reusable Hero element for blueprints, sections, and landing pages.',
         'block_type' => 'Hero',
-        'view' => 'blocks.shared.hero-healthcare',
+        'view' => 'blocks.shared.hero-healthcare career consultancy',
     ],
     'cta-simple' => [
         'category' => 'shared',

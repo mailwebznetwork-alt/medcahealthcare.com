@@ -45,9 +45,9 @@ class MedcaCareersPageSeeder extends Seeder
             [
                 'title' => 'Careers',
                 'content' => $content,
-                'meta_title' => 'Careers — Medca Health Care | Bangalore Home Healthcare Jobs',
-                'meta_description' => 'Explore open clinical and operations roles at Medca Health Care across Bangalore. Apply online or via WhatsApp.',
-                'h1' => 'Careers at Medca Health Care',
+                'meta_title' => 'Careers — MEDCA Consultancy | India Business Consultancy Jobs',
+                'meta_description' => 'Explore open clinical and operations roles at MEDCA Consultancy across India. Apply online or via WhatsApp.',
+                'h1' => 'Careers at MEDCA Consultancy',
                 'is_active' => true,
                 'layout_mode' => PageLayoutMode::Canvas,
                 'page_category' => PageCategory::Web,
@@ -62,7 +62,7 @@ class MedcaCareersPageSeeder extends Seeder
             [
                 'title' => 'Job detail',
                 'content' => '{{block:careers-job-detail-layout}}',
-                'meta_title' => 'Careers — Medca Health Care',
+                'meta_title' => 'Careers — MEDCA Consultancy',
                 'is_active' => true,
                 'layout_mode' => PageLayoutMode::Canvas,
             ]

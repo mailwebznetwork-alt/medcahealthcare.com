@@ -92,7 +92,7 @@ class UserLocationService
     {
         try {
             $response = Http::timeout(6)
-                ->withHeaders(['User-Agent' => config('app.name', 'MedcaHealthcare').'/1.0'])
+                ->withHeaders(['User-Agent' => config('app.name', 'MedcaHealthCare').'/1.0'])
                 ->get((string) config('location.reverse_geocode_url'), [
                     'format' => 'json',
                     'lat' => $latitude,

@@ -20,21 +20,21 @@
         return __($fallback);
     };
 
-    $eyebrow = $copy('eyebrow', 'Near You');
+    $eyebrow = $copy('eyebrow', 'Service Areas');
     $area = $pinCodeRecord?->area_name ?: ($pincode ?: __('your area'));
-    $city = $pinCodeRecord?->city ?: 'Bangalore';
+    $city = $pinCodeRecord?->city ?: 'India';
 
     if ($pincode) {
-        $headline = __('Healthcare Categories in :area', ['area' => $area]);
-        $subline = __('Professional healthcare categories available in :area (:pin).', ['area' => $area, 'pin' => $pincode]);
+        $headline = __('Healthcare Career Services in :area', ['area' => $area]);
+        $subline = __('Professional healthcare career consultancy categories available for :area.', ['area' => $area, 'pin' => $pincode]);
     } else {
-        $headline = $copy('headline_no_pincode', 'Healthcare categories near your pincode');
-        $subline = $copy('location_required_message', 'Set your Bangalore pincode to see hyper-local care categories available in your area.');
+        $headline = $copy('headline_no_pincode', 'medical lab services by pincode');
+        $subline = $copy('location_required_message', 'Select your pincode to see services available in your area.');
     }
 
     $pincodeButton = $pincode
         ? $copy('change_pincode_label', 'Change Pincode')
-        : $copy('set_pincode_label', 'Set Pincode');
+        : $copy('set_pincode_label', 'Select Pincode');
 
     $emptyCategoriesMessage = $copy(
         'empty_categories_message',

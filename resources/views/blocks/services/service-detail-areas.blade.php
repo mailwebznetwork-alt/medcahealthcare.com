@@ -10,7 +10,7 @@
             <x-public.areas-served-grid
                 :areas="$pincodes"
                 :service="$service"
-                :subtitle="$isProductCategory ? __('Bangalore neighbourhoods where this product is available.') : null"
+                :subtitle="$isProductCategory ? __('India neighbourhoods where this product is available.') : null"
             />
         </x-public.content-shell>
     </x-public.full-bleed>

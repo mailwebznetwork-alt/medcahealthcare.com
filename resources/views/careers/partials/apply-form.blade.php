@@ -28,7 +28,7 @@
         <x-text-input id="city" name="city" type="text" class="mt-2 block w-full" :value="old('city')" variant="public" />
     </div>
     <div>
-        <x-input-label for="pin_code" :value="__('PIN code (optional)')" variant="public" />
+        <x-input-label for="pin_code" :value="__('Country Name (optional)')" variant="public" />
         <x-text-input id="pin_code" name="pin_code" type="text" class="mt-2 block w-full" :value="old('pin_code')" variant="public" />
     </div>
     <div>

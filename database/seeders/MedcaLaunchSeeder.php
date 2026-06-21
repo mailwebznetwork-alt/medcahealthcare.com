@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 
 /**
- * Medca build & launch — populates services, pages, pincodes, and global contact content.
+ * Medca Consultancy build & launch — populates services, pages, pincodes, and global contact content.
  */
 class MedcaLaunchSeeder extends Seeder
 {

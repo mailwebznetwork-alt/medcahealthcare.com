@@ -476,7 +476,7 @@ class Service extends Model
 
         $node['provider'] = [
             '@type' => 'LocalBusiness',
-            'name' => config('medca.brand_name', 'Medca Health Care'),
+            'name' => config('medca.brand_name', 'MEDCA Consultancy'),
             'telephone' => config('medca.phone_tel'),
             'address' => [
                 '@type' => 'PostalAddress',

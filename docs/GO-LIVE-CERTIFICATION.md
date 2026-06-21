@@ -1,6 +1,6 @@
 # MEDCA HEALTH CARE — Go-Live Certification (Phase 4)
 
-**Generated:** 2026-06-10T10:26:46+00:00
+**Generated:** 2026-06-13T22:51:57+05:30
 **Decision:** **NO-GO**
 **Certified:** NO
 
@@ -8,15 +8,15 @@
 
 | Dimension | Score |
 |-----------|------:|
-| Architecture | 53 |
+| Architecture | 46 |
 | Data | 12 |
-| SEO | 60 |
+| SEO | 40 |
 | GEO | 10 |
 | AEO | 17 |
 | Performance | 100 |
 | Tracking | 50 |
 | Discovery | 40 |
-| **Launch** | **43** |
+| **Launch** | **39** |
 
 ## Go-Live Checklist
 
@@ -40,6 +40,7 @@
 - Section [matrix] failed certification
 - Security: import_audit_trail — 0 committed batches
 - Section [services] — insufficient published services
+- Database-first compliance violation in app/
 
 ## Warnings
 
@@ -98,7 +99,8 @@
 
 ### Internal linking — PASS (100%)
 
-### Seo — FAIL (60%)
+### Seo — FAIL (40%)
+- FAIL: database_first — 1 violations
 - FAIL: services_have_meta — service meta titles
 - FAIL: canonical_paths — meta descriptions
 
@@ -129,6 +131,7 @@
 - FAIL: ga4 — GA4 measurement ID
 - FAIL: search_console — GSC verification token
 
-### Security integrity — FAIL (80%)
+### Security integrity — FAIL (60%)
 - FAIL: import_audit_trail — 0 committed batches
+- FAIL: db_first_compliant — no hardcoded localities in app/
 

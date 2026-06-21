@@ -7,7 +7,7 @@
     'headingTag' => 'h1',
     'headingClass' => null,
     'pincodeButton' => null,
-    'showPincode' => true,
+    'showCountry' => true,
     'showActions' => true,
     'showBody' => true,
     'variant' => 'page',
@@ -15,7 +15,7 @@
 ])
 
 @php
-    $pincodeButton = $pincodeButton ?? __('Change Pincode');
+    $pincodeButton = $pincodeButton ?? __('Change Country');
     $onBrand = $tone === 'brand';
     $shellClass = $variant === 'page'
         ? 'medca-full-bleed w-full py-12 md:py-16'
@@ -35,9 +35,9 @@
 <div {{ $attributes->class([$shellClass]) }}>
     <div @class(['mx-auto w-full max-w-6xl px-4 md:px-6 lg:px-8' => $variant === 'page'])>
         <div class="medca-page-hero medca-location-page-hero space-y-5" data-page-hero="location">
-            @if ($showPincode)
+            @if ($showCountry)
                 <x-public.location-heading-with-pincode
-                    :eyebrow="$eyebrow ?? __('Near You')"
+                    :eyebrow="$eyebrow ?? __('Service Areas')"
                     :headline="$headline"
                     :subline="$subline"
                     :heading-tag="$headingTag"

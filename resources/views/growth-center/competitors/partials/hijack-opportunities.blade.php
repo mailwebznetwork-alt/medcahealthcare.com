@@ -3,7 +3,7 @@
         <div>
             <h2 class="mom-section-title">{{ __('Hijack Opportunities') }}</h2>
             <p class="mom-body-text mt-2 text-[var(--text-secondary)]">
-                {{ __('High-intent keywords where a competitor outranks Medca. Priority 1–10 is computed from SERP gap, volume, and intent.') }}
+                {{ __('High-intent keywords where a competitor outranks Medca Consultancy. Priority 1–10 is computed from SERP gap, volume, and intent.') }}
             </p>
         </div>
         <span class="mom-micro text-mom-gold">
@@ -14,7 +14,7 @@
 
 <section class="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
     <article class="mom-card p-6">
-        <h3 class="mom-section-title">{{ __('Record Medca SERP Position') }}</h3>
+        <h3 class="mom-section-title">{{ __('Record Medca Consultancy SERP Position') }}</h3>
         <p class="mom-subtext mt-2">{{ __('Our ranking vs competitors is matched by keyword text (case-insensitive).') }}</p>
         <form method="post" action="{{ route('growth-center.competitors.our-ranking.store') }}" class="mt-4 space-y-3">
             @csrf
@@ -108,7 +108,7 @@
             @empty
                 <tr>
                     <td colspan="8" class="px-4 py-10 text-center text-[var(--text-muted)]">
-                        {{ __('No hijack opportunities yet. Add competitor + Medca rankings for the same high-intent keyword.') }}
+                        {{ __('No hijack opportunities yet. Add competitor + Medca Consultancy rankings for the same high-intent keyword.') }}
                     </td>
                 </tr>
             @endforelse

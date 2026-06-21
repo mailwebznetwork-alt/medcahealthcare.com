@@ -5,7 +5,7 @@
  */
 return [
 
-    'location_page_slug_pattern' => env('SERVICES_LOCATION_PAGE_SLUG_PATTERN', 'service-{code}-loc-{pincode}'),
+    'location_page_slug_pattern' => env('SERVICES_LOCATION_PAGE_SLUG_PATTERN', 'service-{code}-loc-{country}'),
 
     'location_page_title_pattern' => env('SERVICES_LOCATION_PAGE_TITLE_PATTERN', '{service} in {area}'),
 
@@ -44,8 +44,8 @@ return [
 
     'gemini_suggestions' => env('SERVICES_MASTER_GEMINI_SUGGESTIONS', true),
 
-    /** When true, location URLs use /services/{code}/{city}/{pincode} instead of /services/{code}/{area-slug}. */
-    'public_url_include_pincode' => env('SERVICES_LOCATION_URL_WITH_PINCODE', false),
+    /** When true, location URLs use /services/{code}/{city}/{country} instead of /services/{code}/{area-slug}. */
+    'public_url_include_country' => env('SERVICES_LOCATION_URL_WITH_PINCODE', false),
 
     'internal_links' => [
         'related_services_limit' => 4,
@@ -62,7 +62,7 @@ return [
         'geo_readiness_min' => (int) env('LOCATION_QUALITY_GEO_MIN', 35),
     ],
 
-    'pincode_expansion' => [
+    'country_expansion' => [
         'city_filter' => env('LOCATION_EXPANSION_CITY'),
         'require_serviceable' => env('LOCATION_EXPANSION_REQUIRE_SERVICEABLE', true),
         'require_active' => env('LOCATION_EXPANSION_REQUIRE_ACTIVE', true),

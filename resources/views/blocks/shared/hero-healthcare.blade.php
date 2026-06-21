@@ -2,12 +2,12 @@
     use App\Support\BlockContent;
     $settings = is_array($blockSettings ?? null) ? $blockSettings : [];
     $heroMediaStyle = \App\Support\BlockMediaUrl::heroBackgroundStyle(is_array($blockMedia ?? null) ? $blockMedia : []);
-    $eyebrow = BlockContent::get($settings, 'hero-healthcare', 'eyebrow');
-    $headline = BlockContent::get($settings, 'hero-healthcare', 'headline');
-    $subheadline = BlockContent::get($settings, 'hero-healthcare', 'subheadline');
-    $primaryCta = BlockContent::get($settings, 'hero-healthcare', 'primary_cta_label');
-    $secondaryCta = BlockContent::get($settings, 'hero-healthcare', 'secondary_cta_label');
-    $secondaryUrl = BlockContent::get($settings, 'hero-healthcare', 'secondary_cta_url');
+    $eyebrow = BlockContent::get($settings, 'hero-healthcare career consultancy', 'eyebrow');
+    $headline = BlockContent::get($settings, 'hero-healthcare career consultancy', 'headline');
+    $subheadline = BlockContent::get($settings, 'hero-healthcare career consultancy', 'subheadline');
+    $primaryCta = BlockContent::get($settings, 'hero-healthcare career consultancy', 'primary_cta_label');
+    $secondaryCta = BlockContent::get($settings, 'hero-healthcare career consultancy', 'secondary_cta_label');
+    $secondaryUrl = BlockContent::get($settings, 'hero-healthcare career consultancy', 'secondary_cta_url');
     $tel = BlockContent::telHref();
 @endphp
 <x-public.hero class="medca-hero-gradient text-white" style="{{ $heroMediaStyle }}">

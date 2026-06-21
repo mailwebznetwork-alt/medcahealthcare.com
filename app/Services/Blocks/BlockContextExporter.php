@@ -34,9 +34,9 @@ class BlockContextExporter
     private function toMarkdown(array $payload): string
     {
         $lines = [
-            '# Medca Block Context Export',
+            '# Medca Consultancy Block Context Export',
             '',
-            'Use this document to understand or edit a Medca Health Care CMS block. Preserve the block slug on pages unless intentionally renaming.',
+            'Use this document to understand or edit a MEDCA Consultancy CMS block. Preserve the block slug on pages unless intentionally renaming.',
             '',
             '## Identity',
             '- **Name:** '.($payload['name'] ?? ''),

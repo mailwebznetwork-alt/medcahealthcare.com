@@ -27,7 +27,7 @@ class RefreshPublicPageLayoutsSeeder extends Seeder
         );
 
         Block::query()->where('block_slug', 'sdfdfsdf')->update([
-            'code' => "{{service:homenursing-services}}\n{{service:caregivers}}",
+            'code' => "{{service:homeconsulting-services}}\n{{service:support team}}",
         ]);
 
         $cta = Block::query()->where('block_slug', 'cta-services')->first();

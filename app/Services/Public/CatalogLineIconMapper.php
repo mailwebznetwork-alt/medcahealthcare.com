@@ -12,9 +12,9 @@ final class CatalogLineIconMapper
 {
     /** @var array<string, string> */
     private const CATEGORY_CODES = [
-        'cat-caregiver-services' => 'heart-handshake',
-        'cat-home-nursing-services' => 'stethoscope',
-        'cat-physiotherapy-services' => 'person-standing',
+        'cat-support-services' => 'heart-handshake',
+        'cat-home-consulting-services' => 'stethoscope',
+        'cat-consulting-services' => 'person-standing',
         'cat-medical-lab-services' => 'flask-conical',
         'cat-medical-equipment-sales---rentals' => 'bed-double',
         'cat-doctor-therapy-services' => 'user-round-cog',
@@ -52,8 +52,8 @@ final class CatalogLineIconMapper
         ['keywords' => ['medication', 'injection', 'insulin', 'infusion', 'iv '], 'icon' => 'pill'],
         ['keywords' => ['companionship', 'emotional', 'behaviour', 'behavior'], 'icon' => 'messages-square'],
         ['keywords' => ['fall prevention', 'safety supervision', 'safety'], 'icon' => 'shield-alert'],
-        ['keywords' => ['physiotherapy', 'physio', 'rehabilitation', 'rehab', 'exercise', 'strength', 'balance', 'pain management', 'sports'], 'icon' => 'dumbbell'],
-        ['keywords' => ['nursing', 'wound', 'dressing', 'catheter', 'tracheostomy', 'ventilator', 'icu', 'critical care', 'airway', 'suction', 'nebulizer'], 'icon' => 'cross'],
+        ['keywords' => ['consulting', 'physio', 'rehabilitation', 'rehab', 'exercise', 'strength', 'balance', 'pain management', 'sports'], 'icon' => 'dumbbell'],
+        ['keywords' => ['consulting', 'wound', 'dressing', 'catheter', 'tracheostomy', 'ventilator', 'icu', 'critical care', 'airway', 'suction', 'nebulizer'], 'icon' => 'cross'],
         ['keywords' => ['blood test', 'lab', 'profile', 'cbc', 'lipid', 'thyroid', 'diabetes monitoring', 'hba1c', 'bilirubin', 'creatinine', 'urea', 'esr', 'sgot', 'sgpt', 'vitamin', 't3', 't4', 'tsh'], 'icon' => 'test-tubes'],
         ['keywords' => ['health checkup', 'assessment', 'monitoring', 'vital'], 'icon' => 'clipboard-plus'],
         ['keywords' => ['oxygen', 'bipap', 'cpap', 'concentrator', 'cylinder'], 'icon' => 'wind'],

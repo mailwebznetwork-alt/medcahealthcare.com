@@ -108,7 +108,7 @@ class AnalyzeHijackOpportunityJob implements ShouldQueue
         $market = app(\App\Services\Seo\LocalityContextResolver::class)->aiMarketContext() ?: 'service area';
 
         return <<<TXT
-You are an SEO growth strategist for Medca Health Care (premium healthcare, {$market}).
+You are an SEO growth strategist for MEDCA Consultancy (premium healthcare career consultancy, {$market}).
 
 A competitor outranks us on a high-intent keyword. Return ONLY valid JSON with these keys:
 "meta_title","meta_description","h1_suggestion","content_changes","schema_hint"
@@ -119,7 +119,7 @@ Rules:
 - h1_suggestion: one H1 line for the target landing page.
 - content_changes: array of 3-5 specific on-page edits (not generic advice).
 - schema_hint: one sentence on LocalBusiness/MedicalOrganization JSON-LD tweak.
-- Healthcare compliance: no false claims, no guaranteed outcomes.
+- Healthcare consultancy compliance: no false claims, no guaranteed outcomes.
 - No markdown fences. JSON only.
 
 Opportunity context:

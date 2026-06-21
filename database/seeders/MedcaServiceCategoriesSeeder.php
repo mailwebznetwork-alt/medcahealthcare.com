@@ -20,11 +20,11 @@ class MedcaServiceCategoriesSeeder extends Seeder
 
         $definitions = [
             ['name' => 'Home Care', 'code' => 'home-care', 'sort_order' => 10],
-            ['name' => 'Nursing Services', 'code' => 'nursing-services', 'sort_order' => 20],
-            ['name' => 'Elder Care', 'code' => 'elder-care', 'sort_order' => 30],
+            ['name' => 'Consulting Services', 'code' => 'consulting-services', 'sort_order' => 20],
+            ['name' => 'Advisory', 'code' => 'elder-care', 'sort_order' => 30],
             ['name' => 'Post Hospital Care', 'code' => 'post-hospital-care', 'sort_order' => 40],
-            ['name' => 'Physiotherapy', 'code' => 'physiotherapy', 'sort_order' => 50],
-            ['name' => 'Doctor Visits', 'code' => 'doctor-visits', 'sort_order' => 60],
+            ['name' => 'Consulting', 'code' => 'consulting', 'sort_order' => 50],
+            ['name' => 'Consultations', 'code' => 'doctor-visits', 'sort_order' => 60],
         ];
 
         $ids = [];

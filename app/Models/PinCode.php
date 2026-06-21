@@ -116,11 +116,11 @@ class PinCode extends Model
     }
 
     /**
-     * @return BelongsTo<BangaloreZone, $this>
+     * @return BelongsTo<IndiaZone, $this>
      */
     public function bangaloreZone(): BelongsTo
     {
-        return $this->belongsTo(BangaloreZone::class);
+        return $this->belongsTo(IndiaZone::class);
     }
 
     /**

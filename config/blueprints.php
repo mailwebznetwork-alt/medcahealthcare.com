@@ -4,7 +4,7 @@
  * Deployment blueprints — page structure + block order + default style/media scaffolding.
  * Generator writes normal Page records with standard {{block:slug}} tokens.
  *
- * Industry packs: config/blueprint_packs.php (healthcare, care home, real estate, cosmetics).
+ * Industry packs: config/blueprint_packs.php (healthcare career consultancy, care home, real estate, cosmetics).
  */
 return array_merge(
 

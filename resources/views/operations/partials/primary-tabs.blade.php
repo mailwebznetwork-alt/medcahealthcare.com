@@ -22,7 +22,7 @@
             'border-mom-gold text-mom-gold' => $pinActive,
             'border-transparent text-[var(--text-secondary)] hover:border-[var(--border-panel-soft)] hover:text-[var(--text-primary)]' => ! $pinActive,
         ])
-    >{{ __('Pin Codes') }}</a>
+    >{{ __('Countries') }}</a>
     <a
         href="{{ route('operations.services.index') }}"
         @class([

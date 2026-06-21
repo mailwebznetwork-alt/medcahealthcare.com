@@ -26,7 +26,7 @@
 
     @if ($locationRequired)
         <p class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            {{ __('Set your Bangalore pincode to see healthcare categories available in your area.') }}
+            {{ __('Select your country to see available healthcare career consultancy services.') }}
         </p>
     @elseif ($categories->isEmpty())
         <p class="text-sm text-slate-600">{{ $emptyCategoriesMessage }}</p>

@@ -2,14 +2,14 @@
 
 return [
 
-    'session_key' => 'medca.detected_pincode',
+    'session_key' => 'medca.detected_country',
 
     'ip_attempted_session_key' => 'medca.location_ip_attempted',
 
     'geo_attempted_session_key' => 'medca.location_geo_attempted',
 
-    /** Fallback when IP / browser geo cannot resolve a serviceable pincode. */
-    'default_pincode' => env('MEDCA_DEFAULT_PINCODE', '560076'),
+    /** Fallback when IP / browser geo cannot resolve a serviceable country. */
+    'default_country' => env('MEDCA_DEFAULT_PINCODE', '560076'),
 
     /** ip-api.com fields (free tier, no key). */
     'ip_lookup_url' => env('LOCATION_IP_LOOKUP_URL', 'http://ip-api.com/json/{ip}?fields=status,zip,countryCode,city'),

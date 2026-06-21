@@ -9,7 +9,7 @@
                 wire:model.live.debounce.300ms="q"
                 type="search"
                 class="min-w-[12rem] flex-1"
-                placeholder="{{ __('Search pincode, area, city, locality…') }}"
+                placeholder="{{ __('Search country, area, city, locality…') }}"
                 variant="mom"
             />
             <select wire:model.live="city" class="rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2.5 text-sm text-[var(--text-primary)] shadow-mom-inner">
@@ -30,7 +30,7 @@
             </select>
         </div>
         @can('create', \App\Models\PinCode::class)
-            <a href="{{ route('operations.pin-codes.create') }}" class="mom-cta-primary">{{ __('Add pin code') }}</a>
+            <a href="{{ route('operations.pin-codes.create') }}" class="mom-cta-primary">{{ __('Add country') }}</a>
         @endcan
     </div>
 
@@ -56,10 +56,10 @@
     <div class="mom-card mt-8 overflow-hidden p-0">
         @if ($pinCodes->isEmpty())
             <div class="p-10 text-center">
-                <p class="mom-section-title">{{ __('No pin codes match your filters') }}</p>
+                <p class="mom-section-title">{{ __('No pincodes match your filters') }}</p>
                 <p class="mom-subtext mt-2">{{ __('Add locations to build your operational coverage map and local SEO dataset.') }}</p>
                 @can('create', \App\Models\PinCode::class)
-                    <a href="{{ route('operations.pin-codes.create') }}" class="mom-subtext mt-6 inline-flex text-mom-gold hover:underline">{{ __('Add your first pin code') }}</a>
+                    <a href="{{ route('operations.pin-codes.create') }}" class="mom-subtext mt-6 inline-flex text-mom-gold hover:underline">{{ __('Add your first country') }}</a>
                 @endcan
             </div>
         @else
@@ -75,7 +75,7 @@
                                     wire:click="selectAllRows"
                                 />
                             </th>
-                            <th class="px-4 py-3 font-medium">{{ __('Pincode') }}</th>
+                            <th class="px-4 py-3 font-medium">{{ __('Country') }}</th>
                             <th class="px-4 py-3 font-medium">{{ __('Area') }}</th>
                             <th class="px-4 py-3 font-medium">{{ __('City') }}</th>
                             <th class="px-4 py-3 font-medium">{{ __('Locality') }}</th>
@@ -145,7 +145,7 @@
                                             @endif
                                         @endcan
                                         @can('delete', $row)
-                                            <form method="post" action="{{ route('operations.pin-codes.destroy', $row) }}" class="inline" onsubmit="return confirm(@js(__('Delete this pin code?')));">
+                                            <form method="post" action="{{ route('operations.pin-codes.destroy', $row) }}" class="inline" onsubmit="return confirm(@js(__('Delete this country?')));">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-[var(--danger)] hover:underline">{{ __('Delete') }}</button>

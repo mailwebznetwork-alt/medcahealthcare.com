@@ -99,7 +99,7 @@ class AutonomousContentJob implements ShouldQueue
         $market = app(\App\Services\Seo\LocalityContextResolver::class)->aiMarketContext() ?: 'service area';
 
         return <<<TXT
-You are an SEO content architect for Medca Health Care (premium home healthcare, {$market}).
+You are an SEO content architect for MEDCA Consultancy (healthcare career consultancy, {$market}).
 
 Using the hijack opportunity JSON below, produce ONLY valid JSON with keys:
 "meta_title","meta_description","h1"
@@ -108,7 +108,7 @@ Rules:
 - meta_title: max 60 chars, local trust + primary keyword.
 - meta_description: max 155 chars, booking CTA, no false medical claims.
 - h1: one compelling H1 for the landing page.
-- Healthcare compliance: no guaranteed outcomes.
+- Healthcare consultancy compliance: no guaranteed outcomes.
 - JSON only, no markdown fences.
 
 Hijack strategy context:

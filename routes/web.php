@@ -88,6 +88,18 @@ Route::get('/', function () {
     return view('home', app(PublicPagePresenter::class)->nearYouPayload());
 })->name('public.home');
 
+Route::get('/home', function () {
+    $page = Page::query()->where('slug', 'home')->where('is_active', true)->first();
+
+    if ($page !== null) {
+        app(PageRenderContextRegistrar::class)->register($page);
+
+        return view('layouts.app', ['page' => $page]);
+    }
+
+    return view('home', app(PublicPagePresenter::class)->nearYouPayload());
+})->name('public.home.alias');
+
 Route::get('/services-catalog', [ServicePublicController::class, 'index'])->name('public.services.index');
 
 Route::get('/service-categories', [ServiceCategoryPublicController::class, 'index'])->name('public.service-categories.index');

@@ -15,11 +15,11 @@ use Livewire\Component;
 
 class BlueprintBuilder extends Component
 {
-    public string $industry = 'healthcare';
+    public string $industry = 'healthcare career consultancy';
 
-    public string $blueprint_slug = 'home_healthcare';
+    public string $blueprint_slug = 'home_healthcare career consultancy';
 
-    public string $style_pack_slug = 'healthcare_professional';
+    public string $style_pack_slug = 'healthcare career consultancy_professional';
 
     public string $theme_preset_slug = 'clinical_blue';
 

@@ -26,7 +26,7 @@
 
     <div class="mt-8 space-y-6">
         <div>
-            <h3 class="text-sm font-semibold text-[var(--text-primary)]">{{ __('Nearby areas') }}</h3>
+            <h3 class="text-sm font-semibold text-[var(--text-primary)]">{{ __('Supported countries and states') }}</h3>
             @foreach ($nearby as $i => $row)
                 <div class="mt-2">
                     <input type="text" name="nearby_areas[{{ $i }}][area_name]" value="{{ $row['area_name'] ?? '' }}" placeholder="{{ __('Area name') }}" class="block w-full rounded-mom-chrome border-[rgba(255,255,255,0.045)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm" />

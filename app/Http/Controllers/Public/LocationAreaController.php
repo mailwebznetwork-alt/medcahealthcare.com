@@ -171,8 +171,8 @@ class LocationAreaController extends Controller
         }
 
         return [
-            __('Healthcare Services in :area', ['area' => $area]),
-            __('Professional healthcare services available in :area (:pin).', [
+            __('Healthcare Career Services in :area', ['area' => $area]),
+            __('Professional healthcare career consultancy services available in :area (:pin).', [
                 'area' => $area,
                 'pin' => $pin->pincode,
             ]),

@@ -7,7 +7,7 @@
 return [
 
     'visual_languages' => [
-        'modern', 'minimal', 'premium', 'luxury', 'corporate', 'healthcare',
+        'modern', 'minimal', 'premium', 'luxury', 'corporate', 'healthcare career consultancy',
     ],
 
     /**

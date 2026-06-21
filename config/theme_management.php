@@ -29,9 +29,9 @@ return [
     ],
 
     'header_presets' => [
-        'classic_healthcare' => [
-            'label' => 'Classic Healthcare',
-            'description' => 'Navy top strip + white brand row (current Medca default).',
+        'classic_healthcare career consultancy' => [
+            'label' => 'Classic Healthcare Career',
+            'description' => 'Navy top strip + white brand row (current Medca Consultancy default).',
             'class' => 'medca-header-classic',
         ],
         'corporate' => [

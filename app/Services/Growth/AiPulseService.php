@@ -391,10 +391,10 @@ class AiPulseService
             $out[] = __('Run Hijack Ops and publish autonomous SEO from Site Architect one-click updates.');
         }
         if (($ecosystem['backlink_strength'] ?? 100) < 60) {
-            $out[] = __('Close backlink gaps in War Room — competitors have citations Medca is missing.');
+            $out[] = __('Close backlink gaps in War Room — competitors have citations Medca Consultancy is missing.');
         }
         if (($ecosystem['gap_count'] ?? 0) > 0) {
-            $out[] = __(':n competitor backlink gap domain(s) detected — prioritize local healthcare directories.', [
+            $out[] = __(':n competitor backlink gap domain(s) detected — prioritize local healthcare career consultancy directories.', [
                 'n' => (string) ($ecosystem['gap_count'] ?? 0),
             ]);
         }
@@ -544,17 +544,17 @@ class AiPulseService
             'published_blogs' => data_get($snapshot, 'totals.blogs'),
         ], JSON_UNESCAPED_UNICODE) ?: '{}';
 
-        $market = app(\App\Services\Seo\LocalityContextResolver::class)->primaryCity() ?: 'healthcare service area';
+        $market = app(\App\Services\Seo\LocalityContextResolver::class)->primaryCity() ?: 'healthcare career consultancy service area';
 
         $prompt = <<<TXT
-You are MarkOnMinds — AI Pulse narrative brief for the Medca Health Care public site.
+You are MarkOnMinds — AI Pulse narrative brief for the MEDCA Consultancy public site.
 
 Return ONLY valid JSON with keys:
 "business_health","predictive_insights","conversion_insights","visibility_geo_aeo"
 
 Rules:
 - Each value is ONE string of 2 to 4 sentences.
-- Audience: healthcare leadership in {$market}; practical, no hype.
+- Audience: healthcare career consultancy leadership in {$market}; practical, no hype.
 - Ground insights in this context JSON when possible:
 {$ctx}
 

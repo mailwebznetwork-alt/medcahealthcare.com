@@ -5,7 +5,7 @@
         :eyebrow="__('Site map')"
         :headline="__('Sitemap')"
         :subline="__('Browse all public services, locations, pages, and articles.')"
-        :show-pincode="false"
+        :show-country="false"
         :show-actions="false"
         :show-body="false"
         tone="brand"
@@ -35,7 +35,7 @@
                     <li>
                         <a href="{{ $row->publicUrl() }}" class="text-clinical-700 hover:underline">
                             @php
-                                $row->loadMissing(['service', 'pincode']);
+                                $row->loadMissing(['service', 'country']);
                                 $sitemapLocationTitle = ($row->service && $row->pincode)
                                     ? app(\App\Services\Public\PublicDisplayNameResolver::class)->locationHeadline($row->service, $row->pincode)
                                     : ($row->service?->title ?? $row->page?->title);

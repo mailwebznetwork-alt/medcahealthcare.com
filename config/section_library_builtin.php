@@ -2,10 +2,10 @@
 
 return [
 
-    'premium_healthcare_intro' => [
-        'name' => 'Premium Healthcare Intro',
+    'premium_healthcare career consultancy_intro' => [
+        'name' => 'Premium Healthcare Career Consultancy Intro',
         'description' => 'Hero + statistics-style services overview + CTA.',
-        'style_pack_slug' => 'healthcare_premium',
+        'style_pack_slug' => 'healthcare career consultancy_premium',
         'blocks_json' => [
             ['slug' => 'hero-home', 'style_variant' => 'style_2'],
             ['slug' => 'services-overview-home', 'style_variant' => 'style_2'],
@@ -17,19 +17,19 @@ return [
     'trust_builder' => [
         'name' => 'Trust Builder',
         'description' => 'Services grid + CTA for conversion.',
-        'style_pack_slug' => 'healthcare_professional',
+        'style_pack_slug' => 'healthcare career consultancy_professional',
         'blocks_json' => [
             ['slug' => 'services-grid-full', 'style_variant' => 'style_1'],
             ['slug' => 'cta-services', 'style_variant' => 'style_1'],
         ],
     ],
 
-    'landing_healthcare_full' => [
-        'name' => 'Landing — Healthcare full funnel',
+    'landing_healthcare career consultancy_full' => [
+        'name' => 'Landing — Healthcare Career Consultancy full funnel',
         'description' => 'Hero, trust, features, testimonials, FAQ, and CTA using shared elements.',
-        'style_pack_slug' => 'healthcare_premium',
+        'style_pack_slug' => 'healthcare career consultancy_premium',
         'blocks_json' => [
-            ['slug' => 'hero-healthcare', 'style_variant' => 'style_2'],
+            ['slug' => 'hero-healthcare career consultancy', 'style_variant' => 'style_2'],
             ['slug' => 'trust-bar-icons', 'style_variant' => 'style_2'],
             ['slug' => 'features-grid', 'style_variant' => 'style_2'],
             ['slug' => 'statistics-row', 'style_variant' => 'style_2'],
@@ -42,7 +42,7 @@ return [
     'landing_conversion_strip' => [
         'name' => 'Landing — Conversion strip',
         'description' => 'Split hero, pricing teaser, lead magnet, sticky CTA.',
-        'style_pack_slug' => 'healthcare_modern',
+        'style_pack_slug' => 'healthcare career consultancy_modern',
         'blocks_json' => [
             ['slug' => 'hero-split', 'style_variant' => 'style_3'],
             ['slug' => 'pricing-tiers', 'style_variant' => 'style_3'],
@@ -51,10 +51,10 @@ return [
         ],
     ],
 
-    'pack_healthcare_services_funnel' => [
-        'name' => 'Pack — Healthcare service funnel',
+    'pack_healthcare career consultancy_services_funnel' => [
+        'name' => 'Pack — Healthcare Career Consultancy service funnel',
         'description' => 'Trust, benefits, process, FAQ, CTA for clinical service pages.',
-        'style_pack_slug' => 'healthcare_professional',
+        'style_pack_slug' => 'healthcare career consultancy_professional',
         'blocks_json' => [
             ['slug' => 'hero-split', 'style_variant' => 'style_1'],
             ['slug' => 'services-benefits', 'style_variant' => 'style_1'],
@@ -67,7 +67,7 @@ return [
     'pack_care_home_admissions' => [
         'name' => 'Pack — Care home admissions',
         'description' => 'Admissions journey with pricing and callback form.',
-        'style_pack_slug' => 'healthcare_premium',
+        'style_pack_slug' => 'healthcare career consultancy_premium',
         'blocks_json' => [
             ['slug' => 'hero-centered', 'style_variant' => 'style_2'],
             ['slug' => 'process-flow', 'style_variant' => 'style_2'],

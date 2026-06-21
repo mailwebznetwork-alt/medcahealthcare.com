@@ -105,7 +105,7 @@ final class FakerContentGuard
 
     public function validationMessage(): string
     {
-        return __('Placeholder or test content is not allowed. Use real Medca catalog names and codes.');
+        return __('Placeholder or test content is not allowed. Use real Medca Consultancy catalog names and codes.');
     }
 
     private function latinFakerTokenHits(string $lower): int

@@ -57,7 +57,7 @@ class BlueprintPageGenerator
             $this->themeRepository->applyPresetToDraft($themePresetSlug, $user);
             $pack = $this->stylePacks->find($stylePackSlug);
             if (is_array($pack)) {
-                $header = (string) ($pack['header_preset'] ?? 'classic_healthcare');
+                $header = (string) ($pack['header_preset'] ?? 'classic_healthcare career consultancy');
                 $layout = $layoutPreset !== '' ? $layoutPreset : (string) ($pack['layout_preset'] ?? 'contained');
                 $this->themeRepository->saveDraftMeta($header, $layout, [], $user);
             }

@@ -12,7 +12,7 @@ class MedcaLaunchSeedCommand extends Command
                             {--skip-storage-link : Do not run storage:link}
                             {--verify : Run launch verification tests after seeding}';
 
-    protected $description = 'Seed Medca services, marketing pages, pincodes, and global contact content for production launch';
+    protected $description = 'Seed Medca Consultancy services, marketing pages, pincodes, and global contact content for production launch';
 
     public function handle(): int
     {
@@ -30,7 +30,7 @@ class MedcaLaunchSeedCommand extends Command
         Artisan::call('config:clear');
         Artisan::call('view:clear');
 
-        $this->components->success('Medca launch data seeded.');
+        $this->components->success('Medca Consultancy launch data seeded.');
 
         if ($this->option('verify')) {
             $exitCode = $this->callSilent('test', [

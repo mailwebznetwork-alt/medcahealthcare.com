@@ -11,7 +11,7 @@
         :eyebrow="__('Category')"
         :headline="$headline"
         :subline="$summary"
-        :show-pincode="false"
+        :show-country="false"
         :show-actions="true"
         :show-body="false"
         tone="brand"

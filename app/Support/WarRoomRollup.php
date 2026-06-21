@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Cached competitor workbook rollup for Growth War Room (Medca-style aggregates, MoM schema).
+ * Cached competitor workbook rollup for Growth War Room (Medca Consultancy-style aggregates, MoM schema).
  */
 final class WarRoomRollup
 {

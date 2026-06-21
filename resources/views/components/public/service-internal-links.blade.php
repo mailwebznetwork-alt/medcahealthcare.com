@@ -99,7 +99,7 @@
 
     @if ($relatedLocations !== [])
         <div class="space-y-4">
-            <h3 class="text-sm font-semibold text-slate-700">{{ __('Areas We Serve') }}</h3>
+            <h3 class="text-sm font-semibold text-slate-700">{{ __('Countries & States We Serve') }}</h3>
             <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($relatedLocations as $item)
                     <li>

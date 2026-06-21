@@ -39,7 +39,7 @@ class GeoBusinessContextResolver
     public function resolve(?Service $contextService = null, ?PinCode $contextPin = null): array
     {
         $siteUrl = rtrim((string) config('app.url'), '/');
-        $brand = config('medca.brand_name', 'Medca Health Care');
+        $brand = config('medca.brand_name', 'MEDCA Consultancy');
         $seoEntity = $this->seoEntityResolver->forCurrentBusiness();
         $profile = $this->resolveBusinessProfile($seoEntity);
 

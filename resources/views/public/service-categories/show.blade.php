@@ -15,7 +15,7 @@
         :eyebrow="__('Category')"
         :headline="$displayNames->categoryHeadline($category)"
         :subline="$category->description"
-        :show-pincode="false"
+        :show-country="false"
         :show-actions="true"
         :show-body="false"
         tone="brand"
@@ -48,13 +48,13 @@
 
         @if ($locationRequired)
             <p class="mt-8 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                {{ __('Set your Bangalore pincode to see services available in your area.') }}
+                {{ __('Set your pincode to see services available in your area.') }}
             </p>
             <button
                 type="button"
                 onclick="window.dispatchEvent(new CustomEvent('open-pincode-modal', { detail: { contextPath: window.location.pathname } }))"
                 class="mt-4 inline-flex items-center justify-center rounded-xl bg-medca-primary px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-medca-primary-hover"
-            >{{ __('Set pincode') }}</button>
+            >{{ __('Select pincode') }}</button>
         @else
             @if ($pincode)
                 <p class="mt-6 text-sm text-slate-600">{{ $isProductCategory ? __('Showing products for pincode :pin', ['pin' => $pincode]) : __('Showing services for pincode :pin', ['pin' => $pincode]) }}</p>

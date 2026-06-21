@@ -22,7 +22,7 @@
                 <tr>
                     <th class="px-4 py-3">{{ __('Patient') }}</th>
                     <th class="px-4 py-3">{{ __('Service') }}</th>
-                    <th class="px-4 py-3">{{ __('Pincode') }}</th>
+                    <th class="px-4 py-3">{{ __('Country') }}</th>
                     <th class="px-4 py-3">{{ __('Status') }}</th>
                     <th class="px-4 py-3">{{ __('Admitted') }}</th>
                     <th class="px-4 py-3 text-right">{{ __('Actions') }}</th>
@@ -82,7 +82,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="mom-micro">{{ __('Pincode') }}</label>
+                            <label class="mom-micro">{{ __('Country') }}</label>
                             <select wire:model="pin_code_id" class="mt-1 w-full rounded border border-[var(--border-panel-soft)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm">
                                 <option value="">{{ __('—') }}</option>
                                 @foreach ($pincodes as $pin)

@@ -11,14 +11,14 @@ final class CategoryCardImageResolver
      * @var array<string, string>
      */
     private const ASSET_KEYS = [
-        'caregiver-services' => 'caregiver-services',
-        'home-nursing-services' => 'home-nursing-services',
+        'support-services' => 'support-services',
+        'home-consulting-services' => 'home-consulting-services',
         'doctor-visits-at-home' => 'doctor-visits-at-home',
         'medical-equipment' => 'medical-equipment',
-        'physiotherapy-services' => 'physiotherapy-services',
+        'consulting-services' => 'consulting-services',
         'medical-lab-services' => 'medical-lab-services',
         'ambulance-services' => 'ambulance-services',
-        'nursing-school' => 'nursing-school',
+        'consulting-school' => 'consulting-school',
     ];
 
     public function urlFor(ServiceCategory $category): string
@@ -56,12 +56,12 @@ final class CategoryCardImageResolver
         $name = Str::lower((string) $category->name);
 
         return match (true) {
-            str_contains($code, 'caregiver') || str_contains($name, 'caregiver') => self::ASSET_KEYS['caregiver-services'],
-            str_contains($code, 'nursing-school') || str_contains($name, 'nursing school') => self::ASSET_KEYS['nursing-school'],
-            str_contains($code, 'home-nursing') || str_contains($name, 'home nursing') => self::ASSET_KEYS['home-nursing-services'],
+            str_contains($code, 'support') || str_contains($name, 'support') => self::ASSET_KEYS['support-services'],
+            str_contains($code, 'consulting-school') || str_contains($name, 'consulting school') => self::ASSET_KEYS['consulting-school'],
+            str_contains($code, 'home-consulting') || str_contains($name, 'core services') => self::ASSET_KEYS['home-consulting-services'],
             str_contains($code, 'doctor') || str_contains($name, 'doctor visit') => self::ASSET_KEYS['doctor-visits-at-home'],
             str_contains($code, 'equipment') || str_contains($name, 'equipment') || str_contains($name, 'supplies') => self::ASSET_KEYS['medical-equipment'],
-            str_contains($code, 'physio') || str_contains($code, 'therapy') || str_contains($name, 'physio') || str_contains($name, 'therapy') => self::ASSET_KEYS['physiotherapy-services'],
+            str_contains($code, 'physio') || str_contains($code, 'therapy') || str_contains($name, 'physio') || str_contains($name, 'therapy') => self::ASSET_KEYS['consulting-services'],
             str_contains($code, 'lab') || str_contains($name, 'lab test') => self::ASSET_KEYS['medical-lab-services'],
             str_contains($code, 'ambulance') || str_contains($name, 'ambulance') => self::ASSET_KEYS['ambulance-services'],
             default => 'default',

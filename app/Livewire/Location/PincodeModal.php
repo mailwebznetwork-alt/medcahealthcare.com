@@ -73,15 +73,14 @@ class PincodeModal extends Component
     public function updatedPincode(): void
     {
         $this->resetErrorBag('pincode');
-        $this->pincode = app(UserLocationService::class)->normalizePincode($this->pincode);
         $this->refreshPincodeSuggestions();
     }
 
     public function refreshPincodeSuggestions(): void
     {
-        $digits = $this->pincode;
+        $search = trim($this->pincode);
 
-        if (strlen($digits) < self::SUGGESTION_MIN_LENGTH || ! Schema::hasTable('pin_codes')) {
+        if (strlen($search) < 1 || ! Schema::hasTable('pin_codes')) {
             $this->pincodeSuggestions = [];
             $this->showPincodeSuggestions = false;
 
@@ -90,8 +89,14 @@ class PincodeModal extends Component
 
         $this->pincodeSuggestions = PinCode::query()
             ->where('is_active', true)
-            ->where('pincode', 'like', $digits.'%')
-            ->orderBy('pincode')
+            ->where(function ($query) use ($search): void {
+                $query
+                    ->where('pincode', 'like', $search.'%')
+                    ->orWhere('area_name', 'like', '%'.$search.'%')
+                    ->orWhere('city', 'like', '%'.$search.'%')
+                    ->orWhere('state', 'like', '%'.$search.'%');
+            })
+            ->orderBy('area_name')
             ->limit(self::SUGGESTION_LIMIT)
             ->get(['pincode', 'area_name', 'city'])
             ->map(static fn (PinCode $record): array => [
@@ -101,7 +106,7 @@ class PincodeModal extends Component
             ])
             ->all();
 
-        $this->showPincodeSuggestions = strlen($digits) >= self::SUGGESTION_MIN_LENGTH && strlen($digits) < 6;
+        $this->showPincodeSuggestions = strlen($search) >= 1;
     }
 
     public function selectPincode(string $pincode): void
@@ -117,7 +122,7 @@ class PincodeModal extends Component
 
     public function savePincode(UserLocationService $location, PincodeRedirectResolver $redirects): void
     {
-        $this->pincode = $location->normalizePincode($this->pincode);
+        $this->pincode = $this->resolveCountrySearchToPincode($this->pincode) ?? $location->normalizePincode($this->pincode);
 
         $this->validate([
             'pincode' => ['required', 'string', 'regex:/^\d{6}$/'],
@@ -133,7 +138,7 @@ class PincodeModal extends Component
             return;
         }
 
-        session()->flash('status', __('Location updated to pincode :pin.', ['pin' => $resolved]));
+        session()->flash('status', __('Service country updated.'));
         session()->save();
 
         $this->open = false;
@@ -224,6 +229,25 @@ class PincodeModal extends Component
         if ($current !== null) {
             $this->pincode = $current;
         }
+    }
+
+    private function resolveCountrySearchToPincode(string $search): ?string
+    {
+        $search = trim($search);
+        if ($search === '' || preg_match('/^\d{6}$/', $search) === 1 || ! Schema::hasTable('pin_codes')) {
+            return null;
+        }
+
+        return PinCode::query()
+            ->where('is_active', true)
+            ->where(function ($query) use ($search): void {
+                $query
+                    ->where('area_name', 'like', '%'.$search.'%')
+                    ->orWhere('city', 'like', '%'.$search.'%')
+                    ->orWhere('state', 'like', '%'.$search.'%');
+            })
+            ->orderBy('area_name')
+            ->value('pincode');
     }
 
     public function render(): View
