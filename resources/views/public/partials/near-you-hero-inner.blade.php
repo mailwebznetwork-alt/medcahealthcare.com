@@ -16,7 +16,6 @@
         :headline="$headline"
         :subline="$subline"
         heading-tag="h2"
-        :pincode-button="$pincodeButton"
         tone="light"
     />
 

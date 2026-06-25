@@ -2,7 +2,6 @@
     use App\Support\BlockContent;
 
     $categories = $categories ?? collect();
-    $pincode = $pincode ?? null;
     $pinCodeRecord = $pinCodeRecord ?? null;
     $locationRequired = (bool) ($locationRequired ?? false);
     $variant = $variant ?? 'public';
@@ -21,20 +20,8 @@
     };
 
     $eyebrow = $copy('eyebrow', 'Service Areas');
-    $area = $pinCodeRecord?->area_name ?: ($pincode ?: __('your area'));
-    $city = $pinCodeRecord?->city ?: 'India';
-
-    if ($pincode) {
-        $headline = __('Digital Growth Platform Services in :area', ['area' => $area]);
-        $subline = __('Professional digital growth platform categories available for :area.', ['area' => $area, 'pin' => $pincode]);
-    } else {
-        $headline = $copy('headline_no_pincode', 'digital growth services by country');
-        $subline = $copy('location_required_message', 'National and international services available across India, Ireland, and UAE.');
-    }
-
-    $pincodeButton = $pincode
-        ? $copy('change_pincode_label', '')
-        : $copy('set_pincode_label', '');
+    $headline = $copy('headline_no_pincode', 'Digital growth services across India, Ireland, and UAE');
+    $subline = $copy('location_required_message', 'National and international services available across India, Ireland, and UAE.');
 
     $emptyCategoriesMessage = $copy(
         'empty_categories_message',
@@ -45,12 +32,12 @@
 
 @if ($isAdmin)
     <div class="px-5 py-5 md:px-6 md:py-6" id="near-you" data-section="near-you">
-        @include('public.partials.near-you-hero-inner', compact('eyebrow', 'headline', 'subline', 'pincode', 'pincodeButton', 'locationRequired', 'emptyCategoriesMessage', 'categories', 'pinCodeRecord', 'isAdmin'))
+        @include('public.partials.near-you-hero-inner', compact('eyebrow', 'headline', 'subline', 'locationRequired', 'emptyCategoriesMessage', 'categories', 'pinCodeRecord', 'isAdmin'))
     </div>
 @else
     <x-public.full-bleed class="border-t border-slate-200 bg-white py-10 md:py-12" id="near-you" data-section="near-you">
         <x-public.content-shell>
-            @include('public.partials.near-you-hero-inner', compact('eyebrow', 'headline', 'subline', 'pincode', 'pincodeButton', 'locationRequired', 'emptyCategoriesMessage', 'categories', 'pinCodeRecord', 'isAdmin'))
+            @include('public.partials.near-you-hero-inner', compact('eyebrow', 'headline', 'subline', 'locationRequired', 'emptyCategoriesMessage', 'categories', 'pinCodeRecord', 'isAdmin'))
         </x-public.content-shell>
     </x-public.full-bleed>
 @endif

@@ -137,9 +137,6 @@
             if (filled($gBusiness->region)) {
                 $address['addressRegion'] = $gBusiness->region;
             }
-            if (filled($gBusiness->postal_code)) {
-                $address['postalCode'] = $gBusiness->postal_code;
-            }
             if (filled($gBusiness->country_code)) {
                 $address['addressCountry'] = $gBusiness->country_code;
             }

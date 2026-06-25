@@ -10,7 +10,6 @@ use App\Models\ServiceCategory;
 use App\Services\Discovery\RelatedContentEngine;
 use App\Services\Operations\CategoryPageProvisioner;
 use App\Services\Public\PageRenderContextRegistrar;
-use App\Services\UserLocationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,7 +17,6 @@ use Illuminate\View\View;
 class ServiceCategoryPublicController extends Controller
 {
     public function __construct(
-        private readonly UserLocationService $location,
         private readonly PageRenderContextRegistrar $pageRenderContext,
         private readonly CategoryPageProvisioner $categoryPageProvisioner,
         private readonly RelatedContentEngine $relatedContent,
@@ -58,7 +56,7 @@ class ServiceCategoryPublicController extends Controller
 
         $category->loadMissing(['parent', 'children' => fn ($q) => $q->active()->ordered(), 'seo', 'faqs', 'schema']);
 
-        $pincode = $this->location->currentPincode();
+        $pincode = null;
         $locationRequired = false;
 
         $page = $category->linkedPage ?? $this->categoryPageProvisioner->relinkOwnedPage($category);
@@ -93,10 +91,6 @@ class ServiceCategoryPublicController extends Controller
             ->with(['seo', 'categories'])
             ->orderBy('sort_order')
             ->orderBy('title');
-
-        if ($pincode !== null) {
-            $servicesQuery->forPincode($pincode);
-        }
 
         $services = $servicesQuery->paginate(12)->withQueryString();
 

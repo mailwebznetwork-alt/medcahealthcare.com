@@ -49,7 +49,6 @@ final class JobPostingSchema
         $address = array_filter([
             '@type' => 'PostalAddress',
             'addressLocality' => $vacancy->city,
-            'postalCode' => $vacancy->pin_code,
             'addressRegion' => $vacancy->area,
             'addressCountry' => $vacancy->country_code,
         ], fn ($v) => $v !== null && $v !== '');

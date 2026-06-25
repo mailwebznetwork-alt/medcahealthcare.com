@@ -19,7 +19,19 @@ final class ServiceCardImageResolver
             return $url;
         }
 
+        if ($url = $this->urlFromPath($service->card_image)) {
+            return $url;
+        }
+
+        if ($url = $this->urlFromPath($service->thumbnail_image)) {
+            return $url;
+        }
+
         if ($url = $this->firstGalleryUrl($service->gallery)) {
+            return $url;
+        }
+
+        if ($url = $this->urlForServiceCode($service)) {
             return $url;
         }
 
@@ -76,9 +88,29 @@ final class ServiceCardImageResolver
             return null;
         }
 
+        $path = (string) $path;
+
+        if (Str::startsWith($path, ['images/', '/images/'])) {
+            return asset(ltrim($path, '/'));
+        }
+
         return Str::startsWith((string) $path, ['http://', 'https://'])
             ? (string) $path
             : asset('storage/'.$path);
+    }
+
+    private function urlForServiceCode(Service $service): ?string
+    {
+        $code = Str::slug((string) $service->service_code);
+
+        foreach (['svg', 'webp', 'jpg', 'jpeg', 'png'] as $extension) {
+            $relative = "images/service-cards/{$code}.{$extension}";
+            if (is_file(public_path($relative))) {
+                return asset($relative);
+            }
+        }
+
+        return null;
     }
 
     private function firstGalleryUrl(mixed $gallery): ?string

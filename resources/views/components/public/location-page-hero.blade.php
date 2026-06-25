@@ -6,7 +6,6 @@
     'body' => null,
     'headingTag' => 'h1',
     'headingClass' => null,
-    'pincodeButton' => null,
     'showCountry' => true,
     'showActions' => true,
     'showBody' => true,
@@ -41,7 +40,6 @@
                     :subline="$subline"
                     :heading-tag="$headingTag"
                     :heading-class="$headingClass"
-                    :pincode-button="$pincodeButton"
                     :tone="$tone"
                 />
             @else

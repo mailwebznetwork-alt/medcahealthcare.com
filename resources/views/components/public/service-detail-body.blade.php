@@ -7,6 +7,7 @@
     use App\Models\Service;
     use App\Services\Public\PublicDisplayNameResolver;
     use App\Services\Public\CatalogLineIconResolver;
+    use App\Services\Public\ServiceCardImageResolver;
     use App\Support\FaqPairNormalizer;
     use App\Support\ProductCategoryContext;
 
@@ -47,6 +48,10 @@
         $featuredSrc = \Illuminate\Support\Str::startsWith($service->featured_image, ['http://', 'https://'])
             ? $service->featured_image
             : asset('storage/'.$service->featured_image);
+    }
+
+    if ($featuredSrc === null) {
+        $featuredSrc = app(ServiceCardImageResolver::class)->urlFor($service);
     }
 
     $galleryImages = collect(is_array($service->gallery) ? $service->gallery : [])

@@ -4,7 +4,7 @@
     <x-public.location-page-hero
         :eyebrow="__('Site map')"
         :headline="__('Sitemap')"
-        :subline="__('Browse all public services, locations, pages, and articles.')"
+        :subline="__('Browse all public services, country coverage pages, pages, and articles.')"
         :show-country="false"
         :show-actions="false"
         :show-body="false"
@@ -29,13 +29,13 @@
         </section>
 
         <section>
-            <h2 class="text-lg font-semibold text-medca-primary">{{ __('Locations') }} ({{ $locations->count() }})</h2>
+            <h2 class="text-lg font-semibold text-medca-primary">{{ __('Country Coverage') }} ({{ $locations->count() }})</h2>
             <ul class="mt-3 max-h-96 space-y-2 overflow-y-auto text-sm custom-scrollbar">
                 @foreach ($locations as $row)
                     <li>
                         <a href="{{ $row->publicUrl() }}" class="text-clinical-700 hover:underline">
                             @php
-                                $row->loadMissing(['service', 'country']);
+                                $row->loadMissing(['service', 'pincode']);
                                 $sitemapLocationTitle = ($row->service && $row->pincode)
                                     ? app(\App\Services\Public\PublicDisplayNameResolver::class)->locationHeadline($row->service, $row->pincode)
                                     : ($row->service?->title ?? $row->page?->title);

@@ -3,7 +3,6 @@
     'headline',
     'subline' => null,
     'headingTag' => 'h2',
-    'pincodeButton' => null,
     'headingClass' => null,
     'tone' => 'brand',
 ])

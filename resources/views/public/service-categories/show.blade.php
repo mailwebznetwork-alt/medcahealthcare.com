@@ -47,10 +47,6 @@
         @endif
 
         @if (! $locationRequired)
-            @if ($pincode)
-                <p class="mt-6 text-sm text-slate-600">{{ $isProductCategory ? __('Showing products for country :pin', ['pin' => $pincode]) : __('Showing services for country :pin', ['pin' => $pincode]) }}</p>
-            @endif
-
             <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @forelse ($services as $service)
                     <x-public.service-card

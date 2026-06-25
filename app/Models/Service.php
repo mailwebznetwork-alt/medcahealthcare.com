@@ -461,11 +461,8 @@ class Service extends Model
 
         $areaServed = $this->pincodes
             ->map(fn (PinCode $pc): array => array_filter([
-                '@type' => 'PostalAddress',
-                'postalCode' => $pc->pincode,
-                'addressLocality' => $pc->area_name ?: $pc->locality ?: null,
-                'addressRegion' => $pc->city ?: null,
-                'addressCountry' => 'IN',
+                '@type' => 'Country',
+                'name' => $pc->area_name ?: $pc->locality ?: $pc->city ?: $pc->pincode,
             ], fn ($v) => $v !== null && $v !== ''))
             ->values()
             ->all();

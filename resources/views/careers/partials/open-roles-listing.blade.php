@@ -53,7 +53,7 @@
             <ul class="mc-jobs-list" x-ref="list">
                 @foreach ($vacancies as $vacancy)
                     @php
-                        $location = collect([$vacancy->area, $vacancy->city, $vacancy->pin_code])->filter()->implode(', ');
+                        $location = collect([$vacancy->area, $vacancy->city])->filter()->implode(', ');
                         $summary = $vacancy->summary ?: $vacancy->description;
                         $salary = null;
                         if ($vacancy->salary_min !== null || $vacancy->salary_max !== null) {

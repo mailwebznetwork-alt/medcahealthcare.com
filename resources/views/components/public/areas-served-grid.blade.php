@@ -32,7 +32,7 @@
             @foreach ($areas as $index => $pc)
                 @php
                     $url = $urls[$pc->id] ?? url('/locations');
-                    $areaLabel = $pc->area_name ?: $pc->locality ?: $pc->city ?: $pc->pincode;
+                    $areaLabel = $pc->area_name ?: $pc->locality ?: $pc->city ?: __('International');
                 @endphp
                 <li
                     x-show="expanded || {{ $index }} < {{ $initial }}"

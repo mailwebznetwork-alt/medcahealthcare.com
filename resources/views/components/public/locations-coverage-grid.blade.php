@@ -25,8 +25,8 @@
     $items = $areas->map(function ($pc) use ($urls): array {
         return [
             'id' => (int) $pc->id,
-            'country' => (string) $pc->pincode,
-            'area' => (string) ($pc->area_name ?: $pc->locality ?: $pc->city ?: $pc->pincode),
+            'country' => (string) ($pc->area_name ?: $pc->locality ?: $pc->city ?: __('International')),
+            'area' => (string) ($pc->area_name ?: $pc->locality ?: $pc->city ?: __('International')),
             'city' => (string) ($pc->city ?? ''),
             'state' => (string) ($pc->state ?? ''),
             'serviceable' => (bool) $pc->is_serviceable,

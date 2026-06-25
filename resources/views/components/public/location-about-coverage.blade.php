@@ -15,7 +15,7 @@
     }
 
     $pin->loadMissing(['landmarks', 'hospitals', 'nearbyAreas']);
-    $area = $pin->area_name ?: $pin->locality ?: $pin->city ?: $pin->pincode;
+    $area = $pin->area_name ?: $pin->locality ?: $pin->city ?: __('International');
     $body = filled($pin->coverage_text) ? $pin->coverage_text : $intro;
 @endphp
 
