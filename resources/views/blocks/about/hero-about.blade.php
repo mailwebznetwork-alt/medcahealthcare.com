@@ -3,7 +3,7 @@
     $settings = is_array($blockSettings ?? null) ? $blockSettings : [];
     $heroMediaStyle = \App\Support\BlockMediaUrl::heroBackgroundStyle(is_array($blockMedia ?? null) ? $blockMedia : []);
     $heroAboutImage = \App\Support\BlockMediaUrl::first(is_array($blockMedia ?? null) ? $blockMedia : [], 'desktop_image', 'image', 'fallback_image');
-    $eyebrow = BlockContent::globalOrBlock($settings, 'hero-about', 'eyebrow', 'about_hero_eyebrow', 'About MarkOnMinds');
+    $eyebrow = BlockContent::globalOrBlock($settings, 'hero-about', 'eyebrow', 'about_hero_eyebrow', 'About LetsSee');
     $headline = BlockContent::globalOrBlock($settings, 'hero-about', 'headline', 'about_hero_headline', 'Expert-led, family-centred digital growth platform.');
     $subheadline = BlockContent::globalOrBlock($settings, 'hero-about', 'subheadline', 'about_hero_subheadline');
     if ($subheadline === '') {

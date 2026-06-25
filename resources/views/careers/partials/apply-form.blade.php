@@ -28,8 +28,8 @@
         <x-text-input id="city" name="city" type="text" class="mt-2 block w-full" :value="old('city')" variant="public" />
     </div>
     <div>
-        <x-input-label for="pin_code" :value="__('Country Name (optional)')" variant="public" />
-        <x-text-input id="pin_code" name="pin_code" type="text" class="mt-2 block w-full" :value="old('pin_code')" variant="public" />
+        <x-input-label for="country" :value="__('Country Name (optional)')" variant="public" />
+        <x-text-input id="country" name="country" type="text" class="mt-2 block w-full" :value="old('country')" variant="public" />
     </div>
     <div>
         <x-input-label for="cover_message" :value="__('Message')" variant="public" />

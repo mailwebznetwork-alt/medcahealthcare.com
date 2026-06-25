@@ -4,7 +4,7 @@ return [
 
     'enabled' => env('SEO_DATA_DRIVEN_ENABLED', true),
 
-    'brand_name' => env('MEDCA_BRAND_NAME', 'MarkOnMinds'),
+    'brand_name' => env('MEDCA_BRAND_NAME', 'LetsSee'),
 
     'templates' => [
         'service' => [

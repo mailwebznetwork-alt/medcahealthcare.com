@@ -11,7 +11,7 @@ return [
     |
     */
 
-    'organization_name' => env('CAREERS_ORG_NAME', env('MEDCA_BRAND_NAME', 'MarkOnMinds')),
+    'organization_name' => env('CAREERS_ORG_NAME', env('MEDCA_BRAND_NAME', 'LetsSee')),
 
     'organization_url' => env('CAREERS_ORG_URL', env('APP_URL', 'http://localhost')),
 

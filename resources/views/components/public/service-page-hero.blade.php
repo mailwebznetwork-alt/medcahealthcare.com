@@ -77,7 +77,7 @@
                     'text-sm font-semibold',
                     'text-white' => $onBrand,
                     'text-slate-900' => ! $onBrand,
-                ])>{{ __(':count coverage areas', ['count' => $coverageCount]) }}</p>
+                ])>{{ __(':count countries served', ['count' => $coverageCount]) }}</p>
             @endif
 
             @if (filled($priceRange))

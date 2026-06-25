@@ -10,13 +10,10 @@ use App\Services\Discovery\RelatedContentEngine;
 use App\Services\Operations\ServiceDetailPageProvisioner;
 use App\Services\Operations\ServiceInternalLinkingEngine;
 use App\Services\Operations\SubServicePageProvisioner;
-use App\Services\Operations\ServicePublicUrlBuilder;
 use App\Services\Public\PageRenderContextRegistrar;
 use App\Services\Public\PublicDisplayNameResolver;
 use App\Services\Public\ServicesDetailPageResolver;
 use App\Services\ServiceContextCollector;
-use App\Services\UserLocationService;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -26,8 +23,6 @@ class ServicePublicController extends Controller
         private readonly PageRenderContextRegistrar $pageRenderContext,
         private readonly ServicesDetailPageResolver $detailPageResolver,
         private readonly ServiceDetailPageProvisioner $detailPageProvisioner,
-        private readonly UserLocationService $location,
-        private readonly ServicePublicUrlBuilder $urlBuilder,
         private readonly ServiceInternalLinkingEngine $internalLinks,
         private readonly RelatedContentEngine $relatedContent,
         private readonly SubServicePageProvisioner $subServicePageProvisioner,
@@ -52,16 +47,14 @@ class ServicePublicController extends Controller
 
     public function index(Request $request): View
     {
-        $pincode = $this->location->currentPincode();
         $locationRequired = false;
 
-        $categories = app(\App\Services\Public\PublicPagePresenter::class)->localizedCategories($pincode, limit: 0);
+        $categories = app(\App\Services\Public\PublicPagePresenter::class)->localizedCategories(null, limit: 0);
 
         return view('public.services.index', [
             'categories' => $categories,
-            'pincode' => $pincode,
             'locationRequired' => $locationRequired,
-            'pinCodeRecord' => $this->location->currentPinCodeRecord(),
+            'pinCodeRecord' => null,
         ]);
     }
 
@@ -90,37 +83,8 @@ class ServicePublicController extends Controller
         return $this->renderServiceLocation($request, $service, $mapping);
     }
 
-    public function showLocationPincode(Request $request, string $code, string $city, string $pincode): View|RedirectResponse
-    {
-        $service = Service::findPubliclyViewableByCode($code);
-        abort_if($service === null, 404);
-
-        $normalized = preg_replace('/\D/', '', $pincode) ?? '';
-        abort_if(strlen($normalized) !== 6, 404);
-
-        $mapping = ServiceLocationPage::query()
-            ->where('service_id', $service->id)
-            ->whereHas('pincode', fn ($q) => $q->where('pincode', $normalized))
-            ->with(['pincode', 'page'])
-            ->first();
-
-        abort_if($mapping === null || $mapping->page === null, 404);
-
-        $expectedCity = $mapping->city_slug ?: $this->urlBuilder->citySlugForPin($mapping->pincode);
-        if ($this->urlBuilder->slugify($city) !== $expectedCity) {
-            return redirect($mapping->publicUrl(), 301);
-        }
-
-        return $this->renderServiceLocation($request, $service, $mapping);
-    }
-
     private function renderServiceDetail(Request $request, Service $service): View
     {
-        $pincode = $this->location->currentPincode();
-        if ($pincode !== null && ! $service->isAvailableInPincode($pincode)) {
-            abort(404);
-        }
-
         $service->loadMissing(['seo', 'faqs', 'pincodes', 'detailPage', 'approvedReviews']);
 
         app(ServiceContextCollector::class)->register($service);
@@ -261,13 +225,4 @@ class ServicePublicController extends Controller
         ];
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Builder<Service>
-     */
-    public function localizedServicesQuery(?string $pincode): \Illuminate\Database\Eloquent\Builder
-    {
-        return Service::query()
-            ->localizedListing($pincode)
-            ->with(['seo']);
-    }
 }

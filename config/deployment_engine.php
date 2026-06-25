@@ -1,7 +1,7 @@
 <?php
 
 /**
- * MarkOnMinds Deployment Engine (Phase 8.5).
+ * LetsSee Deployment Engine (Phase 8.5).
  *
  * Extends Theme Management — does not replace Pages, Blocks, or ContentParser.
  */

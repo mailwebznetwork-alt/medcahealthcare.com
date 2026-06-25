@@ -10,12 +10,10 @@ use App\Models\SubService;
 use App\Models\Vacancy;
 use App\Services\Discovery\CategoryDisplayEngine;
 use App\Services\Discovery\HealthcareDiscoveryEngine;
-use App\Services\UserLocationService;
 
 class PublicPagePresenter
 {
     public function __construct(
-        private readonly UserLocationService $location,
         private readonly CategoryDisplayEngine $categoryDisplay,
         private readonly HealthcareDiscoveryEngine $discovery,
     ) {}
@@ -29,7 +27,7 @@ class PublicPagePresenter
     {
         return match ($page->slug) {
             'home' => array_merge(
-                $this->categoryDisplay->forSurface('homepage', $this->location->currentPincode()),
+                $this->categoryDisplay->forSurface('homepage', null),
                 [
                     'nearYouCategories' => $this->localizedCategories(limit: 6),
                     'nearYouPayload' => $this->nearYouPayload(),
@@ -58,16 +56,11 @@ class PublicPagePresenter
     /**
      * @return \Illuminate\Support\Collection<int, Service>
      */
-    public function localizedServices(?string $pincode = null, int $limit = 0): \Illuminate\Support\Collection
+    public function localizedServices(?string $coverage = null, int $limit = 0): \Illuminate\Support\Collection
     {
-        $pincode ??= $this->location->currentPincode();
         $query = Service::query()
             ->publicListing()
             ->with(['seo', 'categories', 'faqs']);
-
-        if ($pincode !== null) {
-            $query->forPincode($pincode);
-        }
 
         if ($limit > 0) {
             $query->limit($limit);
@@ -79,10 +72,9 @@ class PublicPagePresenter
     /**
      * @return \Illuminate\Support\Collection<int, ServiceCategory>
      */
-    public function localizedCategories(?string $pincode = null, int $limit = 6): \Illuminate\Support\Collection
+    public function localizedCategories(?string $coverage = null, int $limit = 6): \Illuminate\Support\Collection
     {
-        $pincode ??= $this->location->currentPincode();
-        $categories = $this->discovery->discoverCategories($pincode);
+        $categories = $this->discovery->discoverCategories(null);
 
         return $limit > 0 ? $categories->take($limit) : $categories;
     }
@@ -92,13 +84,10 @@ class PublicPagePresenter
      */
     public function nearYouPayload(int $limit = 6): array
     {
-        $pincode = $this->location->currentPincode();
-        $record = $this->location->currentPinCodeRecord();
-
         return [
-            'pincode' => $pincode,
-            'pinCodeRecord' => $record,
-            'categories' => $this->localizedCategories($pincode, $limit),
+            'pincode' => null,
+            'pinCodeRecord' => null,
+            'categories' => $this->localizedCategories(null, $limit),
             'locationRequired' => false,
         ];
     }
@@ -122,10 +111,10 @@ class PublicPagePresenter
     /**
      * @return array<string, mixed>
      */
-    public function variablesForCategoryDetail(ServiceCategory $category, ?string $pincode = null): array
+    public function variablesForCategoryDetail(ServiceCategory $category, ?string $coverage = null): array
     {
         $category->loadMissing(['seo', 'faqs', 'schema']);
-        $display = $this->categoryDisplay->forSurface('category', $pincode, [$category->id]);
+        $display = $this->categoryDisplay->forSurface('category', null, [$category->id]);
 
         return array_merge($display, [
             'category' => $category,

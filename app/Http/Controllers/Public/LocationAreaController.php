@@ -9,7 +9,6 @@ use App\Models\ServiceCategory;
 use App\Services\Public\PinCodeAreaResolver;
 use App\Services\Public\PublicDisplayNameResolver;
 use App\Services\Public\PublicPagePresenter;
-use App\Services\UserLocationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -19,7 +18,6 @@ class LocationAreaController extends Controller
 {
     public function __construct(
         private readonly PinCodeAreaResolver $areaResolver,
-        private readonly UserLocationService $location,
         private readonly PublicDisplayNameResolver $displayNames,
     ) {}
 
@@ -37,10 +35,6 @@ class LocationAreaController extends Controller
             );
         }
 
-        if ($request->session()->get('medca.detected_pincode') !== $pin->pincode) {
-            $this->location->rememberPincode($pin->pincode);
-        }
-
         $category = ServiceCategory::findActiveByCode((string) $request->query('category', ''));
         $contextService = $this->resolveContextService($request, $pin);
 
@@ -49,13 +43,13 @@ class LocationAreaController extends Controller
         $coverageAreas = PinCode::query()
             ->where('is_active', true)
             ->whereKeyNot($pin->id)
+            ->orderBy('state')
             ->orderBy('city')
-            ->orderBy('pincode')
             ->get();
 
         $services = $this->servicesForLocation($pin, $category, $contextService);
 
-        $area = $pin->area_name ?: $pin->locality ?: $pin->city ?: $pin->pincode;
+        $area = $pin->area_name ?: $pin->locality ?: $pin->city ?: __('International');
         $hasCategoryContext = $category instanceof ServiceCategory;
         $hasServiceContext = $contextService instanceof Service;
 
@@ -102,7 +96,7 @@ class LocationAreaController extends Controller
     private function servicesForLocation(PinCode $pin, ?ServiceCategory $category, ?Service $contextService): Collection
     {
         $query = Service::query()
-            ->localizedListing($pin->pincode)
+            ->publicListing()
             ->with(['seo', 'categories', 'faqs']);
 
         if ($category instanceof ServiceCategory) {
@@ -126,7 +120,7 @@ class LocationAreaController extends Controller
             ->where('service_code', $code)
             ->first();
 
-        if ($service === null || ! $service->isAvailableInPincode($pin->pincode)) {
+        if ($service === null) {
             return null;
         }
 
@@ -149,10 +143,9 @@ class LocationAreaController extends Controller
 
             return [
                 __(':category in :area', ['category' => $categoryName, 'area' => $area]),
-                __('Professional :category services available in :area (:pin).', [
+                __('Professional :category services available in :area.', [
                     'category' => $categoryName,
                     'area' => $area,
-                    'pin' => $pin->pincode,
                 ]),
             ];
         }
@@ -162,19 +155,17 @@ class LocationAreaController extends Controller
 
             return [
                 $this->displayNames->locationHeadline($contextService, $pin),
-                __('Professional :service services available in :area (:pin).', [
+                __('Professional :service services available in :area.', [
                     'service' => $serviceName,
                     'area' => $area,
-                    'pin' => $pin->pincode,
                 ]),
             ];
         }
 
         return [
             __('Digital Growth Platform Services in :area', ['area' => $area]),
-            __('Professional digital growth platform services available in :area (:pin).', [
+            __('Professional digital growth platform services available in :area.', [
                 'area' => $area,
-                'pin' => $pin->pincode,
             ]),
         ];
     }

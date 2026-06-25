@@ -27,9 +27,6 @@
                             @if ($vacancy->city)
                                 · {{ $vacancy->city }}
                             @endif
-                            @if ($vacancy->pin_code)
-                                · {{ $vacancy->pin_code }}
-                            @endif
                         </p>
                         @if ($vacancy->summary)
                             <p class="mom-body-text mt-4 line-clamp-3 text-[var(--text-secondary)]">{{ $vacancy->summary }}</p>

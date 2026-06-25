@@ -128,8 +128,7 @@ class GeoBusinessContextResolver
                     'streetAddress' => $pin->locality ?: null,
                     'addressLocality' => $locality,
                     'addressRegion' => $pin->state,
-                    'postalCode' => $pin->pincode,
-                    'addressCountry' => $profile?->country_code ?: 'IN',
+                    'addressCountry' => $pin->area_name ?: $profile?->country_code ?: 'IN',
                 ], fn ($v) => $v !== null && $v !== '');
             }
         }
@@ -143,7 +142,6 @@ class GeoBusinessContextResolver
             'streetAddress' => $profile->street_address ?: $profile->address,
             'addressLocality' => $profile->city,
             'addressRegion' => $profile->region,
-            'postalCode' => $profile->postal_code,
             'addressCountry' => $profile->country_code ?: 'IN',
         ], fn ($v) => $v !== null && $v !== '');
     }
@@ -236,7 +234,6 @@ class GeoBusinessContextResolver
         if ($contextPin !== null) {
             $areas[] = $this->placeNode(
                 $contextPin->area_name ?: $contextPin->locality ?: $contextPin->city ?: $contextPin->pincode,
-                $contextPin->pincode,
                 $contextPin->city,
                 $contextPin->state
             );
@@ -251,7 +248,6 @@ class GeoBusinessContextResolver
             foreach ($contextService->pincodes as $pin) {
                 $areas[] = $this->placeNode(
                     $pin->area_name ?: $pin->locality ?: $pin->city ?: $pin->pincode,
-                    $pin->pincode,
                     $pin->city,
                     $pin->state
                 );
@@ -308,18 +304,16 @@ class GeoBusinessContextResolver
     /**
      * @return array<string, mixed>
      */
-    private function placeNode(string $name, ?string $postalCode = null, ?string $city = null, ?string $region = null): array
+    private function placeNode(string $name, ?string $city = null, ?string $region = null): array
     {
         return array_filter([
             '@type' => 'Place',
             'name' => $name,
-            'postalCode' => $postalCode,
             'address' => ($city || $region) ? array_filter([
                 '@type' => 'PostalAddress',
                 'addressLocality' => $city,
                 'addressRegion' => $region,
-                'postalCode' => $postalCode,
-                'addressCountry' => 'IN',
+                'addressCountry' => $name,
             ]) : null,
         ]);
     }
@@ -333,7 +327,7 @@ class GeoBusinessContextResolver
         $seen = [];
         $out = [];
         foreach ($areas as $area) {
-            $key = ($area['name'] ?? '').'|'.($area['postalCode'] ?? '').'|'.($area['@type'] ?? '');
+            $key = ($area['name'] ?? '').'|'.($area['@type'] ?? '');
             if (isset($seen[$key])) {
                 continue;
             }

@@ -23,9 +23,6 @@
                 @if ($vacancy->area)
                     · {{ $vacancy->area }}
                 @endif
-                @if ($vacancy->pin_code)
-                    · {{ $vacancy->pin_code }}
-                @endif
             </p>
             @if ($vacancy->closing_date)
                 <p class="mt-4 text-xs text-slate-500">{{ __('Apply before :date', ['date' => $vacancy->closing_date->format('Y-m-d')]) }}</p>

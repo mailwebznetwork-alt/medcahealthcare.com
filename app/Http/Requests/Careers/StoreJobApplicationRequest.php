@@ -27,7 +27,7 @@ class StoreJobApplicationRequest extends FormRequest
             'full_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
             'phone' => ['required', 'string', 'max:32'],
-            'pin_code' => ['nullable', 'string', 'max:16'],
+            'country' => ['nullable', 'string', 'max:120'],
             'city' => ['nullable', 'string', 'max:120'],
             'cover_message' => ['nullable', 'string', 'max:5000'],
             'resume' => ['nullable', 'file', 'max:5120', 'mimes:pdf,doc,docx'],

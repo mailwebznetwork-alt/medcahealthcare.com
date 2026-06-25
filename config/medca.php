@@ -1,7 +1,7 @@
 <?php
 
 /**
- * MarkOnMinds branding and public marketing shell (guest-facing routes).
+ * LetsSee branding and public marketing shell (guest-facing routes).
  *
  * Sticky header height is not set as a single min-height in CSS. It stacks the navy top strip and
  * the white brand/nav row (see resources/views/global/header.blade.php). Total height follows
@@ -24,11 +24,11 @@ return [
 
     'location_display' => env('MEDCA_LOCATION', 'India, Ireland, UAE'),
 
-    /** Public site & company display name (never MarkOnMinds on the frontend). */
-    'brand_name' => env('MEDCA_BRAND_NAME', 'MarkOnMinds'),
+    /** Public site & company display name (never LetsSee on the frontend). */
+    'brand_name' => env('MEDCA_BRAND_NAME', 'LetsSee'),
 
     /** Legal entity line for public footer / compliance copy. */
-    'company_legal_name' => env('MEDCA_COMPANY_LEGAL_NAME', 'MarkOnMinds'),
+    'company_legal_name' => env('MEDCA_COMPANY_LEGAL_NAME', 'LetsSee'),
 
     'tagline' => 'We Build Businesses People Trust.',
 
@@ -38,7 +38,7 @@ return [
 
     'phone_tel' => env('MEDCA_PHONE_TEL', '+918000000000'),
 
-    /** Optional Google Business Profile URL for the header location pill (MarkOnMinds marketing shell). */
+    /** Optional Google Business Profile URL for the header location pill (LetsSee marketing shell). */
     'public_profile_url' => env('MEDCA_PUBLIC_PROFILE_URL', ''),
 
     /**

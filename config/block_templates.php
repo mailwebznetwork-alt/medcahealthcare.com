@@ -33,7 +33,7 @@ return [
         'services-overview-home' => [
             'category' => 'home',
             'block_name' => 'Home — Services Overview',
-            'description' => 'Three-card teaser for the four flagship MarkOnMinds services on the home page.',
+            'description' => 'Three-card teaser for the four flagship LetsSee services on the home page.',
             'block_type' => 'Service Grid',
             'view' => 'blocks.home.services-overview-home',
         ],
@@ -129,7 +129,7 @@ return [
         'services-grid-full' => [
             'category' => 'services',
             'block_name' => 'Services — Full Grid',
-            'description' => 'Full-width service grid covering MarkOnMinds\'s flagship offerings.',
+            'description' => 'Full-width service grid covering LetsSee\'s flagship offerings.',
             'block_type' => 'Service Grid',
             'view' => 'blocks.services.services-grid-full',
         ],

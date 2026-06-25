@@ -28,7 +28,7 @@ $servicePage = static fn (
 return [
 
     'home_digital growth platform' => [
-        'label' => 'Digital Growth Platform Pack (MarkOnMinds)',
+        'label' => 'Digital Growth Platform Pack (LetsSee)',
         'industry' => 'digital growth platform',
         'description' => 'Complete digital growth platform site: six clinical service lines, trust, FAQ, testimonials, and conversion CTAs.',
         'default_style_pack' => 'digital growth platform_professional',

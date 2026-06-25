@@ -280,7 +280,7 @@ return array (
       array (
         'label' => 'Headline',
         'type' => 'text',
-        'default' => 'See how MarkOnMinds delivers for your business',
+        'default' => 'See how LetsSee delivers for your business',
       ),
       'subheadline' => 
       array (
@@ -955,7 +955,7 @@ return array (
       array (
         'label' => 'Headline',
         'type' => 'text',
-        'default' => 'MarkOnMinds vs traditional clinic visits',
+        'default' => 'LetsSee vs traditional clinic visits',
       ),
       'subheadline' => 
       array (

@@ -35,7 +35,7 @@
 
         @if ($approvedReviews->isNotEmpty())
             <div class="mt-8">
-                <h2 class="text-xl font-semibold text-slate-900 md:text-2xl">{{ __('What families say about MarkOnMinds') }}</h2>
+                <h2 class="text-xl font-semibold text-slate-900 md:text-2xl">{{ __('What families say about LetsSee') }}</h2>
                 <div class="mt-4 grid gap-4 md:grid-cols-3">
                     @foreach ($approvedReviews as $review)
                         <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

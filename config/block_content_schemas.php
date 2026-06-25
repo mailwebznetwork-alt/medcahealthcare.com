@@ -27,7 +27,7 @@ return [
         ],
         'hero-contact' => [
             'eyebrow' => ['label' => 'Eyebrow', 'type' => 'text', 'default' => 'Contact'],
-            'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => 'Talk to MarkOnMinds.'],
+            'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => 'Talk to LetsSee.'],
             'subheadline' => ['label' => 'Subheadline', 'type' => 'textarea', 'default' => "Tell us about your business goals and we'll help you plan the next strategic step."],
         ],
         'hero-business-growth' => [
@@ -39,13 +39,13 @@ return [
             'secondary_cta_url' => ['label' => 'Secondary CTA URL', 'type' => 'text', 'default' => '/services-catalog'],
         ],
         'hero-about' => [
-            'eyebrow' => ['label' => 'Eyebrow', 'type' => 'text', 'default' => 'About MarkOnMinds'],
+            'eyebrow' => ['label' => 'Eyebrow', 'type' => 'text', 'default' => 'About LetsSee'],
             'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => 'We Build Businesses People Trust.'],
-            'subheadline' => ['label' => 'Subheadline', 'type' => 'textarea', 'default' => 'MarkOnMinds is a brand strategy, market positioning, and business growth consultancy for organizations that value strategy, quality, and long-term thinking.'],
+            'subheadline' => ['label' => 'Subheadline', 'type' => 'textarea', 'default' => 'LetsSee is a brand strategy, market positioning, and business growth consultancy for organizations that value strategy, quality, and long-term thinking.'],
         ],
         'cta-home' => [
             'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => "Ready to become the preferred choice in your market?"],
-            'subheadline' => ['label' => 'Subheadline', 'type' => 'textarea', 'default' => "Speak to MarkOnMinds about clarity, positioning, trust, and sustainable business growth."],
+            'subheadline' => ['label' => 'Subheadline', 'type' => 'textarea', 'default' => "Speak to LetsSee about clarity, positioning, trust, and sustainable business growth."],
             'primary_cta_label' => ['label' => 'Primary CTA label', 'type' => 'text', 'default' => 'Call'],
             'secondary_cta_label' => ['label' => 'Secondary CTA label', 'type' => 'text', 'default' => 'Request Callback'],
             'secondary_cta_url' => ['label' => 'Secondary CTA URL', 'type' => 'text', 'default' => '/contact'],
@@ -63,7 +63,7 @@ return [
         ],
         'cta-services' => [
             'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => 'Not sure which service fits?'],
-            'subheadline' => ['label' => 'Subheadline', 'type' => 'textarea', 'default' => 'A MarkOnMinds consultant will help you identify the right strategic next step for your business.'],
+            'subheadline' => ['label' => 'Subheadline', 'type' => 'textarea', 'default' => 'A LetsSee consultant will help you identify the right strategic next step for your business.'],
             'primary_cta_label' => ['label' => 'CTA label', 'type' => 'text', 'default' => 'Schedule A Strategy Consultation'],
             'primary_cta_url' => ['label' => 'CTA URL', 'type' => 'text', 'default' => '/contact'],
         ],
@@ -73,7 +73,7 @@ return [
             'whatsapp_title' => ['label' => 'WhatsApp card title', 'type' => 'text', 'default' => 'WhatsApp'],
             'whatsapp_body' => ['label' => 'WhatsApp card body', 'type' => 'text', 'default' => "Send a message and we'll respond fast."],
             'hours_title' => ['label' => 'Hours card title', 'type' => 'text', 'default' => 'Hours'],
-            'hours_body' => ['label' => 'Hours card body', 'type' => 'text', 'default' => 'Call or WhatsApp for strategy consultation. Email: markonminds@gmail.com.'],
+            'hours_body' => ['label' => 'Hours card body', 'type' => 'text', 'default' => 'Call or WhatsApp for strategy consultation. Email: hello@letssee.in.'],
         ],
         'form-callback' => [
             'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => 'Request a callback'],
@@ -84,17 +84,17 @@ return [
         'hero-services' => [
             'eyebrow' => ['label' => 'Eyebrow', 'type' => 'text', 'default' => 'Services'],
             'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => 'Strategic solutions for businesses ready to grow.'],
-            'subheadline' => ['label' => 'Subheadline', 'type' => 'textarea', 'default' => 'Every MarkOnMinds service is designed to strengthen business foundations, improve positioning, build trust, and support sustainable growth.'],
+            'subheadline' => ['label' => 'Subheadline', 'type' => 'textarea', 'default' => 'Every LetsSee service is designed to strengthen business foundations, improve positioning, build trust, and support sustainable growth.'],
         ],
         'hero-locations' => [
             'eyebrow' => ['label' => 'Eyebrow', 'type' => 'text', 'default' => 'Service Areas'],
             'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => 'Countries & States We Serve'],
-            'subheadline' => ['label' => 'Subheadline', 'type' => 'textarea', 'default' => 'MarkOnMinds supports consulting engagements across India, Ireland, and UAE.'],
+            'subheadline' => ['label' => 'Subheadline', 'type' => 'textarea', 'default' => 'LetsSee supports consulting engagements across India, Ireland, and UAE.'],
         ],
         'contact-split' => [
-            'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => 'Contact MarkOnMinds'],
+            'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => 'Contact LetsSee'],
             'subheadline' => ['label' => 'Subheadline', 'type' => 'text', 'default' => 'Call, WhatsApp, or visit our contact page.'],
-            'hours_line' => ['label' => 'Hours line', 'type' => 'text', 'default' => 'Email: markonminds@gmail.com'],
+            'hours_line' => ['label' => 'Hours line', 'type' => 'text', 'default' => 'Email: hello@letssee.in'],
             'area_line' => ['label' => 'Area line', 'type' => 'text', 'default' => 'India, Ireland, UAE'],
             'primary_cta_label' => ['label' => 'Call CTA label', 'type' => 'text', 'default' => 'Call'],
         ],
@@ -126,7 +126,7 @@ return [
         'locations-overview-home' => [
             'eyebrow' => ['label' => 'Eyebrow', 'type' => 'text', 'default' => 'Countries'],
             'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => 'National and international consulting coverage.'],
-            'subheadline' => ['label' => 'Subheadline', 'type' => 'textarea', 'default' => 'MarkOnMinds supports businesses across India, Ireland, and UAE. No pincode selection is required.'],
+            'subheadline' => ['label' => 'Subheadline', 'type' => 'textarea', 'default' => 'LetsSee supports businesses across India, Ireland, and UAE. No pincode selection is required.'],
             'link_label' => ['label' => 'Link label', 'type' => 'text', 'default' => 'View countries →'],
             'link_url' => ['label' => 'Link URL', 'type' => 'text', 'default' => '/locations'],
         ],
@@ -158,18 +158,18 @@ return [
             'vision_title' => ['label' => 'Vision title', 'type' => 'text', 'default' => 'Our vision'],
             'vision_body' => ['label' => 'Vision body', 'type' => 'textarea', 'default' => 'A market where growth-focused businesses build trust through clarity, consistency, and quality.'],
             'model_title' => ['label' => 'Care model title', 'type' => 'text', 'default' => 'Our care model'],
-            'model_body' => ['label' => 'Care model body', 'type' => 'textarea', 'default' => 'Every MarkOnMinds engagement is guided by strategy, executed with focus, and aligned to measurable business outcomes.'],
-            'trust_title' => ['label' => 'Trust title', 'type' => 'text', 'default' => 'Why businesses choose MarkOnMinds'],
+            'model_body' => ['label' => 'Care model body', 'type' => 'textarea', 'default' => 'Every LetsSee engagement is guided by strategy, executed with focus, and aligned to measurable business outcomes.'],
+            'trust_title' => ['label' => 'Trust title', 'type' => 'text', 'default' => 'Why businesses choose LetsSee'],
             'trust_bullets' => ['label' => 'Trust bullets (one per line)', 'type' => 'textarea', 'default' => "Expert-led care plans — not just task-based visits.\nVerified, trained clinicians with regular audits.\nTransparent pricing and clear escalation paths.\nTight 25 km service belt for fast, reliable response."],
         ],
         'locations-coverage' => [
             'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => 'Countries & States We Serve'],
-            'footnote' => ['label' => 'Footnote', 'type' => 'text', 'default' => "No pincode selection is required. MarkOnMinds works with businesses across India, Ireland, and UAE."],
+            'footnote' => ['label' => 'Footnote', 'type' => 'text', 'default' => "No pincode selection is required. LetsSee works with businesses across India, Ireland, and UAE."],
         ],
         'hero-careers' => [
             'eyebrow' => ['label' => 'Eyebrow', 'type' => 'text', 'default' => ''],
-            'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => 'Careers at MarkOnMinds'],
-            'subheadline' => ['label' => 'Subheadline', 'type' => 'textarea', 'default' => 'Join MarkOnMinds across strategy, marketing, operations, and growth roles.'],
+            'headline' => ['label' => 'Headline', 'type' => 'text', 'default' => 'Careers at LetsSee'],
+            'subheadline' => ['label' => 'Subheadline', 'type' => 'textarea', 'default' => 'Join LetsSee across strategy, marketing, operations, and growth roles.'],
         ],
         'services-grid-full' => [
             'card_consulting_title' => ['label' => 'Strategic Website & Growth Systems title', 'type' => 'text', 'default' => 'Brand Strategy & Positioning'],

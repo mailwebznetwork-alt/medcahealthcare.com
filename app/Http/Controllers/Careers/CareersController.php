@@ -65,7 +65,7 @@ class CareersController extends Controller
             'full_name' => $data['full_name'],
             'email' => $data['email'],
             'phone' => $data['phone'],
-            'pin_code' => $data['pin_code'] ?? null,
+            'pin_code' => $data['country'] ?? null,
             'city' => $data['city'] ?? null,
             'cover_message' => $data['cover_message'] ?? null,
             'resume_path' => $resumePath,

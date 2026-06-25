@@ -216,13 +216,11 @@ class UnifiedJsonLdGraphBuilder
             '@type' => 'Place',
             '@id' => $canonical.'#geographic-area',
             'name' => $area,
-            'postalCode' => $pin->pincode,
             'address' => array_filter([
                 '@type' => 'PostalAddress',
                 'addressLocality' => $pin->city,
                 'addressRegion' => $pin->state,
-                'postalCode' => $pin->pincode,
-                'addressCountry' => 'IN',
+                'addressCountry' => $pin->area_name ?: $pin->state,
             ]),
             'description' => $pin->coverage_text,
         ]);
@@ -237,7 +235,6 @@ class UnifiedJsonLdGraphBuilder
             '@type' => 'Place',
             '@id' => $canonical.'#service-location',
             'name' => $area,
-            'postalCode' => $pin->pincode,
             'url' => $canonical,
         ];
     }

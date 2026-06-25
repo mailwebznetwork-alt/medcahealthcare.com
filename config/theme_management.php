@@ -31,7 +31,7 @@ return [
     'header_presets' => [
         'classic_digital growth platform' => [
             'label' => 'Classic Digital Growth Platform',
-            'description' => 'Navy top strip + white brand row (current MarkOnMinds default).',
+            'description' => 'Navy top strip + white brand row (current LetsSee default).',
             'class' => 'medca-header-classic',
         ],
         'corporate' => [

@@ -24,7 +24,7 @@
     />
 
     <x-public.section>
-        <div class="medca-location-area space-y-10" data-location-area="{{ $pin->pincode }}">
+        <div class="medca-location-area space-y-10" data-location-area="{{ $pin->area_name ?: $pin->city }}">
             <x-public.location-services-detail-list
                 :services="$services"
                 :pin-code-record="$pin"

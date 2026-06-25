@@ -19,7 +19,7 @@
 
     $provisioner = app(\App\Services\Operations\ServiceLocationPageProvisioner::class);
     $templates = app(\App\Services\Operations\ServiceLocationTemplateResolver::class);
-    $area = $pin->area_name ?: $pin->locality ?: $pin->city ?: $pin->pincode;
+    $area = $pin->area_name ?: $pin->locality ?: $pin->city ?: __('International');
     $title = $provisioner->locationTitle($svc, $pin);
     $intro = $provisioner->localIntro($svc, $pin);
     $ctaHeading = $templates->ctaHeading($svc, $pin);
@@ -28,22 +28,22 @@
     $coverageAreas = PinCode::query()
         ->where('is_active', true)
         ->whereKeyNot($pin->id)
+        ->orderBy('state')
         ->orderBy('city')
-        ->orderBy('country')
         ->get();
 @endphp
 
 <x-public.location-page-hero
     :eyebrow="__('Service Areas')"
     :headline="$title"
-    :subline="__('Professional digital growth platform services available for :area.', ['area' => $area, 'pin' => $pin->pincode])"
+    :subline="__('Professional digital growth platform services available for :area.', ['area' => $area])"
     :intro="$intro"
     :show-body="false"
     tone="brand"
 />
 
 <x-public.section>
-    <div class="medca-location-geo space-y-10" data-location-pincode="{{ $pin->pincode }}">
+    <div class="medca-location-geo space-y-10" data-location-country="{{ $area }}">
         <x-public.location-service-detail
             :service="$svc"
             :pin-code="$pin"

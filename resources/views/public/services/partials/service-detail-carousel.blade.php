@@ -21,49 +21,49 @@
 
         <div class="medca-detail-track">
             <article class="medca-detail-card">
-                <span class="medca-detail-badge">{{ __('Consulting services') }}</span>
-                <h3>{{ __('Procedures included') }}</h3>
+                <span class="medca-detail-badge">{{ __('Strategic services') }}</span>
+                <h3>{{ __('What is included') }}</h3>
                 <ul class="medca-detail-list">
                     @forelse ($procedures as $item)
                         <li>{{ $item }}</li>
                     @empty
-                        <li>{{ __('Injection & IV care') }}</li>
-                        <li>{{ __('Catheter care') }}</li>
-                        <li>{{ __('Wound dressing') }}</li>
-                        <li>{{ __('Vitals monitoring') }}</li>
+                        <li>{{ __('Business clarity review') }}</li>
+                        <li>{{ __('Positioning recommendations') }}</li>
+                        <li>{{ __('Growth system planning') }}</li>
+                        <li>{{ __('Trust-building priorities') }}</li>
                     @endforelse
                 </ul>
-                <a href="{{ url('/contact') }}" class="medca-detail-action">{{ __('Book procedure') }}</a>
+                <a href="{{ url('/contact') }}" class="medca-detail-action">{{ __('Schedule consultation') }}</a>
             </article>
 
             <article class="medca-detail-card">
-                <span class="medca-detail-badge">{{ __('Specialized care') }}</span>
-                <h3>{{ __('Conditions handled') }}</h3>
+                <span class="medca-detail-badge">{{ __('Growth focus') }}</span>
+                <h3>{{ __('Business needs handled') }}</h3>
                 <ul class="medca-detail-list">
                     @forelse ($specialized as $item)
                         <li>{{ $item }}</li>
                     @empty
-                        <li>{{ __('Post-surgery care') }}</li>
-                        <li>{{ __('ICU setup assistance') }}</li>
-                        <li>{{ __('Stroke patient care') }}</li>
-                        <li>{{ __('Palliative care') }}</li>
+                        <li>{{ __('Unclear positioning') }}</li>
+                        <li>{{ __('Low trust and weak differentiation') }}</li>
+                        <li>{{ __('Poor enquiry conversion') }}</li>
+                        <li>{{ __('Growth planning gaps') }}</li>
                     @endforelse
                 </ul>
-                <a href="{{ url('/contact') }}" class="medca-detail-action">{{ __('Request special care') }}</a>
+                <a href="{{ url('/contact') }}" class="medca-detail-action">{{ __('Discuss your goals') }}</a>
             </article>
 
             <article class="medca-detail-card">
-                <span class="medca-detail-badge">{{ __('Shift availability') }}</span>
-                <h3>{{ __('Service timing') }}</h3>
+                <span class="medca-detail-badge">{{ __('Engagement') }}</span>
+                <h3>{{ __('Consulting availability') }}</h3>
                 <ul class="medca-detail-list">
                     @forelse ($shifts as $item)
                         <li>{{ $item }}</li>
                     @empty
-                        <li>{{ __('12 hours day duty') }}</li>
-                        <li>{{ __('12 hours night duty') }}</li>
-                        <li>{{ __('24 hours live-in consulting') }}</li>
+                        <li>{{ __('Strategy consultation') }}</li>
+                        <li>{{ __('Project-based execution') }}</li>
+                        <li>{{ __('Ongoing growth advisory') }}</li>
                     @endforelse
-                    <li>{{ __('Doctor coordination support') }}</li>
+                    <li>{{ __('Leadership coordination support') }}</li>
                 </ul>
                 <a href="{{ url('/contact') }}" class="medca-detail-action">{{ __('Check availability') }}</a>
             </article>

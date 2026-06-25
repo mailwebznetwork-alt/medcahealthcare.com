@@ -4,8 +4,8 @@
  * Theme Foundation — dual-shell token registry (Phase 4).
  *
  * CSS source of truth:
- * - Admin (MarkOnMinds): resources/css/markonminds.css `:root` — `--mom-*` namespace
- * - Public (MarkOnMinds marketing): resources/css/public/tokens.css — `--medca-*` on `.medca-public-surface`
+ * - Admin (LetsSee): resources/css/markonminds.css `:root` — `--mom-*` namespace
+ * - Public (LetsSee marketing): resources/css/public/tokens.css — `--medca-*` on `.medca-public-surface`
  *
  * Tailwind mappings: tailwind.config.js (`mom-gold`, `medca-primary`, etc.)
  *
