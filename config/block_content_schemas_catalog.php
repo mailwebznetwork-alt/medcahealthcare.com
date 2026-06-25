@@ -280,7 +280,7 @@ return array (
       array (
         'label' => 'Headline',
         'type' => 'text',
-        'default' => 'See how Medca delivers at home',
+        'default' => 'See how Karnataka Diagnostics delivers lab services',
       ),
       'subheadline' => 
       array (
@@ -955,7 +955,7 @@ return array (
       array (
         'label' => 'Headline',
         'type' => 'text',
-        'default' => 'Medca vs traditional clinic visits',
+        'default' => 'Karnataka Diagnostics vs traditional clinic visits',
       ),
       'subheadline' => 
       array (

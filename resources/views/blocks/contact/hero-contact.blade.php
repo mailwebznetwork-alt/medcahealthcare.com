@@ -3,7 +3,7 @@
     $settings = is_array($blockSettings ?? null) ? $blockSettings : [];
     $heroMediaStyle = \App\Support\BlockMediaUrl::heroBackgroundStyle(is_array($blockMedia ?? null) ? $blockMedia : []);
     $eyebrow = BlockContent::globalOrBlock($settings, 'hero-contact', 'eyebrow', 'contact_hero_eyebrow', 'Contact');
-    $headline = BlockContent::globalOrBlock($settings, 'hero-contact', 'headline', 'contact_hero_headline', 'Talk to a Medca care advisor.');
+    $headline = BlockContent::globalOrBlock($settings, 'hero-contact', 'headline', 'contact_hero_headline', 'Talk to a Karnataka Diagnostics advisor.');
     $subheadline = BlockContent::globalOrBlock($settings, 'hero-contact', 'subheadline', 'contact_hero_subheadline');
 @endphp
 <x-public.hero class="medca-hero-gradient text-white" style="{{ $heroMediaStyle }}">

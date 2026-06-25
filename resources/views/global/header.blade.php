@@ -174,7 +174,7 @@
                                         </svg>
                                     </span>
                                     <div class="min-w-0">
-                                        <p class="text-sm font-semibold tracking-wide text-clinical-900">{{ __('Medca Navigation') }}</p>
+                                        <p class="text-sm font-semibold tracking-wide text-clinical-900">{{ __('Karnataka Diagnostics Navigation') }}</p>
                                         @if($isSuperAdmin)
                                             <p class="text-[11px] uppercase tracking-[0.2em] text-slate-500">{{ __('Strategic Commander') }}</p>
                                         @endif

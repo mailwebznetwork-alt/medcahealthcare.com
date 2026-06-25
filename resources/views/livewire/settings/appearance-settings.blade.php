@@ -177,7 +177,7 @@
                 <p class="mb-2 text-sm text-[var(--text-secondary)]">
                     {{ __('You control every size, weight, and line height. Values are stored in your theme draft — not auto-decided by the platform.') }}
                 </p>
-                <p class="text-sm text-[var(--text-secondary)]">{{ __('Save typography draft, then Publish to apply on medcahealthcare.in.') }}</p>
+                <p class="text-sm text-[var(--text-secondary)]">{{ __('Save typography draft, then Publish to apply on karnatakadiagnostics.com.') }}</p>
             </x-admin.card>
             <x-admin.card :title="__('Typography')">
                 <form wire:submit="saveTypography" class="space-y-6">
