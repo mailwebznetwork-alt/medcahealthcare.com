@@ -30,7 +30,9 @@ class QuickAnswerGenerator
             return rtrim($sentence, '.').'.';
         }
 
-        return "{$title} is available across {$area} through Karnataka Diagnostic Centre with reliable Medical Laboratory support and clear reporting.";
+        $brand = (string) config('medca.brand_name', 'Medca Healthcare');
+
+        return "{$title} is available across {$area} through {$brand} with doctor-led home healthcare and supervised nursing support.";
     }
 
     public function generateForCategory(ServiceCategory $category): string
@@ -42,7 +44,9 @@ class QuickAnswerGenerator
         $name = (string) ($category->name ?? $category->title ?? 'Service category');
         $city = config('medca.default_city', 'Bangalore');
 
-        return "Karnataka Diagnostic Centre provides {$name} across {$city} with reliable Medical Laboratory workflows and patient-friendly diagnostic support.";
+        $brand = (string) config('medca.brand_name', 'Medca Healthcare');
+
+        return "{$brand} provides {$name} across {$city} with hospital-grade home care, clinical supervision, and family-centred support.";
     }
 
     public function generateForSubService(SubService $subService): string
@@ -57,7 +61,9 @@ class QuickAnswerGenerator
             : (string) ($subService->service()->value('title') ?? 'medical laboratory services');
         $city = config('medca.default_city', 'Karnataka');
 
-        return "{$title} is a specialized {$parent} offering from Karnataka Diagnostic Centre in {$city}.";
+        $brand = (string) config('medca.brand_name', 'Medca Healthcare');
+
+        return "{$title} is a specialized {$parent} offering from {$brand} in {$city}.";
     }
 
     public function fillIfEmpty(Model $entity): void
