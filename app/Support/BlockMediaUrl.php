@@ -14,7 +14,13 @@ class BlockMediaUrl
             return $path;
         }
 
-        return asset('storage/'.ltrim($path, '/'));
+        $relative = 'storage/'.ltrim($path, '/');
+
+        if (config('media.cdn.enabled', false) && filled(config('media.cdn.url'))) {
+            return rtrim((string) config('media.cdn.url'), '/').'/'.ltrim($relative, '/');
+        }
+
+        return asset($relative);
     }
 
     /**

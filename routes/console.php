@@ -63,6 +63,20 @@ Schedule::command('medca:content-health-report')
     ->name('medca-content-health-weekly')
     ->withoutOverlapping();
 
+if (config('growth.schedule_seo_discovery_bootstrap', true)) {
+    Schedule::command('growth:bootstrap-discovery')
+        ->weeklyOn(1, '02:45')
+        ->name('growth-seo-discovery-bootstrap')
+        ->withoutOverlapping();
+}
+
+if (config('growth.schedule_broken_link_scan', true)) {
+    Schedule::job(new \App\Jobs\Growth\ScanBrokenInternalLinksJob())
+        ->weeklyOn(1, '03:15')
+        ->name('growth-broken-link-scan')
+        ->withoutOverlapping();
+}
+
 Schedule::job(new \App\Jobs\NotifyContentQualityAlertsJob('scheduled'))
     ->weeklyOn(1, '06:30')
     ->name('medca-content-quality-alerts-weekly')

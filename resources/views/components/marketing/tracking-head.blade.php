@@ -7,15 +7,14 @@
     $gtmContainerId = '';
 
     if (\Illuminate\Support\Facades\Schema::hasTable('integrations')) {
-        $google = \App\Models\Integration::query()->where('name', 'google_services')->first();
         $meta = \App\Models\Integration::query()->where('name', 'meta_ads')->first();
         $gtm = \App\Models\Integration::query()->where('name', 'google_tag_manager')->first();
-        $googleCredentials = $google?->credentials ?? [];
+        $googleCredentials = \App\Support\GoogleIntegrationCredentials::credentials();
         $metaCredentials = $meta?->credentials ?? [];
         $gtmCredentials = $gtm?->credentials ?? [];
 
-        $ga4MeasurementId = $googleCredentials['measurement_id'] ?? $ga4MeasurementId;
-        $googleAdsAwId = $googleCredentials['google_ads_aw_id'] ?? $googleAdsAwId;
+        $ga4MeasurementId = \App\Support\GoogleIntegrationCredentials::measurementId($ga4MeasurementId);
+        $googleAdsAwId = \App\Support\GoogleIntegrationCredentials::adsAwId($googleAdsAwId);
         $metaPixelId = $metaCredentials['pixel_id'] ?? $metaPixelId;
         $gtmContainerId = (string) ($gtmCredentials['container_id'] ?? $gtmCredentials['gtm_id'] ?? '');
     }

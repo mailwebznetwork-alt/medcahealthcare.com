@@ -18,8 +18,9 @@
                             type="text"
                             inputmode="numeric"
                             maxlength="6"
-                            wire:model.live="pincode"
+                            wire:model.live.debounce.300ms="pincode"
                             wire:focus="refreshPincodeSuggestions"
+                            wire:target="pincode"
                             autocomplete="postal-code"
                             autocapitalize="off"
                             spellcheck="false"
@@ -31,6 +32,28 @@
                             placeholder="{{ __('Type to search — e.g. 56007') }}"
                         />
                         @error('pincode') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+
+                        @if (strlen($pincode) === 6 && $pincodeIsServiceable === true)
+                            <div class="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5" role="status">
+                                <p class="text-sm font-semibold text-slate-900">{{ $pincode }}</p>
+                                <p class="mt-0.5 text-xs text-slate-600">
+                                    {{ $matchedAreaName }}@if ($matchedCity !== '') · {{ $matchedCity }}@endif
+                                </p>
+                                <p class="mt-1.5 text-xs font-medium text-emerald-700">{{ __('Service available in this area') }}</p>
+                            </div>
+                        @elseif (strlen($pincode) === 6 && $pincodeIsServiceable === null)
+                            <div class="mt-3 flex items-center gap-2 text-xs text-slate-500" wire:loading wire:target="pincode">
+                                <span class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-slate-300 border-t-medca-primary"></span>
+                                {{ __('Checking service area…') }}
+                            </div>
+                        @elseif (strlen($pincode) === 6 && $pincodeIsServiceable === false)
+                            <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5" role="status">
+                                <p class="text-sm font-semibold text-slate-900">{{ $pincode }}</p>
+                                <p class="mt-1.5 text-xs text-amber-800">
+                                    {{ __('This pincode is not in our service area yet. Pick a nearby area from the list.') }}
+                                </p>
+                            </div>
+                        @endif
 
                         @if ($showPincodeSuggestions)
                             <div
@@ -47,7 +70,7 @@
                                                     wire:click="selectPincode('{{ $suggestion['pincode'] }}')"
                                                     class="flex w-full flex-col gap-0.5 px-3 py-2 text-left text-sm hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
                                                 >
-                                                    <span class="font-mono font-semibold text-slate-900">{{ $suggestion['pincode'] }}</span>
+                                                    <span class="text-sm font-semibold text-slate-900">{{ $suggestion['pincode'] }}</span>
                                                     <span class="text-xs text-slate-600">{{ $suggestion['area_name'] }}@if ($suggestion['city'] !== '') · {{ $suggestion['city'] }}@endif</span>
                                                 </button>
                                             </li>

@@ -27,8 +27,10 @@ class StoreSeoTechnicalRequest extends FormRequest
             'canonical_url' => ['nullable', 'url', 'max:2048'],
             'indexable' => ['required', 'boolean'],
             'llm_txt' => ['nullable', 'string'],
+            'llms_txt' => ['nullable', 'string'],
             'ai_discovery_enabled' => ['required', 'boolean'],
             'google_site_verification' => ['nullable', 'string', 'max:255'],
+            'bing_site_verification' => ['nullable', 'string', 'max:128'],
         ];
     }
 }

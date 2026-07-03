@@ -474,6 +474,18 @@ class Service extends Model
             $node['areaServed'] = $areaServed;
         }
 
+        $reviewCount = $this->approvedReviewsCount();
+        $averageRating = $this->averageApprovedRating();
+        if ($reviewCount > 0 && $averageRating !== null) {
+            $node['aggregateRating'] = [
+                '@type' => 'AggregateRating',
+                'ratingValue' => $averageRating,
+                'reviewCount' => $reviewCount,
+                'bestRating' => 5,
+                'worstRating' => 1,
+            ];
+        }
+
         $node['provider'] = [
             '@type' => 'LocalBusiness',
             'name' => config('medca.brand_name', 'Karnataka Diagnostic Centre'),

@@ -8,6 +8,7 @@ use App\Models\Service;
 use App\Services\Governance\AdminDeletionGuard;
 use App\Services\Governance\DownstreamArtifactPurger;
 use App\Services\Growth\ContentSeoAutoFillService;
+use App\Services\Growth\IndexNowDispatcher;
 use App\Services\Growth\SitemapRegenerationDispatcher;
 use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Operations\InternalLinkRefreshDispatcher;
@@ -41,6 +42,10 @@ class ServiceObserver
         PostPublishGrowthSync::defer();
         $this->linkRefreshDispatcher->dispatchForService($service->id);
         $this->sitemapDispatcher->dispatch();
+
+        if ($service->isListedPublicly()) {
+            app(IndexNowDispatcher::class)->notifyPath('/services/'.$service->service_code);
+        }
     }
 
     public function deleted(Service $service): void

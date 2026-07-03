@@ -16,6 +16,8 @@
         </ul>
     </div>
 
+    @include('growth-center.competitors.partials.seo-phase-ab')
+
     <div class="mt-8 space-y-8">
         <article class="mom-card p-5">
             <h3 class="mom-section-title">{{ __('Global entity, NAP, links & JSON-LD') }}</h3>
@@ -166,12 +168,20 @@
                     <input type="text" name="google_site_verification" value="{{ old('google_site_verification', $seoTechnical?->google_site_verification) }}" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]">
                 </label>
                 <label class="block">
+                    <span class="mom-micro mb-1 block">{{ __('Bing site verification (msvalidate.01)') }}</span>
+                    <input type="text" name="bing_site_verification" value="{{ old('bing_site_verification', $seoTechnical?->bing_site_verification) }}" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 text-sm text-[var(--text-primary)]">
+                </label>
+                <label class="block">
                     <span class="mom-micro mb-1 block">{{ __('robots.txt (raw)') }}</span>
                     <textarea name="robots_txt" rows="8" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 font-mono text-xs text-[var(--text-primary)]">{{ old('robots_txt', $seoTechnical?->robots_txt) }}</textarea>
                 </label>
                 <label class="block">
-                    <span class="mom-micro mb-1 block">{{ __('llm.txt (raw, optional)') }}</span>
-                    <textarea name="llm_txt" rows="8" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 font-mono text-xs text-[var(--text-primary)]" placeholder="{{ __('Leave blank to use default bot allow-list.') }}">{{ old('llm_txt', $seoTechnical?->llm_txt) }}</textarea>
+                    <span class="mom-micro mb-1 block">{{ __('llm.txt (bot policy, optional)') }}</span>
+                    <textarea name="llm_txt" rows="6" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 font-mono text-xs text-[var(--text-primary)]" placeholder="{{ __('Leave blank to use default bot allow-list.') }}">{{ old('llm_txt', $seoTechnical?->llm_txt) }}</textarea>
+                </label>
+                <label class="block">
+                    <span class="mom-micro mb-1 block">{{ __('llms.txt (site guide for AI crawlers, optional)') }}</span>
+                    <textarea name="llms_txt" rows="8" class="w-full rounded-mom-chrome border border-[rgba(255,255,255,0.06)] bg-[rgba(28,22,18,0.75)] px-3 py-2 font-mono text-xs text-[var(--text-primary)]" placeholder="{{ __('Leave blank to auto-generate from catalog and entity data.') }}">{{ old('llms_txt', $seoTechnical?->llms_txt) }}</textarea>
                 </label>
                 <button type="submit" class="mom-cta-primary mom-cta-compact">{{ __('Save technical settings') }}</button>
             </form>

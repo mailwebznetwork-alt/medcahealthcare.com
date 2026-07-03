@@ -1,6 +1,6 @@
 # MEDCA HEALTH CARE — Go-Live Certification (Phase 4)
 
-**Generated:** 2026-06-13T22:51:57+05:30
+**Generated:** 2026-07-03T19:02:38+05:30
 **Decision:** **NO-GO**
 **Certified:** NO
 
@@ -100,7 +100,7 @@
 ### Internal linking — PASS (100%)
 
 ### Seo — FAIL (40%)
-- FAIL: database_first — 1 violations
+- FAIL: database_first — 18 violations
 - FAIL: services_have_meta — service meta titles
 - FAIL: canonical_paths — meta descriptions
 

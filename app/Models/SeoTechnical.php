@@ -15,8 +15,11 @@ class SeoTechnical extends Model
         'canonical_url',
         'indexable',
         'llm_txt',
+        'llms_txt',
         'ai_discovery_enabled',
         'google_site_verification',
+        'bing_site_verification',
+        'indexnow_key',
     ];
 
     protected function casts(): array

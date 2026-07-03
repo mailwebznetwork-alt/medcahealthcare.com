@@ -1,11 +1,15 @@
 <?php
 
 use App\Http\Controllers\Admin\Growth\CompetitorController;
-use App\Http\Controllers\Api\Operations\ServiceCategoryApiController;
-use App\Http\Controllers\Api\LeadController;
 use App\Http\Controllers\Api\ExotelWebhookController;
+use App\Http\Controllers\Api\LeadController;
+use App\Http\Controllers\Api\Operations\ServiceCategoryApiController;
 use App\Http\Controllers\Api\PaymentNotificationController;
+use App\Http\Controllers\Api\V1\PerformanceRumController;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/v1/performance/rum', [PerformanceRumController::class, 'store'])
+    ->middleware('throttle:120,1');
 
 Route::prefix('v1')->middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/openapi.json', [\App\Http\Controllers\Api\V1\OpenApiController::class, 'show'])->withoutMiddleware(['auth:sanctum', 'active']);

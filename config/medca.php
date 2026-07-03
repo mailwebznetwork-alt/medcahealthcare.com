@@ -58,6 +58,19 @@ return [
     'hide_location_neighbourhood_cta' => (bool) env('MEDCA_HIDE_LOCATION_NEIGHBOURHOOD_CTA', true),
 
     /**
+     * LocalBusiness opening hours for structured data (24/7 home healthcare dispatch).
+     *
+     * @var list<array{days: list<string>, opens: string, closes: string}>
+     */
+    'opening_hours' => [
+        [
+            'days' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            'opens' => '00:00',
+            'closes' => '23:59',
+        ],
+    ],
+
+    /**
      * Dev/staging hosts rewritten by `medca:normalize-site-urls` toward APP_URL (or --to=).
      *
      * @var list<string>

@@ -6,6 +6,7 @@ use App\Models\Page;
 use App\Models\PageElement;
 use App\Models\PageSeo;
 use App\Services\Growth\ContentSeoAutoFillService;
+use App\Services\Growth\IndexNowDispatcher;
 use App\Services\Growth\SitemapRegenerationDispatcher;
 use App\Services\Import\ImportSideEffectsGate;
 use App\Services\Seo\SeoOwnershipGuard;
@@ -40,6 +41,10 @@ class PageObserver
 
         PostPublishGrowthSync::defer();
         $this->sitemapDispatcher->dispatch();
+
+        if ($page->is_active) {
+            app(IndexNowDispatcher::class)->notifyPath($page->publicPath());
+        }
     }
 
     public function deleted(Page $page): void

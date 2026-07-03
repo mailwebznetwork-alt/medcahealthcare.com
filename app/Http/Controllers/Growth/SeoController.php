@@ -69,6 +69,23 @@ class SeoController extends Controller
         ]);
     }
 
+    public function indexNowKey(string $indexNowKey): SymfonyResponse
+    {
+        $key = trim((string) config('growth.indexnow.key', ''));
+        if ($key === '' || ! hash_equals($key, $indexNowKey)) {
+            $technical = \App\Support\SeoTechnicalResolver::forCurrentSite(repairOrphan: false);
+            $dbKey = trim((string) ($technical?->indexnow_key ?? ''));
+            if ($dbKey === '' || ! hash_equals($dbKey, $indexNowKey)) {
+                abort(404);
+            }
+            $key = $dbKey;
+        }
+
+        return response($key, 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+        ]);
+    }
+
     public function sitemapXml(): SymfonyResponse
     {
         if (! $this->seoService->isSitemapPubliclyAvailable()) {

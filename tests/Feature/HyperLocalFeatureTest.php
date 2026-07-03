@@ -11,6 +11,34 @@ use App\Services\UserLocationService;
 use Illuminate\Support\Facades\Session;
 use Livewire\Livewire;
 
+it('shows area name when a full serviceable pincode is entered', function () {
+    PinCode::factory()->create([
+        'pincode' => '560007',
+        'area_name' => 'Victoria Layout',
+        'city' => 'Bangalore',
+        'is_active' => true,
+    ]);
+
+    Livewire::test(PincodeModal::class)
+        ->set('open', true)
+        ->set('pincode', '560007')
+        ->assertSet('pincodeIsServiceable', true)
+        ->assertSet('matchedAreaName', 'Victoria Layout')
+        ->assertSet('matchedCity', 'Bangalore')
+        ->assertSet('showPincodeSuggestions', false)
+        ->assertSee('Victoria Layout')
+        ->assertSee('Service available in this area');
+});
+
+it('shows unavailable feedback for unknown pincodes', function () {
+    Livewire::test(PincodeModal::class)
+        ->set('open', true)
+        ->set('pincode', '560099')
+        ->assertSet('pincodeIsServiceable', false)
+        ->assertSet('showPincodeSuggestions', false)
+        ->assertSee('not in our service area');
+});
+
 it('suggests pincodes by prefix in the location modal', function () {
     foreach (range(0, 9) as $i) {
         PinCode::factory()->create([
@@ -28,7 +56,9 @@ it('suggests pincodes by prefix in the location modal', function () {
         ->assertCount('pincodeSuggestions', 10)
         ->call('selectPincode', '560075')
         ->assertSet('pincode', '560075')
-        ->assertSet('showPincodeSuggestions', false);
+        ->assertSet('showPincodeSuggestions', false)
+        ->assertSet('pincodeIsServiceable', true)
+        ->assertSet('matchedAreaName', 'Area 5');
 });
 
 it('shows cancel when changing an existing pincode', function () {

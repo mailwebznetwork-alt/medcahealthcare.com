@@ -11,11 +11,14 @@ use App\Models\CompetitorTracking;
 use App\Models\GeoLocation;
 use App\Models\PinCode;
 use App\Models\SeoAiSignal;
-use App\Models\SeoTechnical;
 use App\Models\SiteKeywordRanking;
+use App\Models\BrokenLinkReport;
+use App\Models\UrlRedirect;
+use App\Support\SeoTechnicalResolver;
 use App\Services\Growth\BacklinkMonitorService;
 use App\Services\Growth\CompetitorComparisonService;
 use App\Services\Growth\GeoService;
+use App\Services\Growth\SeoDiscoveryBootstrapService;
 use App\Services\Growth\SeoEntityResolver;
 use App\Services\Growth\WarRoomService;
 use App\Support\GrowthReadinessReport;
@@ -119,7 +122,7 @@ class CompetitorPageController extends Controller
             $seoEntity = app(SeoEntityResolver::class)->forCurrentBusiness();
         }
         if (Schema::hasTable('seo_technical')) {
-            $seoTechnical = SeoTechnical::query()->latest('id')->first();
+            $seoTechnical = SeoTechnicalResolver::forCurrentSite();
         }
         if (Schema::hasTable('seo_ai_signals')) {
             $seoAiSignal = SeoAiSignal::query()->latest('id')->first();
@@ -174,6 +177,14 @@ class CompetitorPageController extends Controller
             'hijackOpportunities' => $hijackOpportunities,
             'hijackStrategies' => $hijackStrategies,
             'backlinkSummary' => app(BacklinkMonitorService::class)->warRoomSummary(),
+            'seoDiscoveryStatus' => app(SeoDiscoveryBootstrapService::class)->status(),
+            'urlRedirects' => Schema::hasTable('url_redirects')
+                ? UrlRedirect::query()->orderByDesc('id')->limit(50)->get()
+                : collect(),
+            'brokenLinkReports' => Schema::hasTable('broken_link_reports')
+                ? BrokenLinkReport::query()->orderByDesc('id')->limit(5)->get()
+                : collect(),
+            'seoBootstrapResult' => session('seo_bootstrap_result'),
         ]);
     }
 

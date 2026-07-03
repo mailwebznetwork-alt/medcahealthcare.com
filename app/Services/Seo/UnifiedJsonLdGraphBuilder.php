@@ -195,6 +195,7 @@ class UnifiedJsonLdGraphBuilder
             'description' => $ctx['description'],
             'address' => $ctx['address'],
             'geo' => $ctx['geo_coordinates'],
+            'openingHoursSpecification' => $this->openingHoursSpecification(),
             'areaServed' => $ctx['area_served'] !== [] ? $ctx['area_served'] : null,
             'hasOfferCatalog' => $ctx['service_catalog'] !== [] ? [
                 '@type' => 'OfferCatalog',
@@ -337,5 +338,37 @@ class UnifiedJsonLdGraphBuilder
             '@id' => $canonical.'#breadcrumb',
             'itemListElement' => $elements,
         ];
+    }
+
+    /**
+     * @return list<array<string, mixed>>|null
+     */
+    private function openingHoursSpecification(): ?array
+    {
+        $hours = config('medca.opening_hours', []);
+        if (! is_array($hours) || $hours === []) {
+            return null;
+        }
+
+        $specs = [];
+        foreach ($hours as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+            $days = $row['days'] ?? [];
+            $opens = $row['opens'] ?? null;
+            $closes = $row['closes'] ?? null;
+            if (! is_array($days) || $days === [] || ! is_string($opens) || ! is_string($closes)) {
+                continue;
+            }
+            $specs[] = array_filter([
+                '@type' => 'OpeningHoursSpecification',
+                'dayOfWeek' => $days,
+                'opens' => $opens,
+                'closes' => $closes,
+            ]);
+        }
+
+        return $specs !== [] ? $specs : null;
     }
 }

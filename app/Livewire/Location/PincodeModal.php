@@ -2,11 +2,10 @@
 
 namespace App\Livewire\Location;
 
-use App\Models\PinCode;
 use App\Services\Discovery\PincodeRedirectResolver;
+use App\Services\PinCodes\PinCodeSuggestionCatalog;
 use App\Services\UserLocationService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View as ViewFacade;
 use Illuminate\View\View;
 use Livewire\Attributes\On;
@@ -26,6 +25,13 @@ class PincodeModal extends Component
     public array $pincodeSuggestions = [];
 
     public bool $showPincodeSuggestions = false;
+
+    public ?string $matchedAreaName = null;
+
+    public ?string $matchedCity = null;
+
+    /** null = incomplete pincode; true/false when 6 digits entered */
+    public ?bool $pincodeIsServiceable = null;
 
     public bool $forceOpen = false;
 
@@ -47,6 +53,10 @@ class PincodeModal extends Component
         $this->hidePincodeSuggestions();
         $this->forceOpen = ! app(UserLocationService::class)->hasPincode();
         $this->open = true;
+
+        if ($this->pincode !== '') {
+            $this->refreshPincodeLookup();
+        }
     }
 
     #[On('open-pincode-modal')]
@@ -74,40 +84,65 @@ class PincodeModal extends Component
     {
         $this->resetErrorBag('pincode');
         $this->pincode = app(UserLocationService::class)->normalizePincode($this->pincode);
-        $this->refreshPincodeSuggestions();
+        $this->refreshPincodeLookup();
     }
 
     public function refreshPincodeSuggestions(): void
     {
-        $digits = $this->pincode;
+        $this->refreshPincodeLookup();
+    }
 
-        if (strlen($digits) < self::SUGGESTION_MIN_LENGTH || ! Schema::hasTable('pin_codes')) {
+    public function refreshPincodeLookup(): void
+    {
+        $this->resetPincodeMatch();
+        $digits = $this->pincode;
+        $catalog = app(PinCodeSuggestionCatalog::class);
+
+        if (strlen($digits) < self::SUGGESTION_MIN_LENGTH) {
             $this->pincodeSuggestions = [];
             $this->showPincodeSuggestions = false;
 
             return;
         }
 
-        $this->pincodeSuggestions = PinCode::query()
-            ->where('is_active', true)
-            ->where('pincode', 'like', $digits.'%')
-            ->orderBy('pincode')
-            ->limit(self::SUGGESTION_LIMIT)
-            ->get(['pincode', 'area_name', 'city'])
-            ->map(static fn (PinCode $record): array => [
-                'pincode' => (string) $record->pincode,
-                'area_name' => (string) $record->area_name,
-                'city' => (string) $record->city,
-            ])
-            ->all();
+        if ($catalog->rows() === [] && strlen($digits) === 6) {
+            $this->pincodeIsServiceable = app(UserLocationService::class)->resolveServiceablePincode($digits) !== null;
 
-        $this->showPincodeSuggestions = strlen($digits) >= self::SUGGESTION_MIN_LENGTH && strlen($digits) < 6;
+            return;
+        }
+
+        if (strlen($digits) === 6) {
+            $this->pincodeSuggestions = [];
+            $this->showPincodeSuggestions = false;
+
+            $record = $catalog->findExact($digits);
+
+            if ($record !== null) {
+                $this->matchedAreaName = $record['area_name'];
+                $this->matchedCity = $record['city'];
+                $this->pincodeIsServiceable = true;
+            } else {
+                $this->pincodeIsServiceable = false;
+            }
+
+            return;
+        }
+
+        $this->pincodeSuggestions = $catalog->matchPrefix($digits, self::SUGGESTION_LIMIT);
+        $this->showPincodeSuggestions = true;
+    }
+
+    private function resetPincodeMatch(): void
+    {
+        $this->matchedAreaName = null;
+        $this->matchedCity = null;
+        $this->pincodeIsServiceable = null;
     }
 
     public function selectPincode(string $pincode): void
     {
         $this->pincode = app(UserLocationService::class)->normalizePincode($pincode);
-        $this->hidePincodeSuggestions();
+        $this->refreshPincodeLookup();
     }
 
     public function hidePincodeSuggestions(): void
@@ -223,6 +258,7 @@ class PincodeModal extends Component
         $current = app(UserLocationService::class)->currentPincode();
         if ($current !== null) {
             $this->pincode = $current;
+            $this->refreshPincodeLookup();
         }
     }
 

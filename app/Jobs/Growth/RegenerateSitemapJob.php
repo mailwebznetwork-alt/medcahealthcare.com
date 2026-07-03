@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Growth;
 
+use App\Services\Growth\SearchEngineDiscoveryService;
 use App\Services\Growth\SeoSitemapFileGenerator;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -29,6 +30,7 @@ class RegenerateSitemapJob implements ShouldQueue
 
         try {
             $generator->regenerateAll();
+            app(SearchEngineDiscoveryService::class)->pingAfterSitemapUpdate();
         } catch (\Throwable $e) {
             Log::error('Sitemap regeneration failed', ['message' => $e->getMessage()]);
             throw $e;

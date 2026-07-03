@@ -64,6 +64,7 @@
         @vite(['resources/css/public/public.css', 'resources/js/app.js'])
         <x-theme.public-vars />
         <x-marketing.tracking-head :settings="$marketingSettings ?? null" />
+        <x-marketing.web-vitals-rum />
         @if (isset($page) && filled($page->gtm_code))
             {!! $page->gtm_code !!}
         @endif

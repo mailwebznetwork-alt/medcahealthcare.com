@@ -4,20 +4,6 @@
     $user = auth()->user();
     $cards = [
         [
-            'label' => __('Admin Mode'),
-            'body' => __('Open the primary administrator command surface for workspace modules and account operations.'),
-            'route' => 'admin.mode',
-            'icon' => 'shield-check',
-            'enabled' => $user?->hasModuleAccess(ModuleAccess::DASHBOARD),
-        ],
-        [
-            'label' => __('Geo Mode'),
-            'body' => __('Jump into GEO coverage, location signals, pincodes, and local discovery readiness.'),
-            'route' => 'geo.mode',
-            'icon' => 'map-pinned',
-            'enabled' => $user?->hasModuleAccess(ModuleAccess::GROWTH_CENTER),
-        ],
-        [
             'label' => __('Site Architect'),
             'body' => __('Structure pages, navigation, media, and reusable website blocks.'),
             'route' => 'site-architect.pages.index',

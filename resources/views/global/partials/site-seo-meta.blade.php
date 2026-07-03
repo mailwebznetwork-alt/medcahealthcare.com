@@ -73,6 +73,10 @@
     <meta name="google-site-verification" content="{{ $gTechnical->google_site_verification }}">
 @endif
 
+@if ($gTechnical !== null && filled($gTechnical->bing_site_verification))
+    <meta name="msvalidate.01" content="{{ $gTechnical->bing_site_verification }}">
+@endif
+
 <meta name="robots" content="{{ $robotsContent }}">
 
 <link rel="canonical" href="{{ $canonicalHref }}">
@@ -100,9 +104,26 @@
 <meta property="og:site_name" content="{{ config('medca.brand_name') }}">
 @if (filled($ogImage))
     <meta property="og:image" content="{{ $ogImage }}">
+    @if (isset($blog))
+        <meta property="og:image:alt" content="{{ \Illuminate\Support\Str::limit(strip_tags((string) ($blog->title ?? $ogTitle)), 420, '') }}">
+    @endif
 @endif
 @if (isset($page) && filled($page->og_image_alt))
     <meta property="og:image:alt" content="{{ \Illuminate\Support\Str::limit(strip_tags((string) $page->og_image_alt), 420, '') }}">
+@endif
+
+@if (isset($blog))
+    @php
+        $blogPublishedAt = $blog->published_at ?? $blog->created_at;
+        $blogModifiedAt = $blog->updated_at ?? $blogPublishedAt;
+    @endphp
+    @if ($blogPublishedAt)
+        <meta property="article:published_time" content="{{ $blogPublishedAt->toIso8601String() }}">
+    @endif
+    @if ($blogModifiedAt)
+        <meta property="article:modified_time" content="{{ $blogModifiedAt->toIso8601String() }}">
+    @endif
+    <meta property="article:author" content="{{ config('medca.brand_name') }}">
 @endif
 
 <meta name="twitter:card" content="summary_large_image">
@@ -123,6 +144,39 @@
     $suppressDuplicateSchema = $pageUsesUnifiedGraph
         || in_array($pageCategoryValue, ['service', 'location'], true);
 @endphp
+
+@if (isset($blog))
+    @php
+        $blogPublishedAt = $blog->published_at ?? $blog->created_at;
+        $blogModifiedAt = $blog->updated_at ?? $blogPublishedAt;
+        $blogPostingLd = array_filter([
+            '@context' => 'https://schema.org',
+            '@type' => 'BlogPosting',
+            'headline' => strip_tags((string) ($blog->meta_title ?? $blog->title)),
+            'description' => filled($metaDescription) ? strip_tags((string) $metaDescription) : null,
+            'url' => url()->current(),
+            'mainEntityOfPage' => url()->current(),
+            'datePublished' => $blogPublishedAt?->toIso8601String(),
+            'dateModified' => $blogModifiedAt?->toIso8601String(),
+            'author' => [
+                '@type' => 'Organization',
+                'name' => config('medca.brand_name'),
+            ],
+            'publisher' => [
+                '@type' => 'Organization',
+                'name' => config('medca.brand_name'),
+                'logo' => $gEntity?->logo ? [
+                    '@type' => 'ImageObject',
+                    'url' => $gEntity->logo,
+                ] : null,
+            ],
+            'image' => filled($ogImage) ? $ogImage : null,
+        ], fn (mixed $value): bool => $value !== null && $value !== '' && $value !== []);
+    @endphp
+    @if ($blogPostingLd !== [])
+        <script type="application/ld+json">{!! json_encode($blogPostingLd, $jsonFlags) !!}</script>
+    @endif
+@endif
 
 @if (! $suppressDuplicateSchema && ($gEntity !== null || $gBusiness !== null))
     @php
@@ -187,6 +241,30 @@
     @if ($org !== [])
         <script type="application/ld+json">{!! json_encode($org, $jsonFlags) !!}</script>
     @endif
+@endif
+
+@php
+    $isHomeDocument = (! isset($service) && ! isset($blog) && ! isset($category))
+        && (! isset($page) || ($page->slug ?? null) === 'home' || request()->is('/'));
+@endphp
+@if ($isHomeDocument)
+    @php
+        $searchActionLd = [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebSite',
+            'name' => config('medca.brand_name'),
+            'url' => config('app.url'),
+            'potentialAction' => [
+                '@type' => 'SearchAction',
+                'target' => [
+                    '@type' => 'EntryPoint',
+                    'urlTemplate' => url('/sitemap').'?q={search_term_string}',
+                ],
+                'query-input' => 'required name=search_term_string',
+            ],
+        ];
+    @endphp
+    <script type="application/ld+json">{!! json_encode($searchActionLd, $jsonFlags) !!}</script>
 @endif
 
 @if (! $suppressDuplicateSchema && isset($page) && $page->relationLoaded('faqs') && $page->faqs->isNotEmpty())

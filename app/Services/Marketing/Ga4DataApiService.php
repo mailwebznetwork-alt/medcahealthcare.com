@@ -2,7 +2,7 @@
 
 namespace App\Services\Marketing;
 
-use App\Models\Integration;
+use App\Support\GoogleIntegrationCredentials;
 use App\Models\MarketingSetting;
 use Google\Analytics\Data\V1beta\Client\BetaAnalyticsDataClient;
 use Google\Analytics\Data\V1beta\DateRange;
@@ -118,10 +118,9 @@ class Ga4DataApiService
     public static function forgetCache(MarketingSetting $settings): void
     {
         $propertyId = $settings->ga4_property_id;
-        if (Schema::hasTable('integrations')) {
-            $google = Integration::query()->where('name', 'google_services')->first();
-            $credentials = $google?->credentials ?? [];
-            $propertyId = $credentials['property_id'] ?? $propertyId;
+        $integrationPropertyId = GoogleIntegrationCredentials::propertyId();
+        if ($integrationPropertyId !== null) {
+            $propertyId = $integrationPropertyId;
         }
         if ($propertyId === null || $propertyId === '') {
             return;
@@ -418,14 +417,9 @@ class Ga4DataApiService
     private function resolveGa4PropertyId(MarketingSetting $settings): ?string
     {
         $propertyId = $settings->ga4_property_id;
-
-        if (Schema::hasTable('integrations')) {
-            $google = Integration::query()->where('name', 'google_services')->first();
-            $credentials = $google?->credentials ?? [];
-            $integrationPropertyId = $credentials['property_id'] ?? null;
-            if (is_string($integrationPropertyId) && $integrationPropertyId !== '') {
-                $propertyId = $integrationPropertyId;
-            }
+        $integrationPropertyId = GoogleIntegrationCredentials::propertyId();
+        if ($integrationPropertyId !== null) {
+            $propertyId = $integrationPropertyId;
         }
 
         return $propertyId;

@@ -51,6 +51,9 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/robots.txt', [SeoController::class, 'robotsTxt'])->name('public.robots');
+Route::get('/{indexNowKey}.txt', [SeoController::class, 'indexNowKey'])
+    ->where('indexNowKey', '[a-zA-Z0-9]{8,128}')
+    ->name('public.indexnow.key');
 Route::get('/sitemap', [\App\Http\Controllers\Public\HtmlSitemapController::class, 'index'])->name('public.sitemap.html');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemapXml'])->name('public.sitemap');
 Route::get('/sitemap-{segment}.xml', [SeoController::class, 'sitemapSegmentXml'])
@@ -469,6 +472,10 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:growth_c
         Route::prefix('seo')->group(function () {
             Route::post('entity', [SeoController::class, 'storeEntity'])->name('growth-center.seo.entity.store');
             Route::post('technical', [SeoController::class, 'storeTechnical'])->name('growth-center.seo.technical.store');
+            Route::post('bootstrap-discovery', [\App\Http\Controllers\Growth\SeoDiscoveryController::class, 'bootstrap'])->name('growth-center.seo.bootstrap');
+            Route::post('redirects', [\App\Http\Controllers\Growth\UrlRedirectController::class, 'store'])->name('growth-center.seo.redirects.store');
+            Route::delete('redirects/{urlRedirect}', [\App\Http\Controllers\Growth\UrlRedirectController::class, 'destroy'])->name('growth-center.seo.redirects.destroy');
+            Route::post('scan-broken-links', [\App\Http\Controllers\Growth\UrlRedirectController::class, 'scanBrokenLinks'])->name('growth-center.seo.scan-broken-links');
         });
 
         Route::post('aeo', [AeoController::class, 'store'])->name('growth-center.aeo.store');

@@ -27,6 +27,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle:60,1',
         ]);
 
+        $middleware->web(prepend: [
+            \App\Http\Middleware\ApplyUrlRedirects::class,
+        ]);
+
         $middleware->web(append: [
             \App\Http\Middleware\SecurityHeaders::class,
             \App\Http\Middleware\EnsurePincodeDetected::class,

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Growth\StoreAeoRequest;
 use App\Models\BusinessProfile;
 use App\Models\SeoAiSignal;
-use App\Models\SeoTechnical;
+use App\Support\SeoTechnicalResolver;
 use App\Services\Growth\AeoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -63,9 +63,9 @@ class AeoController extends Controller
             return response()->json(['message' => __('Not available.')], 404);
         }
 
-        $technical = SeoTechnical::query()->where('business_profile_id', $profile->id)->first();
+        $technical = SeoTechnicalResolver::forCurrentSite();
 
-        if (! $technical instanceof SeoTechnical || ! $technical->ai_discovery_enabled) {
+        if ($technical === null || ! $technical->ai_discovery_enabled) {
             return response()->json(['message' => __('Not available.')], 404);
         }
 

@@ -8,7 +8,6 @@ use App\Models\Blog;
 use App\Models\Page;
 use App\Models\Service;
 use App\Models\ServiceLocationPage;
-use App\Services\Operations\ServiceDetailPageProvisioner;
 use App\Services\Operations\ServiceLocationPageProvisioner;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,15 +17,15 @@ class HtmlSitemapController extends Controller
     public function index(Request $request): View
     {
         $q = trim((string) $request->query('q', ''));
-        $perPage = (int) config('services_master.html_sitemap.per_page', 50);
+        $perPage = max(10, (int) config('services_master.html_sitemap.per_page', 50));
+        $locationPage = max(1, (int) $request->query('location_page', 1));
 
         $services = Service::query()->publicListing()->orderBy('title')->get();
-        $locations = ServiceLocationPage::query()
+
+        $locationBaseQuery = ServiceLocationPage::query()
             ->with(['service', 'pincode', 'page'])
-            ->whereHas('service', fn ($s) => $s->where('is_active', true))
-            ->orderBy('id')
-            ->get()
-            ->filter(fn (ServiceLocationPage $row): bool => $row->service?->isListedPublicly() ?? false);
+            ->whereHas('service', fn ($s) => $s->publicListing())
+            ->orderBy('id');
 
         $webPages = Page::query()
             ->where('is_active', true)
@@ -52,18 +51,38 @@ class HtmlSitemapController extends Controller
         if ($q !== '') {
             $needle = mb_strtolower($q);
             $services = $services->filter(fn (Service $s): bool => str_contains(mb_strtolower($s->title.' '.$s->service_code), $needle));
-            $locations = $locations->filter(function (ServiceLocationPage $row) use ($needle): bool {
-                $title = $row->page?->title ?? app(ServiceLocationPageProvisioner::class)->locationTitle($row->service, $row->pincode);
+            $allLocations = $locationBaseQuery
+                ->get()
+                ->filter(function (ServiceLocationPage $row) use ($needle): bool {
+                    $title = $row->page?->title ?? app(ServiceLocationPageProvisioner::class)->locationTitle($row->service, $row->pincode);
 
-                return str_contains(mb_strtolower($title), $needle);
-            });
+                    return str_contains(mb_strtolower($title), $needle);
+                })
+                ->values();
             $webPages = $webPages->filter(fn (Page $p): bool => str_contains(mb_strtolower($p->title.' '.$p->slug), $needle));
+            $locationPage = 1;
+            $locationsTotal = $allLocations->count();
+            $locationPages = (int) max(1, (int) ceil($locationsTotal / $perPage));
+            $locations = $allLocations
+                ->slice(($locationPage - 1) * $perPage, $perPage)
+                ->values();
+        } else {
+            $locationsTotal = (clone $locationBaseQuery)->count();
+            $locationPages = (int) max(1, (int) ceil($locationsTotal / $perPage));
+            $locationPage = min($locationPage, $locationPages);
+            $locations = $locationBaseQuery
+                ->offset(($locationPage - 1) * $perPage)
+                ->limit($perPage)
+                ->get();
         }
 
         return view('public.sitemap.html', [
             'search' => $q,
             'services' => $services,
             'locations' => $locations,
+            'locationsTotal' => $locationsTotal,
+            'locationPage' => $locationPage,
+            'locationPages' => $locationPages,
             'webPages' => $webPages,
             'blogs' => $blogs,
             'landingPages' => $landingPages,

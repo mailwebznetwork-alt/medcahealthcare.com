@@ -29,8 +29,8 @@
         </section>
 
         <section>
-            <h2 class="text-lg font-semibold text-medca-primary">{{ __('Locations') }} ({{ $locations->count() }})</h2>
-            <ul class="mt-3 max-h-96 space-y-2 overflow-y-auto text-sm custom-scrollbar">
+            <h2 class="text-lg font-semibold text-medca-primary">{{ __('Locations') }} ({{ $locationsTotal }})</h2>
+            <ul class="mt-3 space-y-2 text-sm">
                 @foreach ($locations as $row)
                     <li>
                         <a href="{{ $row->publicUrl() }}" class="text-clinical-700 hover:underline">
@@ -45,6 +45,17 @@
                     </li>
                 @endforeach
             </ul>
+            @if ($locationPages > 1)
+                <nav class="mt-4 flex flex-wrap items-center gap-2 text-sm" aria-label="{{ __('Location pages') }}">
+                    @if ($locationPage > 1)
+                        <a href="{{ route('public.sitemap.html', array_filter(['q' => $search ?: null, 'location_page' => $locationPage - 1])) }}" class="rounded border border-slate-200 px-3 py-1 text-clinical-700 hover:bg-slate-50">{{ __('Previous') }}</a>
+                    @endif
+                    <span class="text-slate-600">{{ __('Page :current of :total', ['current' => $locationPage, 'total' => $locationPages]) }}</span>
+                    @if ($locationPage < $locationPages)
+                        <a href="{{ route('public.sitemap.html', array_filter(['q' => $search ?: null, 'location_page' => $locationPage + 1])) }}" class="rounded border border-slate-200 px-3 py-1 text-clinical-700 hover:bg-slate-50">{{ __('Next') }}</a>
+                    @endif
+                </nav>
+            @endif
         </section>
 
         <section>

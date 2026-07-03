@@ -11,6 +11,7 @@ use App\Models\Page;
 use App\Models\PageSeo;
 use App\Models\SeoEntity;
 use App\Models\SeoTechnical;
+use App\Support\SeoTechnicalResolver;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\ServiceLocationPage;
@@ -111,8 +112,10 @@ class SeoService
                 'canonical_url' => $data['canonical_url'] ?? null,
                 'indexable' => (bool) ($data['indexable'] ?? true),
                 'llm_txt' => $data['llm_txt'] ?? null,
+                'llms_txt' => $data['llms_txt'] ?? ($data['llm_txt'] ?? null),
                 'ai_discovery_enabled' => (bool) ($data['ai_discovery_enabled'] ?? true),
                 'google_site_verification' => $data['google_site_verification'] ?? null,
+                'bing_site_verification' => $data['bing_site_verification'] ?? null,
             ]
         );
     }
@@ -130,9 +133,9 @@ class SeoService
             return true;
         }
 
-        $technical = SeoTechnical::query()->where('business_profile_id', $profile->id)->first();
+        $technical = SeoTechnicalResolver::forCurrentSite();
 
-        if (! $technical instanceof SeoTechnical) {
+        if ($technical === null) {
             return true;
         }
 
@@ -141,18 +144,125 @@ class SeoService
 
     public function generateRobots(): string
     {
-        $technical = SeoTechnical::query()->latest('id')->first();
+        $technical = SeoTechnicalResolver::forCurrentSite(repairOrphan: false);
         $robots = trim((string) ($technical?->robots_txt ?? ''));
 
         if ($robots !== '') {
             return $robots;
         }
 
-        return implode("\n", [
-            'User-agent: *',
-            'Allow: /',
-            'Sitemap: /sitemap.xml',
-        ]);
+        $lines = $this->defaultRobotsAiAgentLines();
+
+        $lines[] = 'User-agent: *';
+        $lines[] = 'Allow: /';
+        foreach ($this->defaultRobotsDisallowPaths() as $path) {
+            $lines[] = 'Disallow: '.$path;
+        }
+        $lines[] = 'Sitemap: '.url('/sitemap.xml');
+        $lines[] = '# LLM discovery: '.url('/llms.txt');
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function defaultRobotsDisallowPaths(): array
+    {
+        return [
+            '/console',
+            '/site-architect',
+            '/operations',
+            '/marketing',
+            '/growth-center',
+            '/user-management',
+            '/security',
+            '/system',
+            '/settings',
+            '/login',
+            '/register',
+            '/profile',
+            '/livewire',
+            '/api/',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function defaultRobotsAiAgentLines(): array
+    {
+        if ($this->shouldAllowAiCrawlers()) {
+            return $this->aiCrawlerAllowLines();
+        }
+
+        return $this->aiCrawlerDisallowLines();
+    }
+
+    protected function shouldAllowAiCrawlers(): bool
+    {
+        if (Schema::hasTable('seo_ai_signals')) {
+            $signal = \App\Models\SeoAiSignal::query()->latest('id')->first();
+            if ($signal !== null) {
+                return (bool) $signal->ai_crawl_enabled;
+            }
+        }
+
+        $technical = SeoTechnicalResolver::forCurrentSite(repairOrphan: false);
+
+        return $technical !== null && (bool) $technical->ai_discovery_enabled;
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function aiCrawlerAllowLines(): array
+    {
+        $lines = [];
+        foreach ($this->aiCrawlerUserAgents() as $agent) {
+            $lines[] = 'User-agent: '.$agent;
+            $lines[] = 'Allow: /';
+            $lines[] = '';
+        }
+
+        return $lines;
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function aiCrawlerDisallowLines(): array
+    {
+        $lines = [];
+        foreach ($this->aiCrawlerUserAgents() as $agent) {
+            $lines[] = 'User-agent: '.$agent;
+            $lines[] = 'Disallow: /';
+            $lines[] = '';
+        }
+
+        return $lines;
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function aiCrawlerUserAgents(): array
+    {
+        return [
+            'GPTBot',
+            'ChatGPT-User',
+            'Google-Extended',
+            'ClaudeBot',
+            'anthropic-ai',
+            'PerplexityBot',
+            'CCBot',
+            'Bytespider',
+            'Applebot-Extended',
+            'cohere-ai',
+            'Diffbot',
+            'FacebookBot',
+            'meta-externalagent',
+        ];
     }
 
     /**
@@ -164,8 +274,9 @@ class SeoService
 
         $entries = $files->map(function (string $file): string {
             $loc = e(url('/'.$file));
+            $lastmod = e($this->formatSitemapLastmod(now()));
 
-            return "    <sitemap>\n        <loc>{$loc}</loc>\n    </sitemap>";
+            return "    <sitemap>\n        <loc>{$loc}</loc>\n        <lastmod>{$lastmod}</lastmod>\n    </sitemap>";
         })->implode("\n");
 
         return implode("\n", [
@@ -213,34 +324,125 @@ class SeoService
     {
         $chunkSize = max(1, (int) config('sitemap.location_chunk_size', 10000));
         $offset = ($chunk - 1) * $chunkSize;
-        $paths = $this->collectLocationPathsSlice($offset, $chunkSize);
 
-        return $this->buildStandardUrlsetXml($paths);
+        if (! Schema::hasTable('service_location_pages')) {
+            return $this->buildStandardUrlsetXml(collect());
+        }
+
+        $entries = ServiceLocationPage::query()
+            ->whereNotNull('location_slug')
+            ->where('is_indexable', true)
+            ->with([
+                'service:id,service_code,is_active,publish_status,visibility',
+                'page:id,is_active,robots_meta',
+                'pincode:id,pincode',
+            ])
+            ->orderBy('id')
+            ->offset($offset)
+            ->limit($chunkSize)
+            ->get()
+            ->filter(fn (ServiceLocationPage $row): bool => $row->isPubliclyIndexable())
+            ->map(function (ServiceLocationPage $row): array {
+                if (config('services_master.public_url_include_pincode', false) && $row->pincode !== null) {
+                    $city = $row->city_slug ?: app(\App\Services\Operations\ServicePublicUrlBuilder::class)->citySlugForPin($row->pincode);
+                    $path = '/services/'.$row->service->service_code.'/'.$city.'/'.$row->pincode->pincode;
+                } else {
+                    $path = '/services/'.$row->service->service_code.'/'.$row->location_slug;
+                }
+
+                return [
+                    'path' => $path,
+                    'lastmod' => $row->updated_at,
+                ];
+            })
+            ->unique('path')
+            ->values();
+
+        return $this->buildStandardUrlsetXml($entries);
     }
 
     public function generateStaticPagesSitemapXml(): string
     {
-        return $this->buildStandardUrlsetXml($this->collectStaticPagePaths());
+        return $this->buildStandardUrlsetXml($this->collectStaticPageEntries());
     }
 
     public function generateServiceDetailsSitemapXml(): string
     {
-        return $this->buildStandardUrlsetXml(
-            $this->collectServiceDetailPaths()
-                ->merge($this->legacyGrowthServicePaths())
-                ->unique()
-                ->values()
+        if (! Schema::hasTable('services')) {
+            return $this->buildStandardUrlsetXml(collect());
+        }
+
+        $entries = collect(
+            Service::query()
+                ->where('is_active', true)
+                ->where('publish_status', PublishStatus::Published)
+                ->where('visibility', ServiceVisibility::Public)
+                ->orderBy('service_code')
+                ->get(['service_code', 'updated_at'])
+                ->map(fn (Service $service): array => [
+                    'path' => '/services/'.$service->service_code,
+                    'lastmod' => $service->updated_at,
+                ])
         );
+
+        if (Schema::hasTable('page_seo')) {
+            $entries = $entries->concat(
+                PageSeo::query()
+                    ->whereNotNull('page_slug')
+                    ->where('page_slug', 'like', 'services/%')
+                    ->get(['page_slug', 'updated_at'])
+                    ->map(fn (PageSeo $row): array => [
+                        'path' => '/'.ltrim((string) $row->page_slug, '/'),
+                        'lastmod' => $row->updated_at,
+                    ])
+            );
+        }
+
+        return $this->buildStandardUrlsetXml($entries->unique('path')->values());
     }
 
     public function generateCategoriesSitemapXml(): string
     {
-        return $this->buildStandardUrlsetXml($this->collectCategoryPaths());
+        if (! Schema::hasTable('service_categories')) {
+            return $this->buildStandardUrlsetXml(collect());
+        }
+
+        $entries = ServiceCategory::query()
+            ->where('is_active', true)
+            ->orderBy('code')
+            ->get(['code', 'updated_at'])
+            ->map(fn (ServiceCategory $category): array => [
+                'path' => '/service-categories/'.$category->code,
+                'lastmod' => $category->updated_at,
+            ]);
+
+        return $this->buildStandardUrlsetXml($entries);
     }
 
     public function generateSubservicesSitemapXml(): string
     {
-        return $this->buildStandardUrlsetXml($this->collectSubServicePaths());
+        if (! Schema::hasTable('sub_services') || ! Schema::hasTable('services')) {
+            return $this->buildStandardUrlsetXml(collect());
+        }
+
+        $entries = SubService::query()
+            ->publicListing()
+            ->with('service')
+            ->get()
+            ->filter(fn (SubService $sub): bool => $sub->service !== null && $sub->service->isListedPublicly())
+            ->map(function (SubService $sub): array {
+                $url = $sub->publicUrl();
+                $path = parse_url($url, PHP_URL_PATH) ?: $url;
+
+                return [
+                    'path' => $path,
+                    'lastmod' => $sub->updated_at,
+                ];
+            })
+            ->unique('path')
+            ->values();
+
+        return $this->buildStandardUrlsetXml($entries);
     }
 
     /**
@@ -266,8 +468,12 @@ class SeoService
                 $query->whereNull('published_at')
                     ->orWhere('published_at', '<=', now());
             })
-            ->pluck('slug')
-            ->map(fn (string $slug): string => '/blog/'.$slug);
+            ->orderBy('slug')
+            ->get(['slug', 'updated_at'])
+            ->map(fn (Blog $blog): array => [
+                'path' => '/blog/'.$blog->slug,
+                'lastmod' => $blog->updated_at,
+            ]);
 
         return $this->buildStandardUrlsetXml($paths);
     }
@@ -294,7 +500,7 @@ class SeoService
                     $query->whereNull('published_at')
                         ->orWhere('published_at', '<=', now());
                 })
-                ->select(['slug', 'featured_image', 'title'])
+                ->select(['slug', 'featured_image', 'title', 'updated_at'])
                 ->each(function (Blog $blog) use (&$blocks): void {
                     $imageUrl = $this->absolutePublicImageUrl($blog->featured_image);
                     if ($imageUrl === null) {
@@ -303,14 +509,16 @@ class SeoService
                     $pageLoc = e(url('/blog/'.$blog->slug));
                     $imageLoc = e($imageUrl);
                     $title = e((string) ($blog->title ?? ''));
-                    $blocks[] = "    <url>\n        <loc>{$pageLoc}</loc>\n        <image:image>\n            <image:loc>{$imageLoc}</image:loc>\n            <image:title>{$title}</image:title>\n        </image:image>\n    </url>";
+                    $lastmod = $this->formatSitemapLastmod($blog->updated_at);
+                    $lastmodXml = $lastmod !== null ? "\n        <lastmod>".e($lastmod).'</lastmod>' : '';
+                    $blocks[] = "    <url>\n        <loc>{$pageLoc}</loc>{$lastmodXml}\n        <image:image>\n            <image:loc>{$imageLoc}</image:loc>\n            <image:title>{$title}</image:title>\n        </image:image>\n    </url>";
                 });
         }
 
         if (Schema::hasTable('pages')) {
             Page::query()
                 ->where('is_active', true)
-                ->select(['slug', 'og_image', 'og_image_alt', 'title'])
+                ->select(['slug', 'og_image', 'og_image_alt', 'title', 'updated_at'])
                 ->each(function (Page $page) use (&$blocks): void {
                     $imageUrl = $this->absolutePublicImageUrl($page->og_image);
                     if ($imageUrl === null) {
@@ -319,7 +527,9 @@ class SeoService
                     $pageLoc = e($page->publicUrl());
                     $imageLoc = e($imageUrl);
                     $title = e((string) ($page->og_image_alt ?: $page->title ?? ''));
-                    $blocks[] = "    <url>\n        <loc>{$pageLoc}</loc>\n        <image:image>\n            <image:loc>{$imageLoc}</image:loc>\n            <image:title>{$title}</image:title>\n        </image:image>\n    </url>";
+                    $lastmod = $this->formatSitemapLastmod($page->updated_at);
+                    $lastmodXml = $lastmod !== null ? "\n        <lastmod>".e($lastmod).'</lastmod>' : '';
+                    $blocks[] = "    <url>\n        <loc>{$pageLoc}</loc>{$lastmodXml}\n        <image:image>\n            <image:loc>{$imageLoc}</image:loc>\n            <image:title>{$title}</image:title>\n        </image:image>\n    </url>";
                 });
         }
 
@@ -335,28 +545,57 @@ class SeoService
     }
 
     /**
-     * @param  Collection<int, string>  $paths
+     * @param  Collection<int, array{path: string, lastmod?: \DateTimeInterface|string|null}|string>  $entries
      */
-    protected function buildStandardUrlsetXml(Collection $paths): string
+    protected function buildStandardUrlsetXml(Collection $entries): string
     {
-        $urls = $paths
-            ->filter(fn (?string $path): bool => is_string($path) && $path !== '')
-            ->map(fn (string $path): string => str_starts_with($path, '/') ? $path : '/'.$path)
-            ->unique()
+        $normalized = $entries
+            ->map(function (array|string $entry): array {
+                if (is_string($entry)) {
+                    return ['path' => $entry, 'lastmod' => null];
+                }
+
+                return [
+                    'path' => (string) ($entry['path'] ?? ''),
+                    'lastmod' => $entry['lastmod'] ?? null,
+                ];
+            })
+            ->filter(fn (array $entry): bool => $entry['path'] !== '')
+            ->map(function (array $entry): array {
+                $path = str_starts_with($entry['path'], '/') ? $entry['path'] : '/'.$entry['path'];
+
+                return ['path' => $path, 'lastmod' => $entry['lastmod']];
+            })
+            ->unique('path')
             ->values();
 
-        $entries = $urls->map(function (string $path): string {
-            $location = e(url($path));
+        $entriesXml = $normalized->map(function (array $entry): string {
+            $location = e(url($entry['path']));
+            $lastmod = $this->formatSitemapLastmod($entry['lastmod']);
+            $lastmodXml = $lastmod !== null ? "\n        <lastmod>".e($lastmod).'</lastmod>' : '';
 
-            return "    <url>\n        <loc>{$location}</loc>\n    </url>";
+            return "    <url>\n        <loc>{$location}</loc>{$lastmodXml}\n    </url>";
         })->implode("\n");
 
         return implode("\n", [
             '<?xml version="1.0" encoding="UTF-8"?>',
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-            $entries,
+            $entriesXml,
             '</urlset>',
         ]);
+    }
+
+    protected function formatSitemapLastmod(\DateTimeInterface|string|null $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $date = $value instanceof \DateTimeInterface
+            ? \Illuminate\Support\Carbon::instance($value)
+            : \Illuminate\Support\Carbon::parse($value);
+
+        return $date->utc()->format('Y-m-d\TH:i:s\Z');
     }
 
     /**
@@ -528,16 +767,66 @@ class SeoService
     }
 
     /**
-     * @return Collection<int, string>
+     * @return Collection<int, array{path: string, lastmod?: \DateTimeInterface|null}>
      */
-    protected function collectStaticPagePaths(): Collection
+    protected function collectStaticPageEntries(): Collection
     {
-        return collect(['/', '/about-us', '/contact', '/services-catalog'])
-            ->merge($this->pageLevelUrlsExcludingServicesPrefix())
-            ->merge($this->cmsPageUrls())
-            ->merge($this->geoLevelUrls())
-            ->unique()
-            ->values();
+        $entries = collect([
+            ['path' => '/', 'lastmod' => $this->pageLastmodForSlug('home')],
+            ['path' => '/about-us', 'lastmod' => $this->pageLastmodForSlug('about-us')],
+            ['path' => '/contact', 'lastmod' => $this->pageLastmodForSlug('contact')],
+            ['path' => '/services-catalog', 'lastmod' => $this->pageLastmodForSlug('services-catalog')],
+        ]);
+
+        if (Schema::hasTable('page_seo')) {
+            $entries = $entries->concat(
+                PageSeo::query()
+                    ->whereNotNull('page_slug')
+                    ->where('page_slug', 'not like', 'services/%')
+                    ->get(['page_slug', 'updated_at'])
+                    ->map(fn (PageSeo $row): array => [
+                        'path' => '/'.ltrim((string) $row->page_slug, '/'),
+                        'lastmod' => $row->updated_at,
+                    ])
+            );
+        }
+
+        if (Schema::hasTable('pages')) {
+            $entries = $entries->concat(
+                Page::query()
+                    ->where('is_active', true)
+                    ->get(['slug', 'updated_at'])
+                    ->reject(fn (Page $page): bool => \App\Services\Operations\ServiceDetailPageProvisioner::serviceCodeFromPageSlug($page->slug) !== null
+                        || str_contains($page->slug, '-loc-'))
+                    ->map(fn (Page $page): array => [
+                        'path' => Page::publicPathForSlug($page->slug),
+                        'lastmod' => $page->updated_at,
+                    ])
+            );
+        }
+
+        if (Schema::hasTable('pin_codes')) {
+            $entries = $entries->concat(
+                PinCode::query()
+                    ->whereNotNull('landing_page')
+                    ->get(['landing_page', 'updated_at'])
+                    ->map(fn (PinCode $pin): array => [
+                        'path' => (string) $pin->landing_page,
+                        'lastmod' => $pin->updated_at,
+                    ])
+            );
+        }
+
+        return $entries->unique('path')->values();
+    }
+
+    protected function pageLastmodForSlug(string $slug): ?\DateTimeInterface
+    {
+        if (! Schema::hasTable('pages')) {
+            return null;
+        }
+
+        return Page::query()->where('slug', $slug)->value('updated_at');
     }
 
     /**

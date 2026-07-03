@@ -19,7 +19,7 @@ use App\Models\Page;
 use App\Models\PinCode;
 use App\Models\Review;
 use App\Models\SeoEntity;
-use App\Models\SeoTechnical;
+use App\Support\SeoTechnicalResolver;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\SubService;
@@ -231,9 +231,7 @@ class AppServiceProvider extends ServiceProvider
                     }
 
                     if (Schema::hasTable('seo_technical')) {
-                        $globalSiteSeo['technical'] = SeoTechnical::query()
-                            ->where('business_profile_id', $businessProfile->id)
-                            ->first();
+                        $globalSiteSeo['technical'] = SeoTechnicalResolver::forCurrentSite();
                     }
                 }
             }

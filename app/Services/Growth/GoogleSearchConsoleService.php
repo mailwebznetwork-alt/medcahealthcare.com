@@ -79,6 +79,50 @@ class GoogleSearchConsoleService
         return ['rows' => $response->json('rows') ?? [], 'error' => null];
     }
 
+    /**
+     * @return array{submitted: bool, error: ?string}
+     */
+    public function submitSitemap(string $siteUrl, string $sitemapUrl): array
+    {
+        $token = $this->resolveAccessToken();
+
+        if ($token === null) {
+            return [
+                'submitted' => false,
+                'error' => __('GSC credentials not configured. Connect OAuth under Growth Center → GSC.'),
+            ];
+        }
+
+        $site = $this->normalizeSiteUrl($siteUrl);
+        $feedPath = ltrim(parse_url($sitemapUrl, PHP_URL_PATH) ?: '/sitemap.xml', '/');
+
+        $response = Http::withToken($token)
+            ->timeout(15)
+            ->put(
+                'https://www.googleapis.com/webmasters/v3/sites/'.rawurlencode($site).'/sitemaps/'.rawurlencode($feedPath)
+            );
+
+        if ($response->successful() || $response->status() === 409) {
+            return ['submitted' => true, 'error' => null];
+        }
+
+        return [
+            'submitted' => false,
+            'error' => $response->json('error.message') ?? $response->body(),
+        ];
+    }
+
+    private function normalizeSiteUrl(string $siteUrl): string
+    {
+        $trimmed = rtrim($siteUrl, '/').'/';
+
+        if (str_starts_with($trimmed, 'http://') || str_starts_with($trimmed, 'https://')) {
+            return $trimmed;
+        }
+
+        return rtrim((string) config('app.url'), '/').'/';
+    }
+
     private function resolveAccessToken(): ?string
     {
         if ($this->oauthConfigured()) {

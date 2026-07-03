@@ -1,6 +1,6 @@
 @props([
     'service',
-    'showReviewForm' => true,
+    'showReviewForm' => false,
 ])
 
 @php

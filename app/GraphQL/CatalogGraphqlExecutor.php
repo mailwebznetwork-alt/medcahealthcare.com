@@ -9,6 +9,9 @@ use GraphQL\GraphQL;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
+use GraphQL\Validator\DocumentValidator;
+use GraphQL\Validator\Rules\QueryComplexity;
+use GraphQL\Validator\Rules\QueryDepth;
 
 class CatalogGraphqlExecutor
 {
@@ -17,6 +20,9 @@ class CatalogGraphqlExecutor
      */
     public function execute(string $query, ?array $variables = null): array
     {
+        DocumentValidator::addRule(new QueryDepth(8));
+        DocumentValidator::addRule(new QueryComplexity(120));
+
         $result = GraphQL::executeQuery($this->schema(), $query, null, null, $variables ?? []);
 
         return $result->toArray();

@@ -4,14 +4,17 @@ namespace App\Services\Growth;
 
 use App\Models\BusinessProfile;
 use App\Models\PageElement;
+use App\Models\Page;
+use App\Models\PageSeo;
 use App\Models\PinCode;
 use App\Models\Service;
 use App\Models\SeoAiSignal;
 use App\Models\SeoEntity;
-use App\Models\SeoTechnical;
+use App\Support\SeoTechnicalResolver;
 use App\Services\MasterSpec\QuickAnswerGenerator;
 use App\Services\Public\PublicDisplayNameResolver;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class AeoService
 {
@@ -44,7 +47,7 @@ class AeoService
                 ?? BusinessProfile::query()->latest('id')->first();
 
             if ($profile instanceof BusinessProfile) {
-                $technical = SeoTechnical::query()->where('business_profile_id', $profile->id)->first();
+                $technical = SeoTechnicalResolver::forCurrentSite();
                 $custom = trim((string) ($technical?->llm_txt ?? ''));
                 if ($custom !== '') {
                     return $custom;
@@ -74,8 +77,8 @@ class AeoService
                 ?? BusinessProfile::query()->latest('id')->first();
 
             if ($profile instanceof BusinessProfile) {
-                $technical = SeoTechnical::query()->where('business_profile_id', $profile->id)->first();
-                $custom = trim((string) ($technical?->llm_txt ?? ''));
+                $technical = SeoTechnicalResolver::forCurrentSite();
+                $custom = trim((string) ($technical?->llms_txt ?? $technical?->llm_txt ?? ''));
                 if ($custom !== '') {
                     return $custom;
                 }
@@ -140,7 +143,7 @@ class AeoService
 
                 foreach ($services as $service) {
                     $title = $service->publicListingTitle();
-                    $url = $service->publicUrl();
+                    $url = rtrim($baseUrl, '/').'/services/'.$service->service_code;
                     $snippet = filled($service->quick_answer)
                         ? $service->quick_answer
                         : $quickAnswers->generateForService($service);
@@ -177,10 +180,11 @@ class AeoService
                 ->orderBy('service_code')
                 ->get()
                 ->map(function (Service $service) use ($resolver, $quickAnswers): array {
-                    $meta = $resolver->documentMeta($service);
+                    $meta = $resolver->documentMeta(service: $service);
 
                     return [
                         'code' => $service->service_code,
+                        'slug' => 'services/'.$service->service_code,
                         'url' => $service->publicUrl(),
                         'title' => $service->publicListingTitle(),
                         'meta_title' => $meta['title'] ?? $service->seo?->meta_title,
@@ -198,6 +202,40 @@ class AeoService
                 ->values()
                 ->all()
             : [];
+
+        if (Schema::hasTable('page_seo')) {
+            $knownCodes = collect($services)->pluck('code')->filter()->flip();
+            $legacyServices = PageSeo::query()
+                ->whereNotNull('page_slug')
+                ->where('page_slug', 'like', 'services/%')
+                ->orderBy('page_slug')
+                ->get()
+                ->filter(function (PageSeo $row) use ($knownCodes): bool {
+                    $code = Str::after((string) $row->page_slug, 'services/');
+
+                    return $code !== '' && ! $knownCodes->has($code);
+                })
+                ->map(fn (PageSeo $row): array => [
+                    'code' => Str::after((string) $row->page_slug, 'services/'),
+                    'slug' => (string) $row->page_slug,
+                    'url' => url('/'.ltrim((string) $row->page_slug, '/')),
+                    'title' => (string) ($row->meta_title ?? $row->page_slug),
+                    'meta_title' => $row->meta_title,
+                    'meta_description' => $row->meta_description,
+                    'quick_answer' => null,
+                    'ai_summary' => null,
+                    'search_intent' => null,
+                    'medical_review_status' => null,
+                    'verification_status' => null,
+                    'llm_score' => $this->calculateLlmScore((string) $row->page_slug),
+                ])
+                ->values()
+                ->all();
+
+            if ($legacyServices !== []) {
+                $services = array_values(array_merge($services, $legacyServices));
+            }
+        }
 
         $locations = Schema::hasTable('pin_codes')
             ? PinCode::query()
@@ -225,9 +263,25 @@ class AeoService
             ? BusinessProfile::query()->latest('id')->first()
             : null;
 
+        $pages = Schema::hasTable('pages')
+            ? Page::query()
+                ->where('is_active', true)
+                ->orderBy('slug')
+                ->get(['slug', 'title', 'meta_title', 'meta_description', 'updated_at'])
+                ->map(fn (Page $page): array => [
+                    'slug' => $page->slug,
+                    'url' => $page->publicUrl(),
+                    'title' => $page->meta_title ?: $page->title,
+                    'meta_description' => $page->meta_description,
+                    'updated_at' => $page->updated_at?->toIso8601String(),
+                ])
+                ->values()
+                ->all()
+            : [];
+
         return [
             'services' => $services,
-            'pages' => $services,
+            'pages' => $pages,
             'locations' => $locations,
             'business' => $businessEntity?->only([
                 'organization_name',

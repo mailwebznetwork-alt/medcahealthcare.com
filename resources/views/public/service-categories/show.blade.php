@@ -10,6 +10,10 @@
 
 @section('title', $displayNames->categoryMetaTitle($category).' — '.config('medca.brand_name'))
 
+@push('meta')
+    <x-public.pagination-seo :paginator="$services" />
+@endpush
+
 @section('content')
     <x-public.location-page-hero
         :eyebrow="__('Category')"

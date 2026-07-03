@@ -88,4 +88,21 @@ return [
         'refresh_token' => env('MEDCA_GSC_REFRESH_TOKEN'),
         'redirect_uri' => env('MEDCA_GSC_REDIRECT_URI'),
     ],
+
+    'indexnow' => [
+        'enabled' => filter_var(env('GROWTH_INDEXNOW_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
+        'key' => env('GROWTH_INDEXNOW_KEY', ''),
+        'key_path' => env('GROWTH_INDEXNOW_KEY_PATH', ''),
+        'endpoint' => env('GROWTH_INDEXNOW_ENDPOINT', 'https://api.indexnow.org/indexnow'),
+    ],
+
+    'rum' => [
+        'enabled' => filter_var(env('GROWTH_RUM_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
+        'sample_rate' => (float) env('GROWTH_RUM_SAMPLE_RATE', 0.25),
+        'endpoint' => '/api/v1/performance/rum',
+    ],
+
+    'schedule_seo_discovery_bootstrap' => filter_var(env('GROWTH_SCHEDULE_DISCOVERY_BOOTSTRAP', true), FILTER_VALIDATE_BOOLEAN),
+
+    'schedule_broken_link_scan' => filter_var(env('GROWTH_SCHEDULE_BROKEN_LINK_SCAN', true), FILTER_VALIDATE_BOOLEAN),
 ];
