@@ -5,12 +5,17 @@ namespace App\Services\Import;
 use App\Models\Service;
 use App\Models\ServiceSchema;
 use App\Models\ServiceSeo;
+use App\Services\Growth\PublicUrlNormalizer;
 
 /**
  * Maps master workbook service columns into existing Operations models.
  */
 final class ImportServiceFieldMapper
 {
+    public function __construct(
+        private readonly PublicUrlNormalizer $urlNormalizer,
+    ) {}
+
     /** @var list<string> */
     private const CUSTOM_FIELD_KEYS = [
         'preparation', 'duration', 'requirements', 'deliverables',
@@ -84,7 +89,7 @@ final class ImportServiceFieldMapper
             'meta_description' => $row['meta_description'] ?? null,
             'focus_keywords' => ImportSupport::parseKeywords($row['focus_keywords'] ?? null),
             'secondary_keywords' => ImportSupport::parseKeywords($row['secondary_keywords'] ?? null),
-            'canonical_url' => $row['canonical_url'] ?? null,
+            'canonical_url' => $this->urlNormalizer->normalizeUrl($row['canonical_url'] ?? null),
             'robots_index' => array_key_exists('robots_index', $row)
                 ? ImportSupport::parseBool($row['robots_index'], true)
                 : null,

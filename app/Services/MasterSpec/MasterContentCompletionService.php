@@ -103,11 +103,17 @@ final class MasterContentCompletionService
         });
 
         $stats['cms_pages'] = $this->completeCmsPages();
-        $stats['service_detail_pages'] = $this->syncServiceDetailPages();
 
+        // Regenerate catalog schemas BEFORE syncing to detail pages so
+        // Service.schema.schema_json is fresh when pushToPage runs and can
+        // backfill `pages.schema_json` on services that lack it. (Previous
+        // order left ~16 detail pages with NULL schema_json until the next
+        // manual save.)
         if ($syncSchemas) {
             $stats['schemas_synced'] = $this->syncCatalogSchemas();
         }
+
+        $stats['service_detail_pages'] = $this->syncServiceDetailPages();
 
         $this->contentSeoAutoFill->refreshAggregateSignals();
         GrowthReadinessReport::forget();
@@ -822,14 +828,51 @@ final class MasterContentCompletionService
             '- [AI discovery]('.$base.'/ai-discovery)',
             '- [Sitemap]('.$base.'/sitemap.xml)',
             '',
-            '## Services catalog',
         ];
 
         if (Schema::hasTable('services')) {
-            Service::query()->where('is_active', true)->orderBy('sort_order')->limit(30)->each(function (Service $service) use (&$lines, $base): void {
-                $code = ltrim((string) $service->service_code, '/');
-                $lines[] = '- ['.$service->title.']('.$base.'/services/'.$code.')';
-            });
+            $priorityCodes = collect((array) config('medca.llms_priority_services', []))
+                ->filter(fn ($code) => is_string($code) && $code !== '')
+                ->values()
+                ->all();
+
+            $priorityServices = $priorityCodes !== []
+                ? Service::query()
+                    ->where('is_active', true)
+                    ->whereIn('service_code', $priorityCodes)
+                    ->get()
+                    ->keyBy('service_code')
+                : collect();
+
+            $orderedPriority = collect($priorityCodes)
+                ->map(fn (string $code) => $priorityServices->get($code))
+                ->filter()
+                ->values();
+
+            if ($orderedPriority->isNotEmpty()) {
+                $lines[] = '## Featured Home Healthcare Services';
+                foreach ($orderedPriority as $service) {
+                    $code = ltrim((string) $service->service_code, '/');
+                    $lines[] = '- ['.$service->title.']('.$base.'/services/'.$code.')';
+                }
+                $lines[] = '';
+            }
+
+            $extraLimit = max(0, 30 - $orderedPriority->count());
+            $rest = Service::query()
+                ->where('is_active', true)
+                ->when($priorityCodes !== [], fn ($q) => $q->whereNotIn('service_code', $priorityCodes))
+                ->orderBy('sort_order')
+                ->limit($extraLimit)
+                ->get();
+
+            if ($rest->isNotEmpty()) {
+                $lines[] = '## Services catalog';
+                foreach ($rest as $service) {
+                    $code = ltrim((string) $service->service_code, '/');
+                    $lines[] = '- ['.$service->title.']('.$base.'/services/'.$code.')';
+                }
+            }
         }
 
         $lines[] = '';

@@ -4,11 +4,13 @@ namespace App\Services\Import;
 
 use App\Models\ServiceCategory;
 use App\Models\ServiceCategorySeo;
+use App\Services\Growth\PublicUrlNormalizer;
 
 final class ImportCategoryFieldMapper
 {
     public function __construct(
         private readonly ImportCatalogContentMapper $contentMapper,
+        private readonly PublicUrlNormalizer $urlNormalizer,
     ) {}
 
     /**
@@ -48,7 +50,7 @@ final class ImportCategoryFieldMapper
             'meta_description' => $row['meta_description'] ?? null,
             'focus_keywords' => ImportSupport::parseKeywords($row['focus_keywords'] ?? null),
             'secondary_keywords' => ImportSupport::parseKeywords($row['secondary_keywords'] ?? null),
-            'canonical_url' => $row['canonical_url'] ?? null,
+            'canonical_url' => $this->urlNormalizer->normalizeUrl($row['canonical_url'] ?? null),
             'robots_index' => array_key_exists('robots_index', $row)
                 ? ImportSupport::parseBool($row['robots_index'], true)
                 : null,

@@ -1,8 +1,8 @@
 *.log
 .DS_Store
 .env
-.env.backup
-.env.production
+.env.*
+!.env.example
 .phpactor.json
 .phpunit.result.cache
 /.codex
@@ -23,8 +23,23 @@
 /storage/pail
 /storage/app/backups
 /storage/app/restore-points
+/storage/exports
 /vendor
 _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Shell / user files accidentally created in repo root
+.bash_history
+.bashrc
+.profile
+.lesshst
+.cache/
+.ssh/
+.launchpadlib/
+
+# Junk files (accidental paste/typo) — filenames containing spaces
+/-la?public
+/udo?apt?*
+/sudo?*

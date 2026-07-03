@@ -69,6 +69,9 @@ class AeoService
 
     /**
      * llms.txt — machine-readable site guide for AI crawlers (llmstxt.org-style).
+     *
+     * Only returns the stored `llms_txt` override; NEVER falls back to `llm_txt`
+     * (which is the bot-policy file at /llm.txt) — they follow different specs.
      */
     public function generateLlmsTxt(): string
     {
@@ -78,7 +81,7 @@ class AeoService
 
             if ($profile instanceof BusinessProfile) {
                 $technical = SeoTechnicalResolver::forCurrentSite();
-                $custom = trim((string) ($technical?->llms_txt ?? $technical?->llm_txt ?? ''));
+                $custom = trim((string) ($technical?->llms_txt ?? ''));
                 if ($custom !== '') {
                     return $custom;
                 }
@@ -94,7 +97,10 @@ class AeoService
 
         $summary = trim((string) ($entity?->meta_description ?? ''));
         if ($summary === '') {
-            $summary = __('Reliable medical laboratory and diagnostic services in Karnataka.');
+            $summary = (string) config(
+                'medca.llms_summary',
+                'Medca Healthcare — 24/7 home nursing, elderly care, ICU-at-home and diagnostics in Bangalore (25 km radius from Arekere).'
+            );
         }
 
         $lines = [
@@ -129,25 +135,48 @@ class AeoService
             $resolver = app(PublicDisplayNameResolver::class);
             $quickAnswers = app(QuickAnswerGenerator::class);
 
-            $services = Service::query()
+            $priorityCodes = collect((array) config('medca.llms_priority_services', []))
+                ->filter(fn ($code) => is_string($code) && $code !== '')
+                ->values()
+                ->all();
+
+            $priorityServices = $priorityCodes !== []
+                ? Service::query()
+                    ->with('seo')
+                    ->where('is_active', true)
+                    ->whereIn('service_code', $priorityCodes)
+                    ->get()
+                    ->keyBy('service_code')
+                : collect();
+
+            $orderedPriority = collect($priorityCodes)
+                ->map(fn (string $code) => $priorityServices->get($code))
+                ->filter()
+                ->values();
+
+            $extraLimit = max(0, 25 - $orderedPriority->count());
+            $rest = Service::query()
                 ->with('seo')
                 ->where('is_active', true)
+                ->when($priorityCodes !== [], fn ($q) => $q->whereNotIn('service_code', $priorityCodes))
                 ->orderByDesc('is_featured')
                 ->orderBy('service_code')
-                ->limit(25)
+                ->limit($extraLimit)
                 ->get();
 
-            if ($services->isNotEmpty()) {
+            if ($orderedPriority->isNotEmpty()) {
+                $lines[] = '';
+                $lines[] = '## Featured Home Healthcare Services';
+                foreach ($orderedPriority as $service) {
+                    $lines[] = $this->llmsServiceLine($service, $baseUrl, $quickAnswers);
+                }
+            }
+
+            if ($rest->isNotEmpty()) {
                 $lines[] = '';
                 $lines[] = '## Services';
-
-                foreach ($services as $service) {
-                    $title = $service->publicListingTitle();
-                    $url = rtrim($baseUrl, '/').'/services/'.$service->service_code;
-                    $snippet = filled($service->quick_answer)
-                        ? $service->quick_answer
-                        : $quickAnswers->generateForService($service);
-                    $lines[] = '- ['.$title.']('.$url.')'.($snippet ? ': '.$snippet : '');
+                foreach ($rest as $service) {
+                    $lines[] = $this->llmsServiceLine($service, $baseUrl, $quickAnswers);
                 }
             }
         }
@@ -157,6 +186,17 @@ class AeoService
         $lines[] = '- GPTBot, Google-Extended, ClaudeBot: Allow /';
 
         return implode("\n", $lines);
+    }
+
+    private function llmsServiceLine(Service $service, string $baseUrl, QuickAnswerGenerator $quickAnswers): string
+    {
+        $title = $service->publicListingTitle();
+        $url = rtrim($baseUrl, '/').'/services/'.$service->service_code;
+        $snippet = filled($service->quick_answer)
+            ? $service->quick_answer
+            : $quickAnswers->generateForService($service);
+
+        return '- ['.$title.']('.$url.')'.($snippet ? ': '.$snippet : '');
     }
 
     /**

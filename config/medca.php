@@ -42,6 +42,22 @@ return [
     'public_profile_url' => env('MEDCA_PUBLIC_PROFILE_URL', ''),
 
     /**
+     * Social & authority profiles emitted into schema.org sameAs when the value is filled.
+     * Values are merged with SeoEntity.same_as at render time (deduped, invalid URLs skipped).
+     * Leave any env unset to omit from sameAs.
+     */
+    'social_profiles' => array_values(array_filter([
+        env('MEDCA_GMB_URL'),
+        env('MEDCA_LINKEDIN_URL'),
+        env('MEDCA_YOUTUBE_URL'),
+        env('MEDCA_INSTAGRAM_URL'),
+        env('MEDCA_FACEBOOK_URL'),
+        env('MEDCA_TWITTER_URL'),
+        env('MEDCA_PRACTO_URL'),
+        env('MEDCA_JUSTDIAL_URL'),
+    ], static fn ($v) => is_string($v) && trim($v) !== '')),
+
+    /**
      * Hide visible breadcrumb nav on public pages while keeping JSON-LD / schema hierarchy.
      * Set MEDCA_HIDE_VISUAL_BREADCRUMBS=false to restore the UI trail.
      */
@@ -86,6 +102,35 @@ return [
     ],
 
     'default_city' => env('MEDCA_DEFAULT_CITY', 'Bangalore'),
+
+    /**
+     * Short summary emitted at the top of /llms.txt when no SeoEntity meta_description is set.
+     */
+    'llms_summary' => env(
+        'MEDCA_LLMS_SUMMARY',
+        'Medca Healthcare — 24/7 home nursing, elderly care, ICU-at-home and diagnostics in Bangalore (25 km radius from Arekere).'
+    ),
+
+    /**
+     * Ordered list of high-intent service codes surfaced first in /llms.txt so
+     * AI crawlers (GPTBot, ClaudeBot, Google-Extended) see revenue-critical
+     * services before the alphabetical catalog.
+     *
+     * @var list<string>
+     */
+    'llms_priority_services' => [
+        'SRV-nursing-care-at-home',
+        'SRV-elderly-care',
+        'SRV-icu-care-at-home',
+        'SRV-ventilator-care-at-home',
+        'SRV-home-physiotherapy',
+        'SRV-post-surgical-nursing-care',
+        'SRV-mother---baby-care',
+        'SRV-bedridden-patient-care',
+        'SRV-injection-services',
+        'SRV-blood-tests-at-home',
+        'SRV-health-checkup-packages',
+    ],
 
     /**
      * Hreflang locale map — empty prefix = canonical English URL.

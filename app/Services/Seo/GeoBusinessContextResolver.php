@@ -184,6 +184,15 @@ class GeoBusinessContextResolver
             $urls[] = $gbpUrl;
         }
 
+        $configured = config('medca.social_profiles', []);
+        if (is_array($configured)) {
+            foreach ($configured as $url) {
+                if (is_string($url) && $url !== '') {
+                    $urls[] = $url;
+                }
+            }
+        }
+
         return array_values(array_unique(array_filter(array_map(
             static fn ($u) => is_string($u) && filter_var($u, FILTER_VALIDATE_URL) ? $u : null,
             $urls

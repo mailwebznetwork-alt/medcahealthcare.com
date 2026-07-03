@@ -204,8 +204,41 @@ class UnifiedJsonLdGraphBuilder
             ] : null,
             'sameAs' => $ctx['same_as'] !== [] ? $ctx['same_as'] : null,
             'knowsAbout' => $ctx['knows_about'] !== [] ? $ctx['knows_about'] : null,
+            'aggregateRating' => $this->siteAggregateRating(),
             'parentOrganization' => ['@id' => $ctx['site_url'].'/#organization'],
         ]);
+    }
+
+    /**
+     * Site-wide AggregateRating (approved verified reviews across all services).
+     * Returns null when zero reviews so we never emit fake stars.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function siteAggregateRating(): ?array
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('reviews')) {
+            return null;
+        }
+
+        $q = \App\Models\Review::query()->where('status', \App\Models\Review::STATUS_APPROVED);
+        $count = (int) $q->count();
+        if ($count < 1) {
+            return null;
+        }
+
+        $avg = (float) $q->avg('rating');
+        if ($avg <= 0) {
+            return null;
+        }
+
+        return [
+            '@type' => 'AggregateRating',
+            'ratingValue' => round($avg, 1),
+            'reviewCount' => $count,
+            'bestRating' => 5,
+            'worstRating' => 1,
+        ];
     }
 
     /**
