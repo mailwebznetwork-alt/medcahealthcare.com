@@ -32,11 +32,11 @@ return [
 
     'tagline' => 'Care You Can Trust.',
 
-    'whatsapp_url' => env('MEDCA_WHATSAPP_URL', 'https://wa.me/918884994222'),
+    'whatsapp_url' => env('MEDCA_WHATSAPP_URL', 'https://wa.me/918884999002'),
 
-    'phone_display' => env('MEDCA_PHONE_DISPLAY', '088849 94222'),
+    'phone_display' => env('MEDCA_PHONE_DISPLAY', '+91 8884 999 002'),
 
-    'phone_tel' => env('MEDCA_PHONE_TEL', '+918884994222'),
+    'phone_tel' => env('MEDCA_PHONE_TEL', '+918884999002'),
 
     /** Optional Google Business Profile URL for the header location pill (Karnataka Diagnostic Centre marketing shell). */
     'public_profile_url' => env('MEDCA_PUBLIC_PROFILE_URL', ''),

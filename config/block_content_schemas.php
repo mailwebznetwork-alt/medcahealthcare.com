@@ -70,7 +70,7 @@ return [
         ],
         'contact-info' => [
             'call_title' => ['label' => 'Call card title', 'type' => 'text', 'default' => 'Call'],
-            'call_body' => ['label' => 'Call card body', 'type' => 'text', 'default' => 'Call 088849 94222 for home nursing, elder care, physiotherapy, and care coordination.'],
+            'call_body' => ['label' => 'Call card body', 'type' => 'text', 'default' => 'Call +91 8884 999 002 for home nursing, elder care, physiotherapy, and care coordination.'],
             'whatsapp_title' => ['label' => 'WhatsApp card title', 'type' => 'text', 'default' => 'WhatsApp'],
             'whatsapp_body' => ['label' => 'WhatsApp card body', 'type' => 'text', 'default' => "Send a message and we'll respond fast."],
             'hours_title' => ['label' => 'Hours card title', 'type' => 'text', 'default' => 'Hours'],

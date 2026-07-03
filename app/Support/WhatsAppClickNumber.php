@@ -35,6 +35,17 @@ final class WhatsAppClickNumber
     {
         $digits = preg_replace('/\D+/', '', $raw) ?? '';
 
+        // Reject ciphertext / garbage left after failed credential decrypt
+        // (e.g. APP_KEY rotation). E.164 mobiles are 10–15 digits.
+        if ($digits === '' || strlen($digits) < 10 || strlen($digits) > 15) {
+            return '';
+        }
+
+        // Indian 10-digit mobiles → prefix country code for wa.me
+        if (preg_match('/^[6-9]\d{9}$/', $digits) === 1) {
+            return '91'.$digits;
+        }
+
         return $digits;
     }
 

@@ -16,9 +16,9 @@ class MedcaLaunchGlobalContentSeeder extends Seeder
         $values = [
             'company_name' => config('medca.brand_name', 'Karnataka Diagnostic Centre'),
             'tagline' => config('medca.tagline', 'Care You Can Trust'),
-            'phone_number' => env('MEDCA_PHONE_DISPLAY', '088849 94222'),
-            'phone_tel' => env('MEDCA_PHONE_TEL', '+918884994222'),
-            'whatsapp' => env('MEDCA_WHATSAPP_URL', 'https://wa.me/918884994222'),
+            'phone_number' => env('MEDCA_PHONE_DISPLAY', '+91 8884 999 002'),
+            'phone_tel' => env('MEDCA_PHONE_TEL', '+918884999002'),
+            'whatsapp' => env('MEDCA_WHATSAPP_URL', 'https://wa.me/918884999002'),
             'address' => env('MEDCA_LOCATION', 'SLN COMPLEX.3, 2ND FLOOR, AREKERE GATE, Bannerghatta Rd, Bengaluru, Karnataka 560076'),
             'primary_cta' => 'Book a sample collection support',
             'secondary_cta' => 'WhatsApp our care team',
