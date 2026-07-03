@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Karnataka Diagnostic Centre branding and public marketing shell (guest-facing routes).
+ * Medca Healthcare branding and public marketing shell (guest-facing routes).
  *
  * Sticky header height is not set as a single min-height in CSS. It stacks the navy top strip and
  * the white brand/nav row (see resources/views/global/header.blade.php). Total height follows
@@ -11,7 +11,7 @@
  */
 return [
 
-    'top_bar_claim' => '#1 Medical Laboratory in Karnataka',
+    'top_bar_claim' => 'Trusted Home Healthcare in Bangalore',
 
     /** PWA / mobile browser chrome — matches --medca-navy in public/tokens.css */
     'theme_color' => env('MEDCA_THEME_COLOR', '#001f5c'),
@@ -22,15 +22,15 @@ return [
      */
     'marketing_sticky_header_approx_px' => (int) env('MEDCA_MARKETING_HEADER_APPROX_PX', 124),
 
-    'location_display' => env('MEDCA_LOCATION', "mani's square, 75, Arekere MICO Layout 2nd stage, Lakshmi Layout, Arekere, Bengaluru, Karnataka 560076"),
+    'location_display' => env('MEDCA_LOCATION', 'SLN Complex, 2nd Floor, Arekere Gate, Bannerghatta Road, Bengaluru, Karnataka 560076'),
 
     /** Public site & company display name (never MarkOnMinds on the frontend). */
-    'brand_name' => env('MEDCA_BRAND_NAME', 'Karnataka Diagnostic Centre'),
+    'brand_name' => env('MEDCA_BRAND_NAME', 'Medca Healthcare'),
 
     /** Legal entity line for public footer / compliance copy. */
-    'company_legal_name' => env('MEDCA_COMPANY_LEGAL_NAME', 'Karnataka Diagnostic Centre Medical Laboratory Pvt Ltd.'),
+    'company_legal_name' => env('MEDCA_COMPANY_LEGAL_NAME', 'Medca Healthcare'),
 
-    'tagline' => 'Accurate Diagnostics You Can Trust',
+    'tagline' => 'Care You Can Trust.',
 
     'whatsapp_url' => env('MEDCA_WHATSAPP_URL', 'https://wa.me/918884994222'),
 

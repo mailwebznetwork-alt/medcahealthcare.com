@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Careers\CareersController;
 use App\Http\Controllers\Admin\AdminNotificationController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Growth\AeoController;
 use App\Http\Controllers\Growth\CompetitorPageController;
 use App\Http\Controllers\Growth\GscOAuthController;
@@ -212,7 +211,9 @@ Route::get('/blog/{blog:slug}', function (Blog $blog) {
 })->name('blog.public');
 
 Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:dashboard'])->group(function () {
-    Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::redirect('/dashboard', '/console', 302)->name('dashboard');
+    Route::view('/console', 'console')->name('console');
+    Route::redirect('/admin-mode', '/console', 302)->name('admin.mode');
 });
 
 Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:site_architect'])->group(function () {
@@ -424,6 +425,7 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:growth_c
     Route::post('/growth-center/gsc/oauth/disconnect', [GscOAuthController::class, 'disconnect'])->name('growth-center.gsc.oauth.disconnect');
     Route::get('/growth-center/ai-pulse', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'ai-pulse')->name('growth-center.ai-pulse.index');
     Route::get('/growth-center/aeo', [CompetitorPageController::class, 'hubTab'])->defaults('tab', 'seo')->name('growth-center.aeo.index');
+    Route::redirect('/geo-mode', '/growth-center/geo/location', 302)->name('geo.mode');
 
     Route::redirect('/growth-center/competitors/readiness', '/growth-center/readiness', 301);
     Route::redirect('/growth-center/competitors/ga4', '/growth-center/ga4', 301);

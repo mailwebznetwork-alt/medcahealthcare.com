@@ -94,7 +94,7 @@ it('shows the notification bell for admins', function () {
     $admin = User::factory()->create(['role' => 'admin']);
 
     $this->actingAs($admin)
-        ->get(route('dashboard'))
+        ->get(route('console'))
         ->assertSuccessful()
         ->assertSeeLivewire('admin.notification-bell');
 });
@@ -103,7 +103,7 @@ it('hides the notification bell for non-admin roles', function () {
     $editor = User::factory()->create(['role' => 'editor']);
 
     $this->actingAs($editor)
-        ->get(route('dashboard'))
+        ->get(route('console'))
         ->assertSuccessful()
         ->assertDontSeeLivewire('admin.notification-bell');
 });

@@ -19,7 +19,7 @@ class MedcaLaunchGlobalContentSeeder extends Seeder
             'phone_number' => env('MEDCA_PHONE_DISPLAY', '088849 94222'),
             'phone_tel' => env('MEDCA_PHONE_TEL', '+918884994222'),
             'whatsapp' => env('MEDCA_WHATSAPP_URL', 'https://wa.me/918884994222'),
-            'address' => env('MEDCA_LOCATION', "mani's square, 75, Arekere MICO Layout 2nd stage, Lakshmi Layout, Arekere, Bengaluru, Karnataka 560076"),
+            'address' => env('MEDCA_LOCATION', 'SLN COMPLEX.3, 2ND FLOOR, AREKERE GATE, Bannerghatta Rd, Bengaluru, Karnataka 560076'),
             'primary_cta' => 'Book a sample collection support',
             'secondary_cta' => 'WhatsApp our care team',
             'business_hours' => 'Care coordination 7 AM – 10 PM. Doctor-on-call escalation 24×7.',

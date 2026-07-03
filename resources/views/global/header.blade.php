@@ -88,7 +88,7 @@
                 @endif
 
                 <div class="flex min-w-0 flex-col justify-center border-l border-slate-200 pl-2 sm:pl-2.5">
-                    <span class="min-w-0 truncate text-[170%] font-semibold leading-tight tracking-tight text-medca-primary">{{ config('medca.brand_name', 'Karnataka Diagnostic Centre') }}</span>
+                    <span class="min-w-0 truncate text-[170%] font-semibold leading-tight tracking-tight text-medca-primary">{{ config('medca.brand_name', 'Medca Healthcare') }}</span>
                     <span class="mt-0.5 min-w-0 truncate text-[0.625rem] font-bold uppercase leading-none tracking-[0.18em] text-medca-primary md:text-[0.6875rem]">{{ config('medca.tagline') }}</span>
                 </div>
             </a>
@@ -117,8 +117,8 @@
 
                 @if ($themeResolver->headerConfigEnabled('show_secondary_menu'))
                     <div class="ml-2 hidden shrink-0 items-center gap-2 lg:flex">
-                        <a href="{{ $medcaCallHref }}" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-medca-primary hover:bg-slate-50">{{ __('Call Us') }}</a>
-                        <a href="{{ $medcaWhatsAppUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-500">{{ __('WhatsApp Us') }}</a>
+                        <a href="{{ $medcaCallHref }}" class="medca-call-btn px-3 py-2 text-sm shadow-sm">{{ __('Call Us') }}</a>
+                        <a href="{{ $medcaWhatsAppUrl }}" target="_blank" rel="noopener noreferrer" class="medca-whatsapp-btn px-3 py-2 text-sm shadow-sm">{{ __('WhatsApp Us') }}</a>
                     </div>
                 @endif
 
@@ -174,7 +174,7 @@
                                         </svg>
                                     </span>
                                     <div class="min-w-0">
-                                        <p class="text-sm font-semibold tracking-wide text-clinical-900">{{ __('Karnataka Diagnostics Navigation') }}</p>
+                                        <p class="text-sm font-semibold tracking-wide text-clinical-900">{{ __(':brand Navigation', ['brand' => $brandName]) }}</p>
                                         @if($isSuperAdmin)
                                             <p class="text-[11px] uppercase tracking-[0.2em] text-slate-500">{{ __('Strategic Commander') }}</p>
                                         @endif
@@ -242,7 +242,7 @@
                                     @if ($themeResolver->headerConfigEnabled('mobile_cta_enabled'))
                                     <a
                                         href="{{ $medcaCallHref }}"
-                                        class="flex min-h-[52px] items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-clinical-800 shadow-sm transition-colors duration-200 hover:bg-slate-50"
+                                        class="medca-call-btn flex min-h-[52px] px-3 text-sm shadow-sm"
                                     >
                                         {{ __('Call Us') }}
                                     </a>
@@ -252,7 +252,7 @@
                                         href="{{ $medcaWhatsAppUrl }}"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        class="flex min-h-[52px] items-center justify-center rounded-xl bg-emerald-600 px-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-500"
+                                        class="medca-whatsapp-btn flex min-h-[52px] px-3 text-sm shadow-sm"
                                     >
                                         {{ __('WhatsApp Us') }}
                                     </a>

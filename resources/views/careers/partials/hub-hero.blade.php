@@ -1,7 +1,7 @@
 <x-public.hero class="medca-hero-gradient text-white">
     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-white/80">{{ config('careers.organization_name') }}</p>
-    <h1 class="mt-4 text-3xl font-semibold leading-tight md:text-5xl">{{ __('Careers at Karnataka Diagnostic Centre') }}</h1>
+    <h1 class="mt-4 text-3xl font-semibold leading-tight md:text-5xl">{{ __('Careers at Medca Healthcare') }}</h1>
     <p class="mt-5 max-w-2xl text-base leading-relaxed text-white/85 md:text-lg">
-        {{ __('Join our laboratory, sample collection, reporting, and operations teams.') }}
+        {{ __('Join our nursing, elder care, physiotherapy, and home healthcare operations teams.') }}
     </p>
 </x-public.hero>

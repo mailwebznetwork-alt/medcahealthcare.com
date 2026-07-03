@@ -19,7 +19,7 @@
     $buttonName = $label ?? $resolved?->displayName ?? __('WhatsApp Us');
     $phone = $resolved?->phone ?? $primaryNumber?->phone ?? '';
     $baseClass = $styled
-        ? 'inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800'
+        ? 'medca-whatsapp-btn shadow-sm'
         : 'inline-flex items-center gap-2';
 @endphp
 

@@ -25,11 +25,12 @@
     $city = $pinCodeRecord?->city ?: 'Bangalore';
 
     if ($pincode) {
-        $headline = __('Medical Laboratory Services in :area', ['area' => $area]);
-        $subline = __('Professional medical laboratory categories available in :area (:pin).', ['area' => $area, 'pin' => $pincode]);
+        $headlineTemplate = $copy('headline_with_area', 'Home Healthcare Services in :area');
+        $headline = str_replace(':area', $area, $headlineTemplate);
+        $subline = __('Professional home healthcare services available in :area (:pin).', ['area' => $area, 'pin' => $pincode]);
     } else {
-        $headline = $copy('headline_no_pincode', 'Medical laboratory categories near your pincode');
-        $subline = $copy('location_required_message', 'Set your pincode to see which diagnostic services are available in your area.');
+        $headline = $copy('headline_no_pincode', 'Home healthcare services near your pincode');
+        $subline = $copy('location_required_message', 'Set your pincode to see which home healthcare services are available in your area.');
     }
 
     $pincodeButton = $pincode

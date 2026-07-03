@@ -46,32 +46,73 @@
         @apply text-sm font-semibold text-medca-primary hover:underline;
     }
 
-    .medca-cta-solid {
-        @apply inline-flex items-center justify-center rounded-xl bg-medca-primary px-5 py-3 text-sm font-semibold text-white hover:bg-medca-primary-hover;
-    }
-
-    .medca-cta-on-hero {
-        @apply inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-medca-navy shadow hover:bg-slate-100;
-    }
-
+    .medca-cta-solid,
+    .medca-cta-on-hero,
+    .medca-call-btn,
     .medca-whatsapp-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
         border-radius: 0.75rem;
-        background-color: #16a34a;
         padding: 0.75rem 1.25rem;
-        font-size: 0.875rem;
-        font-weight: 600;
-        line-height: 1.25rem;
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.5rem;
         color: #fff;
+        white-space: nowrap;
         box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.06);
         transition: background-color 0.15s ease;
     }
 
+    .medca-cta-solid,
+    .medca-cta-on-hero,
+    .medca-call-btn {
+        background-color: var(--medca-call-cta);
+    }
+
+    .medca-cta-solid:hover,
+    .medca-cta-on-hero:hover,
+    .medca-call-btn:hover {
+        background-color: var(--medca-call-cta-hover);
+        color: #fff;
+    }
+
+    .medca-whatsapp-btn {
+        background-color: var(--medca-whatsapp);
+    }
+
     .medca-whatsapp-btn:hover {
-        background-color: #15803d;
+        background-color: var(--medca-whatsapp-hover);
+        color: #fff;
+    }
+
+    .medca-call-btn.text-xs,
+    .medca-whatsapp-btn.text-xs,
+    .medca-cta-solid.text-xs,
+    .medca-cta-on-hero.text-xs {
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        font-weight: 700;
+    }
+
+    .medca-call-btn.text-sm,
+    .medca-whatsapp-btn.text-sm,
+    .medca-cta-solid.text-sm,
+    .medca-cta-on-hero.text-sm {
+        font-size: 1rem;
+        line-height: 1.5rem;
+        font-weight: 700;
+    }
+
+    .medca-whatsapp-fab {
+        background-color: var(--medca-whatsapp);
+        color: #fff;
+        transition: background-color 0.15s ease;
+    }
+
+    .medca-whatsapp-fab:hover {
+        background-color: var(--medca-whatsapp-hover);
         color: #fff;
     }
 
@@ -624,15 +665,15 @@
         gap: 1rem;
         align-items: flex-start;
         background: linear-gradient(135deg, #e8f7ec 0%, #f4fdf6 100%);
-        border: 1px solid #25d366;
+        border: 1px solid var(--medca-whatsapp);
         border-radius: 0.5rem;
         padding: 1.25rem;
-        box-shadow: 0 2px 8px rgba(37, 211, 102, 0.15);
+        box-shadow: 0 2px 8px rgba(27, 127, 67, 0.15);
     }
 
     .mc-wa-apply-icon {
         flex-shrink: 0;
-        color: #25d366;
+        color: var(--medca-whatsapp);
     }
 
     .mc-wa-apply-title {
@@ -657,16 +698,17 @@
         width: 100%;
         padding: 0.75rem 1rem;
         border-radius: 0.4rem;
-        background: #25d366;
+        background-color: var(--medca-whatsapp);
         color: #fff;
         font-weight: 700;
         font-size: 0.95rem;
         text-decoration: none;
-        transition: filter 0.15s;
+        transition: background-color 0.15s ease;
     }
 
     .mc-wa-apply-btn:hover {
-        filter: brightness(1.05);
+        background-color: var(--medca-whatsapp-hover);
+        color: #fff;
     }
 }
 

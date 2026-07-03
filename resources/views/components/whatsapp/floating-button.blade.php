@@ -1,7 +1,7 @@
 @php
     $numbers = $whatsAppNumbers ?? app(\App\Services\Integrations\WhatsAppClickToChatService::class)->activeNumbers();
     $enabled = ($whatsAppFloatingEnabled ?? true) && $numbers !== [];
-    $fabClass = 'medca-floating-whatsapp fixed bottom-28 right-6 z-50 hidden h-14 w-14 items-center justify-center rounded-full bg-[#25D366] p-0 text-white shadow-md shadow-emerald-900/20 ring-1 ring-white/50 transition-colors duration-200 hover:bg-[#20bd5a] focus:outline-none focus:ring-2 focus:ring-[#25D366] focus:ring-offset-2 focus:ring-offset-slate-50 md:flex';
+    $fabClass = 'medca-floating-whatsapp medca-whatsapp-fab fixed bottom-28 right-6 z-50 hidden h-14 w-14 items-center justify-center rounded-full p-0 shadow-md shadow-emerald-900/20 ring-1 ring-white/50 focus:outline-none focus:ring-2 focus:ring-[#1B7F43] focus:ring-offset-2 focus:ring-offset-slate-50 md:flex';
 @endphp
 
 @if ($enabled)
@@ -30,7 +30,7 @@
             <button
                 type="button"
                 @click="open = !open"
-                class="flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-md ring-1 ring-white/50 hover:bg-[#20bd5a]"
+                class="medca-whatsapp-fab flex h-14 w-14 items-center justify-center rounded-full shadow-md ring-1 ring-white/50"
                 aria-label="{{ __('Chat on WhatsApp') }}"
             >
                 <svg class="h-8 w-8" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

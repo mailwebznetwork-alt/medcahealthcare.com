@@ -135,9 +135,9 @@ final class ModuleAccess
     {
         return [
             self::DASHBOARD => [
-                'label' => 'Dashboard',
+                'label' => 'Console',
                 'icon' => 'layout-dashboard',
-                'route' => 'dashboard',
+                'route' => 'console',
             ],
             self::SITE_ARCHITECT => [
                 'label' => 'Site Architect',
@@ -189,8 +189,8 @@ final class ModuleAccess
     {
         return [
             self::DASHBOARD => [
-                'label' => 'Dashboard',
-                'description' => 'Executive overview and operational shortcuts.',
+                'label' => 'Console',
+                'description' => 'Workspace entry point and module launcher.',
             ],
             self::SITE_ARCHITECT => [
                 'label' => 'Site Architect',

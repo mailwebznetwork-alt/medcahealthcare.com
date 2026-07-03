@@ -236,7 +236,7 @@ final class WorkspaceGlobalSearch
             $out[] = ['title' => $title, 'subtitle' => $subtitle, 'url' => $url];
         };
 
-        $push(str_contains($n, 'dashboard') || $n === 'home', __('Dashboard'), __('Executive overview'), 'dashboard');
+        $push(str_contains($n, 'dashboard') || str_contains($n, 'console') || $n === 'home', __('Console'), __('Workspace modules'), 'console');
         $push(str_contains($n, 'operation') || str_contains($n, 'ops') || $n === 'bookings', __('Operations hub'), __('Run-state and queues'), 'modules.operations');
         $push(
             str_contains($n, 'architect') || (str_contains($n, 'site') && str_contains($n, 'content')),

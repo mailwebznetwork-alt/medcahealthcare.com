@@ -3,7 +3,10 @@
     'field' => 'headline',
     'tag' => 'h2',
     'class' => '',
+    'blockSettings' => null,
 ])
+
+@aware(['blockSettings', 'blockSlug'])
 
 @php
     use App\Support\BlockContent;

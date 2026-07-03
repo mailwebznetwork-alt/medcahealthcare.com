@@ -11,7 +11,7 @@
 @section('content')
     <x-public.location-page-hero
         :eyebrow="__('Browse by category')"
-        :headline="__('Medical Laboratory services')"
+        :headline="__('Home Healthcare Services')"
         :subline="__('Organize discovery by test type. Each service keeps its own SEO and detail page.')"
         :show-pincode="false"
         :show-actions="true"

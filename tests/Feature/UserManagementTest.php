@@ -31,7 +31,7 @@ it('forbids user management routes without module access', function () {
 
     $this->actingAs($user)
         ->get(route('user-management.index'))
-        ->assertForbidden();
+        ->assertRedirect(route('console', absolute: false));
 });
 
 it('prevents non-root users from updating the root super administrator', function () {
@@ -233,6 +233,6 @@ it('logs out inactive users on the next request', function () {
     ]);
 
     $this->actingAs($user)
-        ->get(route('dashboard'))
+        ->get(route('console'))
         ->assertRedirect(route('login'));
 });

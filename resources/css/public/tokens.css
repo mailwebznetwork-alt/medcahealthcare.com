@@ -31,6 +31,12 @@ body.medca-public-surface {
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
 
+    /* CTA button brand colors */
+    --medca-call-cta: #003399;
+    --medca-call-cta-hover: #002b80;
+    --medca-whatsapp: #1b7f43;
+    --medca-whatsapp-hover: #166b38;
+
     /* Color */
     --medca-primary: #0055ff;
     --medca-primary-soft: rgba(0, 70, 173, 0.08);

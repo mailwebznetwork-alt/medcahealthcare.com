@@ -10,8 +10,8 @@
     <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-lg md:p-5">
         <p class="text-sm font-semibold text-slate-900">{{ $headline }}</p>
         <div class="mt-3 flex flex-wrap gap-2">
-            <a href="{{ $tel }}" class="medca-cta-solid text-sm">{{ BlockContent::callUsLabel() }}</a>
-            <x-whatsapp.link class="px-4 py-2" :label="__('WhatsApp Us')">{{ __('WhatsApp Us') }}</x-whatsapp.link>
+            <a href="{{ $tel }}" class="medca-cta-solid text-sm shadow-sm">{{ BlockContent::callUsLabel() }}</a>
+            <x-whatsapp.link class="text-sm shadow-sm" :label="__('WhatsApp Us')">{{ __('WhatsApp Us') }}</x-whatsapp.link>
         </div>
     </div>
 </x-blocks.element-wrap>

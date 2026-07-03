@@ -35,5 +35,5 @@ it('lands users with dashboard access on the main dashboard', function () {
         ],
     ]);
 
-    expect(UserLandingRoute::pathFor($user))->toBe(route('dashboard', absolute: false));
+    expect(UserLandingRoute::pathFor($user))->toBe(route('console', absolute: false));
 });

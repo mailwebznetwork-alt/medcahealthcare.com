@@ -18,16 +18,12 @@
         <a
             href="{{ $callHref }}"
             data-track="phone_click"
-            @class([
-                'inline-flex shrink-0 items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold shadow-sm transition',
-                'medca-cta-on-hero' => $tone === 'brand',
-                'border border-slate-300 bg-white text-slate-900 hover:border-medca-primary/40' => $tone !== 'brand',
-            ])
+            class="medca-call-btn shrink-0 shadow-sm"
         >
             {{ BlockContent::callUsLabel() }}
         </a>
     @endif
-    <x-whatsapp.link class="shrink-0" :label="__('WhatsApp Us')">
+    <x-whatsapp.link class="shrink-0 shadow-sm" :label="__('WhatsApp Us')">
         {{ __('WhatsApp Us') }}
     </x-whatsapp.link>
 </div>

@@ -92,6 +92,10 @@ final class AdminNavigation
     public static function activeRoutePatterns(string $navKey): array
     {
         return match ($navKey) {
+            ModuleAccess::DASHBOARD => [
+                'dashboard',
+                'console',
+            ],
             ModuleAccess::OPERATIONS => [
                 'modules.operations',
                 'operations.*',

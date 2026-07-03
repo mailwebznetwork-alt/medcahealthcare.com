@@ -33,7 +33,7 @@
                     <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $reviewLabel }}</p>
                 </div>
                 <div>
-                    <p class="text-sm font-semibold text-slate-800">{{ __('Reliable Medical Laboratory services') }}</p>
+                    <p class="text-sm font-semibold text-slate-800">{{ __('Reliable Home Healthcare Services') }}</p>
                     <p class="text-xs text-slate-600">{{ __('Diagnostic support across Karnataka') }}</p>
                 </div>
             </div>
@@ -41,7 +41,7 @@
 
         @if ($approvedReviews->isNotEmpty())
             <div class="mt-8">
-                <h2 class="text-xl font-semibold text-slate-900 md:text-2xl">{{ __('What patients say about Karnataka Diagnostic Centre') }}</h2>
+                <h2 class="text-xl font-semibold text-slate-900 md:text-2xl">{{ __('What families say about Medca Healthcare') }}</h2>
                 <div class="mt-4 grid gap-4 md:grid-cols-3">
                     @foreach ($approvedReviews as $review)
                         <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

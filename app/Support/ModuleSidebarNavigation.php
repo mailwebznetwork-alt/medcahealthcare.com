@@ -50,13 +50,13 @@ final class ModuleSidebarNavigation
 
         $meta = $navigation[$navKey] ?? null;
         if (! is_array($meta)) {
-            return ['label' => $navKey, 'icon' => 'circle', 'homeRoute' => 'dashboard'];
+            return ['label' => $navKey, 'icon' => 'circle', 'homeRoute' => 'console'];
         }
 
         return [
             'label' => (string) ($meta['label'] ?? $navKey),
             'icon' => (string) ($meta['icon'] ?? 'circle'),
-            'homeRoute' => (string) ($meta['route'] ?? 'dashboard'),
+            'homeRoute' => (string) ($meta['route'] ?? 'console'),
         ];
     }
 

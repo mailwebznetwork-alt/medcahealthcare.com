@@ -20,7 +20,7 @@ it('returns forbidden when the user lacks module access', function () {
 
     $this->actingAs($user)
         ->get(route('marketing.dashboard'))
-        ->assertForbidden();
+        ->assertRedirect(route('console', absolute: false));
 });
 
 it('does not render sidebar links for modules the user cannot access', function () {
@@ -32,7 +32,7 @@ it('does not render sidebar links for modules the user cannot access', function 
     ]);
 
     $this->actingAs($user)
-        ->get(route('dashboard'))
+        ->get(route('console'))
         ->assertOk()
         ->assertDontSee(route('marketing.dashboard'), false);
 });
@@ -75,6 +75,6 @@ it('blocks the dashboard when dashboard access is disabled', function () {
     ]);
 
     $this->actingAs($user)
-        ->get(route('dashboard'))
-        ->assertForbidden();
+        ->get(route('console'))
+        ->assertRedirect(route('site-architect.pages.index', absolute: false));
 });
