@@ -19,6 +19,47 @@ class WhatsAppClickToChatService
     public const int MAX_NUMBERS = 5;
 
     /**
+     * Canonical public WhatsApp number (digits only, with country code).
+     * Always sourced from env/config/global content — never from broken credentials.
+     */
+    public function canonicalPhone(): string
+    {
+        $candidates = [
+            env('MEDCA_WHATSAPP_NUMBER'),
+            config('medca.whatsapp_number'),
+            config('medca.whatsapp_url'),
+            app(\App\Services\Deployment\GlobalContentVariableRepository::class)->resolved()['whatsapp'] ?? null,
+            config('medca.phone_tel'),
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (! is_string($candidate) || trim($candidate) === '') {
+                continue;
+            }
+
+            if (preg_match('#wa\.me/(\d+)#', $candidate, $m) === 1) {
+                $phone = WhatsAppClickNumber::normalizePhone($m[1]);
+            } else {
+                $phone = WhatsAppClickNumber::normalizePhone($candidate);
+            }
+
+            if ($phone !== '') {
+                return $phone;
+            }
+        }
+
+        return '918884999002';
+    }
+
+    /**
+     * Clean click-to-chat URL (no prefilled text — avoids client-side "invalid number" errors).
+     */
+    public function canonicalUrl(): string
+    {
+        return 'https://wa.me/'.$this->canonicalPhone();
+    }
+
+    /**
      * @return list<WhatsAppClickNumber>
      */
     public function activeNumbers(): array
@@ -30,65 +71,35 @@ class WhatsAppClickToChatService
     }
 
     /**
+     * Public site always uses the canonical brand number from env/config.
+     * Integration credentials are for admin display only and are synced via
+     * syncCanonicalCredentials() — never trusted as the live click-to-chat source
+     * (APP_KEY rotation previously turned ciphertext into a garbage wa.me link).
+     *
      * @return list<WhatsAppClickNumber>
      */
     public function configuredNumbers(): array
     {
-        $integration = $this->integration();
-        if ($integration === null) {
-            return $this->fallbackFromConfig();
-        }
-
-        $credentials = $this->credentialVault->decrypt(
-            is_array($integration->credentials) ? $integration->credentials : []
-        );
-        $rows = $credentials['click_numbers'] ?? [];
-        if (! is_array($rows)) {
-            $rows = [];
-        }
-
-        $numbers = [];
-        foreach ($rows as $row) {
-            if (! is_array($row)) {
-                continue;
-            }
-            $number = WhatsAppClickNumber::fromArray($row);
-            if ($number !== null) {
-                $numbers[] = $number;
-            }
-        }
-
-        if ($numbers === []) {
-            return $this->fallbackFromConfig();
-        }
-
-        usort($numbers, fn (WhatsAppClickNumber $a, WhatsAppClickNumber $b): int => $a->sortOrder <=> $b->sortOrder);
-
-        return array_slice($numbers, 0, self::MAX_NUMBERS);
+        return [$this->canonicalNumber()];
     }
 
     public function primaryUrl(): string
     {
-        $active = $this->activeNumbers();
-        if ($active !== []) {
-            return $active[0]->waMeUrl() ?? $this->brandingWhatsAppUrl();
-        }
-
-        return $this->brandingWhatsAppUrl();
+        return $this->canonicalUrl();
     }
 
     public function isFloatingButtonEnabled(): bool
     {
         $integration = $this->integration();
         if ($integration === null || ! $integration->is_enabled) {
-            return $this->activeNumbers() !== [];
+            return true;
         }
 
         $credentials = $this->credentialVault->decrypt(
             is_array($integration->credentials) ? $integration->credentials : []
         );
 
-        return (bool) ($credentials['floating_button_enabled'] ?? true);
+        return filter_var($credentials['floating_button_enabled'] ?? true, FILTER_VALIDATE_BOOLEAN);
     }
 
     public function isClickToChatEnabled(): bool
@@ -127,13 +138,42 @@ class WhatsAppClickToChatService
             $number = WhatsAppClickNumber::fromArray([
                 ...$row,
                 'sort_order' => $row['sort_order'] ?? ($index + 1),
+                // Never persist prefilled messages — they break some WhatsApp clients.
+                'default_message' => '',
             ]);
             if ($number !== null) {
                 $out[] = $number->toArray();
             }
         }
 
+        if ($out === []) {
+            $out[] = $this->canonicalNumber()->toArray();
+        }
+
         return $out;
+    }
+
+    /**
+     * Persist the canonical brand number into the integration credentials
+     * so admin UI and public site stay in sync after key rotations.
+     */
+    public function syncCanonicalCredentials(): void
+    {
+        $integration = $this->integration();
+        if ($integration === null) {
+            return;
+        }
+
+        $payload = [
+            'floating_button_enabled' => true,
+            'click_numbers' => [
+                $this->canonicalNumber()->toArray(),
+            ],
+        ];
+
+        $integration->credentials = $this->credentialVault->encrypt($payload);
+        $integration->is_enabled = true;
+        $integration->save();
     }
 
     private function integration(): ?Integration
@@ -147,40 +187,14 @@ class WhatsAppClickToChatService
             ->first();
     }
 
-    /**
-     * @return list<WhatsAppClickNumber>
-     */
-    private function fallbackFromConfig(): array
+    private function canonicalNumber(): WhatsAppClickNumber
     {
-        $url = $this->brandingWhatsAppUrl();
-        if ($url === '' || ! preg_match('#wa\.me/(\d+)#', $url, $m)) {
-            return [];
-        }
-
-        $message = '';
-        if (preg_match('#[?&]text=([^&]+)#', $url, $msg)) {
-            $message = rawurldecode($msg[1]);
-        }
-
-        $number = WhatsAppClickNumber::fromArray([
-            'display_name' => (string) config('medca.name', 'Medca'),
-            'phone' => $m[1],
-            'default_message' => $message,
-            'enabled' => true,
-            'sort_order' => 1,
-        ]);
-
-        return $number !== null ? [$number] : [];
-    }
-
-    private function brandingWhatsAppUrl(): string
-    {
-        $url = trim((string) (app(\App\Services\Deployment\GlobalContentVariableRepository::class)->resolved()['whatsapp'] ?? ''));
-
-        if ($url !== '') {
-            return $url;
-        }
-
-        return (string) config('medca.whatsapp_url', 'https://wa.me/');
+        return new WhatsAppClickNumber(
+            displayName: (string) config('medca.brand_name', 'Medca Healthcare'),
+            phone: $this->canonicalPhone(),
+            defaultMessage: '',
+            enabled: true,
+            sortOrder: 0,
+        );
     }
 }

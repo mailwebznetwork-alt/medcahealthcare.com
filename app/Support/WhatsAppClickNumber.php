@@ -25,8 +25,9 @@ final class WhatsAppClickNumber
         return new self(
             displayName: trim((string) ($row['display_name'] ?? $row['label'] ?? __('WhatsApp'))),
             phone: $phone,
-            defaultMessage: trim((string) ($row['default_message'] ?? '')),
-            enabled: (bool) ($row['enabled'] ?? true),
+            // Prefill text breaks some WhatsApp clients ("phone number shared via url is invalid").
+            defaultMessage: '',
+            enabled: filter_var($row['enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
             sortOrder: max(0, min(99, (int) ($row['sort_order'] ?? 0))),
         );
     }

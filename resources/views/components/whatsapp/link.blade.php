@@ -6,18 +6,18 @@
 ])
 
 @php
-    use App\Support\BlockContent;
-
     $whatsAppService = app(\App\Services\Integrations\WhatsAppClickToChatService::class);
+    $canonicalPhone = $whatsAppService->canonicalPhone();
+    $canonicalUrl = $whatsAppService->canonicalUrl();
     $resolved = $number instanceof \App\Support\WhatsAppClickNumber
         ? $number
         : (is_array($number) ? \App\Support\WhatsAppClickNumber::fromArray($number) : null);
-    $primaryNumber = $whatsAppService->activeNumbers()[0] ?? null;
-    $href = $resolved?->waMeUrl()
-        ?? $primaryNumber?->waMeUrl()
-        ?? BlockContent::whatsAppUrl();
+    // Only honour an explicit number when it matches the brand line.
+    $href = ($resolved !== null && $resolved->phone === $canonicalPhone)
+        ? $resolved->waMeUrl()
+        : $canonicalUrl;
     $buttonName = $label ?? $resolved?->displayName ?? __('WhatsApp Us');
-    $phone = $resolved?->phone ?? $primaryNumber?->phone ?? '';
+    $phone = $canonicalPhone;
     $baseClass = $styled
         ? 'medca-whatsapp-btn shadow-sm'
         : 'inline-flex items-center gap-2';

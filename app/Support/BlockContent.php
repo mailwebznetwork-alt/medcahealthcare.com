@@ -195,18 +195,24 @@ final class BlockContent
 
     public static function whatsAppUrl(?string $fallback = null): string
     {
-        $url = trim(self::global('whatsapp'));
+        // Always resolve through the click-to-chat service so every CTA uses
+        // the same canonical number (env/config), never a stale/corrupt value.
+        $canonical = app(\App\Services\Integrations\WhatsAppClickToChatService::class)->primaryUrl();
+        if ($canonical !== '' && $canonical !== 'https://wa.me/') {
+            return $canonical;
+        }
 
+        $url = trim(self::global('whatsapp'));
         if ($url !== '') {
             return $url;
         }
 
         $fallback = trim((string) ($fallback ?? config('medca.whatsapp_url', '')));
 
-        return $fallback !== '' ? $fallback : app(\App\Services\Integrations\WhatsAppClickToChatService::class)->primaryUrl();
+        return $fallback;
     }
 
-    public static function phoneDisplay(?string $fallback = '+91 88849 99002'): string
+    public static function phoneDisplay(?string $fallback = '+91 8884 999 002'): string
     {
         $display = self::global('phone_number');
 

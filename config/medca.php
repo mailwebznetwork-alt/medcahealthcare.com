@@ -34,6 +34,9 @@ return [
 
     'whatsapp_url' => env('MEDCA_WHATSAPP_URL', 'https://wa.me/918884999002'),
 
+    /** Digits-only WhatsApp number with country code (used by click-to-chat). */
+    'whatsapp_number' => env('MEDCA_WHATSAPP_NUMBER', '918884999002'),
+
     'phone_display' => env('MEDCA_PHONE_DISPLAY', '+91 8884 999 002'),
 
     'phone_tel' => env('MEDCA_PHONE_TEL', '+918884999002'),
