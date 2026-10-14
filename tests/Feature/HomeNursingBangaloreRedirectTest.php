@@ -43,3 +43,20 @@ it('redirects home-nursing bangalore to services and keeps ad query params', fun
         ->and($location)->toContain('utm_campaign=nursing_bangalore')
         ->and($location)->toContain('gclid=ads-test-1');
 });
+
+it('serves the ads landing redirect via http route with utm query params', function () {
+    // Delete DB redirect so this asserts the route fallback (code deploy without migrate).
+    if (Schema::hasTable('url_redirects')) {
+        UrlRedirect::query()->where('from_path', '/home-nursing/bangalore')->delete();
+    }
+
+    $response = $this->get('/home-nursing/bangalore?utm_source=google&utm_medium=cpc&gclid=route-test');
+
+    $response->assertRedirect();
+    expect($response->headers->get('Location'))
+        ->toStartWith('https://medcahealthcare.com/services')
+        ->toContain('utm_source=google')
+        ->toContain('utm_medium=cpc')
+        ->toContain('gclid=route-test');
+    expect($response->status())->toBe(301);
+});
