@@ -1,37 +1,42 @@
 <?php
 
-use App\Http\Controllers\Careers\CareersController;
 use App\Http\Controllers\Admin\AdminNotificationController;
+use App\Http\Controllers\Careers\CareersController;
 use App\Http\Controllers\Growth\AeoController;
 use App\Http\Controllers\Growth\CompetitorPageController;
-use App\Http\Controllers\Growth\GscOAuthController;
 use App\Http\Controllers\Growth\GeoController;
+use App\Http\Controllers\Growth\GscOAuthController;
 use App\Http\Controllers\Growth\SeoController;
+use App\Http\Controllers\Growth\SeoDiscoveryController;
+use App\Http\Controllers\Growth\UrlRedirectController;
 use App\Http\Controllers\Growth\WarRoomController;
 use App\Http\Controllers\Marketing\MarketingReportController;
 use App\Http\Controllers\MarketingEmailOpenController;
 use App\Http\Controllers\MarketingTrackingController;
 use App\Http\Controllers\ModuleSurfaceController;
+use App\Http\Controllers\Operations\BulkImportController;
 use App\Http\Controllers\Operations\JobPortal\ApplicationController;
 use App\Http\Controllers\Operations\JobPortal\JobPortalDashboardController;
 use App\Http\Controllers\Operations\JobPortal\VacancyController;
 use App\Http\Controllers\Operations\LegacyModuleFieldsController;
+use App\Http\Controllers\Operations\MedicalReviewController;
 use App\Http\Controllers\Operations\OperationsHubController;
-use App\Http\Controllers\Operations\BulkImportController;
 use App\Http\Controllers\Operations\PinCodes\PinCodeController;
 use App\Http\Controllers\Operations\ServiceCategories\ServiceCategoryController;
 use App\Http\Controllers\Operations\Services\ServiceController;
 use App\Http\Controllers\Operations\Services\SubServiceController;
-use App\Http\Controllers\Public\ServiceCategoryPublicController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\CmsPageController;
-use App\Http\Controllers\Public\LocationAreaController;
+use App\Http\Controllers\Public\HtmlSitemapController;
 use App\Http\Controllers\Public\LeadCaptureController;
+use App\Http\Controllers\Public\LocationAreaController;
 use App\Http\Controllers\Public\LocationController;
+use App\Http\Controllers\Public\ServiceCategoryPublicController;
 use App\Http\Controllers\Public\ServicePublicController;
 use App\Http\Controllers\Settings\IntegrationController;
 use App\Http\Controllers\Settings\SystemOperationsController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SiteArchitect\BulkExportController;
 use App\Http\Controllers\SiteArchitect\DynamicRecordController;
 use App\Http\Controllers\SiteArchitect\ModuleManagerController;
 use App\Http\Controllers\System\SourceOfTruthController;
@@ -44,9 +49,12 @@ use App\Models\Lead;
 use App\Models\Page;
 use App\Models\SiteSlugRedirect;
 use App\Services\ActivityLogService;
+use App\Services\Operations\ServicePublicUrlBuilder;
 use App\Services\Public\PagePublicPreviewService;
 use App\Services\Public\PageRenderContextRegistrar;
 use App\Services\Public\PublicPagePresenter;
+use App\Support\InternalTemplatePageRedirects;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
@@ -54,7 +62,7 @@ Route::get('/robots.txt', [SeoController::class, 'robotsTxt'])->name('public.rob
 Route::get('/{indexNowKey}.txt', [SeoController::class, 'indexNowKey'])
     ->where('indexNowKey', '[a-zA-Z0-9]{8,128}')
     ->name('public.indexnow.key');
-Route::get('/sitemap', [\App\Http\Controllers\Public\HtmlSitemapController::class, 'index'])->name('public.sitemap.html');
+Route::get('/sitemap', [HtmlSitemapController::class, 'index'])->name('public.sitemap.html');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemapXml'])->name('public.sitemap');
 Route::get('/sitemap-{segment}.xml', [SeoController::class, 'sitemapSegmentXml'])
     ->where('segment', '[a-z0-9]+(?:-[a-z0-9]+)*')
@@ -101,6 +109,17 @@ Route::get('/home', function () {
 
     return view('home', app(PublicPagePresenter::class)->nearYouPayload());
 })->name('public.home.alias');
+
+// Google Ads landing — keep gclid/UTMs when sending visitors to the services hub.
+Route::get('/home-nursing/bangalore', function (Request $request) {
+    $target = 'https://medcahealthcare.com/services';
+    $query = $request->getQueryString();
+    if (is_string($query) && $query !== '') {
+        $target .= (str_contains($target, '?') ? '&' : '?').$query;
+    }
+
+    return redirect()->away($target, 301);
+})->name('public.ads.home-nursing-bangalore');
 
 Route::get('/services-catalog', [ServicePublicController::class, 'index'])->name('public.services.index');
 
@@ -157,12 +176,12 @@ Route::post('/careers/{slug}/apply', [CareersController::class, 'storeApplicatio
     ->name('careers.apply');
 
 Route::get('/p/{slug}', function (string $slug) {
-    $legacyTarget = app(\App\Services\Operations\ServicePublicUrlBuilder::class)->legacyRedirectForPageSlug($slug);
+    $legacyTarget = app(ServicePublicUrlBuilder::class)->legacyRedirectForPageSlug($slug);
     if ($legacyTarget !== null) {
         return redirect($legacyTarget, 301);
     }
 
-    $templateRedirect = \App\Support\InternalTemplatePageRedirects::redirectPathFor($slug);
+    $templateRedirect = InternalTemplatePageRedirects::redirectPathFor($slug);
     if ($templateRedirect !== null) {
         return redirect($templateRedirect, 302);
     }
@@ -266,7 +285,7 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:site_arc
 
         Route::view('/media', 'site-architect.media-library-shell')->name('media.index');
 
-        Route::get('/bulk/export', \App\Http\Controllers\SiteArchitect\BulkExportController::class)->name('bulk.export');
+        Route::get('/bulk/export', BulkExportController::class)->name('bulk.export');
 
         Route::prefix('modules')->name('modules.')->group(function () {
             Route::get('/', [ModuleManagerController::class, 'index'])->name('index');
@@ -340,9 +359,9 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:operatio
         Route::get('{service}/detail-page/edit', [ServiceController::class, 'editDetailPage'])->name('detail-page.edit');
         Route::put('{service}', [ServiceController::class, 'update'])->name('update');
         Route::post('{service}/gemini-suggest', [ServiceController::class, 'geminiSuggest'])->name('gemini-suggest');
-        Route::post('medical-review/submit', [\App\Http\Controllers\Operations\MedicalReviewController::class, 'submit'])->name('medical-review.submit');
-        Route::post('medical-review/approve', [\App\Http\Controllers\Operations\MedicalReviewController::class, 'approve'])->name('medical-review.approve');
-        Route::post('medical-review/reject', [\App\Http\Controllers\Operations\MedicalReviewController::class, 'reject'])->name('medical-review.reject');
+        Route::post('medical-review/submit', [MedicalReviewController::class, 'submit'])->name('medical-review.submit');
+        Route::post('medical-review/approve', [MedicalReviewController::class, 'approve'])->name('medical-review.approve');
+        Route::post('medical-review/reject', [MedicalReviewController::class, 'reject'])->name('medical-review.reject');
         Route::delete('{service}', [ServiceController::class, 'destroy'])->name('destroy');
     });
 
@@ -472,10 +491,10 @@ Route::middleware(['auth', 'active', 'verified', 'auto.logout', 'module:growth_c
         Route::prefix('seo')->group(function () {
             Route::post('entity', [SeoController::class, 'storeEntity'])->name('growth-center.seo.entity.store');
             Route::post('technical', [SeoController::class, 'storeTechnical'])->name('growth-center.seo.technical.store');
-            Route::post('bootstrap-discovery', [\App\Http\Controllers\Growth\SeoDiscoveryController::class, 'bootstrap'])->name('growth-center.seo.bootstrap');
-            Route::post('redirects', [\App\Http\Controllers\Growth\UrlRedirectController::class, 'store'])->name('growth-center.seo.redirects.store');
-            Route::delete('redirects/{urlRedirect}', [\App\Http\Controllers\Growth\UrlRedirectController::class, 'destroy'])->name('growth-center.seo.redirects.destroy');
-            Route::post('scan-broken-links', [\App\Http\Controllers\Growth\UrlRedirectController::class, 'scanBrokenLinks'])->name('growth-center.seo.scan-broken-links');
+            Route::post('bootstrap-discovery', [SeoDiscoveryController::class, 'bootstrap'])->name('growth-center.seo.bootstrap');
+            Route::post('redirects', [UrlRedirectController::class, 'store'])->name('growth-center.seo.redirects.store');
+            Route::delete('redirects/{urlRedirect}', [UrlRedirectController::class, 'destroy'])->name('growth-center.seo.redirects.destroy');
+            Route::post('scan-broken-links', [UrlRedirectController::class, 'scanBrokenLinks'])->name('growth-center.seo.scan-broken-links');
         });
 
         Route::post('aeo', [AeoController::class, 'store'])->name('growth-center.aeo.store');

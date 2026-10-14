@@ -6,7 +6,10 @@
     $fields = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'gclid', 'fbclid'];
 @endphp
 @foreach ($fields as $field)
-    @if (! empty($utm[$field]))
-        <input type="hidden" name="{{ $field }}" value="{{ $utm[$field] }}" />
-    @endif
+    <input
+        type="hidden"
+        name="{{ $field }}"
+        value="{{ old($field, $utm[$field] ?? '') }}"
+        data-medca-utm-field="{{ $field }}"
+    />
 @endforeach

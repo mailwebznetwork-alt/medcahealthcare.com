@@ -27,11 +27,27 @@
     <script>
         document.addEventListener('submit', function (e) {
             if (e.target && e.target.tagName === 'FORM' && typeof gtag === 'function') {
+                var params = new URLSearchParams(location.search);
+                var source = params.get('utm_source') || (function () { try { return localStorage.getItem('medca_utm_source') || ''; } catch (err) { return ''; } })();
+                var medium = params.get('utm_medium') || (function () { try { return localStorage.getItem('medca_utm_medium') || ''; } catch (err) { return ''; } })();
+                var campaign = params.get('utm_campaign') || (function () { try { return localStorage.getItem('medca_utm_campaign') || ''; } catch (err) { return ''; } })();
+                var gclid = params.get('gclid') || (function () { try { return localStorage.getItem('medca_gclid') || ''; } catch (err) { return ''; } })();
+                if (gclid && !source) { source = 'google'; }
+                if (gclid && !medium) { medium = 'cpc'; }
+
                 gtag('event', 'form_submit', {
                     form_name: e.target.getAttribute('name') || e.target.id || 'form',
-                    page_path: location.pathname
+                    page_path: location.pathname,
+                    source: source || undefined,
+                    medium: medium || undefined,
+                    campaign: campaign || undefined
                 });
-                gtag('event', 'generate_lead', { method: 'form' });
+                gtag('event', 'generate_lead', {
+                    method: 'form',
+                    source: source || undefined,
+                    medium: medium || undefined,
+                    campaign: campaign || undefined
+                });
             }
             if (e.target && e.target.tagName === 'FORM' && typeof fbq === 'function') {
                 fbq('track', 'Lead');
