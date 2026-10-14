@@ -33,6 +33,8 @@
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
+        // Keep gclid / UTMs available across pages when consent or navigations intervene.
+        gtag('set', 'url_passthrough', true);
         gtag('config', '{{ $ga4MeasurementId }}'@if (config('app.debug')), { debug_mode: true }@endif);
         @if (filled($googleAdsAwId))
         gtag('config', '{{ $googleAdsAwId }}');

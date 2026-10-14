@@ -51,7 +51,9 @@ class UtmCaptureService
             }
         }
 
-        if ($payload === [] && $request->has('gclid') === false && $request->has('fbclid') === false) {
+        $payload = $this->normalizeClickIdsToChannelUtms($payload);
+
+        if ($payload === [] && ! $request->query->has('gclid') && ! $request->query->has('fbclid')) {
             $referrer = (string) $request->headers->get('referer', '');
             if ($referrer !== '' && ! str_contains($referrer, $request->getHost())) {
                 $payload['utm_source'] = 'referral';
@@ -60,6 +62,29 @@ class UtmCaptureService
                 $payload['utm_source'] = 'direct';
                 $payload['utm_medium'] = 'direct';
             }
+        }
+
+        return $payload;
+    }
+
+    /**
+     * When Google/Meta click IDs arrive without UTMs (auto-tagging only), map to
+     * GA4 Default Channel Group–compatible source/medium values.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function normalizeClickIdsToChannelUtms(array $payload): array
+    {
+        $hasGclid = isset($payload['gclid']) && is_string($payload['gclid']) && $payload['gclid'] !== '';
+        $hasFbclid = isset($payload['fbclid']) && is_string($payload['fbclid']) && $payload['fbclid'] !== '';
+
+        if ($hasGclid) {
+            $payload['utm_source'] ??= 'google';
+            $payload['utm_medium'] ??= 'cpc';
+        } elseif ($hasFbclid) {
+            $payload['utm_source'] ??= 'facebook';
+            $payload['utm_medium'] ??= 'paid';
         }
 
         return $payload;

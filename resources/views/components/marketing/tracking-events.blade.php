@@ -9,34 +9,81 @@
     var fingerprint = localStorage.getItem('medca_fp') || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
     localStorage.setItem('medca_fp', fingerprint);
 
-    function utmFromUrl() {
-        var params = new URLSearchParams(location.search);
-        return {
-            source: params.get('utm_source') || '',
-            medium: params.get('utm_medium') || '',
-            campaign: params.get('utm_campaign') || ''
-        };
+    var attributionKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'gclid', 'fbclid'];
+
+    function readStored(key) {
+        try { return localStorage.getItem('medca_' + key) || ''; } catch (e) { return ''; }
+    }
+
+    function writeStored(key, val) {
+        if (!val) return;
+        try { localStorage.setItem('medca_' + key, val); } catch (e) {}
     }
 
     function persistUtmFromUrl() {
         var params = new URLSearchParams(location.search);
-        ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'gclid', 'fbclid'].forEach(function (key) {
+        attributionKeys.forEach(function (key) {
             var val = params.get(key);
-            if (val) {
-                try { localStorage.setItem('medca_' + key, val); } catch (e) {}
-            }
+            if (val) writeStored(key, val);
         });
+
+        // Auto-tagging often sends gclid without UTMs — map to Paid Search–compatible values.
+        if (params.get('gclid') || readStored('gclid')) {
+            if (!params.get('utm_source') && !readStored('utm_source')) writeStored('utm_source', 'google');
+            if (!params.get('utm_medium') && !readStored('utm_medium')) writeStored('utm_medium', 'cpc');
+        } else if (params.get('fbclid') || readStored('fbclid')) {
+            if (!params.get('utm_source') && !readStored('utm_source')) writeStored('utm_source', 'facebook');
+            if (!params.get('utm_medium') && !readStored('utm_medium')) writeStored('utm_medium', 'paid');
+        }
     }
     persistUtmFromUrl();
 
+    function resolvedAttribution() {
+        var params = new URLSearchParams(location.search);
+        var out = {};
+        attributionKeys.forEach(function (key) {
+            out[key] = params.get(key) || readStored(key) || '';
+        });
+        if (out.gclid) {
+            out.utm_source = out.utm_source || 'google';
+            out.utm_medium = out.utm_medium || 'cpc';
+        } else if (out.fbclid) {
+            out.utm_source = out.utm_source || 'facebook';
+            out.utm_medium = out.utm_medium || 'paid';
+        }
+        return out;
+    }
+
+    function fillFormUtmFields() {
+        var attr = resolvedAttribution();
+        document.querySelectorAll('[data-medca-utm-field]').forEach(function (input) {
+            var key = input.getAttribute('data-medca-utm-field');
+            if (!key || !attr[key]) return;
+            if (!input.value) input.value = attr[key];
+        });
+    }
+    fillFormUtmFields();
+    document.addEventListener('DOMContentLoaded', fillFormUtmFields);
+
+    function campaignEventParams(extra) {
+        var attr = resolvedAttribution();
+        return Object.assign({
+            page_path: location.pathname,
+            source: attr.utm_source || undefined,
+            medium: attr.utm_medium || undefined,
+            campaign: attr.utm_campaign || undefined,
+            term: attr.utm_term || undefined,
+            content: attr.utm_content || undefined
+        }, extra || {});
+    }
+
     function ga4Event(name, params) {
         if (typeof gtag !== 'function') return;
-        var payload = Object.assign({ page_path: location.pathname }, params || {});
-        gtag('event', name, payload);
+        gtag('event', name, campaignEventParams(params));
     }
 
     function trackWhatsAppClick(el, href) {
-        var utm = utmFromUrl();
+        var attr = resolvedAttribution();
         var buttonName = el.getAttribute('data-whatsapp-button')
             || (el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 120)
             || 'whatsapp';
@@ -48,10 +95,7 @@
 
         ga4Event('whatsapp_click', {
             button_name: buttonName,
-            phone_number: phone,
-            source: utm.source,
-            campaign: utm.campaign,
-            medium: utm.medium
+            phone_number: phone
         });
         ga4Event('generate_lead', { method: 'whatsapp' });
 
@@ -64,9 +108,9 @@
             destination_url: href,
             phone_number: phone,
             button_name: buttonName,
-            source: utm.source,
-            medium: utm.medium,
-            campaign: utm.campaign,
+            source: attr.utm_source,
+            medium: attr.utm_medium,
+            campaign: attr.utm_campaign,
             page_path: location.pathname,
             meta: {
                 phone_number: phone,
@@ -78,15 +122,15 @@
 
     window.medcaTrack = function (eventType, meta) {
         try {
-            var utm = utmFromUrl();
+            var attr = resolvedAttribution();
             var payload = Object.assign({
                 event_type: eventType,
                 page_path: location.pathname,
                 page_title: document.title,
                 session_fingerprint: fingerprint,
-                source: utm.source || localStorage.getItem('medca_utm_source') || '',
-                medium: utm.medium || localStorage.getItem('medca_utm_medium') || '',
-                campaign: utm.campaign || localStorage.getItem('medca_utm_campaign') || '',
+                source: attr.utm_source || '',
+                medium: attr.utm_medium || '',
+                campaign: attr.utm_campaign || '',
                 meta: meta && meta.meta ? meta.meta : (meta || {})
             }, meta || {});
 
@@ -144,6 +188,7 @@
             var form = e.target.closest('form');
             if (form && !form.dataset.medcaFormStarted) {
                 form.dataset.medcaFormStarted = '1';
+                fillFormUtmFields();
                 var formName = form.getAttribute('name') || form.id || 'form';
                 ga4Event('form_start', { form_name: formName });
                 window.medcaTrack('form_start', { element_label: formName });
@@ -153,6 +198,7 @@
 
     document.addEventListener('submit', function (e) {
         if (e.target && e.target.tagName === 'FORM') {
+            fillFormUtmFields();
             var formName = e.target.getAttribute('name') || e.target.id || 'form';
             ga4Event('form_submit', { form_name: formName });
             window.medcaTrack('form_submit', { element_label: formName });

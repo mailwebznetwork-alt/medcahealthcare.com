@@ -38,6 +38,13 @@ class ApplyUrlRedirects
             $target = url('/'.ltrim($target, '/'));
         }
 
+        // Preserve ad attribution params (gclid, UTMs) across redirects — dropping them
+        // is a common cause of GA4 "Unassigned" Paid Search / campaign traffic.
+        $query = $request->getQueryString();
+        if (is_string($query) && $query !== '') {
+            $target .= (str_contains($target, '?') ? '&' : '?').$query;
+        }
+
         return redirect()->away($target, $status);
     }
 }
