@@ -173,3 +173,15 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Do NOT delete tests without approval.
 
 </laravel-boost-guidelines>
+
+## Cursor Cloud specific instructions
+
+PHP 8.4, Composer, Node 22, and Redis are already on the Cloud Agent image. `install` refreshes Composer and npm dependencies, writes a local `.env`, migrates `database/database.sqlite`, seeds one user when `users` is empty, and runs `npm run build`. `start` starts Redis if needed and runs `php artisan serve --host 0.0.0.0 --port 8000`.
+
+- Open the app at `http://127.0.0.1:8000`. `GET /up` is the health check.
+- Session, cache, and queue use Redis at `127.0.0.1:6379` with `REDIS_CLIENT=predis`. The app will not keep a login session until Redis answers `PING`.
+- `.env.example` sets `APP_URL` to the public site and `SESSION_DOMAIN=.medcahealthcare.in`. Local cookies need `APP_URL=http://127.0.0.1:8000` and `SESSION_DOMAIN=null`. The install script applies those values.
+- Empty database seed: `test@example.com` / `password` (editor, all modules). That account can open `/console`.
+- When `LEAD_API_KEY` is empty, install sets `local-dev-lead-key`. Create a lead with `POST /api/leads` and header `X-API-KEY`.
+- Run `php artisan test --compact`. The suite uses in-memory SQLite. Do not point tests at `database/database.sqlite`; `TestingDatabaseGuard` refuses that while `APP_ENV=testing`.
+- If Laravel cannot find the Vite manifest, run `npm run build`. `composer run dev` starts the HTTP server, queue listener, and Vite together; that is separate from the boot `start` script.
